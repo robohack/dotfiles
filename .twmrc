@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.40	96/10/30 10:07:02 (woods)"
+#ident	"@(#)HOME:.twmrc	2.41	96/12/09 16:56:08 (woods)"
 #
 
 AutoRelativeResize
@@ -920,6 +920,14 @@ function "start-local-mosaic" {
 	f.exec "$LOCAL/bin/Mosaic &"
 }
 
+function "start-pretty-mosaic" {
+	f.exec "$RSH -n pretty.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
+}
+
+function "start-most-mosaic" {
+	f.exec "$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/bin/X11/Mosaic &"
+}
+
 function "start-sometimes-mosaic" {
 	f.exec "$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
 }
@@ -1338,6 +1346,8 @@ menu "www"
 	"WWW Browsers Everywhere!"	f.title
 	"  Mosaic:"			f.nop
 	"@localhost"			f.function "start-local-mosaic"
+	"@pretty"			f.function "start-pretty-mosaic"
+	"@most"				f.function "start-most-mosaic"
 	"@sometimes"			f.function "start-sometimes-mosaic"
 	"@always"			f.function "start-always-mosaic"
 	"@weirdo"			f.function "start-weirdo-mosaic"
