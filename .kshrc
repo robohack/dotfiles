@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	24.1	02/07/04 17:19:32 (woods)"
+#ident	"@(#)HOME:.kshrc	24.2	02/09/17 21:41:27 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -397,6 +397,21 @@ if type setban > /dev/null ; then
 			setban
 			mesg n
 			$SLOGIN ${1+"$@"}
+			setban
+		}
+	fi
+
+	if expr "$(type console)" : '.* is .*/console$' >/dev/null 2>&1 ; then
+		CONSOLE="$(expr "$(type console)" : '.*/\([^/]*\)$')"; export CONSOLE
+		unalias console
+		alias console=_console
+		function _console
+		{
+			trap "trap 1 2 3 15; setban" 1 2 3 15
+			WBANNER="console $*"
+			setban
+			mesg n
+			$CONSOLE ${1+"$@"}
 			setban
 		}
 	fi
