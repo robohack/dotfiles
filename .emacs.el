@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.20	96/06/06 18:47:09 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.21	96/06/09 10:48:32 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1308,7 +1308,7 @@ current emacs server process..."
 	(holiday-float 5 1 -2 "Victoria Day") ; second last Monday
 	(holiday-float 5 1 -1 "Memorial Day Spring Holiday (U.K.)") ; last Monday (?)
 	(holiday-fixed 6 8 "Queen's Birthday (N.Z.)") ; ????
-	(holiday-float 6 1 2 "Aueen's Birthday (A.C.T., NSW, N.T., Qld., S.A.,
+	(holiday-float 6 1 2 "Queen's Birthday (A.C.T., NSW, N.T., Qld., S.A.,
 Tas., Vic., Aust.)")			; ????
 	(holiday-float 6 1 -1 "Fete National (Quebec)") ; last Monday (?)
 	(holiday-fixed 7 14 "Bastille Day")
