@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	7.2	94/02/07 20:51:15 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	7.3	94/02/16 13:15:45 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -608,14 +608,19 @@ current emacs server process..."
 	     (setq mode-name "LispInteraction")
 	     (override-default-variable-settings))))
 
-; Stallman's ideas about formatting C code suck!
+; GNU-Emacs' (Stallman's?) ideas about formatting C code suck!  Let's stick to
+; doing things the good old K&R standard way!!!!
 ;
 (add-hook 'c-mode-hook
 	  (function
 	   (lambda ()
 	     "Private c-mode stuff."
+	     ; damn c-mode is too over-bearing!  It seems to insist re-setting
+	     ; these bindings without regard to the global key map.
 	     (local-set-key "\eh" 'mark-c-function)
 	     (local-set-key "\e\C-h" 'backward-kill-word)
+	     (local-set-key "\C-?" 'delete-char)
+	     (local-set-key "\e\C-?" 'kill-word)
 	     (local-set-key "\e\C-e" 'compile)
 	     (if (elisp-file-in-loadpath-p "c-boxes")
 		 (local-set-key "\eq" 'reindent-c-comment))
