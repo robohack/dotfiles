@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.28	99/10/24 01:50:06 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.29	99/11/17 21:51:35 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -541,6 +541,191 @@ message/rfc822 attachments."
 
 (add-hook 'vm-reply-hook
 	  'citation-set-kill-double-binding)
+
+;;;
+;;; VM fontification support...
+;;;
+
+(defface vm-test-region-face
+  '((((class color)
+      (background dark))
+     (:background "SteelBlue" :stipple "gray3"))
+    (((class color)
+      (background light))
+     (:background "LightSteelBlue" :stipple "gray3"))
+    (((class grayscale)
+      (background dark))
+     (:background "LightGray" :foreground "black" :stipple "gray3"))
+    (((class grayscale)
+      (background light))
+     (:background "DimGray" :foreground "White" :stipple "gray3"))
+    (((class mono)
+      (background dark))
+     (:background "White" :foreground "black" :stipple "gray3"))
+    (((class mono)
+      (background light))
+     (:background "black" :foreground "White" :stipple "gray3"))
+    (t
+     (:background "gray")))
+  "Used for displaying a test region.")
+
+(defface vm-citation-face
+  '((((class color)
+      (background dark))
+     (:foreground "Khaki" :italic t))
+    (((class color)
+      (background light))
+     (:foreground "FireBrick" :italic t))
+    (t
+     (:italic t)))
+  "Face for VM citation contents.")
+
+;; VM header font faces
+
+(defface vm-header-name-face
+  '((((class color)
+      (background dark))
+     (:foreground "White" :bold t))
+    (((class color)
+      (background light))
+     (:foreground "black" :bold t))
+    (t
+     (:bold t)))
+  "Face for VM header names.")
+
+(defface vm-resent-header-name-face
+  '((((class color)
+      (background dark))
+     (:foreground "Red" :bold t :italic t :underline t))
+    (((class color)
+      (background light))
+     (:foreground "Green" :bold t :italic t :underline t))
+    (t
+     (:bold t :italic t :underline t)))
+  "Face for VM From: header contents.")
+
+(defface vm-header-content-face
+  '((((class color)
+      (background dark))
+     (:foreground "White" :italic t))
+    (((class color)
+      (background light))
+     (:foreground "black" :italic t))
+    (t
+     (:italic t)))
+  "Face for generic VM header contents.")
+
+(defface vm-header-from-face
+  '((((class color)
+      (background dark))
+     (:foreground "Red" :bold t :underline t))
+    (((class color)
+      (background light))
+     (:foreground "Green" :bold t :underline t))
+    (t
+     (:bold t :underline t)))
+  "Face for VM From: header contents.")
+
+(defface vm-header-cc-face
+  '((((class color)
+      (background dark))
+     (:foreground "OrangeRed" :bold t :underline t))
+    (((class color)
+      (background light))
+     (:foreground "LimeGreen" :bold t :underline t))
+    (t
+     (:bold t :underline t)))
+  "Face for VM Cc: header contents.")
+
+(defface vm-header-subject-face
+  '((((class color)
+      (background dark))
+     (:foreground "Yellow" :bold t :italic t :underline t))
+    (((class color)
+      (background light))
+     (:foreground "Coral" :bold t :italic t :underline t))
+    (t
+     (:bold t :italic t :underline t)))
+  "Face for VM Subject: header contents.")
+
+;; Note that these REs are matched across the entire buffer
+;;
+;; Unfortunately it doesn't seem very easy to use REs to match full RFC-822
+;; headers.  Ideally multi-line header contents would be matched.  Perhaps this
+;; could be done with the appropriate syntax magic, but I haven't figured that
+;; part out yet.
+;;
+(setq vm-font-lock-keywords
+      '(t
+	("^\\(Subject:\\) \\(.*\\)$"
+	 (1 'vm-header-name-face)
+	 (2 'vm-subject-face))
+        ("^\\(From:\\) \\(.*\\)$"
+	 (1 'vm-header-name-face)
+	 (2 'vm-header-from-face))
+        ("^\\(Reply-To:\\) \\(.*\\)$"
+	 (1 'vm-header-name-face)
+	 (2 'vm-header-from-face))
+        ("^\\(Cc:\\) \\(.*\\)$"
+	 (1 'vm-header-name-face)
+	 (2 'vm-header-cc-face))
+	;; Resent-* headers
+	("^\\(resent-[^ \t\n:]+:\\) \\(.*\\)$"
+	 (1 'vm-resent-header-name-face)
+	 (2 'vm-header-content-face))
+	;; Other headers
+	("^\\([^ \t\n:]+:\\) \\(.*\\)$"
+	 (1 'vm-header-name-face)
+	 (2 'vm-header-content-face))
+ 	;; citations
+        ("^[a-z0-9 \t]*[>|}]\\(.*\\)$"
+	 (1 'vm-citation-face))))
+
+(defun vm-fontify ()
+  (make-local-variable 'font-lock-defaults)
+  ;; fontify with keywords only (no syntax spec) and ignore case
+  (setq font-lock-defaults '(vm-font-lock-keywords t t))
+  (turn-on-font-lock))
+
+(cond (window-system
+       (add-hook 'vm-mode-hook
+		 'vm-fontify)
+       (add-hook 'vm-presentation-mode-hook
+		 'vm-fontify)
+       (add-hook 'vm-mail-mode-hook
+		 'vm-fontify)
+       (add-hook 'vm-edit-message-hook
+		 'vm-fontify)))
+
+;; This summary stuff is way too CPU intensive when you have as many virtual
+;; folders open as I do (especially on a machine as slow as mine! ;-).
+;;
+;; Summary frame keywords
+;(setq vm-summary-font-lock-keywords
+;      '(("|> [^ ].*"		. font-lock-function-name-face)
+;	("|>   .*"		. font-lock-comment-face)
+;	("\\[list1\\]"		. font-lock-function-name-face)
+;	("company1 \\| company2" . font-lock-function-name-face)
+;	("\\[list2\\]"		. font-lock-variable-name-face)
+;	("\\[list3\\]"		. font-lock-variable-name-face)
+;	("\\[list4\\]"		. font-lock-type-face)
+;	("\\[list5\\]"		. font-lock-comment-face)
+;	("list6||\list7"	. font-lock-keyword-face)))
+
+;(defun vm-summary-fontify ()
+;  (make-local-variable 'font-lock-defaults)
+;  (setq font-lock-defaults '(vm-summary-font-lock-keywords nil nil))
+;  (turn-on-font-lock))
+
+;(cond (window-system
+;       (add-hook 'vm-summary-mode-hook
+;		 'vm-summary-fontify)
+;       (add-hook 'vm-summary-update-hook
+;		 'vm-summary-fontify)
+;       (add-hook 'vm-summary-mode-hook
+;		 'vm-summary-fontify)
+;       (add-hook 'vm-summary-update-hook
+;		 'vm-summary-fontify)))
 
 ;; commented lines indicate changed values....  (from v5.72)
 ;;
