@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	20.4	99/01/27 18:54:23 (woods)"
+#ident	"@(#)HOME:.kshrc	20.5	99/02/17 15:14:35 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -221,7 +221,10 @@ if [ "$id" -eq 0 ] ; then
 :/usr/adm/sulog"
 	fi
 	if [ "$VISUAL" = "emacsclient" ] ; then
-		export VISUAL="emacs"
+		export VISUAL="emacs -nw"
+	fi
+	if [ "$EDITOR" = "emacsclient" ] ; then
+		export EDITOR="emacs -nw"
 	fi
 elif [ "$uid" != "$LOGNAME" ] ; then
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
