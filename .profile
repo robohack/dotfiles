@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	8.16	95/06/08 10:45:55 (woods)"
+#ident	"@(#)HOME:.profile	8.17	95/06/25 20:39:34 (woods)"
 
 #
 # Assumptions:
@@ -548,7 +548,7 @@ elif [ -r $HOME/.shlogin ] ; then
 	if [ -r $HOME/.shlogin ] ; then
 		. $HOME/.shlogin
 		# TODO: maybe this should be done last?
-		if [ -n "$ENV" ] ; then
+		if [ -n "$ENV" -a -r "$ENV" ] ; then
 			. $ENV
 		else
 			if [ "$LOGNAME" = root ] ; then
