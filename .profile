@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	9.18	96/11/20 19:40:05 (woods)"
+#ident	"@(#)HOME:.profile	9.19	97/01/14 11:54:27 (woods)"
 
 #
 # Assumptions:
@@ -217,11 +217,7 @@ if [ ! -d $LOCAL/share/man ] ; then
 	dirappend MANPATH $LOCAL/man
 fi
 dirprepend MANPATH $LOCAL/share/man $GNU/man $CONTRIB/man $X11PATH/man
-case "$UUNAME" in
-web | robohack )
-	dirprepend MANPATH $LOCAL/man
-	;;
-esac
+dirappend MANPATH $LOCAL/share/man.tcltk
 
 ISSUN=false; export ISSUN
 if [ -x /usr/bin/sun ] ; then
@@ -237,6 +233,7 @@ if [ -x /usr/bin/sun ] ; then
 		else
 			dirprepend PATH /opt/SUNWspro/bin
 		fi
+		# XXX FIXME: should use OPENWINHOME ???
 		dirappend PATH /usr/openwin/bin /usr/openwin/demo
 		dirappend MANPATH /usr/openwin/share/man
 	fi
