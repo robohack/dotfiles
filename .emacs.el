@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	14.4	94/10/25 19:05:15 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	14.5	94/11/01 11:16:57 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -740,12 +740,14 @@ it could check Status: headers for O, or Forward to in mailboxes."
 ;; to quiet the v19 byte compiler
 (defvar vc-command-messages)
 (defvar vc-initial-comment)
+(defvar vc-checkout-carefully)
 (add-hook 'vc-mode-hook
 	  (function
 	   (lambda ()
 	     "Private vc-mode stuff."
 	     (setq vc-command-messages t)
 	     (setq vc-initial-comment t)
+	     (setq vc-checkout-carefully t)
 	     (add-hook 'vc-checkin-hook
 		       'vc-comment-to-change-log))))
 
