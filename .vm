@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.18	98/05/15 00:09:26 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.19	98/05/23 18:39:08 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -19,6 +19,14 @@
     ;; mail-abbrev-end-of-buffer is useless with signature files.
     (substitute-key-definition 'next-line 'mail-abbrev-next-line
                                mail-mode-map global-map)))
+
+;;; mailcrypt --- a simple interface to message encryption with PGP.
+(if (elisp-file-in-loadpath-p "mailcrypt")
+    (progn
+      (add-hook 'vm-mode-hook 'mc-install-read-mode)
+      (add-hook 'vm-summary-mode-hook 'mc-install-read-mode)
+      (add-hook 'vm-virtual-mode-hook 'mc-install-read-mode)
+      (add-hook 'vm-mail-mode-hook 'mc-install-write-mode)))
 
 ;;; rmime.el --- read MIME messages
 ;; Author: Ray Moody <moody@cray.com>
