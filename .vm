@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	5.1	94/12/20 14:38:50 (woods)"
+;;;#ident	"@(#)HOME:.vm	5.2	94/12/20 15:28:06 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -206,9 +206,17 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;;;   vm-quit-hook nil
       vm-recognize-pop-maildrops "^[^:]+:[^:]+:[^:]+:[^:]+:[^:]+"
 ;;;   vm-reply-hook nil
-      vm-reply-ignored-addresses (list (concat (user-login-name)
-					       "\\($\\|@.*\\."
-					       vm-local-domain-name "$\\)"))
+      vm-reply-ignored-addresses (list (concat "\\("
+					        "\\b"
+						(user-login-name)
+						"\\(\\s \\|$\\)"
+					       "\\|"
+					        "\\b"
+						(user-login-name)
+						"@\\(.*\\.\\)?"
+						vm-local-domain-name
+						"\\([^.]+\\|$\\)"
+					       "\\)")
 					; just me!
       vm-reply-ignored-reply-tos nil
       vm-reply-subject-prefix "Re: "	; please do the standard thing!
@@ -270,9 +278,17 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-summary-show-threads nil
       vm-summary-subject-no-newlines t
       vm-summary-thread-indent-level 2
-      vm-summary-uninteresting-senders (concat (user-login-name)
-					       "\\($\\|@.*\\."
-					       vm-local-domain-name "$\\)")
+      vm-summary-uninteresting-senders (concat "\\("
+					        "\\b"
+						(user-login-name)
+						"\\(\\s \\|$\\)"
+					       "\\|"
+					        "\\b"
+						(user-login-name)
+						"@\\(.*\\.\\)?"
+						vm-local-domain-name
+						"\\([^.]+\\|$\\)"
+					       "\\)")
 					; just me!
       vm-summary-uninteresting-senders-arrow "To: "
       vm-tale-is-an-idiot t		; sounds good to me!
