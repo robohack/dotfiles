@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	16.2	95/03/12 18:01:24 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	16.3	95/04/05 23:51:37 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -30,105 +30,14 @@
 			      (t 19)))
 
 (if (/= init-emacs-type '19)
-    (message "Not running emacs v19 I see -- you'll have trouble with this .emacs!"))
-
-;;;_  - add-hook definition for divergent emacsen
-;;;_   > add-hook (hook function &optional append)
-(load-library "subr")
-(if (not (fboundp 'run-hooks))
-    ;; Hook manipulation functions. (borrowed from newer versions of subr.el)
     (progn
-      (defun run-hooks (&rest hooklist)
-	"Takes hook names and runs each one in turn.  Major mode functions use this.
-Each argument should be a symbol, a hook variable.
-These symbols are processed in the order specified.
-If a hook symbol has a non-nil value, that value may be a function
-or a list of functions to be called to run the hook.
-If the value is a function, it is called with no arguments.
-If it is a list, the elements are called, in order, with no arguments."
-	(while hooklist
-	  (let ((sym (car hooklist)))
-	    (and (boundp sym)
-		 (symbol-value sym)
-		 (let ((value (symbol-value sym)))
-		   (if (and (listp value) (not (eq (car value) 'lambda)))
-		       (let ((functions value))
-			 (while value
-			   (funcall (car value))
-			   (setq value (cdr value))))
-		     (funcall value)))))
-	  (setq hooklist (cdr hooklist))))
-
-      ;; Tell C code how to call this function.
-      (defconst run-hooks 'run-hooks
-	"Variable by which C primitives find the function `run-hooks'.
-Don't change it.")))
-
-(if (not (fboundp 'run-hook-with-args))
-    (defun run-hook-with-args (hook &rest args)
-      "Run HOOK with the specified arguments ARGS.
-HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
-value, that value may be a function or a list of functions to be
-called to run the hook.  If the value is a function, it is called with
-the given arguments and its return value is returned.  If it is a list
-of functions, those functions are called, in order,
-with the given arguments ARGS.
-It is best not to depend on the value return by `run-hook-with-args',
-as that may change."
-      (and (boundp hook)
-	   (symbol-value hook)
-	   (let ((value (symbol-value hook)))
-	     (if (and (listp value) (not (eq (car value) 'lambda)))
-		 (mapcar '(lambda (foo) (apply foo args))
-			 value)
-	       (apply value args))))))
-
-(if (not (fboundp 'add-hook))
-    (defun add-hook (hook function &optional append)
-      "Add to the value of HOOK the function FUNCTION.
-FUNCTION is not added if already present.
-FUNCTION is added (if necessary) at the beginning of the hook list
-unless the optional argument APPEND is non-nil, in which case
-FUNCTION is added at the end.
-
-HOOK should be a symbol, and FUNCTION may be any valid function.  If
-HOOK is void, it is first set to nil.  If HOOK's value is a single
-function, it is changed to a list of functions."
-      (or (boundp hook) (set hook nil))
-      ;; If the hook value is a single function, turn it into a list.
-      (let ((old (symbol-value hook)))
-	(if (or (not (listp old)) (eq (car old) 'lambda))
-	    (set hook (list old))))
-      (or (if (consp function)
-	      (member function (symbol-value hook))
-	    (memq function (symbol-value hook)))
-	  (set hook
-	       (if append
-		   (nconc (symbol-value hook) (list function))
-		 (cons function (symbol-value hook)))))))
-
-(if (not (fboundp 'remove-hook))
-    (defun remove-hook (hook function)
-      "Remove from the value of HOOK the function FUNCTION.
-HOOK should be a symbol, and FUNCTION may be any valid function.  If
-FUNCTION isn't the value of HOOK, or, if FUNCTION doesn't appear in the
-list of hooks to run in HOOK, then nothing is done.  See `add-hook'."
-      (if (or (not (boundp hook))	;unbound symbol, or
-	      (null (symbol-value hook)) ;value is nil, or
-	      (null function))		;function is nil, then
-	  nil				;Do nothing.
-	(let ((hook-value (symbol-value hook)))
-	  (if (consp hook-value)
-	      (setq hook-value (delete function hook-value))
-	    (if (equal hook-value function)
-		(setq hook-value nil)))
-	  (set hook hook-value)))))
+      (message "Not running emacs v19 I see -- you'll have trouble with this .emacs!")
+      (sit-for 5)))
 
 ;;;; ----------
 ;;;; What to do after this file has been loaded...
-;; to quiet the v19 byte compiler
-(defvar display-time-24hr-format)
-(defvar display-time-interval)
+(defvar display-time-24hr-format)	; to quiet the v19 byte compiler
+(defvar display-time-interval)		; to quiet the v19 byte compiler
 (add-hook 'after-init-hook
 	  (function
 	   (lambda ()
@@ -139,15 +48,6 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 	       ;; (require 'time)	; this isn't provided by time.el!
 	       (setq display-time-day-and-date t) ; autoload'ed though
 	       (setq display-time-24hr-format t)
-	       (if (not (string=
-			 (substring rmail-spool-directory
-				    (- (length rmail-spool-directory) 1))
-			 "/"))
-		   ;; damn, but 19.28's time.el seems incompatible with the
-		   ;; supplied default setting of rmail-spool-directory
-		   (setq rmail-spool-directory (concat
-						rmail-spool-directory
-						"/")))
 	       (if (or (string-equal (system-name) "robohack")
 		       (string-equal (system-name) "web"))
 		   (setq display-time-interval 300)) ; poor little machines....
@@ -255,7 +155,7 @@ directory in the list PATHLIST, otherwise nil."
 ;;;; ----------
 ;;;; Set defaults of other buffer-local variables
 
-(setq-default case-fold-search nil)	; V-19 will fix this even better
+(setq-default case-fold-search nil)	; unless set, don't ignore case
 (setq-default indent-tabs-mode t)	; allow tabs in indentation
 (setq-default require-final-newline 1)	; needed by some unix programs
 
@@ -283,7 +183,7 @@ directory in the list PATHLIST, otherwise nil."
 (setq compilation-window-height 10)	; default height for a compile window
 (setq default-tab-width 8)		; a tab is a tab is a tab is a tab....
 (setq delete-auto-save-files t)		; delete auto-save file when saved
-(setq enable-local-variables t)		; (is this the default in v19?)
+(setq enable-local-variables 1)		; non-nil, non-t means query...
 (setq make-backup-files nil)		; too much clutter
 (setq next-line-add-newlines nil)	; I hate it when it does that!  ;-)
 (setq track-eol nil)			; too hard to control (it's sticky!)
@@ -343,17 +243,17 @@ directory in the list PATHLIST, otherwise nil."
 ;;;; special setup!
 
 (eval-and-compile
-  (and (fboundp 'setenv)
-       ;; Set the PATH environment variable from the exec-path so
-       ;; that child processes will inherit anything emacs uses.
-       (setenv "PATH"
-               (mapconcat
-                '(lambda (string) string)
-                exec-path
-                ":"))
-       ;; So that subprocesses will use emacs for editing.
-       (setenv "EDITOR" "emacsclient")
-       (setenv "VISUAL" "emacsclient")))
+  (progn
+    ;; Set the PATH environment variable from the exec-path so
+    ;; that child processes will inherit anything emacs uses.
+    (setenv "PATH"
+	    (mapconcat
+	     '(lambda (string) string)
+	     exec-path
+	     ":"))
+    ;; So that subprocesses will use emacs for editing.
+    (setenv "EDITOR" "emacsclient")
+    (setenv "VISUAL" "emacsclient")))
 
 ;;;; ----------
 ;;;; some useful functions....
@@ -727,18 +627,20 @@ suffixes `.elc' or `.el' to the specified name FILE."
       (require 'server)
       (setq server-temp-file-regexp
 	    "/tmp/Re\\|/draft$\\|/\\.letter$\\|/\\.article$/\\|/tmp/[^/]*\\.ed\\|/tmp/[^/]*nf")
-      ;; From: qhslali@aom.ericsson.se (Lars Lindberg EHS/PBE 80455 2122 { tom
-      ;;	-> 940531  ansv. EHS/PBE Christer Nilsson })
-      ;; Message-Id: <9402170914.AA18291@aom.ericsson.se>
-      ;; Subject: [19.22] emacsclient server should have a hook for kill-buffer
-      (add-hook 'server-visit-hook
-		(function
-		 (lambda ()
-		   (add-hook 'kill-buffer-hook
-			     (function
-			      (lambda ()
-				(server-buffer-done
-				 (current-buffer))))))))
+;;;      ;; From: qhslali@aom.ericsson.se (Lars Lindberg EHS/PBE 80455 2122 { tom
+;;;      ;;	-> 940531  ansv. EHS/PBE Christer Nilsson })
+;;;      ;; Message-Id: <9402170914.AA18291@aom.ericsson.se>
+;;;      ;; Subject: [19.22] emacsclient server should have a hook for kill-buffer
+;;; This doesn't seem to work right -- it causes an infinite loop....
+;;;      (add-hook 'server-visit-hook
+;;;		(function
+;;;		 (lambda ()
+;;;		   (add-hook 'kill-buffer-hook
+;;;			     (function
+;;;			      (lambda ()
+;;; perhaps this should be wrapped with something that returns nil....
+;;;				(server-buffer-done
+;;;				 (current-buffer))))))))
       (defun server-really-exit ()	; for those times we forget
 	"Query user if he really wants to exit since this will destroy the
 current emacs server process..."
@@ -813,6 +715,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 ;;; GNU-Emacs' (Stallman's?) ideas about formatting C code suck!  Let's stick to
 ;;; doing things the good old K&R standard way!!!!
 ;;;
+;;; FIXME -- do something with comment formatting, also see awk-mode-hook.
 (add-hook 'c-mode-hook
 	  (function
 	   (lambda ()
