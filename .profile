@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	4.1	94/03/25 18:33:37 (woods)"
+#ident	"@(#)HOME:.profile	4.2	94/03/28 20:33:14 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -285,7 +285,7 @@ toile | wombat )
 * )
 	echo "Re-setting terminal preferences...."
 	stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
-	TERM=`tset -r - -m vt102:vt102 -m dmd:dmd -m sun:sun -m xterm:xterm -m at386:at386 -m AT386:at386 -m :?$TERM`
+	TERM=`tset -r - -m dmd:dmd -m sun:sun -m xterm:xterm -m at386:at386 -m AT386:at386 -m :?$TERM`
 	case $TTY in
 	/dev/tty[p-zP-Z]* | /dev/vt* | /dev/console )
 		echo "Setting up an 8-bit tty environment...."
