@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	21.2	99/12/06 14:43:38 (woods)"
+;;;#ident	"@(#)HOME:.vm	21.3	00/01/04 20:37:31 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -24,18 +24,19 @@
                                mail-mode-map global-map)))
 
 ;; Thanks to John Owens <owens@graphics.stanford.edu>
-;(defvar mail-x-face-file "~/.face"
-;  "Name of file containing contents for X-Face header")
-;(defun mail-insert-x-face ()
-;  "Insert an X-Face header containing the contents of mail-x-face-file."
-;  (if (file-exists-p mail-x-face-file)
-;      (save-excursion 
-;	(goto-char (point-min))
-;	(search-forward mail-header-separator)
-;	(beginning-of-line nil)
-;	(insert "X-Face:")
-;	(insert-file mail-x-face-file))))
-;(add-hook 'mail-setup-hook 'mail-insert-x-face)
+;;
+(defvar mail-x-face-file "~/.face"
+  "Name of file containing contents for X-Face header")
+(defun mail-insert-x-face ()
+  "Insert an X-Face header containing the contents of mail-x-face-file."
+  (if (file-exists-p mail-x-face-file)
+      (save-excursion 
+	(goto-char (point-min))
+	(search-forward mail-header-separator)
+	(beginning-of-line nil)
+	(insert "X-Face:")
+	(insert-file mail-x-face-file))))
+(add-hook 'mail-setup-hook 'mail-insert-x-face)
 
 ;;; mailcrypt --- a simple interface to message encryption with PGP.
 (if (elisp-file-in-loadpath-p "mailcrypt")
@@ -454,6 +455,15 @@ vm-primary-inbox."
 
 (add-hook 'vm-mail-mode-hook
 	  (function (lambda () (local-set-key "\C-ci" 'ispell-message))))
+
+(setq ispell-message-text-end
+      (mapconcat (function identity)
+		 (list ispell-message-text-end
+		       "^-- $"		; XXX this is in orig, but it's not!
+		       "^-----BEGIN PGP " ; PGP 
+		       "&This is a[-A-Z0-9 ]+digest" ; digest
+		       )
+		 "\\|"))
 
 (require 'advice)
 (defadvice vm-summarize (after my-vm-summarize activate)
