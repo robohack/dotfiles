@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	11.2	94/03/25 19:13:33 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	11.3	94/03/25 19:32:33 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -594,7 +594,7 @@ suffixes `.elc' or `.el' to the specified name FILE."
 ;;;; some special hooks.....
 
 (if (string-equal (getenv "VISUAL") "emacsclient")
-    (progn
+    (dont-compile
       (require 'server)
       ;; I *USUALLY* EXPECT THE BACKSPACE KEY TO GENERATE AN ASCII BACKSPACE!
       (define-key function-key-map [backspace] [8])
@@ -631,7 +631,7 @@ current emacs server process..."
 ;;; Subject: Re: Quick routine to BOLDFACE directories in DIRED buffers
 ;;;
 (if window-system
-    (progn
+    (dont-compile
       (require 'font-lock)
       (add-hook 'dired-mode-hook
 		(function (lambda ()
@@ -922,26 +922,26 @@ current emacs server process..."
 ;;; can see, it's quite short (shorter than this paragraph, okay), but I
 ;;; have hardly touched my mouse since I started using it :-)
 ;;; 
-(if window-system
-    (progn
-      (global-set-key "\C-co" 'keyboard-focus-next-or-previous-frame)
-      ;;
-      (defun keyboard-focus-next-or-previous-frame (parg)
-	"Switch the focus to the next logical frame (and raise that frame to
-the front).  Keyboard input will go to the newly selected frame.
-Prefix ARG means go to previous frame, not next frame.
-The mouse cursor will not follow you, which is kind of a weird
-feeling, but you'll get used to it."
-	(interactive "P")
-	(let* ((nowframe (selected-frame))
-	       (nextframe (if parg (previous-frame) (next-frame)))
-	       (visip (frame-visible-p nextframe)))
-	  (and visip
-	       (progn
-		 (select-frame nextframe)
-		 (if (eq visip 'icon) (iconify-or-deiconify-frame))
-		 (redirect-frame-focus nowframe nextframe)
-		 (raise-frame nextframe)))))))
+;;; (if window-system
+;;;     (progn
+;;;       (global-set-key "\C-co" 'keyboard-focus-next-or-previous-frame)
+;;;       ;;
+;;;       (defun keyboard-focus-next-or-previous-frame (parg)
+;;; 	"Switch the focus to the next logical frame (and raise that frame to
+;;; the front).  Keyboard input will go to the newly selected frame.
+;;; Prefix ARG means go to previous frame, not next frame.
+;;; The mouse cursor will not follow you, which is kind of a weird
+;;; feeling, but you'll get used to it."
+;;; 	(interactive "P")
+;;; 	(let* ((nowframe (selected-frame))
+;;; 	       (nextframe (if parg (previous-frame) (next-frame)))
+;;; 	       (visip (frame-visible-p nextframe)))
+;;; 	  (and visip
+;;; 	       (progn
+;;; 		 (select-frame nextframe)
+;;; 		 (if (eq visip 'icon) (iconify-or-deiconify-frame))
+;;; 		 (redirect-frame-focus nowframe nextframe)
+;;; 		 (raise-frame nextframe)))))))
 
 ;;; Based on suggestions by David G. Grubbs <dgg@ksr.com> and Paul Palmer
 ;;; <palmerp@math.orst.edu>.
