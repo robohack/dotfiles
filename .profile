@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	3.2	94/03/01 14:37:06 (woods)"
+#ident	"@(#)HOME:.profile	3.3	94/03/08 17:04:52 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -11,6 +11,21 @@ fi
 
 if [ -z "$UUNAME" ] ; then
 	UUNAME="`uuname -l`" ; export UUNAME
+fi
+
+if [ -z "$DOMAINNAME" ] ; then
+	if expr "`type domainname`" : '.* is .*/domainname$' >/dev/null 2>&1 ; then
+		DOMAINNAME="`domainname`" ; export DOMAINNAME
+	else
+		case "$UUNAME" in
+		kuma )
+			DOMAINNAME=".web.net" ; export DOMAINNAME
+			;;
+		* )
+			DOMAINNAME=".UUCP" ; export DOMAINNAME
+			;;
+		esac
+	fi
 fi
 
 if [ -z "$TTY" ] ; then
