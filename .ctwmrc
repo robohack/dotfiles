@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	1.7	97/12/03 11:43:20 (woods)"
+#ident	"@(#)HOME:.ctwmrc	1.8	97/12/03 11:55:46 (woods)"
 #
 
 AutoRelativeResize
@@ -655,7 +655,7 @@ menu "monitors"
 	"xbiff"			!"xbiff -rv -bw 0 &"
 	"xbiff @x11server"	!"$ONX11SERVER $X11BIN/xbiff -rv -bw 0 -display $DISPLAY &"
 	"xlbiff"		!"xlbiff &"
-	"xbuffy"		!"xbuffy -geometry 100x25-0+250 -shortnames -header 5 -acmd '/opt/games/bin/auplay /local/audio/newmail1.au' &"
+	"xbuffy"		!"xbuffy -geometry 100x25-0+250 -shortnames -header 0 -acmd '/opt/games/bin/auplay /local/audio/newmail1.au' &"
 	"xbuffy @x11server"	!"$ONX11SERVER $X11BIN/xbuffy -mail $MAILPATH -display $DISPLAY -geometry 100x25-0+250 -shortnames -header 0 -acmd '/opt/games/bin/auplay /local/audio/newmail1.au' &"
 	""			f.separator
 	"xload"			!"xload -geometry 120x130-200+0 -hl grey90 &"
