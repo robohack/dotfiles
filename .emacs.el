@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.18	96/02/20 00:36:44 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.19	96/03/08 09:46:01 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -226,7 +226,6 @@ directory in the list PATHLIST, otherwise nil."
        '(("/[^/]+\\.d$" . nroff-mode))		; documentation file
        '(("/[^/]+\\.m[mes]?$" . nroff-mode))	; mm, me, ms docs
        '(("/[^/]+\\.t[imes]*$" . nroff-mode))	; as above, but w/leading 't'
-       '(("/[^/]+\\.lout$" . text-mode))	; need a lout-mode!
        '(("/[^/]*[rR][eE][aA][dD][^/]*$" . indented-text-mode))
        '(("/[^/]*[iI][nN][sS][tT][aA][lL][lL][^/]*$" . indented-text-mode))
        '(("/[^/]*\\.article.*$" . indented-text-mode))
@@ -255,7 +254,15 @@ directory in the list PATHLIST, otherwise nil."
 	   auto-mode-alist)))
 
 ;; assume the autoloads are done for this...
-(if (elisp-file-in-loadpath-p "ksh-mode")
+(if (elisp-file-in-loadpath-p "lout-mode")
+    (setq auto-mode-alist
+	  (append
+	   '(("/[^/]+\\.lout$" . lout-mode))
+	   auto-mode-alist)))
+
+;; assume the autoloads are done for this...
+(if (and (elisp-file-in-loadpath-p "ksh-mode")
+	 (not (elisp-file-in-loadpath-p "sh-mode")))
     (setq auto-mode-alist
 	  (append
 	   '((".*rc[^/]*$" . ksh-mode))
@@ -263,6 +270,18 @@ directory in the list PATHLIST, otherwise nil."
 	   '(("[-\\.]ksh[^/]*$" . ksh-mode))
 	   '(("[-\\.]sh[^/]*$" . ksh-mode))
 	   '(("\\.[^/]*profile" . ksh-mode))
+	   auto-mode-alist)))
+
+;; the real thing, in 19.30?
+;; assume the autoloads are done for this...
+(if (elisp-file-in-loadpath-p "sh-mode")
+    (setq auto-mode-alist
+	  (append
+	   '((".*rc[^/]*$" . sh-mode))
+	   '(("[-\\.]ash[^/]*$" . sh-mode))
+	   '(("[-\\.]ksh[^/]*$" . sh-mode))
+	   '(("[-\\.]sh[^/]*$" . sh-mode))
+	   '(("\\.[^/]*profile" . sh-mode))
 	   auto-mode-alist)))
 
 ;; assume the autoloads are done for this...
