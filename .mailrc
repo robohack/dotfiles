@@ -1,7 +1,7 @@
-# ident	"@(#)HOME:.mailrc  19.8    98/04/03 20:10:22 (woods)"
 #
 #	.mailrc - for mailx and emacs-VM
 #
+# ident	"@(#)HOME:.mailrc  19.9    98/04/25 22:46:04 (woods)"
 
 set keep
 set keepsave
@@ -29,8 +29,16 @@ alias netbsd-current	"current-users@NetBSD.ORG (NetBSD-current Discussion List)"
 alias mush-users	"mush-users-request@garp.mit.edu (Mush Users)"
 alias port-alpha	"port-alpha@NetBSD.ORG (NetBSD/alpha Discussion List)"
 alias port-i386		"port-i386@NetBSD.ORG (NetBSD/i386 Discussion List)"
+alias port-pmax		"port-pmax@NetBSD.ORG (NetBSD/pmax Discussion List)"
 alias port-sparc	"port-sparc@NetBSD.ORG (NetBSD/sparc Discussion List)"
 alias port-sun3		"port-sun3@NetBSD.ORG (NetBSD/sun3 Discussion List)"
+alias tech-install	"tech-install@NetBSD.ORG (NetBSD Install Process Technical Discussion List)"
+alias tech-kern		"tech-kern@NetBSD.ORG (NetBSD Kernel Technical Discussion List)"
+alias tech-net		"tech-net@NetBSD.ORG (NetBSD Networking Technical Discussion List)"
+alias tech-ports	"tech-ports@NetBSD.ORG (NetBSD Porting Technical Discussion List)"
+alias tech-security	"tech-security@NetBSD.ORG (NetBSD Security Technical Discussion List)"
+alias tech-toolchain	"tech-toolchain@NetBSD.ORG (NetBSD Toolchain Technical Discussion List)"
+alias tech-userlevel	"tech-userlevel@NetBSD.ORG (NetBSD Userlevel Technical Discussion List)"
 alias smail3-maintainers "smail3-maintainers@smail.sbay.org (Smail-3 Maintainers Mailing List)"
 alias smail3-wizards	"smail3-wizards@cs.athabascau.ca (Smail-3 Wizards Mailing List)"
 alias smail3-users	"smail3-users@cs.athabascau.ca (Smail-3 Users Mailing List)"
