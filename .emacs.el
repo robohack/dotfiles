@@ -1,12 +1,11 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	23.2	02/06/03 22:59:30 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	23.3	02/06/03 23:00:45 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
-;;;; primarily tested on v20.3, but now almost working on v20.7 and
-;;;; v21.0.90-pretest!
+;;;; primarily tested on v21.2
 ;;;;
 
 ;;; This file should be stored in "~/.emacs.el".
