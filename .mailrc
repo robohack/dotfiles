@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	24.1	02/07/04 17:19:31 (woods)"
+# ident	"@(#)HOME:.mailrc	24.2	02/07/05 15:43:12 (woods)"
 
 # NOTE: Comments (lines with a leading '#') must have whitespace after the '#'
 
@@ -127,7 +127,7 @@ alias dick	"rhl@the-wire.com (R. H. Lathwell)"
 alias drek	"Agent Drek <drek@smashpow.net>"
 alias dtw	"dtw@rom.on.ca (Deirdre Taylor-Wright)"
 alias dumais	"dumais@mad.scientist.com (Paul E. Dumais)"
-alias dwm	"david@fundy.ca (David Maxwell)"
+alias dwm	"david@vex.net (David Maxwell)"
 alias ecarroll	"ecarroll@rogers.wave.ca (Eric M. Carroll)"
 alias eric.carroll "eric.carroll@acm.org (Eric M. Carroll)"
 alias evan	"evan@telly.ca (Evan Leibovitch)"
@@ -135,7 +135,8 @@ alias georgn    "georgn@somanetworks.com (Georg Nikodym)"
 alias gil	"gilh@somanetworks.com (Gil Hauer)"
 alias heison	"heison@somanetworks.com (Heison Chak)"
 alias henry	"henry@utzoo.cs.utoronto.ca (Henry Spencer)"
-alias hugh	"Hugh_Gamble@iceinc.com"
+alias hughg	"hugh@phaedrav.com (Hugh Gamble)"
+alias hughr	"hugh@mimosa.com (Hugh Redelmeier)"
 alias jeff	"jeff@aci.on.ca (Jeff Royle)"
 alias jerqs	"jerqs@clsc.utoronto.ca (jerq users)"
 alias jim	"jim@reptiles.org (Jim Mercer)"
