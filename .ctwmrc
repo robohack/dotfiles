@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	1.10	97/12/10 15:41:37 (woods)"
+#ident	"@(#)HOME:.ctwmrc	1.11	97/12/11 01:41:29 (woods)"
 #
 
 # Ideas on how to use more powerful M4 processing on this file:
@@ -1007,8 +1007,10 @@ menu "rlogin-infoshare"
 menu "slogin-infoshare"
 {
 	"Slogin's At Infoshare.net" f.title
-	"Slogin @quicksilver"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C quicksilver.infoshare.net &"
-	"Slogin @cyberia"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C cyberia.infoshare.net &"
+	"Slogin @quicksilver"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -C quicksilver.infoshare.net &"
+	"Slogin @cyberia"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -C cyberia.infoshare.net &"
+	"Slogin @cola"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -C cola.infoshare.net &"
+	"Slogin @mercury"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -C mercury.infoshare.net &"
 }
 
 menu "rlogin-proxy"
