@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	5.2	94/05/10 12:28:25 (woods)"
+#ident	"@(#)HOME:.profile	5.3	94/05/10 12:44:09 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -362,23 +362,29 @@ if expr "`type xinit`" : '.* is .*/xinit$' >/dev/null 2>&1 ; then
 fi
 
 if $HAVEX && [ "`tty`" = "/dev/console" ] ; then
-	trap '' 2
-	echo "\nDo you want to start X? ([y]/n) \c"
-	read yn
-	trap 2
-	case "$yn" in
-	"" | [yY]*)
-		TRNINIT="$HOME/.trninitX" ; export TRNINIT
+	case "$TERM" in
+	sun|pc3|at386|AT386)
 		trap '' 2
-		xinit
-		tput clear
-		$HAVEFORTUNE && fortune
-		exec sleep 1
+		echo "\nDo you want to start X? ([y]/n) \c"
+		read yn
+		trap 2
+		case "$yn" in
+			"" | [yY]*)
+			TRNINIT="$HOME/.trninitX" ; export TRNINIT
+			trap '' 2
+			xinit
+			tput clear
+			$HAVEFORTUNE && fortune
+			exec sleep 1
+			;;
+		*)
+			if $HAVEMONTH && [ -r .month ] ; then
+				monthd -i5
+			fi
+			;;
+		esac
 		;;
 	*)
-		if $HAVEMONTH && [ -r .month ] ; then
-			monthd -i5
-		fi
 		;;
 	esac
 fi
