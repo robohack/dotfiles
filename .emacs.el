@@ -1,12 +1,18 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.22	96/09/23 19:49:41 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.23	96/09/27 02:34:16 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
+;;;; primarily tested on v19.28 and v19.34.
+;;;;
 
-;;; to debug, eval (^X^E) these after "emacs -q":
+;;; This file should be stored in "~/.emacs.el".
+;;; Saving it will normally compile it into "~/.emacs.elc".
+;;; Make a (symbolic) link from "~/.emacs" to "~/.emacs.elc" to use it.
+
+;;; to debug, eval (^X^E) these after starting with "emacs -q":
 ;;;
 ;;; (setq debug-on-error t)
 ;;; (load-file "~/.emacs.el")
@@ -23,11 +29,13 @@
 ;;;; ----------
 ;;;; stolen from cl.el -- find out where we are!
 
-(defvar init-emacs-type (cond ((or (and (fboundp 'epoch::version)
-					(symbol-value 'epoch::version))
-				   (string-lessp emacs-version "19")) 18)
-			      ((string-match "Lucid" emacs-version) 'lucid)
-			      (t 19)))
+(defvar init-emacs-type
+  (cond ((or (and (fboundp 'epoch::version)
+		  (symbol-value 'epoch::version))
+	     (string-lessp emacs-version "19")) 18)
+	((string-match "Lucid" emacs-version) 'lucid)
+	(t 19))
+  "Emacs major version for testing compatibility.")
 
 (if (/= init-emacs-type '19)
     (progn
@@ -49,7 +57,7 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 	       (setq display-time-day-and-date t) ; autoload'ed though
 	       (setq display-time-24hr-format t)
 	       (if (or (string-equal (system-name) "robohack")
-		       (string-equal (system-name) "web"))
+		       (string-equal (system-name) "very.weird.com"))
 		   (setq display-time-interval 300)) ; poor little machines....
 	       (display-time)		; also autoload'ed
 	       ;;
@@ -58,7 +66,7 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 	       ;; To: bug-gnu-emacs@prep.ai.mit.edu
 	       ;; Date: Mon, 08 Jan 1996 13:16:19 EST
 	       ;; Subject: resize-minibuffer-mode should be on by default
-	       ;; 
+	       ;;
 	       ;; I just stumbled upon resize-minibuffer-mode (in Emacs 19.26-19.30);
 	       ;; it is very nice.
 	       ;;
@@ -153,15 +161,14 @@ directory in the list PATHLIST, otherwise nil."
 ;;; Date: 10 Sep 1996 18:54:11 -0700
 ;;; Subject: Re: configuring SMPT server
 ;;;
-(if (elisp-file-in-loadpath-p "smtpmail")
-    (progn
-      (defvar vm-local-domain-name)	; to quiet the v19 byte compiler
-      (setq send-mail-function 'smtpmail-send-it)
-      (setq smtpmail-default-smtp-server (concat "mail" vm-local-domain-name))
-      (setq smtpmail-smtp-service "smtp")
-      (setq smtpmail-local-domain vm-local-domain-name)
-      
-      (require 'smtpmail)))
+;(if (elisp-file-in-loadpath-p "smtpmail")
+;    (progn
+;      (defvar vm-local-domain-name)	; to quiet the v19 byte compiler
+;      (setq send-mail-function 'smtpmail-send-it)
+;      (setq smtpmail-default-smtp-server (concat "mail" vm-local-domain-name))
+;      (setq smtpmail-smtp-service "smtp")
+;      (setq smtpmail-local-domain vm-local-domain-name)
+;      (require 'smtpmail)))
 
 ;;;; ----------
 ;;;; some property defintions...
@@ -218,6 +225,7 @@ directory in the list PATHLIST, otherwise nil."
 (setq enable-local-variables 1)		; non-nil, non-t means query...
 (setq make-backup-files nil)		; too much clutter
 (setq next-line-add-newlines nil)	; I hate it when it does that!  ;-)
+(setq search-highlight 1)		; not sure when this begins to work
 (setq track-eol nil)			; too hard to control (it's sticky!)
 (setq window-min-height 1)		; don't be snobbish
 (setq window-min-width 1)
@@ -226,10 +234,11 @@ directory in the list PATHLIST, otherwise nil."
 	      completion-ignored-extensions))
 
 (if window-system
-    (setq search-highlight t))		; i-search hightlight match
-
-(if window-system
     (setq baud-rate 153600))		; let's make things more efficient
+
+(if (and (string-match "-sunos4" system-configuration)
+	 (string-match "/bin/sh$" shell-file-name))
+    (setq cannot-suspend t))		; no jobs support!  ;-)
 
 ;;;; ----------
 ;;;; auto-mode-alist setup
@@ -281,7 +290,7 @@ directory in the list PATHLIST, otherwise nil."
 
 ;; assume the autoloads are done for this...
 (if (and (elisp-file-in-loadpath-p "ksh-mode")
-	 (not (elisp-file-in-loadpath-p "sh-mode")))
+	 (not (elisp-file-in-loadpath-p "sh-script")))
     (setq auto-mode-alist
 	  (append
 	   '((".*rc[^/]*$" . ksh-mode))
@@ -291,17 +300,16 @@ directory in the list PATHLIST, otherwise nil."
 	   '(("\\.[^/]*profile" . ksh-mode))
 	   auto-mode-alist)))
 
-;; the real thing, in 19.30?
-;; assume the autoloads are done for this...
-(if (elisp-file-in-loadpath-p "sh-mode")
-    (setq auto-mode-alist
-	  (append
-	   '((".*rc[^/]*$" . sh-mode))
-	   '(("[-\\.]ash[^/]*$" . sh-mode))
-	   '(("[-\\.]ksh[^/]*$" . sh-mode))
-	   '(("[-\\.]sh[^/]*$" . sh-mode))
-	   '(("\\.[^/]*profile" . sh-mode))
-	   auto-mode-alist)))
+;; the real thing, in 19.30(?) and above
+(if (elisp-file-in-loadpath-p "sh-script")
+      (setq auto-mode-alist
+	    (append
+	     '((".*rc[^/]*$" . sh-mode))
+	     '(("[-\\.]ash[^/]*$" . sh-mode))
+	     '(("[-\\.]ksh[^/]*$" . sh-mode))
+	     '(("[-\\.]sh[^/]*$" . sh-mode))
+	     '(("\\.[^/]*profile" . sh-mode))
+	     auto-mode-alist)))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "vm")
@@ -538,46 +546,39 @@ BUFFER-NAME.  Optional command args to process supplied by ARGS"
 (global-set-key "\^x4\^r" 'find-file-read-only-other-window)
 
 ;;; More stuff stolen from Roland.
-(defun make-interactive (symbol &rest interactive-args)
-  "Make the function definition of SYMBOL an interactive command.
-Remaining arguments, if any, are passed to interactive in the function."
-  (let ((func (symbol-function symbol))
-	interactive)
-    (if (commandp func)
-	(let ((msg (format "%s is already interactively callable." symbol)))
-	  (or (null interactive-args)
-	      (y-or-n-p (concat msg "  Continue? "))
-	      (error msg))))
-    (setq interactive (cons 'interactive interactive-args))
-    (if (subrp func)
-	(setq func
-	      (list 'lambda '(&rest args) (documentation func) interactive
-		    (cons 'eval
-			  (list
-			   (cons '` (list (list 'funcall func '(,@ args))))
-			   ))))
-      (let ((funcar (car func))
-	    (args (car (cdr func)))
-	    doc body)
-	(setq doc (car (cdr (cdr func))))
-	(if (stringp doc)
-	    (setq body (cdr (cdr (cdr func))))
-	  (setq doc nil
-		body (cdr (cdr func))))
-	(setq func
-	      (cons funcar
-		    (if doc (cons args (cons doc (cons interactive body)))
-		      (cons args (cons args (cons interactive body))))))
-	))
-    (fset symbol func)))
-
-(defun override-default-variable-settings ()
-  "User defined function.  Intended to be called within various hooks to
-override the value of buffer-local variables whose default values
-might have been overridden by the major mode."
-  (setq case-fold-search t		; allow case-insensitive searches
-        indent-tabs-mode t		; allow tabs in indentation
-        selective-display nil))		; don't allow selective display
+;(defun make-interactive (symbol &rest interactive-args)
+;  "Make the function definition of SYMBOL an interactive command.
+;Remaining arguments, if any, are passed to interactive in the function."
+;  (let ((func (symbol-function symbol))
+;	interactive)
+;    (if (commandp func)
+;	(let ((msg (format "%s is already interactively callable." symbol)))
+;	  (or (null interactive-args)
+;	      (y-or-n-p (concat msg "  Continue? "))
+;	      (error msg))))
+;    (setq interactive (cons 'interactive interactive-args))
+;    (if (subrp func)
+;	(setq func
+;	      (list 'lambda '(&rest args) (documentation func) interactive
+;		    (cons 'eval
+;			  (list
+;;;; the 19.34 bytecompiler complains that this cons has one argument:
+;			   (cons '` (list (list 'funcall func '(,@ args))))
+;			   ))))
+;      (let ((funcar (car func))
+;	    (args (car (cdr func)))
+;	    doc body)
+;	(setq doc (car (cdr (cdr func))))
+;	(if (stringp doc)
+;	    (setq body (cdr (cdr (cdr func))))
+;	  (setq doc nil
+;		body (cdr (cdr func))))
+;	(setq func
+;	      (cons funcar
+;		    (if doc (cons args (cons doc (cons interactive body)))
+;		      (cons args (cons args (cons interactive body))))))
+;	))
+;    (fset symbol func)))
 
 ;;; From: simonm@plod.ai.mit.edu (Simon Marshall)
 ;;; Reply-To: Simon.Marshall@mail.esrin.esa.it
@@ -766,6 +767,26 @@ suffixes `.elc' or `.el' to the specified name FILE."
       (kill-comment nil)
     ad-do-it))
 
+(defun override-default-variable-settings ()
+  "User defined function.  Intended to be called within various hooks to
+override the value of buffer-local variables whose default values
+might have been overridden by the major mode."
+  (setq case-fold-search t		; allow case-insensitive searches
+        indent-tabs-mode t		; allow tabs in indentation
+        selective-display nil))		; don't allow selective display
+
+(defun override-local-key-settings ()
+  "User defined function.  Intended to be called within various hooks to
+override the value of buffer-local key map settings which may have been
+overridden without consideration by the major mode."
+  (local-set-key "\C-?" 'delete-char)	; many modes
+  ;; the rest are *not* overridden by cc-mode, but are by c-mode
+  (local-set-key "\e\C-h" 'backward-kill-word) ; text-mode
+  (local-set-key "\eh" 'mark-c-function)
+  (local-set-key "\e\C-?" 'kill-word)
+  (local-set-key "\e\C-e" 'compile)
+  )
+
 ;;;; ----------
 ;;;; some special hooks.....
 
@@ -851,46 +872,157 @@ suffixes `.elc' or `.el' to the specified name FILE."
 it could check Status: headers for O, or Forward to in mailboxes."
 		   nil))))))
 
+(add-hook 'emacs-lisp-mode-hook
+	  (function
+	   (lambda ()
+	     "Private emacs-lisp-mode-hook."
+	     (override-local-key-settings)
+	     (override-default-variable-settings))))
+
 (add-hook 'lisp-interaction-mode-hook
 	  (function
 	   (lambda ()
 	     "Private lisp-interaction-mode-hook."
 	     (setq mode-name "LispInteraction")
+	     (override-local-key-settings)
 	     (override-default-variable-settings))))
 
 ;;; GNU-Emacs' (Stallman's?) ideas about formatting C code suck!  Let's stick to
 ;;; doing things the good old K&R standard way!!!!
 ;;;
-;;; FIXME -- do something with comment formatting, also see awk-mode-hook.
-(add-hook 'c-mode-hook
-	  (function
-	   (lambda ()
-	     "Private c-mode stuff."
-	     ;; damn c-mode is too over-bearing!  It seems to insist re-setting
-	     ;; these bindings without regard to the global key map.
-	     (local-set-key "\eh" 'mark-c-function)
-	     (local-set-key "\e\C-h" 'backward-kill-word)
-	     (local-set-key "\C-?" 'delete-char)
-	     (local-set-key "\e\C-?" 'kill-word)
-	     (local-set-key "\e\C-e" 'compile)
-	     (override-default-variable-settings)
-	     (setq fill-column 79)
-	     (setq comment-column 48)
-	     (setq comment-multi-line t)
-	     (setq c-auto-newline nil)
-	     (setq c-argdecl-indent 8)
-	     (setq c-auto-newline nil)
-	     (setq c-brace-offset 0)
-	     (setq c-brace-imaginary-offset 0)
-	     (setq c-continued-statement-offset 8)
-	     (setq c-continued-brace-offset -8)
-	     (setq c-indent-level 8)
-	     (setq c-label-offset -8)
-	     (setq c-tab-always-indent nil))))
+(if (elisp-file-in-loadpath-p "cc-mode")
+    ;; the real thing, in 19.30(?) and above
+    (progn
+      ;; to quiet the v19 byte compiler
+      (defvar c-basic-offset)
+      (defvar c-offsets-alist)
+      (defvar c-block-comments-indent-p)
+      (defvar c-cleanup-list)
+      (defvar c-comment-only-line-offset)
+      (defvar c-backslash-column)
+      (defvar c-delete-function)
+      (defvar c-electric-pound-behavior)
+      (defvar c-hanging-braces-alist)
+      (defvar c-hanging-colons-alist)
+      (defvar c-hanging-comment-ender-p)
+      (defvar c-tab-always-indent)
+      (defvar c-recognize-knr-p)
+      (add-hook 'c-mode-hook
+		(function
+		 (lambda ()
+		   "Private c-mode stuff."
+		   ;; damn c-mode is too over-bearing!  It seems to insist re-setting
+		   ;; these bindings without regard to the global key map.
+		   (override-local-key-settings)
+		   ;; try this on for size...
+		   (local-set-key "\C-x\e\C-e" 'recompile)
+		   (override-default-variable-settings)
+		   (setq fill-column 79)
+		   (setq comment-column 40)
+		   (setq comment-multi-line t)
+		   (setq c-basic-offset 8)	; 2
+		   (setq c-offsets-alist
+			 '((string . -1000)
+			   (c . c-lineup-C-comments)
+			   (defun-open . 0)
+			   (defun-close . 0)
+			   (defun-block-intro . +)
+			   (class-open . 0)
+			   (class-close . 0)
+			   (inline-open . 0) ; +
+			   (inline-close . 0)
+			   (ansi-funcdecl-cont . +)
+			   (knr-argdecl-intro . 8) ; 5
+			   (knr-argdecl . 0)
+			   (topmost-intro . 0)
+			   (topmost-intro-cont . 0)
+			   (member-init-intro . +)
+			   (member-init-cont . 0)
+			   (inher-intro . +)
+			   (inher-cont . c-lineup-multi-inher)
+			   (block-open . 0)
+			   (block-close . 0)
+			   (brace-list-open . 0)
+			   (brace-list-close . 0)
+			   (brace-list-intro . +)
+			   (brace-list-entry . 0)
+			   (statement . 0)
+			   (statement-cont . +)
+			   (statement-block-intro . +)
+			   (statement-case-intro . +)
+			   (statement-case-open . +)
+			   (substatement . +)
+			   (substatement-open . 0) ; +
+			   (case-label . 0)
+			   (access-label . -)
+			   (label . 0)
+			   (do-while-closure . 0)
+			   (else-clause . 0)
+			   (comment-intro . c-lineup-comment)
+			   (arglist-intro . c-lineup-arglist-intro-after-paren)
+			   (arglist-cont . 0)
+			   (arglist-cont-nonempty . c-lineup-arglist)
+			   (arglist-close . c-lineup-arglist)
+			   (stream-op . c-lineup-streamop)
+			   (inclass . +)
+			   (cpp-macro . -1000)
+			   (friend . 0)
+			   (objc-method-intro . -1000)
+			   (objc-method-args-cont . c-lineup-ObjC-method-args)
+			   (objc-method-call-cont . c-lineup-ObjC-method-call)
+			   ))
+		   (setq c-block-comments-indent-p nil)
+		   (setq c-cleanup-list '(scope-operator brace-else-brace)) ; '(scope-operator)
+		   (setq c-comment-only-line-offset '(0 . 0))
+		   (setq c-backslash-column 48)
+		   (setq c-delete-function 'backward-delete-char-untabify)
+		   (setq c-electric-pound-behavior nil) ; 'alignleft would be
+							; nice but it seem to
+							; be broken....
+		   (setq c-hanging-braces-alist '((brace-list-open)
+						  (substatement-open after)
+						  (block-close . c-snug-do-while)))
+		   (setq c-hanging-colons-alist nil)
+		   (setq c-hanging-comment-ender-p nil) ; t
+		   (setq c-tab-always-indent nil)
+		   (setq c-recognize-knr-p t)
+		   (setq defun-prompt-regexp nil)
+		   (setq tab-width 8)
+		   ))))
+  ;; old version for pre-19.34 (i.e. pre cc-mode)
+  (progn
+    (defvar c-auto-newline)
+    (defvar c-argdecl-indent)
+    (defvar c-brace-offset)
+    (defvar c-brace-imaginary-offset)
+    (defvar c-continued-statement-offset)
+    (defvar c-continued-brace-offset)
+    (defvar c-indent-level)
+    (defvar c-label-offset)
+    (add-hook 'c-mode-hook
+	      (function
+	       (lambda ()
+		 "Private c-mode stuff."
+		 ;; damn c-mode is too over-bearing!  It seems to insist re-setting
+		 ;; these bindings without regard to the global key map.
+		 (override-local-key-settings)
+		 ;; try this on for size...
+		 (local-set-key "\C-x\e\C-e" 'recompile)
+		 (override-default-variable-settings)
+		 (setq fill-column 79)
+		 (setq comment-column 40)
+		 (setq comment-multi-line t)
+		 (setq c-auto-newline nil)
+		 (setq c-argdecl-indent 8)
+		 (setq c-brace-offset 0)
+		 (setq c-brace-imaginary-offset 0)
+		 (setq c-continued-statement-offset 8)
+		 (setq c-continued-brace-offset -8)
+		 (setq c-indent-level 8)
+		 (setq c-label-offset -8)
+		 (setq c-tab-always-indent nil)
+		 )))))
 
-;;; GNU-Emacs' (Stallman's?) ideas about formatting C code suck!  Let's stick to
-;;; doing things the good old K&R standard way!!!!
-;;;
 (add-hook 'awk-mode-hook 'c-mode-hook)
 
 ;; to quiet the v19 byte compiler
@@ -914,6 +1046,17 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	     (setq fill-column 79)
 	     (turn-on-auto-fill))))
 
+(add-hook 'isearch-mode-hook
+	  (function
+	   (lambda ()
+	     "Private isearch-mode stuff."
+	     ;;(define-key isearch-mode-map "\C-t" 'isearch-toggle-case-fold)
+	     (define-key isearch-mode-map "\C-t" 'isearch-toggle-regexp)
+	     ;;(define-key isearch-mode-map "\C-e" 'isearch-edit-string)
+	     (define-key isearch-mode-map "\C-h" 'isearch-delete-char)
+	     (define-key isearch-mode-map "\C-\\" 'isearch-repeat-forward)
+	     (define-key isearch-mode-map "\C-^" 'isearch-quote-char))))
+
 (add-hook 'text-mode-hook
 	  (function
 	   (lambda ()
@@ -926,8 +1069,8 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	     (if (equal (buffer-name) "*scratch*")
 		 (emacs-lisp-mode)
 	       (progn
+		 (override-local-key-settings)
 		 (override-default-variable-settings)
-		 (local-set-key "\e\C-h" 'backward-kill-word)
 		 (if (elisp-file-in-loadpath-p "ispell")
 		     (local-set-key "\eS" 'ispell-buffer)
 		   (local-set-key "\eS" 'spell-buffer))
@@ -942,6 +1085,19 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	   (lambda ()
 	     "Private nroff-mode stuff."
 	     (run-hooks 'text-mode-hook))))
+
+;; the real thing, in 19.30(?) and above
+(if (elisp-file-in-loadpath-p "sh-script")
+    (progn
+      ;; to quiet the v19 bytecompiler...
+      (defvar sh-indentation)
+      (add-hook 'sh-mode-hook
+		(function
+		 (lambda ()
+		   "Private sh-mode-hook."
+		   ;;(override-local-key-settings)
+		   (override-default-variable-settings)
+		   (setq sh-indentation 8))))))
 
 ;;;; ----------
 ;;;; more hooks for non-default packages
@@ -1011,7 +1167,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 (global-set-key "\C-?" 'delete-char)
 (global-set-key "\e\C-h" 'backward-kill-word)
 (global-set-key "\e\C-?" 'kill-word)
-(global-set-key "\e?" 'help-command)		; smart enough to set itself up
+(global-set-key "\e?" 'help-command)	; smart enough to set itself up
 
 ;; I *USUALLY* EXPECT THE BACKSPACE KEY TO GENERATE AN ASCII BACKSPACE!
 (define-key function-key-map [backspace] [8])
@@ -1019,9 +1175,11 @@ it could check Status: headers for O, or Forward to in mailboxes."
 (define-key function-key-map [C-backspace] [?\C-h])
 (define-key function-key-map [M-backspace] [?\M-\C-h])
 
-;;; for fingers that forget....
-(global-set-key "\C-\\" 'search-forward)
+;;; for fingers that forget and terminals that are brain-dead....
+(global-set-key "\C-\\" 'isearch-forward)
 (global-set-key "\C-x\C-\\" 'save-buffer)
+(global-set-key "\C-^" 'quoted-insert)
+(global-set-key "\C-x\C-^" 'toggle-read-only)
 
 ;;; much of the remainder is to get back some Jove/Gosmacs comaptability, but
 ;;; without getting it all....
@@ -1058,7 +1216,11 @@ it could check Status: headers for O, or Forward to in mailboxes."
 (global-set-key "\e\C-z" 'suspend-emacs)
 
 (global-set-key "\C-x?" 'describe-key-briefly)
-(global-set-key "\C-x\C-a" 'super-apropos)
+(if (fboundp 'super-apropos)
+    (global-set-key "\C-x\C-a" 'super-apropos)
+  (if (fboundp 'apropos-documentation)
+      (global-set-key "\C-x\C-a" 'apropos-documentation)))
+
 
 (global-set-key "\e," 'top-of-window)		; mirror M-<
 (global-set-key "\e." 'bottom-of-window)	; mirror M->
@@ -1168,7 +1330,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 ;;; Subject: GNU Emacs suggestions/contributions
 ;;; Date: Mon, 17 Apr 1995 10:41:54 -0600 (MDT)
 ;;;
-(if window-system 
+(if window-system
     (progn
       (global-set-key "\C-x51" 'delete-other-frames)))
 ;;;
