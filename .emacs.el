@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	8.2	94/02/18 11:03:51 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	8.2.1.1	94/02/22 13:32:23 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -964,7 +964,7 @@ feeling, but you'll get used to it."
       (setq all-christian-calendar-holidays t)
       (setq other-holidays
 	    '((holiday-fixed 1 11 "Sir John A. Macdonald's birthday")
-	      (holiday-float 2 1 -2 "Heritage Day") ; second last Monday?
+	      (holiday-float 2 1 3 "Heritage Day") ; third Monday
 	      (holiday-fixed 4 21 "Queen Elizabeth's birthday")
 	      (holiday-fixed 4 22 "Earth Day")
 	      (holiday-float 5 1 -2 "Victoria Day") ; second last Monday
