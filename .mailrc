@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc  19.13    98/05/27 23:23:40 (woods)"
+# ident	"@(#)HOME:.mailrc  19.14    98/06/21 14:33:14 (woods)"
 
 set keep
 set keepsave
@@ -26,6 +26,7 @@ alias info-vm		"info-vm@UUnet.UU.net (ViewMail Info Mailing List)"
 alias ipfilter		"ipfilter@postbox.anu.edu.au (IP-Filter Mailing List)"
 alias ip-filter		"ipfilter@postbox.anu.edu.au (IP-Filter Mailing List)"
 alias lout		"lout@ptc.spbu.ru (Lout mailing List)"
+alias netbsd-bugs	"netbsd-bugs@NetBSD.ORG (NetBSD Bugs and PR posting List)"
 alias netbsd-current	"current-users@NetBSD.ORG (NetBSD-current Discussion List)"
 alias mush-users	"mush-users-request@garp.mit.edu (Mush Users)"
 alias port-alpha	"port-alpha@NetBSD.ORG (NetBSD/alpha Discussion List)"
