@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	24.2	02/09/15 12:10:51 (woods)"
+#ident	"@(#)HOME:.xinitrc	24.3	02/11/25 15:18:42 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -283,7 +283,13 @@ if [ "$argv0" = .xinitrc ] ; then
 	xload -geometry 120x50-200+0 -hl grey90 &
 	case $DISPLAY in
 	very.weird.com:*)
+		X11SERVER=${X11SERVER:-"sometimes.weird.com"}
+		ONX11SERVER="$RSH -n $X11SERVER exec"
+		export X11SERVER ONX11SERVER
+		echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
 		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x50-200+58 -hl grey90 &
+		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 		# for the "Main" workspace...
 		xterm -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
 		;;
@@ -364,6 +370,8 @@ very.weird.com:*)
 	$RSH -n sometimes.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	$RSH -n starting-out.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	$RSH -n starting-out.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n most.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n most.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	# oddly using 130x64 turns into 163x55 with the font change!
 	# this one's supposed to go in virtualscreen "Mail"
 #	$RSH -n proven.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/local/bin/emacs -display $DISPLAY -geometry 130x64+0+0" &
