@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	3.2	93/12/15 14:57:45 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	3.3	93/12/15 15:09:53 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -35,11 +35,26 @@
 				     (concat (getenv "LOCAL") "/gnu")))
 				   "/lib/emacs/site-lisp")))))
 
+;; emacs-18 doesn't have these...
 (if (= init-emacs-type '18)
     (defmacro dont-compile (&rest body)
       "Like `progn', but the body always runs interpreted (not compiled).
 If you think you need this, you're probably making a mistake somewhere."
       (list 'eval (list 'quote (if (cdr body) (cons 'progn body) (car body))))))
+
+(if (= init-emacs-type '18)
+    (defmacro eval-when-compile (&rest body)
+      "Like `progn', but evaluates the body at compile time.
+The result of the body appears to the compiler as a quoted constant."
+      ;; Not necessary because we have it in b-c-initial-macro-environment
+      ;; (list 'quote (eval (cons 'progn body)))
+      (cons 'progn body)))
+
+(if (= init-emacs-type '18)
+    (defmacro eval-and-compile (&rest body)
+      "Like `progn', but evaluates the body at compile time and at load time."
+      ;; Remember, it's magic.
+      (cons 'progn body)))
 
 ;; This could probably be rewritten to use mapcar
 (defun elisp-file-in-loadpath-p (file-name)
