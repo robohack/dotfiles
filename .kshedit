@@ -1,7 +1,7 @@
 #
 #	.kshedit - ksh editing function customisation
 #
-#ident	"@(#)HOME:.kshedit	21.1	99/11/18 13:13:10 (woods)"
+#ident	"@(#)HOME:.kshedit	21.2	01/10/17 11:53:44 (woods)"
 
 
 set -o gmacs
@@ -13,3 +13,8 @@ alias __B=''		# down arrow
 alias __C=''		# right arrow
 alias __D=''		# left arrow
 alias __H=''		# beginning of line, HOME key
+
+# this would maybe be useful in pdKSH:
+#
+#bind "^I=complete"
+#bind "^I^I=complete-list"
