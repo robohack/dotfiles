@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.39	96/10/30 09:21:44 (woods)"
+#ident	"@(#)HOME:.twmrc	2.40	96/10/30 10:07:02 (woods)"
 #
 
 AutoRelativeResize
@@ -28,19 +28,11 @@ Monochrome {
 	BorderColor		"grey50"
 	DefaultBackground	"grey98"
 	DefaultForeground	"grey6"
-#	TitleBackground		"white"
-#	TitleForeground		"gray95"
-#	MenuBackground		"white"
-#	MenuForeground		"grey95"
-#	MenuTitleBackground	"grey70"
-#	MenuTitleForeground	"white"
-#	IconBackground		"grey25"
-#	IconForeground		"grey85"
 	IconBorderColor		"grey50"
-#	IconManagerBackground	"white"
-#	IconManagerForeground	"grey95"
 }
 
+# some older versions don't support this:
+#
 Grayscale {
 	BorderColor		"grey50"
 	DefaultBackground	"grey98"
@@ -60,8 +52,9 @@ Grayscale {
 
 Color
 {
-	PointerForeground	"black"
-	PointerBackground	"white"
+# some older versions don't have these...
+#	PointerForeground	"black"
+#	PointerBackground	"white"
 	BorderColor		"LightBlue" {
 		"xload" "red"
 		"xclock" "orange"
