@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	9.6	95/11/02 11:25:39 (woods)"
+#ident	"@(#)HOME:.profile	9.7	95/11/30 11:05:26 (woods)"
 
 #
 # Assumptions:
@@ -22,7 +22,7 @@
 #	$HOME/.shell	- mktable'd and exec'ed as shell (see end of this file)
 #	$HOME/.shlogin	- sourced once
 #	$HOME/.shlogout	- set on trap 0
-#	$HOME/.shrc	- sourced once from .shlogin, and pathname set in $ENV
+#	$HOME/.shrc	- sourced once from .shlogin, and pathname used in $ENV
 #	$HOME/.stty	- sourced for stty command(s), etc. just before tset(1)
 #	$HOME/.trninit	- pathname set as value for $TRNINIT
 
@@ -63,8 +63,11 @@ if [ -z "$DOMAINNAME" ] ; then
 	* )
 		if expr "`type domainname`" : '.* is .*/domainname$' >/dev/null 2>&1 ; then
 			DOMAINNAME="`domainname`"
+		elif expr "$HOSTNAME" : '^[^\.]*\.' >/dev/null 2>&1 ; then
+			DOMAINNAME="."`expr "$HOSTNAME" : '^[^\.]*\.\(.*\)$'`
 		else
-			# these cases for machines without domainname....
+			# these cases for machines without domainname,
+			# and a short hostname....
 			#
 			case "$UUNAME" in
 			weirdo )
@@ -260,6 +263,7 @@ export MAILLOG
 HAVEPRINTF=false ; export HAVEPRINTF
 if expr "`type printf`" : '.* is .*/printf$' >/dev/null 2>&1 ; then
 	HAVEPRINTF=true
+	# use ``$echo'' if any of the other variables...
 	echo=printf
 	nl='\n'
 	n=''
@@ -291,6 +295,17 @@ else
 			/^[ 	]*$/d
 		' ${1+"$@"}
 	}
+fi
+
+HAVETPUT=false ; export HAVETPUT
+if expr "`type tput`" : '.* is .*/tput$' >/dev/null 2>&1 ; then
+	HAVETPUT=true
+	# WARNING: this only works with SysV compatible tput.
+	# Try without the "cr" for NetBSD's tput.
+	TERMTESTCMD='tput -T"$ttytype" cr >/dev/null 2>&1'
+else
+	# WARNING: some tset(1)'s, esp. ULTRIX, fail if stderr is not a tty
+	TERMTESTCMD='tset -I -Q "$ttytype" >/dev/null'
 fi
 
 HAVEMONTH=false ; export HAVEMONTH
@@ -343,6 +358,7 @@ fi
 HAVEFORTUNE=false ; export HAVEFORTUNE
 if expr "`type fortune`" : '.* is .*/fortune$' >/dev/null 2>&1 ; then
 	HAVEFORTUNE=true
+	FORTUNE=fortune ; export FORTUNE
 fi
 
 if expr "`type less`" : '.* is .*/less$' >/dev/null 2>&1 ; then
@@ -465,30 +481,37 @@ if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 				if [ -n "$newttytype" ] ; then
 					ttytype="$newttytype"
 				fi
-				# NOTE: we assume tput is everywhere these days....
-				if tput -T"$ttytype" cr >/dev/null 2>&1 ; then
+				if [ "$ttytype" = "dumb" ] ; then
+					TERM="dumb"		# guarantee a way out of this!
+					break
+				fi
+				if eval $TERMTESTCMD ; then
 					TERM="$ttytype"
 				else
 					echo "Sorry, I don't know that terminal type."
-					echo "Use 'dumb' if you are stuck."
-					echo ""
+					$echo "Use 'dumb' if you are stuck.${nl}"
 				fi
 			done
 			unset newttytype
 		}
 
 		case "$TERM" in
-		""|network|dialup|unknown)
+		""|network|dialup|unknown|none)
 			ttytype=dumb
 			get_newterm
 			;;
 		esac
 
-		if expr "`type tset`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
-			# On BSD, without the "-I" it uses /etc/termcap....
-			# TODO: tset might not work like this everywhere (clears screen
-			# TODO: and doesn't print erase/kill settings on SysVr4)
-			tset -I -r
+		if $HAVETPUT ; then
+			# TODO: we could use 'tput init' on some systems, no?
+			:
+		else
+			if expr "`type tset`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
+				# On BSD, without the "-I" it uses /etc/termcap....
+				tset -I -r
+			else
+				echo "NOTICE:  I don't know how to set up your terminal."
+			fi
 		fi
 
 		case $TTYN in
@@ -549,6 +572,8 @@ if [ -d $HOME/lib/terminfo ] ; then
 fi
 
 if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
+	# WARNING: some stupid stty's cause this to fail!!!!
+	# eg., ULTRIX V4.3 stty(1) 'cause it uses stdout, not stdin....
 	SANE="`stty -g`" ; export SANE
 fi
 
@@ -635,7 +660,7 @@ fi
 if $HAVELAYERS && [ "X$TERM" = "Xdmd" -a "`ismpx`" != "yes" ] ; then
 	trap '' 2
 	echo ""
-	echo $n "Do you want to start layers? ([y]/n/debug) $c"
+	$echo $n "Do you want to start layers? ([y]/n/debug) $c"
 	read yn
 	trap 2
 	case "$yn" in
@@ -680,7 +705,7 @@ elif [ -x $LOCAL/games/fortune ] ; then
 	$LOCAL/games/fortune
 fi
 if [ -r calendar -o -r .month ] ; then
-	echo "${nl}Today's Events:"
+	$echo "${nl}Today's Events:"
 	if $HAVEMONTH && [ -r .month ] ; then
 		month -B
 		#		monthd -i5
@@ -692,7 +717,7 @@ fi
 if [ -d $HOME/notes ] ; then
 	cd $HOME/notes
 	if [ `ls|wc -w` -ne 0 ] ; then
-		echo "${nl}You have notes on: ' * '${nl}"
+		$echo "${nl}You have notes on: ' * '${nl}"
 	fi
 	cd $HOME
 fi
