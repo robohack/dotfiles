@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.23	99/07/29 22:36:50 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.24	99/08/27 20:39:52 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -250,6 +250,32 @@ to the other end and continue."
 			    (substring date (match-beginning 2)
 				       (match-end 2)))))))
 
+;; or maybe this simpler one is better?
+;;
+;;; Message-ID: <xyn672uie3j.fsf@alta11.hns.com>
+;;; Date: 05 Aug 1999 08:52:48 -0400
+;;; From: Brian Snyder <bsnyder@hns.com>
+;;; Organization: Hughes Network Systems
+;;; Subject: Re: mail archiving
+;;; To: info-vm@uunet.uu.net
+;;
+;(add-hook 'mail-send-hook ;define FCC
+;	  '(lambda()
+;	     (mail-fcc (format "~/Mail/vm/sm-%s%s"
+;			       (downcase (substring (current-time-string) 4 7))
+;			       (substring (current-time-string) 22 24)))))
+;
+; Kyle also suggests this for mail-send-hook:
+;
+;(defun german-suplex-lauryn-hill ()
+;  (save-excursion
+;    (goto-char (point-min))
+;    (if (re-search-forward "^FCC:" (save-excursion (mail-text) (point)) t)
+;	(progn
+;	  (beginning-of-line)
+;	  (delete-region (point) (progn (forward-line 1) (point)))))
+;    (insert "FCC: " (format-time-string "~/Mail/%Y-%B.sent\n"))))
+
 (defvar mail-default-organization "~/.organization"
   "The default name of your organization (or filename containing a string
 defining the organization name), if not set in the environment variable
@@ -383,7 +409,7 @@ NOTE:  Changes to this variable only take effect when your .vm is reloaded.")
 necessary any more with newer versions of VM, eg. 6.62."
   (interactive)
   (save-excursion
-    ;; this is no longer necessar with newer versions of VM, eg. 6.62
+    ;; this is no longer necessary with newer versions of VM, eg. 6.62
     ;;(my-vm-quit-all-virtual-folders)
     ;; make sure all new messages are in their target folders so that the magic
     ;; for the General Delivery folder works....
