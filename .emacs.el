@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.39	97/01/18 15:49:34 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.40	97/01/18 16:49:32 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -291,16 +291,16 @@ scripts (alias)." t)
        '(("/[^/chtly]+\\.[0-9][a-z]?$" . nroff-mode)) ; man page
        '(("/[^/]+\\.an$" . nroff-mode))		; man page
        '(("/[^/]+\\.d.[.0-9]+$" . nroff-mode))	; cvs backup file
-       '(("/[^/]+\\.d$" . nroff-mode))		; documentation file
        '(("/[^/]+\\.t[imes]*$" . nroff-mode))	; nroff+tbl
-       '(("/[^/]*[rR][eE][aA][dD][^/]*$" . indented-text-mode))
-       '(("/[^/]*[iI][nN][sS][tT][aA][lL][lL][^/]*$" . indented-text-mode))
-       '(("/[^/]*\\.article.*$" . indented-text-mode))
-       '(("/[^/]*\\.letter.*$" . indented-text-mode))
-       '(("^.*/tmp/[^/]*\\.ed.*$" . indented-text-mode)) ; mail edit buffer
+       '(("/[^/]*[rR][eE][aA][dD][^/ch]*$" . indented-text-mode)) ; XXX danger
+       '(("/[^/]*[cC][hH][aA][nN][gG][eE][sS][^/ch]*$" . indented-text-mode)) ; XXX danger
+       '(("/[^/]*[iI][nN][sS][tT][aA][lL][lL][^/ch]*$" . indented-text-mode)) ; XXX danger
+       '(("/[^/]*\\.article[^/]*$" . indented-text-mode))
+       '(("/[^/]*\\.letter[^/]*$" . indented-text-mode))
+       '(("/tmp/[^/]*\\.ed[^/]*$" . indented-text-mode)) ; mail edit buffer
        '(("/[^/]+\\.t$" . c-mode))		; APC "ling" file
-       '(("^.*/tmp/[^/]*nf.*$" . indented-text-mode)) ; notesfile compose buf
-       '(("/tmp/\\.mail.*$" . mail-mode))
+       '(("/tmp/[^/]*nf[^/]*$" . indented-text-mode)) ; notesfile compose buf
+       '(("\\.mail[^/]*$" . mail-mode))
        auto-mode-alist))
 
 ;; assume the autoloads are done for this...
@@ -325,7 +325,7 @@ scripts (alias)." t)
 	 (not (elisp-file-in-loadpath-p "sh-script")))
     (setq auto-mode-alist
 	  (append
-	   '(("/[Cc]onfig[^/h]*$" . ksh-mode))
+	   '(("/[Cc]onfig[^/ch]*$" . ksh-mode))
 	   '(("[^/]*rc$" . ksh-mode))
 	   '(("^rc\\.[^/]*$" . ksh-mode))
 	   '(("^rc\\.[^/]*/[^/]*$" . ksh-mode))
@@ -339,7 +339,7 @@ scripts (alias)." t)
 (if (elisp-file-in-loadpath-p "sh-script")
       (setq auto-mode-alist
 	    (append
-	     '(("/[Cc]onfig[^/h]*$" . sh-mode))
+	     '(("/[Cc]onfig[^/ch]*$" . sh-mode))
 	     '(("[^/]*rc$" . sh-mode))
 	     '(("^rc\\.[^/]*$" . sh-mode))
 	     '(("^rc\\.[^/]*/[^/]*$" . sh-mode))
