@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.8	95/11/26 00:20:51 (woods)"
+#ident	"@(#)HOME:.twmrc	2.9	95/12/06 15:12:42 (woods)"
 #
 
 AutoRelativeResize
@@ -202,11 +202,11 @@ function "start-logon-rlogin" {
 }
 
 function "start-cancom-rlogin" {
-	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin cancom.ca &"
+	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin cancom.net &"
 }
 
 function "start-newscancom-rlogin" {
-	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin news.cancom.ca &"
+	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin news.cancom.net &"
 }
 
 function "start-araignee-rlogin" {
@@ -621,8 +621,8 @@ menu "rlogin"
 	"Rlogin @aci.on.ca"		f.function "start-aci-rlogin"
 	"Rlogin @log.on.ca"		f.function "start-logon-rlogin"
 	""				f.nop
-	"Rlogin @cancom.ca"		f.function "start-cancom-rlogin"
-	"Rlogin @news.cancom.ca"	f.function "start-newscancom-rlogin"
+	"Rlogin @cancom.net"		f.function "start-cancom-rlogin"
+	"Rlogin @news.cancom.net"	f.function "start-newscancom-rlogin"
 	""				f.nop
 	"Rlogin @passport.ca"		f.function "start-passport-rlogin"
 	""				f.nop
