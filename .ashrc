@@ -1,7 +1,7 @@
 #
 #	.ashrc - per-shell startup stuff for ash via $ENV
 #
-#ident	"@(#)HOME:.ashrc	18.4	97/10/24 13:54:43 (woods)"
+#ident	"@(#)HOME:.ashrc	18.5	97/10/24 16:22:06 (woods)"
 
 # Assumptions:
 #	- chdir must be synonymous with cd, and cd can be reset to a function
@@ -173,7 +173,7 @@ if [ "$TERM" = "xterm" ] ; then
 	cd ()
 	{
 		chdir $*
-		BANNERWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;'`
+		BANNERWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;' -e 's;^/;;'`
 # not yet implemented in 4.4BSD ash...
 #		BANNERWD=`pwd`
 #		case "$BANNERWD" in
