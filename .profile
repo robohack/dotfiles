@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	18.3	97/01/20 19:53:11 (woods)"
+#ident	"@(#)HOME:.profile	18.4	97/01/20 21:50:06 (woods)"
 
 #
 # Assumptions:
@@ -505,7 +505,7 @@ if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 		:
 		;;
 	* )
-		# this is a function so it can be used interactively....
+		# this is a function so it can be used interactively after login....
 		#
 		get_newterm ()
 		{
