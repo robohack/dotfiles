@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.40	97/01/18 16:49:32 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.41	97/01/19 14:03:37 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -881,6 +881,7 @@ suffixes `.elc' or `.el' to the specified name FILE."
 ;;
 ;; Redefine indent-for-comment to kill the comment with negative
 ;; prefix
+(require 'advice)
 (defadvice indent-for-comment (around kill-comment activate)
   "Kill the comment with negative prefix."
   (if (eq current-prefix-arg '-)
