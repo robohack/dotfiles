@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	9.7	95/11/30 11:05:26 (woods)"
+#ident	"@(#)HOME:.profile	9.8	95/11/30 11:57:26 (woods)"
 
 #
 # Assumptions:
@@ -260,9 +260,23 @@ elif [ -r $LOCAL/lib/smail/mail.log ] ; then
 fi
 export MAILLOG
 
+HAVEPRINT=false ; export HAVEPRINT
+if expr "`type print`" : '^print is shell builtint$' >/dev/null 2>&1 ; then
+	HAVEPRINT=true
+fi
 HAVEPRINTF=false ; export HAVEPRINTF
-if expr "`type printf`" : '.* is .*/printf$' >/dev/null 2>&1 ; then
+if expr "`type printf`" : '^printf is shell builtint$' >/dev/null 2>&1 ; then
 	HAVEPRINTF=true
+elif expr "`type printf`" : '.* is .*/printf$' >/dev/null 2>&1 ; then
+	HAVEPRINTF=true
+fi
+if $HAVEPRINT ; then
+	# use ``$echo'' if any of the other variables...
+	echo=print
+	nl='\n'
+	n=''
+	c='\c'
+elif $HAVEPRINTF ; then
 	# use ``$echo'' if any of the other variables...
 	echo=printf
 	nl='\n'
