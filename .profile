@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	7.2	95/01/27 13:04:35 (woods)"
+#ident	"@(#)HOME:.profile	7.3	95/02/02 17:03:51 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -302,17 +302,43 @@ VISUAL="`expr "$VISUAL" : '^.*/\([^/]*\)$'`"; export VISUAL
 EXINIT="set sm" ; export EXINIT
 
 if [ -n "$APCCONFIG" ] ; then
-	# for pnotes message composition...
-	#
-	APCEDIT="`type $VISUAL`" ; export APCEDIT
-	APCEDIT="`expr "$APCEDIT" : '^[^/]*\(/.*\)$'`"
-	#
-	APCEDITOR="`type $VISUAL`" ; export APCEDITOR
-	APCEDITOR="`expr "$APCEDITOR" : '^[^/]*\(/.*\)$'`"
-	INTERFACE="apcsh" ; export INTERFACE
-	dirappend PATH $APCCONFIG/bin /apc/bin /apc/xbin /apc/lbin
+	case "$UUNAME" in
+	web )
+		# for pnotes message composition...
+		#
+		APCEDIT="`type $VISUAL`" ; export APCEDIT
+		APCEDIT="`expr "$APCEDIT" : '^[^/]*\(/.*\)$'`"
+		#
+		APCEDITOR="`type $VISUAL`" ; export APCEDITOR
+		APCEDITOR="`expr "$APCEDITOR" : '^[^/]*\(/.*\)$'`"
+		#
+		dirprepend MANPATH /usr/catman
+		;;
+	sunweb )
+		# assume anywhere but old web has the execvp() support
+		#
+		# the hacker editor (takes precedence if you're a hacker)
+		#
+		APCEDIT="pico" ; export APCEDIT
+		#
+		# the default editor for APC-soft tools
+		#
+		APCEDITOR="pico" ; export APCEDITOR
+		;;
+	* )
+		# assume anywhere but old web has the execvp() support
+		#
+		# the hacker editor (takes precedence if you're a hacker)
+		#
+		APCEDIT="$VISUAL" ; export APCEDIT
+		#
+		# the default editor for APC-soft tools
+		#
+		APCEDITOR="$VISUAL" ; export APCEDITOR
+		;;
+	esac
+	dirappend PATH $APCCONFIG/bin /apc/bin /apc/xbin
 	dirappend PATH /usr/local/apc/bin /usr/local/apc/xbin
-	dirprepend MANPATH /usr/catman
 	dirappend MANPATH /apc/man
 	if [ -d $HOME/.pn ] ; then
 		echo "$TERM" > $HOME/.pn/TERM
