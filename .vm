@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.9	98/02/23 20:32:38 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.10	98/02/23 20:42:22 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -42,6 +42,63 @@
       (setq rmime-clean-files t)	; save as MIME encoded
       (define-key vm-mode-map "I" 'vm-rmime-mode))
   (setq vm-preview-lines 4))		; allow 4 lines of the body to show
+
+;;; from Jukka Partanen <jukka.partanen@research.nokia.com>.
+(if (>= vm-version-number 6.0)
+    (progn
+      (defun vm-mime-delete-mime-body-part (&optional layout)
+	"Delete the mime body part at the point"
+	(interactive)
+	(if (not layout)
+	    (setq layout
+		  (if vm-fsfemacs-19-p
+		      (let (o-list (overlays-at (point)))
+			(while (and o-list
+				    (not (overlay-get (car o-list) 'vm-mime-layout)))
+			  (setq o-list (cdr o-list)))
+			(car o-list))
+		    (extent-at (point) nil 'vm-mime-layout))))
+	(let ((mp vm-message-pointer)
+	      start end buf)
+	  (if (not layout)
+	      (error "No MIME body at point!"))
+	  (if (not (vectorp layout))
+	      (setq layout (vm-extent-property layout 'vm-mime-layout)))
+	  (setq start  (vm-mm-layout-header-start layout)
+		end    (vm-mm-layout-body-end layout)
+		buf	 (marker-buffer start))
+	  (save-excursion
+	    (set-buffer buf)
+	    (vm-save-restriction
+	     (widen)
+	     (narrow-to-region (vm-headers-of (vm-real-message-of (car mp)))
+			       (vm-text-end-of (vm-real-message-of (car mp))))
+	     (let ((buffer-read-only nil)
+		   (type (vm-get-header-contents (car mp) "Content-Type:"))
+		   boundary)
+	       (setq type (vm-mime-parse-content-header type ?\;))
+	       (while type
+		 (if (string-match "^boundary=" (car type))
+		     (setq boundary (car (vm-parse (car type) "=\\(.+\\)"))
+			   type nil)
+		   (setq type (cdr type))))
+	       (if (not boundary)
+		   (error "Cannot find MIME boundary!"))
+	       (goto-char start)
+	       (if (not (re-search-backward (concat "\n--"
+						    (regexp-quote boundary))
+					    (point-min) t))
+		   (error "Cannot find MIME boundary!"))
+	       (delete-region (point) end)
+	       (if (and (looking-at (concat "\n*--" (regexp-quote boundary) "--"))
+			(not (re-search-backward (concat "^--"
+							 (regexp-quote boundary))
+						 (point-min) t)))
+		   (insert (concat "\n--" boundary "\n\n")))))
+	    (vm-discard-cached-data)
+	    (vm-set-edited-flag-of (car mp) t)
+	    (vm-show-current-message))))
+      (define-key vm-mode-map "X" 'vm-mime-delete-mime-body-part)))
 
 ;;;
 ;;; some more enhancements
