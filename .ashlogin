@@ -1,13 +1,13 @@
 #
 #	.ashlogin - login shell startup for ash
 #
-#ident	"@(#)HOME:.ashlogin	1.1	94/12/20 14:15:36 (woods)"
+#ident	"@(#)HOME:.ashlogin	1.2	95/03/08 18:46:09 (woods)"
 
 set -o ignoreeof	# we only do this for our login shell....
 
 export FPATH=$HOME/lib/sh
 
-export ENVFILE=$HOME/.shrc
+export ENVFILE=$HOME/.ashrc
 
 # the one in the book says....
 #
