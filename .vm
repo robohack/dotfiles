@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.24	96/09/25 19:21:03 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.25	96/09/25 19:22:29 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -179,7 +179,6 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("djb-qmailbeta@" . "djb-qmailbeta-l")
 			      ("djb-qmail@" . "djb-qmail-l")
 			      ("domain-policy@" . "domain-policy-l")
-			      ("owner-fwtk-users@tis.com" . "fwtk-l")
 			      ("exim-users@" . "exim-users-l")
 			      ("\\(hyperbole\\|hyperbole-announce\\)@" . "hyperbole-l")
 			      ("iap@" . "iap-l")
@@ -241,6 +240,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("iap@vma.cc.nd.edu" . "iap-l")
 			      ("owner-admin-l@io.org" . "planix/io-admin-l")
 			      ("owner-devel-cvs@" . "devel-cvs-l")
+			      ("owner-fwtk-users@tis.com" . "fwtk-l")
 			      ("owner-namedroppers@internic.net" . "namedroppers-l")
 			      ("owner-net-dist@nikhef.nl" . "nikhef.net-dist-l")
 			      ("owner-pcl-cvs@" . "pcl-cvs-l")
