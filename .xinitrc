@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	22.4	01/11/05 15:44:48 (woods)"
+#ident	"@(#)HOME:.xinitrc	22.5	01/12/05 14:03:32 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -375,7 +375,7 @@ xtremely.weird.com:*)
 	( sleep 20; xv -owncm -iconic & ) &
 	# start tkined last, in a subshell that sleeps first for a bit
 	# -- hoping xv (from above) and the window manager are running already
-	( sleep 30; $RSH -n proven.weird.com exec /usr/local/bin/tkined1.5.0 -display $DISPLAY -use $(xwininfo -name "xv 3.10a(PNG) <unregistered>" | awk '/xwininfo/ {print $4}') -geometry 1200x925+0-0 $HOME/tkined-3.tki & ) &
+	( sleep 40; $RSH -n proven.weird.com exec /usr/local/bin/tkined1.5.0 -display $DISPLAY -use $(xwininfo -name "xv 3.10a(PNG) <unregistered>" | awk '/xwininfo/ {print $4}') -geometry 1200x925+0-0 $HOME/tkined-3.tki & ) &
 	;;
 
 worm.planix.com:*)
