@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.22	96/08/23 16:09:42 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.23	96/08/26 21:18:41 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -100,6 +100,64 @@ ORGANIZATION.  If not nil, takes precedence over the file
       (vm-auto-archive-messages)))
 
 (define-key vm-mode-map "A" 'my-vm-auto-archive-messages)
+
+;;; Message-ID: <4vnura$cgr@nnrp1.news.primenet.com>
+;;; From: edwinh@primenet.com (Edwin Huffstutler)
+;;; Date: 24 Aug 1996 15:14:02 -0700
+;;; Subject: Remove "extra" text from replies
+;;; Summary: functions to remove .sigs, double citations
+;;; 
+;;; Create a function to nuke a .sig from replied-to mail (if it exists).  
+;;; Find the end of the buffer, back up over my .sig, then delete up to 
+;;; the beginning of the quoted .sig. 
+(defun citation-kill-sig ()
+  "Nuke a .sig from cited mail"
+  (interactive)
+  (save-excursion
+    (goto-char (point-max))
+    (search-backward-regexp "^-- ?$" 1 t) 
+    (let ((top-of-my-sig (point)))
+      (search-backward-regexp 
+       (concat "^" vm-included-text-prefix "-- ?$") 1 t)
+      (delete-region (point) top-of-my-sig)
+      )))
+
+(add-hook 'vm-reply-hook 'citation-kill-sig)
+
+;;; more from: edwinh@primenet.com (Edwin Huffstutler)
+;;; 
+;;; This next one I bind to C-c C-d in a reply buffer, and it deletes anything
+;;; that has been quoted twice, and removes included-text-prefixes on blank
+;;; lines.  (I just think it looks cleaner that way, as I usually reply to
+;;; each paragraph of the mail separately)
+;;; 
+;;; define a function to remove doubly-cited stuff
+(defun citation-kill-double ()
+  "Remove doubly-cited text and extra lines in a mail message"
+  (interactive)
+  (save-excursion
+    ;;; nuke the quoted quoted text
+    ;;(beginning-of-buffer)
+    ;;(replace-regexp
+    ;; (concat "^" vm-included-text-prefix "\\sw*[>|}].*\n") "")
+    ;;; get rid of citation prefix on blank lines
+    (beginning-of-buffer)
+    (replace-regexp
+     (concat "^" vm-included-text-prefix "$") "")
+    ;;; replace more than two newlines with just two
+    (beginning-of-buffer)
+    (replace-regexp "\n\n+" "\n\n")
+    ;;; get rid of double attribution text
+    ;;(beginning-of-buffer)
+    ;;(replace-regexp
+    ;; (concat "^" vm-included-text-prefix "\\[ .*wrote.*\\]\n\\|"
+    ;;         "^" vm-included-text-prefix ".*wrote:\n") "")
+    ))
+
+(add-hook 'vm-reply-hook
+	  '(lambda ()
+	     (local-set-key "\C-c\C-d" 'citation-kill-double)
+	     ))
 
 ;; commented lines indicate changed values....  (from v5.72)
 ;;
