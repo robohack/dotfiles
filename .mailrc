@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	20.21	99/09/14 15:45:44 (woods)"
+# ident	"@(#)HOME:.mailrc	20.22	99/09/14 16:09:44 (woods)"
 
 set keep
 set keepsave
@@ -66,6 +66,7 @@ alias tech-userlevel	"tech-userlevel@NetBSD.ORG (NetBSD Userlevel Technical Disc
 alias tkined		"tkined@ibr.cs.tu-bs.de (Scotty Mailing List)"
 alias tpc-rp		"tpc-rp@aarnet.edu.au (TPC-Int)"
 alias trn-test		"trn-test@borland.com (TRN Beta Test List)"
+alias unix-virus	"unix-virus@virus.beergrave.net (Unix Virus Mailing List)"
 alias vmailer-testers	"vmailer-testers@porcupine.org (VMailer Testers List)"
 
 #
