@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.8	98/02/08 15:37:13 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.9	98/02/23 20:32:38 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -264,6 +264,19 @@ buffer is not not a composition preview buffer"
 	(vm-quit))))
 
 (define-key vm-mode-map "q" 'my-vm-quit)
+
+;; this is done this way so that it remains compatible with pre-6.x VM
+(defun my-vm-forward-message-using-rfc934 ()
+  "Local version of vm-forward-message that uses rfc934 encapsulation and
+avoids any MIME transfer encoding.  Pine 3.96 cannot show headers in MIME
+message/rfc822 attachments."
+  (interactive)
+  (let ((vm-forwarding-digest-type "rfc934"))
+    (vm-forward-message)
+    (set (make-local-variable 'vm-send-using-mime) nil)))
+
+(define-key vm-mode-map "Z" 'vm-forward-message) ; use default (mime)
+(define-key vm-mode-map "z" 'my-vm-forward-message-using-rfc934)
 
 ;;; Message-ID: <4vnura$cgr@nnrp1.news.primenet.com>
 ;;; From: edwinh@primenet.com (Edwin Huffstutler)
@@ -532,8 +545,9 @@ buffer is not not a composition preview buffer"
 ;;;   vm-forward-message-hook nil
       vm-forwarded-headers nil		; vm-unforwarded-headers is an
 					; impossible value so all included
-      vm-forwarding-digest-type "rfc934" ; Pine 3.96 cannot show headers in
-					 ; MIME message/rfc822 attachments
+      vm-forwarding-digest-type  (if (< vm-version-number 6.0)
+				     "rfc934"
+				   "mime") ; go for the good
       vm-forwarding-subject-format "%s (forwarded)\nSummary: forwarded message from %F"
       vm-frame-parameter-alist nil
       vm-frame-per-composition nil	;
