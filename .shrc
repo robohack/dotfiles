@@ -1,7 +1,7 @@
 #
-#	.shrc - per-shell startup stuff for /bin/sh
+#	.shrc - per-shell startup stuff for non-POSIX compatible /bin/sh
 #
-#ident	"@(#)HOME:.shrc	24.1	02/07/04 17:19:32 (woods)"
+#ident	"@(#)HOME:.shrc	24.2	02/10/01 14:54:05 (woods)"
 
 PATH="$PATH"
 export PATH
@@ -102,13 +102,13 @@ else
 	}
 fi
 
-if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
+if [ "`ismpx`" = yes -o "$TERM" = "dmd-myx" ] ; then
 	if [ "$LEV" -eq 0 ] ; then
 		do_first_time	# in xterms, we are a login shell, but not in layers
 	fi
-	MYXCLR_L="$(myxban -l)"
-	MYXCLR_C="$(myxban -c)"
-	MYXCLR_R="$(myxban -r)"
+	MYXCLR_L="`myxban -l`"
+	MYXCLR_C="`myxban -c`"
+	MYXCLR_R="`myxban -r`"
 	MYXCLR="${MYXCLR_L}${MYXCLR_C}${MYXCLR_R}"
 	MYXBAN_L='`pwd`'
 
