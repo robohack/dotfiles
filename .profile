@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	27.2	04/10/09 14:53:56 (woods)"
+#ident	"@(#)HOME:.profile	27.3	04/10/10 19:51:59 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -480,6 +480,8 @@ else
 	fi
 	rm -f $HOME/echotmp
 fi
+
+# NOTE: we don't export $echo et al -- they're just in the current shell
 
 if expr "`type mktable`" : '.* is .*/mktable$' >/dev/null 2>&1 ; then
 	MKTABLE="mktable"
