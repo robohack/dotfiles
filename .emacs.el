@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	8.3	94/02/22 13:33:17 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	8.4	94/02/28 19:15:54 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -255,9 +255,10 @@ Status: headers for O, or Forward to in mailboxes."
        '(("^.*/tmp/[^/]*nf.*$" . indented-text-mode)) ; notesfile compose buffer
        auto-mode-alist))
 
-(if (elisp-file-in-loadpath-p "hyperbole")
-    (setq hyperb:init-hook
-	  (list (function (lambda () (setq smart-scroll-proportional t))))))
+(dont-compile
+  (if (elisp-file-in-loadpath-p "hyperbole")
+      (setq hyperb:init-hook
+	    (list (function (lambda () (setq smart-scroll-proportional t)))))))
 
 (if (elisp-file-in-loadpath-p "hyperbole")
     (setq auto-mode-alist
@@ -591,12 +592,13 @@ current emacs server process..."
 ; (enable-arrow-keys) must be done by this hook, since the .emacs file
 ; is loaded and executed before the terminal code is loaded...
 ;
-(setq term-setup-hook
-      (function
-       (lambda ()
-	 "Private term-setup-hook."
-	 (if (fboundp 'enable-arrow-keys) ; byte-compile-file may complain
-	     (enable-arrow-keys)))))	  ; that enable-arrow-keys is not defined
+(dont-compile
+  (if (fboundp 'enable-arrow-keys) ; byte-compile-file may complain
+      (add-hook 'term-setup-hook
+		(function
+		 (lambda ()
+		   "Private term-setup-hook."
+		   (enable-arrow-keys)))))) ; that enable-arrow-keys is not defined
 
 ;; ----------
 ;; some major-mode hooks...
@@ -607,12 +609,13 @@ current emacs server process..."
 ;;;From: ehgasm2@uts.mcc.ac.uk (Simon Marshall)
 ;;;Subject: Re: Quick routine to BOLDFACE directories in DIRED buffers
 ;;
-(if window-system
-    (add-hook 'dired-mode-hook
-	      (function (lambda ()
-			  (font-lock-mode t)
-			  (setq font-lock-keywords
-				dired-font-lock-keywords)))))
+(dont-compile
+  (if window-system
+      (add-hook 'dired-mode-hook
+		(function (lambda ()
+			    (font-lock-mode t)
+			    (setq font-lock-keywords
+				  dired-font-lock-keywords))))))
 
 (add-hook 'lisp-interaction-mode-hook
 	  (function 
@@ -635,14 +638,11 @@ current emacs server process..."
 	     (local-set-key "\C-?" 'delete-char)
 	     (local-set-key "\e\C-?" 'kill-word)
 	     (local-set-key "\e\C-e" 'compile)
-	     (if (elisp-file-in-loadpath-p "c-boxes")
-		 (local-set-key "\eq" 'reindent-c-comment))
 	     (override-default-variable-settings)
 	     (setq fill-column 79)
 	     (setq comment-column 48)
 	     (setq comment-multi-line t)
 	     (setq c-auto-newline nil)
-	     (setq c-comment-starting-blank t)
 	     (setq c-argdecl-indent 8)
 	     (setq c-auto-newline nil)
 	     (setq c-brace-offset 0)
@@ -654,7 +654,17 @@ current emacs server process..."
 	     (setq c-tab-always-indent nil))))
 
 (dont-compile
-  (if (elisp-file-in-loadpath-p "ksh-mode")
+  (if (elisp-file-in-loadpath-p "vc")
+      (add-hook 'vc-mode-hook
+		(function
+		 (lambda ()
+		   "Private vc-mode stuff."
+		   (setq vc-command-messages t)
+		   (setq vc-initial-comment t)
+		   (add-hook 'vc-checkin-hook vc-comment-to-change-log))))))
+
+(dont-compile
+  (if (elisp-file-in-loadpath-p "pcl-cvs")
       (add-hook 'cvs-mode-hook
 		(function
 		 (lambda ()
@@ -709,6 +719,15 @@ current emacs server process..."
 		   (setq ksh-case-item-indent 0)
 		   (setq ksh-case-indent 8)
 		   (setq ksh-match-and-tell t))))))
+
+(dont-compile
+  (if (elisp-file-in-loadpath-p "c-boxes")
+      (add-hook 'c-mode-hook
+		(function
+		 (lambda ()
+		   "Private c-boxes stuff."
+		   (local-set-key "\eq" 'reindent-c-comment)
+		   (setq c-comment-starting-blank t))))))
 
 ;; ----------
 ;; some default key re-binding....
