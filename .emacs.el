@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.18	93/11/29 16:29:19 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	1.19	93/12/06 17:50:32 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -788,6 +788,13 @@ feeling, but you'll get used to it."
       (eval-after-load "appt" '(ad-activate 'appt-disp-window))
       (setq calendar-latitude 43.75)
       (setq calendar-longitude -79.45)
+      (setq calendar-time-display-form 
+	    '(24-hours ":" minutes
+		       (if time-zone " (") time-zone (if time-zone ")")))
+      (setq number-of-diary-entries [2 2 2 2 2 4 2])
+      (setq all-christian-calendar-holidays t)
+      (setq other-holidays
+	    '((holiday-fixed 7 14 "Bastille Day")))
       (defun my-calendar-start ()
 	(interactive)
 	(setq 
