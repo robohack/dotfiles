@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	20.1	98/07/20 11:23:47 (woods)"
+#ident	"@(#)HOME:.xinitrc	20.2	98/07/25 13:24:45 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -58,6 +58,12 @@ case "$DISPLAY" in
 	echo "$argv0: have set DISPLAY='$DISPLAY'"
 	;;
 esac
+
+# may be things that depend on DISPLAY in here, so source again....
+#
+if [ -r $HOME/.localprofile ] ; then
+	. $HOME/.localprofile
+fi
 
 VENDORSTR="`xdpyinfo | sed -n 's/^vendor string:[ ]*\(.*\)$/\1/p'`"
 DEPTHSTR="`xdpyinfo | fgrep 'depth of root window'`"
