@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.20	98/07/18 02:53:28 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.21	98/07/18 12:55:03 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -765,7 +765,7 @@ menu "monitors"
 
   ifdef([AT_WEIRD], [
     ifelse(HOSTNAME, most.weird.com, [], [
-	"xbuffy @most w/-acmd"	!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"/usr/pkg/bin/auplay -audio '$AUDIOSERVER' /home/most/woods/lib/sounds/newmail\"' &"
+	"xbuffy @most w/-acmd"	!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"/usr/X11/bin/auplay -audio '$AUDIOSERVER' /home/most/woods/lib/sounds/newmail\"' &"
 	"xbuffy @most"		!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &"
     ])
   ])
