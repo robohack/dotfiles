@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.2	95/07/01 16:42:24 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.3	95/07/29 10:52:02 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -257,6 +257,26 @@ directory in the list PATHLIST, otherwise nil."
 
 ;;;; ----------
 ;;;; some useful functions....
+
+;;Message-Id: <9507291206.AA01499@owl.hq.ileaf.com>
+;;From: karl@owl.hq.ileaf.com (Karl Berry)
+;;Subject: what-line enhancement
+;;Date: Sat, 29 Jul 95 08:06:35 EDT
+;;
+;;How about having what-line print the total number of lines in the
+;;buffer, as well as the current line?
+;;
+(defun what-line ()
+  "Print the current line number of point, and total lines in buffer."
+  (interactive)
+  (save-restriction
+    (widen)
+    (save-excursion
+      (beginning-of-line)
+      (let ((ln (1+ (count-lines 1 (point)))))
+	(message "Line %d of %d"
+		 ln
+		 (+ ln (count-lines (point) (point-max))))))))
 
 ;;From: friedman@gnu.ai.mit.edu (Noah Friedman)
 ;;Message-Id: <9502130229.AA10679@tepui.cli.com>
