@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.23	96/09/27 02:34:16 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.24	96/10/08 14:09:35 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -149,6 +149,10 @@ directory in the list PATHLIST, otherwise nil."
 (if (elisp-file-in-loadpath-p "ksh-mode")
     (autoload 'ksh-mode "ksh-mode" "Major mode for editing sh Scripts." t))
 
+;; not autoload'ed in 19.28, but there....
+(if (elisp-file-in-loadpath-p "sh-script")
+    (autoload 'sh-mode "ksh-mode" "Major mode for editing sh Scripts." t))
+
 (if (elisp-file-in-loadpath-p "foldout")
     (eval-after-load "outline" '(load "foldout")))
 
@@ -269,6 +273,8 @@ directory in the list PATHLIST, otherwise nil."
     (setq auto-mode-alist
 	  (append
 	   '(("/[Mm]ake[^/]*$" . makefile-mode))
+	   '(("/[Pp]\\.[Mm]ake[^/]*$" . makefile-mode))
+	   '(("/[Mm]\\.include$" . makefile-mode))
 	   '(("/[^/]+\\.mk$" . makefile-mode))
 	   auto-mode-alist)))
 
@@ -293,6 +299,7 @@ directory in the list PATHLIST, otherwise nil."
 	 (not (elisp-file-in-loadpath-p "sh-script")))
     (setq auto-mode-alist
 	  (append
+	   '(("/[Cc]onfig[^/]*$" . ksh-mode))
 	   '((".*rc[^/]*$" . ksh-mode))
 	   '(("[-\\.]ash[^/]*$" . ksh-mode))
 	   '(("[-\\.]ksh[^/]*$" . ksh-mode))
@@ -304,7 +311,9 @@ directory in the list PATHLIST, otherwise nil."
 (if (elisp-file-in-loadpath-p "sh-script")
       (setq auto-mode-alist
 	    (append
-	     '((".*rc[^/]*$" . sh-mode))
+	     '(("/[Cc]onfig[^/]*$" . sh-mode))
+	     '(("[^/]*rc$" . sh-mode))
+	     '(("[^/]*rc\.[^/]*$" . sh-mode))
 	     '(("[-\\.]ash[^/]*$" . sh-mode))
 	     '(("[-\\.]ksh[^/]*$" . sh-mode))
 	     '(("[-\\.]sh[^/]*$" . sh-mode))
