@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc  20.6    98/10/28 23:19:17 (woods)"
+# ident	"@(#)HOME:.mailrc  20.7    98/11/02 13:04:40 (woods)"
 
 set keep
 set keepsave
@@ -71,6 +71,7 @@ alias bernie	"becker@proxy.com (Bernard Becker)"
 alias bruce	"bdb@gts.net (Bruce Becker)"
 alias bryan	"bryan@aci.on.ca (Bryan Challenger)"
 alias dan	"dan@compus.ca (Dan Tomlinson)"
+alias darcy	"darcy@druid.net (D'Arcy J.M. Cain)"
 alias dave	"mason@tmsoftware.ca (Dave Mason)"
 alias dennis	"dennis@nebulus.net (Dennis Breckenridge VE6TCP)"
 alias dick	"rhl@the-wire.com (R. H. Lathwell)"
