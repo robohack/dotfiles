@@ -1,7 +1,7 @@
 #-*-m4-*-
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	26.3	03/06/09 20:37:21 (woods)"
+#ident	"@(#)HOME:.ctwmrc	26.4	03/06/23 11:52:55 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -592,7 +592,7 @@ menu "consoles"
 {
 	"Console Server"	f.title
   define(CONSOLE_REP, [
-	"$1 []"			!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 88x31 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n '$1' -T '$1 Virtual Console' -e console $1 &"
+	"$1 []"			!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 88x31 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n $1 -T '\"$1 Virtual Console\"' -e console $1 &"
   ])
 	CONSOLE_REP(most)
 	CONSOLE_REP(proven)
