@@ -1,11 +1,12 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	21.13	00/06/13 13:50:42 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	21.14	01/10/17 12:04:02 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
-;;;; primarily tested on v20.3, but now almost working on v20.5
+;;;; primarily tested on v20.3, but now almost working on v20.7 and
+;;;; v21.0.90-pretest!
 ;;;;
 
 ;;; This file should be stored in "~/.emacs.el".
@@ -29,10 +30,14 @@
 (setq inhibit-startup-message t)
 
 ;;;; ----------
+;;;; Let's make sure we're "home"....
+(cd "~")
+
+;;;; ----------
 ;;;; stolen from cl.el -- find out where we are!
 
 (defvar init-emacs-type
-  (cond ((boundp 'emacs-major-version)
+  (cond ((boundp 'emacs-major-version)	; first available in 19.23
 	 emacs-major-version)
 	((or (and (fboundp 'epoch::version)
 		  (symbol-value 'epoch::version))
@@ -43,7 +48,7 @@
 
 (if (<= init-emacs-type 19)
     (progn
-      (message "Not running emacs v20 I see -- you'll have trouble with this .emacs!")
+      (message "Not running emacs v20 or newer I see -- you may have trouble with this .emacs!")
       (sit-for 5)))
 
 ;;; stolen by way of Len Tower from Noah Freidman from /home/fsf/friedman/etc/init/emacs/init.el
@@ -71,22 +76,25 @@
   "Build number for this Emacs.")
 ;;; end by Noah Freidman from /home/fsf/friedman/etc/init/emacs/init.el
 
-(if (= init-emacs-type 20)
+;;;; ----------
+;;;; things to do for coding systems, MULE, etc.
+
+(if (>= init-emacs-type 20)
     (setq inhibit-eol-conversion t))	; show MS crap for what it is....
 
-;; Rumour has it that in 20.4 the following will work best:
-;;
-;;  (setup-latin1-environment)
-;;  (set-language-environment "Latin-1")
-;;
-(standard-display-european 1)
-;
-; This doesn't work any better in 20.3....
-;(set-language-environment "Latin-1")	; force the issue
-;(set-terminal-coding-system 'iso-8859-1) ; force the issue
+(cond ((>= init-emacs-type 20)
+       (let ((default-enable-multibyte-characters nil))
+	 (set-language-environment "Latin-1")))
+      (t
+       (standard-display-european 1)))
 
-;;; Let's make sure we're "home"....
-(cd "~")
+(if (and (>= init-emacs-type 20)
+	 (not window-system))
+    (set-terminal-coding-system 'iso-8859-1)) ; force the issue
+
+;; XXX this may rely on v20 or even v21 features....
+(if (not window-system)
+    (set-input-mode nil nil t))		; turn on 8'th-bit META handling
 
 ;;;; ----------
 ;;;; What to do after this file has been loaded...
@@ -297,10 +305,12 @@ scripts (alias)." t)
   "fixed"
   "My preferred font")
 
-;; Unfortunately the cleaner Bitstream Courier doesn't seem to have a matching
-;; size italic (and has no oblique) fonts
+;; The Bitstream Courier font is very clean and doesn't seem to have a matching
+;; size italic (and has no oblique) font (at least not on some stock X11's).
 ;;
-;; this is the next best thing for a default X11 installation:
+;;	"-bitstream-courier-medium-r-*-*-*-120-*-*-m-*-iso8859-1"
+;;
+;; This is the next best thing for a default X11 installation:
 ;;
 ;;	"-adobe-*-medium-r-normal--*-120-*-*-m-*-iso8859-1"
 ;;
@@ -321,40 +331,78 @@ scripts (alias)." t)
 (require 'frame)
 (defun set-frame-face-to-preferred-frame-font (frame)
   "Set FRAME's faces to those for preferred-frame-font"
-  ;; this is sthe equivalent of the following, but with a FRAME arg.
-  ;;(set-frame-font preferred-frame-font)
+  (set-frame-font preferred-frame-font)
+  ;; this is the equivalent of the previous, but with a FRAME arg.
   (modify-frame-parameters frame
 			   (list (cons 'font preferred-frame-font)))
   ;; Update faces that want a bold or italic version of the default font.
   (frame-update-faces frame))
 (add-hook 'after-make-frame-functions 'set-frame-face-to-preferred-frame-font)
 
-;; this gets the current frame, which already exists....
+;; this gets the current frame, which already exists, and already has a font
+;; set....
 (set-default-font preferred-frame-font)
 
 ;; we like fancy faces!
 (global-font-lock-mode t)
 
+;; Gerd Moellmann says that the menu-bar and tool-bar can be controlled on
+;; individual frames by managing these frame-parameters: `menu-bar-lines' and
+;; `tool-bar-lines
+
 (setq auto-save-timeout 300)		; 30 seconds is insane!
 (setq backup-by-copying t)		; copy, thus preserving modes and owner
-(setq compilation-window-height 10)	; default height for a compile window
+(setq colon-double-space t)		; ah ha!  this should mirror sentence-end-double-space!
 (setq default-tab-width 8)		; a tab is a tab is a tab is a tab....
 (setq delete-auto-save-files t)		; delete auto-save file when saved
 (setq enable-local-variables 1)		; non-nil, non-t means query...
+(setq file-name-handler-alist nil)	; turn off ange-ftp entirely
 (setq make-backup-files nil)		; too much clutter
 (setq message-log-max 1000)		; default of 50 loses too much!
 (setq next-line-add-newlines nil)	; I hate it when it does that!  ;-)
 (setq search-highlight 1)		; not sure when this begins to work
+(setq sentence-end-double-space t)	; just to be absolutely sure!
 (setq track-eol nil)			; too hard to control (it's sticky!)
 (setq window-min-height 1)		; don't be snobbish
 (setq window-min-width 1)
-(setq file-name-handler-alist nil)	; turn off ange-ftp entirely
+
+(setq sentence-end
+      "[.?!][]\"')}]*\\($\\| $\\|\t\\|  \\)[ \t\n]*") ; also to make sure!
+
+(require 'compile)
+(setq compilation-window-height 10)	; default height for a compile window
+(setq compilation-scroll-output t)	; where, oh where, has this been!!!
 
 (require 'font-lock)
 (setq font-lock-maximum-size nil)	; don't worry about the buffer size...
 
+(if (fboundp 'column-number-mode)
+    (column-number-mode 1))		; XXX does this stick?  I hope so!
+
+(if (fboundp 'tool-bar-mode)
+    (tool-bar-mode -1))			; major space waster!
+
+;; Something more detailed like this really should be the default!
+;;
+;; note that the octal escapes are for iso-8859-1 encodings....
+;;
 (setq list-faces-sample-text
-      "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789!@\#$%^&*()_+-=\\[];'`,./|{}:\"~<>?")
+      "abcdefghijklmnopqrstuvwxyz\n\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
+0123456789\n\
+!@\#$%^&*()_+-=\\[];'`,./|{}:\"~<>?\n\
+\241\242\243\244\245\246\247\
+\250\251\252\253\254\255\256\257\
+\260\261\262\263\264\265\266\267\
+\270\271\272\273\274\275\276\277\n\
+\340\341\342\343\344\345\346\347\
+\350\351\352\353\354\355\356\357\
+\360\361\362\363\364\365\366\367\
+\370\371\372\373\374\375\376\377\n\
+\300\301\302\303\304\305\306\307\
+\310\311\312\313\314\315\316\317\
+\320\321\322\323\324\325\326\327\
+\330\331\332\333\334\335\336\337")
 
 (add-to-list 'completion-ignored-extensions '(".out"))
 
@@ -380,19 +428,27 @@ scripts (alias)." t)
 			       (left . -1)
 			       (height . 40)
 			       (width . 80)
-			       (unsplittable . t)))
+			       (unsplittable . t)
+			       (tool-bar-lines . 0)
+			       (menu-bar-lines . 0)))
 	(".*\\*Help\\*.*" '((top . 0)
 			    (left . -1)
 			    (height . 40)
-			    (width . 80)))
+			    (width . 80)
+			    (tool-bar-lines . 0)
+			    (menu-bar-lines . 0)))
 	(".*\\*info\\*.*" '((top . 0)
 			    (left . -1)
 			    (height . 40)
-			    (width . 80)))
+			    (width . 80)
+			    (tool-bar-lines . 0)
+			    (menu-bar-lines . 0)))
 	(".*\\*scratch\\*.*" '((top . 300)
 			       (left . -0)
 			       (height . 44)
-			       (width . 90)))))
+			       (width . 90)
+			       (tool-bar-lines . 0)
+			       (menu-bar-lines . 0)))))
 
 (setq special-display-frame-alist
       '((top . 0)
@@ -508,8 +564,10 @@ scripts (alias)." t)
     (add-to-auto-mode-alist '("/[^/]+\\.lout$" . lout-mode)))
 
 ;; assume the autoloads are done for this...
-(if (elisp-file-in-loadpath-p "m4-mode")
-    (add-to-auto-mode-alist '("/configure.in$" . m4-mode)))
+(if (elisp-file-in-loadpath-p "autoconf")
+    (add-to-auto-mode-alist '("/configure.in$" . autoconf-mode))
+  (if (elisp-file-in-loadpath-p "m4-mode")
+      (add-to-auto-mode-alist '("/configure.in$" . m4-mode))))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "vm")
@@ -562,6 +620,52 @@ next ARG-1 words if ARG is greater than 1), moving over."
     (goto-char lastpoint)))
 (global-set-key "\ec" 'upcase-initials-word)
 (global-set-key "\eC" 'capitalize-word)
+
+;; Message-ID: <14865.20524.263889.867670@vegemite.chem.nottingham.ac.uk>
+;; Date: Tue, 14 Nov 2000 14:46:04 +0000
+;; From: Matt Hodges <pczmph@unix.ccc.nottingham.ac.uk>
+;; To: GNU Emacs bugs <bug-gnu-emacs@gnu.org>
+;; Subject: Killing a named process.
+;;
+;; [I posted this to gnu.emacs.bug but it seems to have got lost]
+;; 
+;; Feature request: occasionally I want to be able to kill a process (as
+;; seen in the *Process List* buffer) and no convenience command (eg
+;; ispell-kill-ispell) exists.
+;; 
+;; Did I miss a way of easily doing this? If not, the following can be
+;; used.
+;; 
+(defun kill-named-process ()
+  "Kill a process chosen from a list.
+The list is built from the function `process-list'."
+  (interactive)
+  (if (equal (length (process-list)) 0)
+      (error "No processes exist"))
+  (let* ((process-list
+          (mapcar
+           (function (lambda (w)
+                       (list (process-name w) w)))
+           (process-list)))
+         (process-name
+          (completing-read
+           "Choose process to kill: " process-list nil t))
+         process)
+    (cond
+     ((> (length process-name) 0)
+      (setq process (cadr (assoc process-name process-list)))
+      (kill-process process)
+      ;; Update the *Process List* buffer
+      (if (buffer-live-p (get-buffer "*Process List*"))
+          (progn
+            ;; Wait until process disappears off list
+            (while (member process (process-list))
+              (sit-for 0 100))
+            (save-window-excursion
+              (list-processes))))
+      (message "Process \"%s\" killed" process-name))
+     (t
+      (message "No process chosen")))))
 
 ;; Message-ID: <1996Nov14.092737.1@psiclu.psi.ch>
 ;; From: badii@cvax.psi.ch
@@ -1095,6 +1199,7 @@ might have been overridden by the major mode."
 override the value of buffer-local key map settings which may have been
 overridden without consideration by the major mode."
   (local-set-key "\C-?" 'delete-char)	; many modes
+  (local-set-key "\C-h" 'delete-backward-char)	; sh-mode
   ;; the rest are *not* overridden by cc-mode, but are by c-mode
   (local-set-key "\e\C-h" 'backward-kill-word) ; text-mode
   (local-set-key "\e?" 'help-command)	; nroff-mode
@@ -1301,7 +1406,6 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		   (setq c-cleanup-list '(scope-operator brace-else-brace)) ; '(scope-operator)
 		   (setq c-comment-only-line-offset '(0 . 0))
 		   (setq c-backslash-column 56)
-		   (setq c-delete-function 'backward-delete-char-untabify)
 		   (setq c-electric-pound-behavior '(alignleft)) ; nil
 		   (setq c-hanging-braces-alist '((brace-list-open)
 						  (substatement-open after)
@@ -1419,14 +1523,31 @@ it could check Status: headers for O, or Forward to in mailboxes."
 (if (elisp-file-in-loadpath-p "sh-script")
     (progn
       ;; to quiet the v19 bytecompiler...
+      (defvar sh-alias-alist)
       (defvar sh-indentation)
+      (defvar sh-basic-offset)
+      (defvar sh-indent-for-case-label)
+      (defvar sh-indent-for-case-alt)
+      (defvar sh-indent-after-switch)
+      (defvar sh-indent-after-case)
+      (setq sh-alias-alist
+	    '((ksh . posix)		; most shells are really posix
+	      (bash2 . posix)
+	      (ash . posix)
+	      (sh . posix)
+	      (sh5 . sh)))
+      (setq sh-indentation 8)
+      (setq sh-basic-offset 8)
+      (setq sh-indent-for-case-label 0)
+      (setq sh-indent-for-case-alt '+)
+      (setq sh-indent-after-switch 0)		; for rc
+      (setq sh-indent-after-case 0)		; for rc
       (add-hook 'sh-mode-hook
 		(function
 		 (lambda ()
 		   "Private sh-mode-hook."
-		   ;;(override-local-key-settings)
-		   (override-default-variable-settings)
-		   (setq sh-indentation 8))))))
+		   (override-local-key-settings)
+		   (override-default-variable-settings))))))
 
 (if (elisp-file-in-loadpath-p "perl-mode")
     (progn
@@ -1437,10 +1558,26 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		   (override-default-variable-settings)
 		   (override-local-key-settings))))))
 
+(if (elisp-file-in-loadpath-p "tcl")
+    (progn
+      ;; to quiet the v19 bytecompiler...
+      (defvar tcl-indent-level)
+      (defvar tcl-continued-indent-level)
+      (setq tcl-indent-level 8)
+      (setq tcl-continued-indent-level 8)
+      (add-hook 'tcl-mode-hook
+		(function
+		 (lambda ()
+		   "Private tcl-mode-hook."
+		   (override-default-variable-settings)
+		   (override-local-key-settings))))))
+
+
 ;;;; ----------
 ;;;; more hooks for non-default packages
 
-(if (elisp-file-in-loadpath-p "ksh-mode")
+(if (and (elisp-file-in-loadpath-p "ksh-mode")
+	 (not (elisp-file-in-loadpath-p "sh-script")))
     (progn
       ;; to quiet the v19 byte compiler
       (defvar ksh-indent)
@@ -1543,6 +1680,20 @@ it could check Status: headers for O, or Forward to in mailboxes."
 (global-set-key "\C-^" 'quoted-insert)
 (global-set-key "\C-x\C-^" 'toggle-read-only)
 
+;; rumour has it C-x C-q was toggle-read-only and then vc-toggle-read-only
+;; this was suggested by Kevin Rodgers <kevinr@ihs.com>:
+(global-set-key "\C-xq" 'toggle-read-only)
+(global-set-key "\C-xvq" 'vc-toggle-read-only)
+
+;; Francesco Potorti` <pot@gnu.org> also advises this:
+;;
+;; Ask before using version control: maybe toggle-read-only is enough
+(defadvice vc-toggle-read-only (around vc-ask activate)
+  (if (and (vc-backend buffer-file-name)
+	   (y-or-n-p "Toggle version control status? "))
+      ad-do-it
+    (toggle-read-only)))
+
 ;;; much of the remainder is to get back some Jove/Gosmacs comaptability, but
 ;;; without getting it all....
 ;;;
@@ -1609,15 +1760,16 @@ it could check Status: headers for O, or Forward to in mailboxes."
 ;;; Date: Mon, 17 Apr 1995 10:41:54 -0600 (MDT)
 ;;;
 ;; This is only useful under X windows.
-(defun delete-other-frames ()
-  "Delete all frames other than the currently selected one."
-  (interactive)
-  (let ((me (selected-frame))
-	(list (frame-list)))
-    (while (car list)
-      (if (not (eq me (car list)))
-	  (delete-frame (car list)))
-      (setq list (cdr list)))))
+(if (not (fboundp 'delete-other-frames))
+    (defun delete-other-frames ()
+      "Delete all frames other than the currently selected one."
+      (interactive)
+      (let ((me (selected-frame))
+	    (list (frame-list)))
+	(while (car list)
+	  (if (not (eq me (car list)))
+	      (delete-frame (car list)))
+	  (setq list (cdr list))))))
 
 ;;; Bindings to make it look like Jove (or old Emacs :-)
 ;;; (courtesy Mark Moraes)
