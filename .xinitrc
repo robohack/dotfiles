@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	22.7	01/12/28 10:54:47 (woods)"
+#ident	"@(#)HOME:.xinitrc	22.8	02/01/05 03:24:25 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -368,7 +368,9 @@ xtremely.weird.com:*)
 	xterm -display $DISPLAY -geometry 88x24+475+820 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n cid -T "very:/dev/ttyb [Caller ID Box]" -e console -S callerid &
 
 	# right side...
-	xterm -display $DISPLAY -geometry 80x24-0-410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn02 -T "Console-02 [BEST-UPS]" -e console -S best1.4 &
+	xterm -display $DISPLAY -geometry 80x24-0-410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn02 -T "Console-02 [BEST-1.4-UPS]" -e console -S best-1.4 &
+	xterm -display $DISPLAY -geometry 80x24-0-410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn13 -T "Console-13 [BEST-3.1-UPS-0]" -e console -S best-3.1-0 &
+	xterm -display $DISPLAY -geometry 80x24-0-410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn14 -T "Console-14 [BEST-3.1-UPS-1]" -e console -S best-3.1-1 &
 	xterm -display $DISPLAY -geometry 80x24-0-205 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Cn04 -T "Console-04 [RAID-00 /work]" -e console -S raid-00 &
 	xterm -display $DISPLAY -geometry 80x24-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Cn05 -T "Console-05 [RAID-01 /cvs]" -e console -S raid-01 &
 
