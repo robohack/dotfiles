@@ -1,9 +1,13 @@
 source ~/.jovemacs
 read-word-abbrev-file ~/.joveabbrev
 bind-macro-to-key parse-errors-macro ^[^E
-bind-to-key goto-line ^Xt
+bind-to-key filter-region ^[|
+bind-to-key find-file ^X^V
 bind-to-key find-tag ^XT
+bind-to-key goto-line ^Xt
 bind-to-key insert-file ^Xi
+bind-to-key read-only ^X^^
 bind-to-key read-only ^X^Q
+bind-to-key visit-file ^Xv
 set allow-^S-and-^Q on
 bind-macro-to-key parse-errors-macro ^[OP
