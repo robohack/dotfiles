@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	22.3	01/11/13 12:43:30 (woods)"
+;;;#ident	"@(#)HOME:.vm	22.4	02/01/12 14:39:55 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -14,16 +14,6 @@
 (defvar my-vm-netscape-display "xtremely:0"
   "Display name to pass to netscape in vm-netscape-program-switches.")
 
-(add-hook 'mail-setup-hook 'mail-abbrevs-setup)
-(add-hook
- 'mail-setup-hook
- '(lambda ()
-    ;; it would be nice to have mail-abbrev-next-header and maybe
-    ;; mail-abbrev-goto-mail-text and mail-abbrev-comma too....
-    ;; mail-abbrev-end-of-buffer is useless with signature files.
-    (substitute-key-definition 'next-line 'mail-abbrev-next-line
-                               mail-mode-map global-map)))
-
 ;;; Kyle's filladapt from http://www.wonderworks.com/
 ;;;
 ;;; WARNING:  elisp-file-in-load-path-p is a local function in my ~/.emacs.el
@@ -34,21 +24,6 @@
       (require 'filladapt)
       (add-to-list 'filladapt-token-table '("To: " bullet))
       (add-to-list 'filladapt-token-table '("Cc: " bullet))))
-
-;; mail-x-face-file thanks to John Owens <owens@graphics.stanford.edu>
-;;
-(defvar mail-x-face-file "~/.face"
-  "Name of file containing contents for X-Face header")
-(defun mail-insert-x-face ()
-  "Insert an X-Face header containing the contents of mail-x-face-file."
-  (if (file-exists-p mail-x-face-file)
-      (save-excursion 
-	(goto-char (point-min))
-	(search-forward mail-header-separator)
-	(beginning-of-line nil)
-	(insert "X-Face:")
-	(insert-file mail-x-face-file))))
-(add-hook 'mail-setup-hook 'mail-insert-x-face)
 
 ;;; mailcrypt --- a simple interface to message encryption with PGP.
 ;;;
@@ -64,70 +39,9 @@
       (add-hook 'vm-virtual-mode-hook 'mc-install-read-mode)
       (add-hook 'vm-mail-mode-hook 'mc-install-write-mode)))
 
-;;;;
-;;;; mail-mode stuff....
-;;;;
-
-;;;From: friedman@splode.com (Noah Friedman)
-;;;In-Reply-To: <srandall@quixote.asic.sc.ti.com> , 13 May 1997 10:32:32 -0500
-;;;References: <wq9d8qvie0f.fsf@quixote.i-have-a-misconfigured-system-so-shoot-me>
-;;;Message-Id: <19970514015519.FMU96188@piglet.splode.com>
-;;;To: srandall@quixote.asic.sc.ti.com
-;;;Cc: info-vm@uunet.uu.net
-;;;Date: Wed, 14 May 1997 01:55:19 -0700 (PDT)
-;;;Subject: please help me fix minor annoyances in vm
-
-(define-key mail-mode-map "\C-i" 'mail-goto-next-header-or-insert)
-
-(define-key mail-mode-map [S-tab] 'mail-goto-previous-header)
-
-(defun mail-goto-previous-header (&optional count)
-  "Call mail-goto-next-header-or-insert with (- COUNT)"
-  (interactive "p")
-  (mail-goto-next-header-or-insert (- count)))
-
-(defun mail-goto-next-header-or-insert (&optional count)
-  "If in header area, go to beginning of next header.
-If point is not in the header area, just insert the character which
-invoked this command.
-
-With numeric prefix arg, skip forward that many headers.
-If prefix arg is negative, skip backward that many headers.
-
-If either the head or tail of the headers are reached, wrap around
-to the other end and continue."
-  (interactive "p")
-  (let* ((headers-end
-	  (save-excursion
-	    (goto-char (point-min))
-	    (re-search-forward
-	     (concat "^" (regexp-quote mail-header-separator) "$"))
-	    (match-beginning 0)))
-	 (forwardp (or (null count) (> count 0)))
-	 (fn (if forwardp 're-search-forward 're-search-backward))
-	 (la (if forwardp 2 1))
-	 (nla (if forwardp 1 2))
-	 (re "^[^:\n\t ]+:")
-	 (i (abs count)))
-    (cond ((>= (point) headers-end)
-	   (call-interactively 'self-insert-command))
-	  (t
-	   (save-restriction
-	     (narrow-to-region (point-min) headers-end)
-	     (while (not (zerop i))
-	       (cond
-		((funcall fn re nil t (if (looking-at re) la nla)))
-		(t
-		 (goto-char (point-min))
-		 (funcall fn re nil t)))
-	       (setq i (1- i)))
-	     (goto-char (match-end 0))
-	     (and (looking-at "[ \t]")
-		  (forward-char 1)))))))
-
-;;
-;; dired stuff...
-;;
+;;;
+;;; dired stuff...
+;;;
 
 ;;Message-ID: <cxjpv5he74u.fsf@engc.bu.edu>
 ;;References: <cajhfquqejw.fsf@faui5pc29.informatik.uni-erlangen.de>
@@ -170,9 +84,10 @@ See also variable `dired-vm-read-only-folders'."
 ;;;	VM related things
 ;;;
 
-(define-key mail-mode-map "\C-ci" 'ispell-message)
-(define-key mail-mode-map "\M-S" 'ispell-message)
 (define-key vm-mode-map "/" 'vm-isearch-forward)
+
+;; this is too "easy" -- need a confirmation, or just use the pull-down menu!
+;(define-key vm-mode-map "+" 'vm-print-message)
 
 (defvar my-vm-virtual-leftovers-folder "General Delivery"
   "The name of the virtual folder containing all the messages which are not
@@ -298,8 +213,23 @@ message/rfc822 attachments."
 (defun my-vm-rblookup-at-point ()
   "Run rblookup on the address or name at the point."
   (interactive)
-  (message "sorry -- not yet implemented!")
-)
+  (set-buffer (get-buffer-create "*RBL-Lookup*"))
+  (setq buffer-read-only nil)
+  (erase-buffer)
+  (apply 'start-process "rblookup" "*RBL-Lookup*" "rblookup" (list "-v" "204.92.254.15"))
+  (setq buffer-read-only t)
+  (goto-char (point-min))
+  (pop-to-buffer (current-buffer)))
+
+(defun my-vm-forward-spam ()
+  "Local version of vm-forward-message that does it as spam."
+  (interactive)
+  (let ((vm-forwarding-subject-format
+	 "%s (forwarded SPAM)\nSummary: forwarded SPAM from %F"))
+    (my-vm-forward-message-using-rfc934)))
+
+(define-key vm-mode-map "\eZ" 'my-vm-forward-spam) ; use default (mime)
+
 
 ;;;
 ;;; from Jukka Partanen <jukka.partanen@research.nokia.com>.
@@ -834,15 +764,15 @@ ORGANIZATION.  If not nil, takes precedence over the file
   (setq font-lock-defaults '(vm-font-lock-keywords t t))
   (turn-on-font-lock))
 
-;(cond (window-system
+(cond (window-system
 ;       (add-hook 'vm-mode-hook
 ;		 'vm-fontify)
-;       (add-hook 'vm-presentation-mode-hook
-;		 'vm-fontify)
-;       (add-hook 'vm-mail-mode-hook
-;		 'vm-fontify)
-;       (add-hook 'vm-edit-message-hook
-;		 'vm-fontify)))
+       (add-hook 'vm-presentation-mode-hook
+		 'vm-fontify)
+       (add-hook 'vm-mail-mode-hook
+		 'vm-fontify)
+       (add-hook 'vm-edit-message-hook
+		 'vm-fontify)))
 
 ;; This summary stuff is way too CPU intensive when you have as many virtual
 ;; folders open as I do (especially on a machine as slow as mine! ;-).
@@ -879,7 +809,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 (setq 
 ;;;   vm-arrived-message-hook nil
 ;;;   vm-arrived-messages-hook nil
-      vm-auto-center-summary nil
+      vm-auto-center-summary nil	; never bother centering the arrow
       vm-auto-decode-mime-messages nil	; might miss text in preamble otherwise!
       vm-auto-displayed-mime-content-type-exceptions '("text/x-vcard"
 						       "text/html"
@@ -969,7 +899,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-digest-identifier-header-format "X-Digest: %s\n"
       vm-digest-center-preamble t
       vm-digest-preamble-format "\"%s\" (%F)"
-      vm-digest-send-type (if (< vm-version-number 6.0)
+      vm-digest-send-type (if (< vm-version-number 6.0)	; very pedantic...
 			      "rfc934"
 			    "mime")	; go for the good
 ;;;   vm-display-buffer-hook nil
@@ -981,10 +911,13 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-flush-interval t		; flush every change (emacs is unstable)
       vm-folder-directory "~/Mail/"	; my usual place
 ;;;   vm-folder-read-only nil		; don't set this (becomes buffer local!)
+      vm-folders-summary-database "~/.vm.folders.db"
+      vm-folders-summary-directories '("~/")
+      vm-folders-summary-format "  %12f %4t total, %n new, %u unread, %s spooled, %d deleted\n"	; show deleted too
       vm-follow-summary-cursor t
 ;;;   vm-forward-message-hook nil
       vm-forwarded-headers nil
-      vm-forwarding-digest-type  (if (< vm-version-number 6.0)
+      vm-forwarding-digest-type  (if (< vm-version-number 6.0) ; very pedantic...
 				     "rfc934"
 				   "mime") ; go for the good
       vm-forwarding-subject-format "%s (forwarded)\nSummary: forwarded message from %F" ; much better!
@@ -993,6 +926,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-frame-per-composition nil	; no extra frames!
       vm-frame-per-edit nil		; no extra frames!
       vm-frame-per-folder nil		; no extra frames!
+      vm-frame-per-folders-summary nil
       vm-frame-per-help t		; ok, maybe one!
       vm-frame-per-summary nil
       vm-highlight-url-face 'bold-italic
@@ -1003,10 +937,9 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-imap-expunge-after-retrieving nil ; we'll do this manually
       vm-imap-max-message-size nil
       vm-imap-messages-per-session nil
-      vm-imap-session-preauth-hook nil
+;;;   vm-imap-session-preauth-hook nil
       vm-in-reply-to-format "%i"
-      vm-included-text-attribution-format "[ On %w, %m %d, %y at %h (%z), %F wrote: ]\n> Subject: %s\n>\n"
-					; just the way I like it!
+      vm-included-text-attribution-format "[ On %w, %m %d, %y at %h (%z), %F wrote: ]\n> Subject: %s\n>\n" ; just the way I like it!
       vm-included-text-discard-header-regexp nil
       vm-included-text-headers nil
       vm-included-text-prefix "> "
@@ -1047,7 +980,8 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-jump-to-new-messages t
       vm-jump-to-unread-messages t
       vm-keep-crash-boxes "~/tmp/"	; crash inbox saviour
-      vm-keep-sent-messages 8		; keep a few for reference
+      vm-keep-sent-messages 30		; keep a few for reference
+      vm-lynx-program "lynx"
       vm-mail-check-interval nil	; don't bother -- we don't show  mail-waiting indicator
       vm-mail-header-from (concat (user-login-name) "@" (vm-fqdn t)
 				  " (" (user-full-name) ")") ; this is also for
@@ -1063,16 +997,17 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-mime-8bit-composition-charset "iso-8859-1"
       vm-mime-8bit-text-transfer-encoding '8bit	; just send it, damn it!
       vm-mime-alternative-select-method 'best-internal
-      vm-mime-attachment-auto-type-alist '(("\\.jpe?g" . "image/jpeg")
-					   ("\\.gif" . "image/gif")
-					   ("\\.png" . "image/png")
-					   ("\\.tiff?" . "image/tiff")
-					   ("\\.html?" . "text/html")
-					   ("\\.au" . "audio/basic")
-					   ("\\.mpe?g" . "video/mpeg")
-					   ("\\.pdf" . "application/pdf")
-					   ("\\.ps" . "application/postscript")
-					   ) ; common, from example
+      vm-mime-attachment-auto-type-alist '(("\\.jpe?g$" . "image/jpeg")
+					   ("\\.gif$" . "image/gif")
+					   ("\\.png$" . "image/png")
+					   ("\\.tiff?$" . "image/tiff")
+					   ("\\.html?$" . "text/html")
+					   ("\\.au$" . "audio/basic")
+					   ("\\.mpe?g$" . "video/mpeg")
+					   ("\\.mov$" . "video/quicktime")
+					   ("\\.pdf$" . "application/pdf")
+					   ("\\.e?ps$" . "application/postscript")
+					   ("\\.xls$" . "application/vnd.ms-excel"))
       vm-mime-attachment-save-directory nil
       vm-mime-avoid-folding-content-type t
       vm-mime-base64-decoder-program "base64-decode" ; let's assume it's installed
@@ -1089,6 +1024,8 @@ ORGANIZATION.  If not nil, takes precedence over the file
 				     "%-35.35(%d, %n part%s%) [%k to %a]")
 				    ("message/partial" .
 				     "%-35.35(%d, part %N (of %T)%) [%k to %a]")
+				    ("message/external-body" .
+				     "%-35.35(%d%) [%k to %a (%x)]")
 				    ("message" . "%-35.35(%d%) [%k to %a]")
 				    ("audio" . "%-35.35(%d%) [%k to %a]")
 				    ("video" . "%-35.35(%d%) [%k to %a]")
@@ -1096,6 +1033,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 				    ("application/octet-stream" .
 				     "%-35.35(%d, %f%) [%k to %a]")
 				    )
+      vm-mime-charset-converter-alist nil
       vm-mime-charset-font-alist '(("x-unknown" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-1")
 				   ("us-ascii" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-1")
 				   ("iso-8859-1" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-1")
@@ -1106,13 +1044,15 @@ ORGANIZATION.  If not nil, takes precedence over the file
 				   ("iso-8859-7" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-7")
 				   ("iso-8859-8" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-8")
 				   ("iso-8859-9" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-9")
+				   ("iso-8859-15" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-1")
 				   ("koi8" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-koi8-1")
 				   )	; this should be smarter and use preferred-frame-font
       vm-mime-confirm-delete t
-      vm-mime-decode-for-preview t
+      vm-mime-decode-for-preview nil	; this is a waste of time!
       vm-mime-default-face-charset-exceptions nil
       vm-mime-default-face-charsets '("us-ascii"
 				      "iso-8859-1"
+				      "iso-8859-15"
 				      "x-unknown" ; pine sometimes uses x-unknown!
 				      "Windows-1251" ; non-standard crappy M$ crud
 				      "Windows-1252" ; non-standard crappy M$ crud
@@ -1125,9 +1065,8 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-mime-display-function nil
       vm-mime-external-content-types-alist '(("image/gif" 	"xv") ; RMS hates GIF so it must be displayed
 					     ("image"	 	"xv") ; so other types can be too
-;;;  this shouldn't be necessary with 6.92 or newer....
-;;;					     ("text/html" 	"xterm -e links") ; links RULES!
-					     ("video/mpeg" 	"mpeg_play")
+					     ("text/html" 	"xterm -e links") ; links RULES!
+					     ("video/mpeg" 	"mpeg_play -dither fs4")
 					     ("video" 		"xanim")
 					     ) ; basically from the example
       vm-mime-ignore-mime-version t
@@ -1202,7 +1141,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;;; to start netscape on a remote host:
 ;; #! /bin/sh
 ;; 
-;; NETSCAPEHOST=weird
+;; NETSCAPEHOST=proven
 ;; NETSCAPEPATH=/usr/local/bin/netscape
 ;; 
 ;; if [ $# -eq 2 -a X"$1" = X"-remote" ] ; then
@@ -1212,8 +1151,9 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;; fi
       vm-netscape-program "netscape"
       vm-netscape-program-switches (list "-display" my-vm-netscape-display)
-;;;;      vm-netscape-program "netscape"
-;;;;      vm-netscape-program-switches (list "-display" my-vm-netscape-display "-install")
+;;;;  vm-netscape-program "netscape"
+;;;;  vm-netscape-program-switches (list "-display" my-vm-netscape-display "-install")
+      vm-page-continuation-glyph "...press SPACE to see more..."
 ;;; defaults to (default-value 'fill-column)
 ;;;   vm-paragraph-fill-column
 ;;; eventually we'll use this:
@@ -1229,9 +1169,11 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-preview-lines 4		; allow 4 lines of the body to show
       vm-preview-read-messages nil
       vm-primary-inbox "~/Mail/INBOX"	; keep everything in vm-folder-directory
+      vm-print-command "mailp"		; pretty!
+      vm-print-command-switches "-from -noburstpage" ; nifty!
 ;;;   vm-quit-hook nil
-      vm-recognize-imap-maildrops "^imap:[^:]+:[^:]+:[^:]+:[^:]+:[^:]+:[^:]+"
-      vm-recognize-pop-maildrops "^[^:]+:[^:]+:[^:]+:[^:]+:[^:]+"
+      vm-recognize-imap-maildrops "^\\(imap\\|imap-ssl\\|imap-ssh\\):[^:]+:[^:]+:[^:]+:[^:]+:[^:]+:[^:]+"
+      vm-recognize-pop-maildrops "^\\(pop:\\|pop-ssl:\\|pop-ssh:\\)?[^:]+:[^:]+:[^:]+:[^:]+:[^:]+"
 ;;;   vm-reply-hook nil
       vm-reply-ignored-addresses (list (concat "\\("
 					        "\\b"
@@ -1246,7 +1188,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 					       "\\)"))
 					; just me!
       vm-reply-ignored-reply-tos nil
-      vm-reply-subject-prefix "Re: "	; please do the standard thing!
+      vm-reply-subject-prefix "Re: "	; please do the semi-standard thing!
       vm-resend-bounced-discard-header-regexp "\\(X400-\\)?Received:\\|x-uidl:" ; hmmmm?
       vm-resend-bounced-headers nil	; keep the rest
 ;;;   vm-resend-bounced-message-hook nil
@@ -1255,9 +1197,9 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;;;   vm-resend-message-hook nil
 ;;;   vm-retrieved-spooled-mail-hook nil
       vm-rfc1153-digest-discard-header-regexp "\\(X400-\\)?Received:\\|x-uidl:" ; hmmmm?
-      vm-rfc1153-digest-headers nil
+      vm-rfc1153-digest-headers nil	; keep the rest
       vm-rfc934-digest-discard-header-regexp "\\(X400-\\)?Received:\\|x-uidl:" ; hmmmm?
-      vm-rfc934-digest-headers nil
+      vm-rfc934-digest-headers nil	; keep the rest
       vm-search-using-regexps nil
 ;;;   vm-select-message-hook nil
 ;;;   vm-select-new-message-hook nil
@@ -1275,13 +1217,16 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			     "pop.weird.com:pop:apop:woods:*"
 			     vm-crash-box)
 		       (list (concat vm-primary-inbox ".aci")
-			     "imap:imap.aci.on.ca:imap:inbox:login:woods:*"
+			     "imap-ssh:imap.aci.on.ca:imap:inbox:login:woods:*"
 			     (concat vm-crash-box ".aci"))
 		       (list (concat vm-primary-inbox ".soma")
-			     "imap:mail.somanetworks.com:imap:inbox:login:woods:*"
+			     "imap-ssl:mail.somanetworks.com:imap:inbox:login:woods:*"
 			     (concat vm-crash-box ".soma"))
 		       (list (concat vm-primary-inbox ".rogers")
 			     "mail.ym1.on.wave.home.com:pop:pass:millswoods:*"
+			     (concat vm-crash-box ".rogers"))
+		       (list (concat vm-primary-inbox ".rogers.com")
+			     "pop.ym.phub.net.cable.rogers.com:pop:pass:millswoods:*"
 			     (concat vm-crash-box ".rogers"))
 		       (list (concat vm-primary-inbox ".rogers-netmail")
 			     "netmail.home.com:pop:pass:millswoods:*"
@@ -1296,7 +1241,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-summary-format "%3n%*%A %-18.18F %4y/%02M/%02d-%H %4l/%-5c %I\"%s\"\n"
 					; ah, that's better! (except %02d
 					; doesn't put leading zeros out)
-      vm-summary-highlight-face nil	; don't bother -- too much CPU!
+      vm-summary-highlight-face 'bold
 ;;;   vm-summary-mode-hook nil		; < 6.0?
 ;;;   vm-summary-mode-hooks nil
 ;;;   vm-summary-redo-hook nil
@@ -1322,12 +1267,13 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-trust-From_-with-Content-Length nil
 ;;;   vm-undisplay-buffer-hook nil
       vm-unforwarded-header-regexp "x-uidl:"	; hmmmm?
-      vm-url-browser 'vm-mouse-send-url-to-netscape
+      vm-url-browser 'vm-mouse-send-url-to-netscape ; don't use w3!
+      vm-url-retrieval-methods '(lynx wget url-w3)
       vm-url-search-limit 1000000	; the more the merrier
       vm-use-menus '(folder motion send mark label sort virtual undo dispose emacs
 			    nil help)
       vm-use-toolbar '(next previous delete/undelete autofile file reply compose
-		  print visit quit nil help)
+			    print visit quit nil help)
 ;;;   vm-virtual-folder-alist			; see below....
       vm-virtual-folder-case-fold-search t	; I want everything to match!
       vm-virtual-mirror t
@@ -1347,6 +1293,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;;;   vm-visit-folder-hook nil
       vm-visit-when-saving 0
       vm-warp-mouse-to-new-frame nil
+      vm-wget-program "wget"
       vm-window-configuration-file nil		; don't allow saves
       )
 
