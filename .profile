@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	20.2	98/08/07 19:44:08 (woods)"
+#ident	"@(#)HOME:.profile	20.3	98/12/30 22:21:54 (woods)"
 
 #
 # Assumptions that may cause breakage:
@@ -876,7 +876,8 @@ fi
 if [ -d $HOME/notes ] ; then
 	(
 		cd $HOME/notes
-		echo "${nl}You have notes on:" * "${nl}"
+		echo "${nl}You have notes on:"
+		ls -C
 	)
 fi
 if [ -r $HOME/.trninit$TERM ] ; then
