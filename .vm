@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.4	98/09/16 01:48:40 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.5	98/10/08 10:21:44 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -361,7 +361,8 @@ NOTE:  Changes to this variable only take effect when your .vm is reloaded.")
   (vm-visit-virtual-folder my-vm-virtual-leftovers-folder))
 
 (defun my-vm-resync-all-virtual-folders ()
-  "Revisit all virtual folders to update them."
+  "Revisit all virtual folders to update them.  This doesn't seem to be
+necessary any more with newer versions of VM, eg. 6.62."
   (interactive)
   (save-excursion
     (my-vm-quit-all-virtual-folders)
@@ -369,7 +370,8 @@ NOTE:  Changes to this variable only take effect when your .vm is reloaded.")
 
 (defun my-vm-get-new-mail ()
   "Local version of vm-get-new-mail that updates all virtual folders in
-vm-virtual-folder-alist."
+vm-virtual-folder-alist.  This doesn't seem to be necessary any more with newer
+versions of VM, eg. 6.62."
   (interactive)
   (save-excursion
     (my-vm-quit-all-virtual-folders)
