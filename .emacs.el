@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.9	95/11/07 13:28:46 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.10	95/11/13 14:30:37 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -222,13 +222,15 @@ directory in the list PATHLIST, otherwise nil."
        '(("/tmp/\\.mail.*$" . mail-mode))
        auto-mode-alist))
 
-(if (elisp-file-in-loadpath-p "ksh-mode")
+;; assume the autoloads are done for this...
+(if (elisp-file-in-loadpath-p "makefile")
     (setq auto-mode-alist
 	  (append
 	   '(("/[Mm]ake[^/]*$" . makefile-mode))
 	   '(("/[^/]+\\.mk$" . makefile-mode))
 	   auto-mode-alist)))
 
+;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "ksh-mode")
     (setq auto-mode-alist
 	  (append
@@ -238,6 +240,7 @@ directory in the list PATHLIST, otherwise nil."
 	   '(("\\..*profile" . ksh-mode))
 	   auto-mode-alist)))
 
+;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "vm")
     (setq auto-mode-alist
 	  (append
