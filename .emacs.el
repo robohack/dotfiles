@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	18.4	97/01/25 21:33:14 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	18.5	97/04/03 10:21:30 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -304,10 +304,12 @@ scripts (alias)." t)
        auto-mode-alist))
 
 ;; assume the autoloads are done for this...
-(if (elisp-file-in-loadpath-p "makefile")
+(if (or (elisp-file-in-loadpath-p "makefile")
+	(elisp-file-in-loadpath-p "make-mode"))
     (setq auto-mode-alist
 	  (append
 	   '(("/[Mm]ake[^/]*$" . makefile-mode))
+	   '(("/[Mm]ake[^/]*\\.am$" . makefile-mode))
 	   '(("/[Pp]\\.[Mm]ake[^/]*$" . makefile-mode))
 	   '(("/[Mm]\\.include$" . makefile-mode))
 	   '(("/[^/]+\\.mk$" . makefile-mode))
