@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	18.6	97/04/04 00:44:43 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	18.7	97/04/08 11:18:05 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -282,25 +282,26 @@ scripts (alias)." t)
 ;;;; ----------
 ;;;; auto-mode-alist setup
 
+;; note: no cvs backup files listed, they match "/\\.#.*\\.[.0-9]+$"
+;;
 (setq auto-mode-alist
       (append
-       '(("/[^/]+\.vm$" . emacs-lisp-mode))	; VM customisation file
-       '(("/\.vm$" . emacs-lisp-mode))		; VM init file
-       '(("/[^/]+\\.[chtly].[.0-9]+$" . c-mode)) ; cvs backup file
-       '(("\\.java$" . java-mode))		; cc-mode
-       '(("/[^/chtly]+\\.[0-9][a-z]?$" . nroff-mode)) ; man page
-       '(("/[^/]+\\.an$" . nroff-mode))		; man page
-       '(("/[^/]+\\.d.[.0-9]+$" . nroff-mode))	; cvs backup file
+       '(("/[^/]+\\.java$" . java-mode))	; cc-mode
+       '(("/[^/]+\\.[0-9][a-z]?$" . nroff-mode)) ; man page
+       '(("/[^/]+\\.[0-9][a-z]?\\.in$" . nroff-mode)) ; man page
+       '(("/[^/]+\\.[m]?an$" . nroff-mode))	; man page
        '(("/[^/]+\\.t[imes]*$" . nroff-mode))	; nroff+tbl
-       '(("/[^/]*[rR][eE][aA][dD][^/ch]*$" . indented-text-mode)) ; XXX danger
-       '(("/[^/]*[cC][hH][aA][nN][gG][eE][sS][^/ch]*$" . indented-text-mode)) ; XXX danger
-       '(("/[^/]*[iI][nN][sS][tT][aA][lL][lL][^/ch]*$" . indented-text-mode)) ; XXX danger
-       '(("/[^/]*\\.article[^/]*$" . indented-text-mode))
-       '(("/[^/]*\\.letter[^/]*$" . indented-text-mode))
-       '(("/tmp/[^/]*\\.ed[^/]*$" . indented-text-mode)) ; mail edit buffer
-       '(("/[^/]+\\.t$" . c-mode))		; APC "ling" file
-       '(("/tmp/[^/]*nf[^/]*$" . indented-text-mode)) ; notesfile compose buf
+       '(("/[^/]+\\.t[imes]*\\.in$" . nroff-mode)) ; nroff+tbl
+       '(("[cC][hH][aA][nN][gG][eE][sS][^/chsly]*$" . indented-text-mode))
+       '(("[iI][nN][sS][tT][aA][lL][lL][^/chsly]*$" . indented-text-mode))
+       '(("[nN][eE][wW][sS]$" . indented-text-mode))
+       '(("[rR][eE][aA][dD][^/chsly]*$" . indented-text-mode))
+       '(("\\.vm$" . emacs-lisp-mode))		; VM init file
+       '(("\\.article[^/]*$" . indented-text-mode))
+       '(("\\.letter[^/]*$" . indented-text-mode))
        '(("\\.mail[^/]*$" . mail-mode))
+       '(("/tmp/[^/]*\\.ed[^/]*$" . indented-text-mode)) ; mail edit buffer
+       '(("/tmp/[^/]*nf[^/]*$" . indented-text-mode)) ; notesfile compose buf
        auto-mode-alist))
 
 ;; assume the autoloads are done for this...
@@ -309,10 +310,11 @@ scripts (alias)." t)
     (setq auto-mode-alist
 	  (append
 	   '(("/[Mm]ake[^/]*$" . makefile-mode))
-	   '(("/[Mm]ake[^/]*\\.am$" . makefile-mode))
+	   '(("/[Mm]ake[^/]*\\.am$" . makefile-mode)) ; XXX redundant?
 	   '(("/[Pp]\\.[Mm]ake[^/]*$" . makefile-mode))
 	   '(("/[Mm]\\.include$" . makefile-mode))
 	   '(("/[^/]+\\.mk$" . makefile-mode))
+	   '(("/[^/]+\\.mk\\.in$" . makefile-mode))
 	   auto-mode-alist)))
 
 ;; assume the autoloads are done for this...
