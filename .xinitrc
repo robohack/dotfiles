@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	21.2	00/01/04 20:40:53 (woods)"
+#ident	"@(#)HOME:.xinitrc	21.3	00/03/23 11:42:09 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -218,9 +218,14 @@ if [ -z "$ONX11SERVER" ] ; then
 			ONX11SERVER="$RSH -n $X11SERVER exec"
 			export X11SERVER ONX11SERVER
 			echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
+			# this is a large, hi-res, display with an optical mouse....
+			xset m 9 5
 			# now start special programs we like for this scenario
+			$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x130-200+148 -hl grey90 &
 			$ONX11SERVER $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/usr/X11/bin/auplay -audio '$AUDIOSERVER' -v 25 '$HOME'/lib/sounds/newmail"' &
 			$RSH -n proven.weird.com /usr/pkg/bin/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-0+275 -shortnames -header 0 -acmd '"/usr/pkg/bin/auplay -audio '$AUDIOSERVER' -v 25 '$HOME'/lib/sounds/newmail"' &
+			$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+			$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 			;;
 		*)
 			# not setting this just makes WM run stuff on the
@@ -307,6 +312,50 @@ if [ -x $X11BIN/xbuffy ] ; then
 else
 	xbiff -geometry 48x48-0+235 -bw 0 &
 fi
+
+case $DISPLAY in
+very.weird.com:*)
+	xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	;;
+xtremely.weird.com:*)
+	xearth -gamma 1.3 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
+	xload -geometry 120x130-200+0 -hl red &
+	xclock -geometry 190x30-0+196 -digital &
+	if [ -x /usr/bin/X11/swisswatch ] ; then
+		swisswatch -name swissclock -geometry 190x190-0+0 &
+	else
+		xclock -geometry 190x190-0+0 &
+	fi
+	xterm -display $DISPLAY -geometry 80x42-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n proven.weird.com exec /usr/pkg/bin/tkined -display $DISPLAY -geometry 1200x900+0-0 $HOME/tkined-2.tki &
+	$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY -geometry 935x990+0+0 &
+	xterm -display $DISPLAY -geometry 88x31+0+0 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn1 -T "Console-01 [DEChub 900MS]" -e telnet constantly 2001 &
+	xterm -display $DISPLAY -geometry 88x31+0+256 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn2 -T "Console-02 []" -e telnet constantly 2002 &
+	xterm -display $DISPLAY -geometry 88x31+0+512 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn3 -T "Console-02 [proven.weird.com]"  -e telnet constantly 2003 &
+	xterm -display $DISPLAY -geometry 88x31+0+768 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn4 -T "Console-02 [becoming.weird.com]"  -e telnet constantly 2004 &
+	xterm -display $DISPLAY -geometry 88x31+475+0 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn5 -T "Console-02 [always.weird.com]"  -e telnet constantly 2005 &
+	xterm -display $DISPLAY -geometry 88x31+475+256 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn6 -T "Console-02 []"  -e telnet constantly 2006 &
+#	xterm -display $DISPLAY -geometry 88x31+475+512 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn7 -T "Console-02 []"  -e telnet constantly 2007 &
+	xterm -display $DISPLAY -geometry 88x31+475+512 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Ts1 -T "Tserv-01 [EXB-210]"  -e telnet tserv 2001 &
+	$RSH -n most.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 88x31+475+768 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -T SNMP-Trap -e tail -f /var/log/snmptrap &
+	;;
+worm.planix.com:*)
+	xearth -gamma 1.3 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
+	xload -geometry 120x130-200+0 -hl red &
+	xclock -geometry 190x30-0+196 -digital &
+	if [ -x /usr/bin/X11/swisswatch ] ; then
+		swisswatch -name swissclock -geometry 190x190-0+0 &
+	else
+		xclock -geometry 190x190-0+0 &
+	fi
+	xterm -display $DISPLAY -geometry 80x42-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	netscape -install -display $DISPLAY -geometry 935x990+0+0 &
+	;;
+*)
+	xterm -display $DISPLAY -geometry 80x42-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	;;
+esac
+
 
 # when the window manager exits so shall we...
 #
