@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	1.3	97/11/20 00:25:33 (woods)"
+#ident	"@(#)HOME:.ctwmrc	1.4	97/11/23 16:53:52 (woods)"
 #
 
 AutoRelativeResize
@@ -1021,7 +1021,7 @@ menu "rlogin-passport"
 	"Rlogin's At Passport.ca" f.title
 	"Rlogin @diplomatic"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin passport.ca &"
 	"Rlogin @cayaman"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin cayman.passport.ca &"
-	"Rlogin @forged"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin forged.passport.ca &"
+	"Rlogin @news"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin news.passport.ca &"
 }
 
 menu "slogin-passport"
@@ -1029,7 +1029,7 @@ menu "slogin-passport"
 	"Slogin's At Passport.ca" f.title
 	"Slogin @diplomatic"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin passport.ca &"
 	"Slogin @cayaman"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin cayman.passport.ca &"
-	"Slogin @forged"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin forged.passport.ca &"
+	"Slogin @news"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin news.passport.ca &"
 }
 
 menu "rlogin-sols"
