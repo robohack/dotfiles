@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	18.11	97/03/10 20:20:46 (woods)"
+#ident	"@(#)HOME:.twmrc	18.12	97/04/15 17:42:24 (woods)"
 #
 
 AutoRelativeResize
@@ -644,11 +644,30 @@ function "start-aci-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin aci.on.ca &"
 }
 
+function "start-secret-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin secret.aci.on.ca &"
+}
+
 
 #	for telnet-aci menu
 #
 function "start-aci-telnet" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet aci.on.ca &"
+}
+
+function "start-secret-telnet" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet secret.aci.on.ca &"
+}
+
+
+#	for slogin-aci menu
+#
+function "start-aci-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin aci.on.ca &"
+}
+
+function "start-secret-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin secret.aci.on.ca &"
 }
 
 
@@ -1703,6 +1722,7 @@ menu "slogin"
 	"Slogin's at Planix.com..."	f.menu "slogin-planix"
 	"Slogin's at Infoshare.net..."	f.menu "slogin-infoshare"
 	"Slogin's at Ipass.com..."	f.menu "slogin-ipass"
+	"Slogin's at ACI.on.ca..."	f.menu "slogin-aci"
 	"Slogin's at OpenText.com..."	f.menu "slogin-opentext"
 	"Slogin's at Web.net..."	f.menu "slogin-web"
 }
@@ -1862,13 +1882,22 @@ menu "slogin-infoshare"
 menu "rlogin-aci"
 {
 	"Rlogin's At ACI.on.ca"		f.title
-	"Rlogin @aci.on.ca"		f.function "start-aci-rlogin"
+	"Rlogin @aci"			f.function "start-aci-rlogin"
+	"Rlogin @secret"		f.function "start-secret-rlogin"
 }
 
 menu "telnet-aci"
 {
 	"Telnet's At ACI.on.ca"		f.title
-	"telnet @aci.on.ca"		f.function "start-aci-telnet"
+	"telnet @aci"			f.function "start-aci-telnet"
+	"telnet @secret"		f.function "start-secret-telnet"
+}
+
+menu "slogin-aci"
+{
+	"Slogin's At ACI.on.ca"		f.title
+	"Slogin @aci"			f.function "start-aci-slogin"
+	"Slogin @secret"		f.function "start-secret-slogin"
 }
 
 menu "rlogin-logon"
