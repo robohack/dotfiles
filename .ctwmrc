@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.17	98/05/03 18:06:15 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.18	98/07/17 23:47:30 (woods)"
 #
 
 changequote([, ])
@@ -16,7 +16,10 @@ ifelse(eval(index(HOSTNAME, leitch.com) >= 0), 1, [define(AT_LEITCH, [@leitch.co
 #
 # There should be a better way to try things at M4 runtime.....
 #
-ifelse(HOSTNAME, most.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])], [])
+ifelse(HOSTNAME, most.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
+	[ifelse(HOSTNAME, almost.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
+	[ifelse(HOSTNAME, very.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
+		 [define(OPT_ZICONBEEP, [])])])])
 
 AutoRelativeResize
 AutoRaiseIcons
