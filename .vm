@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.7	98/10/20 23:11:03 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.8	98/10/21 18:31:38 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -44,29 +44,6 @@
       (add-hook 'vm-summary-mode-hook 'mc-install-read-mode)
       (add-hook 'vm-virtual-mode-hook 'mc-install-read-mode)
       (add-hook 'vm-mail-mode-hook 'mc-install-write-mode)))
-
-;;; rmime.el --- read MIME messages
-;; Author: Ray Moody <moody@cray.com>
-;; Version: $Id: rmime.el,v 1.2 1996/05/30 02:24:58 moody Exp $
-;; NOTE: elisp-file-in-loadpath-p comes from my .emacs.el
-(if (and (elisp-file-in-loadpath-p "rmime")
-	 (< vm-version-number 6.0))
-    (progn
-      ;; automatic rmime-mode for all messages...
-      ;;(setq vm-preview-lines t)
-      ;;(add-hook 'vm-select-message-hook 'rmime-format)
-      ;; or you can use the key bindings to show MIME...
-      (setq vm-preview-lines 4)
-      (add-hook 'vm-select-message-hook 'rmime-cancel)
-      ;; this you want in any case...
-      (add-hook 'vm-edit-message-hook 'rmime-cancel)
-      (autoload 'rmime-mode "rmime" "Toggle rmime-mode." nil)
-      (autoload 'rmime-format "rmime" "Turn on rmime-mode and format current buffer." nil)
-      (autoload 'rmime-cancel "rmime" "Turn off rmime-mode and revert current buffer." nil)
-      (autoload 'vm-rmime-mode "rmime" "Toggle rmime-mode for current message." nil)
-      (setq rmime-clean-files t)	; save as MIME encoded
-      (define-key vm-mode-map "I" 'vm-rmime-mode))
-  (setq vm-preview-lines 4))		; allow 4 lines of the body to show
 
 ;;; from Jukka Partanen <jukka.partanen@research.nokia.com>.
 (if (>= vm-version-number 6.0)
