@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	8.12	95/06/07 21:30:48 (woods)"
+#ident	"@(#)HOME:.profile	8.13	95/06/07 22:04:56 (woods)"
 
 #
 # Assumptions:
@@ -173,10 +173,9 @@ fi
 dirappend PATH /usr/bin/X11 $LOCAL/bin $GNU/bin $CONTRIB/bin /usr/ucb
 dirappend PATH /usr/games $LOCAL/games
 
-# TODO: We need to find some way to tell if this is 4.4BSD or not, since
-# TODO: we shouldn't set MANPATH for that version of man(1).
+# don't set MANPATH with 4.4BSD man....
 #
-if [ -z "$MANPATH" ] ; then
+if [ -z "$MANPATH" -a ! -r /etc/man.conf ] ; then
 	if [ -d /usr/share/man ] ; then
 		MANPATH="/usr/share/man" ; export MANPATH
 	else
@@ -184,10 +183,16 @@ if [ -z "$MANPATH" ] ; then
 	fi
 fi
 OMANPATH="$MANPATH" ; export OMANPATH
-dirprepend MANPATH $LOCAL/share/man $LOCAL/man $GNU/man $CONTRIB/man $X11PATH/man
+dirprepend MANPATH $LOCAL/share/man $GNU/man $CONTRIB/man $X11PATH/man
 #
-# TODO: We also need to strop $LOCAL/man if it's a symlink -> $LOCAL/share/man
-# TODO: but we can't depend on 'test -h' being available....
+# TODO: We also need to strip $LOCAL/man if it's a symlink -> $LOCAL/share/man
+# TODO: but we can't depend on 'test -h' being available or working....
+#
+case "$UUNAME" in
+web | robohack )
+	dirprepend MANPATH $LOCAL/man
+	;;
+esac
 
 ISSUN=false; export ISSUN
 if [ -x /usr/bin/sun ] ; then
@@ -395,32 +400,9 @@ MONTH="AIKO" ; export MONTH
 RNINIT="-v -M -S -T -i=8 -g2" ; export RNINIT
 TRNINIT="$HOME/.trninit" ; export TRNINIT
 
-# set terminal type...
-case "$UUNAME" in
-robohack | toile | wombat | spinne | tar | web | weirdo | isit | most | very )
-	: we trust that everything is all set up as it should be on sites we know....
-	;;
-* )
-	get_newterm ()
-	{
-		while [ "$TERM" != "$ttytype" ] ; do
-			echo $n "Please enter your terminal type [$ttytype]: $c"
-			read newttytype
-			if [ -n "$newttytype" ] ; then
-				ttytype="$newttytype"
-			fi
-			# NOTE: we assume tput is everywhere these days....
-			if tput -T"$ttytype" cr >/dev/null 2>&1 ; then
-				TERM="$ttytype"
-			else
-				echo "Sorry, I don't know that terminal type."
-				echo "Use 'dumb' if you are stuck."
-				echo ""
-			fi
-		done
-		unset newttytype
-	}
-
+# set terminal type and tty settings, etc....
+#
+if [ "$argv0" != ".xsession" -a "$argv0" != ".xinitrc" ] ; then
 	echo "Re-setting terminal preferences...."
 	if [ -r "$HOME/.stty" ] ; then
 		. $HOME/.stty
@@ -428,40 +410,70 @@ robohack | toile | wombat | spinne | tar | web | weirdo | isit | most | very )
 		stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
 	fi
 
-	case "$TERM" in
-	""|network|dialup|unknown)
-		ttytype=dumb
-		get_newterm
+	case "$UUNAME" in
+	robohack | toile | wombat | spinne | tar | web | weirdo | most | very )
+		# we trust that everything is all set up as it should be on
+		# sites we know, except for personal preferences set above...
+		:
+		;;
+	* )
+		# this is a function so it can be used interactively....
+		#
+		get_newterm ()
+		{
+			while [ "$TERM" != "$ttytype" ] ; do
+				echo $n "Please enter your terminal type [$ttytype]: $c"
+				read newttytype
+				if [ -n "$newttytype" ] ; then
+					ttytype="$newttytype"
+				fi
+				# NOTE: we assume tput is everywhere these days....
+				if tput -T"$ttytype" cr >/dev/null 2>&1 ; then
+					TERM="$ttytype"
+				else
+					echo "Sorry, I don't know that terminal type."
+					echo "Use 'dumb' if you are stuck."
+					echo ""
+				fi
+			done
+			unset newttytype
+		}
+
+		case "$TERM" in
+		""|network|dialup|unknown)
+			ttytype=dumb
+			get_newterm
+			;;
+		esac
+
+		if expr "`type tset`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
+			# On BSD, without the "-I" it uses /etc/termcap....
+			# TODO: tset might not work like this everywhere (clears screen
+			# TODO: and doesn't print erase/kill settings on SysVr4)
+			tset -I -r
+		fi
+
+		case $TTYN in
+		tty[p-zP-Z]*|vt*|vg*|console)
+			echo "Setting terminal for 8-bit transparency...."
+			stty cs8 -istrip -parenb
+			;;
+		esac
+
+		# try setting up for X11 if possible....
+		case "$TERM" in
+		xterm|sun|pc3|ibmpc3)
+			# users will have to set their own $DISPLAY....
+			dirappend PATH /usr/bin/X11 $X11PATH/bin
+			dirappend MANPATH /usr/share/X11/man $X11PATH/man
+			;;
+		esac
+
+		echo "Your terminal is port $TTY."
+		export TERM
 		;;
 	esac
-
-	if expr "`type tset`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
-		# On BSD, without the "-I" it uses /etc/termcap....
-		# TODO: tset might not work like this everywhere (clears screen
-		# TODO: and doesn't print erase/kill settings on SysVr4)
-		tset -I -r
-	fi
-
-	case $TTYN in
-	tty[p-zP-Z]*|vt*|vg*|console)
-		echo "Setting terminal for 8-bit transparency...."
-		stty cs8 -istrip -parenb
-		;;
-	esac
-
-	# try setting up for X11 if possible....
-	case "$TERM" in
-	xterm|sun|pc3|ibmpc3)
-		# users will have to set their own $DISPLAY....
-		dirappend PATH /usr/bin/X11 $X11PATH/bin
-		dirappend MANPATH /usr/share/X11/man $X11PATH/man
-		;;
-	esac
-
-	echo "Your terminal is port $TTY."
-	export TERM
-	;;
-esac
+fi
 
 # TODO: find some way to see if login(1) ran, or xterm(n) started us
 # TODO: since login(1) checks for mail too, but xterm(n) doesn't.
