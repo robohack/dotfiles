@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	22.1	01/10/17 12:09:45 (woods)"
+#ident	"@(#)HOME:.profile	22.2	01/10/20 02:56:39 (woods)"
 
 #
 # Assumptions that may cause breakage:
@@ -328,7 +328,35 @@ if [ -d $LOCAL/dmdlayers/bin -a "X$TERM" = "Xdmd" ] ; then
 	dirprepend MANPATH $DMD/man $TOOLS/man
 fi
 
+# make sure our home-dir is set up properly...
+#
+if [ ! -d $HOME/tmp ] ; then
+	mkdir $HOME/tmp
+	chmod 700 $HOME/tmp
+fi
+if [ ! -d $HOME/Mail ] ; then
+	mkdir $HOME/Mail
+	chmod 700 $HOME/Mail
+fi
+if [ -f $HOME/.xinitrc ] ; then
+	if [ ! -x $HOME/.xinitrc ] ; then
+		echo "WARNING: fixing execute bit on ~/.xinitrc!"
+		chmod +x $HOME/.xinitrc
+	fi
+	if [ ! -f $HOME/.xsession ] ; then
+		ln -fs .xinitrc $HOME/.xsession
+	fi
+fi
+# note .emacs.elc may not yet exist
+if [ ! -f $HOME/.emacs -a -f $HOME/.emacs.el ] ; then
+	ln -fs .emacs.elc $HOME/.emacs
+fi
+
 if [ "X$HOME" != "X/" ] ; then
+	if [ ! -d $HOME/bin ] ; then
+		mkdir $HOME/bin
+		chmod 755 $HOME/bin
+	fi
 	dirprepend PATH $HOME/bin
 	PATH="${PATH}:"
 fi
@@ -895,7 +923,7 @@ if $HAVELAYERS && [ "X$TERM" = "Xdmd" -a "`ismpx`" != "yes" ] ; then
 fi
 
 #
-# NOTE:  we don't get here the first time if we're starting a windo system, so
+# NOTE:  we don't get here the first time if we're starting a window system, so
 # for first time in for window systems which emulate login shells in each window
 #
 
