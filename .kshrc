@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	18.9	97/03/04 00:26:39 (woods)"
+#ident	"@(#)HOME:.kshrc	18.10	97/03/07 23:40:03 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -280,7 +280,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			trap "trap 1 2 3 15; setban" 1 2 3 15
 			WBANNER="GNU Emacs @ $UUNAME"
 			setban
-			REMESG=`mesg | sed 's/is/mesg/'`
+			REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 			mesg n
 			emacs ${1+"$@"}
 			setban
@@ -301,7 +301,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		fi
 		WBANNER="CU $*"
 		setban
-		REMESG=`mesg | sed 's/is/mesg/'`
+		REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 		mesg n
 		/usr/bin/cu ${1+"$@"}
 		setban
@@ -321,7 +321,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		fi
 		WBANNER="C-Kermit $*"
 		setban
-		REMESG=`mesg | sed 's/is/mesg/'`
+		REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 		mesg n
 		$LOCAL/bin/ckermit ${1+"$@"}
 		setban
@@ -338,7 +338,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			trap "trap 1 2 3 15; setban" 1 2 3 15
 			WBANNER="rlogin $*"
 			setban
-			REMESG=`mesg | sed 's/is/mesg/'`
+			REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 			mesg n
 			$RLOGIN ${1+"$@"}
 			setban
@@ -361,7 +361,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			fi
 			WBANNER="telnet $*"
 			setban
-			REMESG=`mesg | sed 's/is/mesg/'`
+			REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 			mesg n
 			$TELNET ${1+"$@"}
 			setban
@@ -378,7 +378,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			trap "trap 1 2 3 15; setban" 1 2 3 15
 			WBANNER="MUSH $*"
 			setban
-			REMESG=`mesg | sed 's/is/mesg/'`
+			REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 			mesg n
 			mush -C ${1+"$@"}
 			setban
@@ -395,7 +395,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			trap "trap 1 2 3 15; setban" 1 2 3 15
 			WBANNER="IRC $*"
 			setban
-			REMESG=`mesg | sed 's/is/mesg/'`
+			REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 			mesg n
 			irc ${1+"$@"}
 			setban
@@ -412,7 +412,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			trap "trap 1 2 3 15; setban" 1 2 3 15
 			WBANNER="TRN $*"
 			setban
-			REMESG=`mesg | sed 's/is/mesg/'`
+			REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 			mesg n
 			trn ${1+"$@"}
 			setban
@@ -428,7 +428,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		trap "trap 1 2 3 15; setban" 1 2 3 15
 		WBANNER="SU $*"
 		setban
-		REMESG=`mesg | sed 's/is/mesg/'`
+		REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 		mesg n
 		if [ -x /usr/5bin/su ] ; then
 			/usr/5bin/su ${1+"$@"}
@@ -453,7 +453,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			fi
 			WBANNER="NetHack"
 			setban
-			REMESG=`mesg | sed 's/is/mesg/'`
+			REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 			mesg n
 			$LOCAL/games/nethack
 			setban
