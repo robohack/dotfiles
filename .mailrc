@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	23.1	02/01/12 14:43:19 (woods)"
+# ident	"@(#)HOME:.mailrc	23.2	02/03/17 15:22:21 (woods)"
 
 set keep
 set keepsave
@@ -156,7 +156,8 @@ alias woods	"woods@planix.com (Greg A. Woods; Planix, Inc.)"
 alias orbz	spam@orbz.org
 alias osir	relays@relays.osirusoft.com
 alias osirusoft	relays@relays.osirusoft.com
-alias spamcop	spamcop@spamcop.net
+alias spamcop	spam@cmds.spamcop.net
+alias old-spamcop spamcop@spamcop.net
 
 # Local variables:
 # after-save-hook: build-mail-abbrevs
