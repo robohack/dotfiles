@@ -1,7 +1,7 @@
 #
-#	.profile - for either sh, or ksh.
+#	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	6.8	94/11/30 16:46:13 (woods)"
+#ident	"@(#)HOME:.profile	6.9	94/12/03 18:19:39 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -89,7 +89,7 @@ dirprepend ()
 }
 
 case "$UUNAME" in
-robohack | kuma | araignee | tar | spinne | toile | wombat )
+robohack | kuma | araignee | tar | spinne | toile | wombat | weirdo )
 	;;
 * )
 	PATH="/bin" ; export PATH
@@ -122,6 +122,17 @@ if [ -z "$LOCAL" ] ; then
 	fi
 fi
 
+if [ -z "$CONTRIB" ] ; then
+	if [ -d /contrib ] ; then
+		CONTRIB="/contrib" ; export CONTRIB
+	elif [ -d /usr/contrib ] ; then
+		CONTRIB="/usr/contrib" ; export CONTRIB
+	else
+		echo -- "$0: WARNING: this system doesn't seem to have a CONTRIB root"
+		CONTRIB="/local" ; export CONTRIB
+	fi
+fi
+
 if [ -z "$GNU" ] ; then
 	if [ -d /local/gnu ] ; then
 		GNU="/local/gnu" ; export GNU
@@ -135,7 +146,7 @@ if [ -z "$GNU" ] ; then
 	fi
 fi
 
-dirappend PATH /usr/bin/X11 $LOCAL/bin $GNU/bin /usr/ucb
+dirappend PATH /usr/bin/X11 $LOCAL/bin $GNU/bin $CONTRIB/bin /usr/ucb
 dirappend PATH /usr/games $LOCAL/games
 
 if [ -z "$MANPATH" ] ; then
@@ -146,7 +157,7 @@ if [ -z "$MANPATH" ] ; then
 	fi
 fi
 OMANPATH="$MANPATH" ; export OMANPATH
-dirprepend MANPATH $LOCAL/share/man $LOCAL/man $GNU/man /X11R5/man
+dirprepend MANPATH $LOCAL/share/man $LOCAL/man $GNU/man $CONTRIB/man /X11R5/man
 
 ISSUN=false; export ISSUN
 if [ -x /usr/bin/sun ] ; then
@@ -282,26 +293,13 @@ TRNINIT="$HOME/.trninit" ; export TRNINIT
 
 # set terminal type..
 case "$UUNAME" in
-robohack )
+robohack | kuma | toile | wombat | araignee | spinne | weirdo )
 	: we trust that everything is all set up as it should be....
-	;;
-toile | wombat | araignee | spinne )
-	if [ -r $HOME/.kshedit ] ; then
-		if grep "^set -o vi" $HOME/.kshedit ; then
-			# this horrible hack assumes that vi users
-			# will also have the prevailing default stty
-			# settings in /etc/profile....
-			: real men use emacs!
-		else
-			# we don't want no stinking defaults!
-			stty intr '^?'
-		fi
-	fi
 	;;
 * )
 	echo "Re-setting terminal preferences...."
 	stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
-	TERM=`tset -r - -m dmd:dmd -m dmd-myx:dmd-myx -m sun:sun -m xterm:xterm -m vt100:vt100 -m vt102:vt102 -m at386:at386 -m AT386:at386 -m :?$TERM`
+	eval `tset -sr -m dmd:dmd -m dmd-myx:dmd-myx -m sun:sun -m xterm:xterm -m vt100:vt100 -m vt102:vt102 -m at386:at386 -m AT386:at386 -m :?$TERM -`
 	case $TTY in
 	/dev/tty[p-zP-Z]* | /dev/vt* | /dev/console )
 		echo "Setting up an 8-bit tty environment...."
@@ -326,6 +324,18 @@ toile | wombat | araignee | spinne )
 	fi
 	;;
 esac
+
+if [ -r $HOME/.kshedit ] ; then
+	if grep "^set -o vi" $HOME/.kshedit ; then
+		# this horrible hack assumes that vi users
+		# will also have the prevailing default stty
+		# settings in /etc/profile....
+		: real men use emacs!
+	else
+		# we don't want no stinking defaults!
+		stty intr '^?'
+	fi
+fi
 
 SANE="`stty -g`" ; export SANE
 
