@@ -1,4 +1,4 @@
-#ident	"@(#)HOME:.mailrc  18.4    97/10/31 02:12:18 (woods)"
+#ident	"@(#)HOME:.mailrc  18.5    97/11/07 02:53:44 (woods)"
 #
 #	.mailrc - for mailx and emacs-VM
 #
@@ -31,7 +31,10 @@ alias all-wrkshp-94	"all-workshop-94@robohack.uucp (UNIX Applications Developmen
 #
 #	friendly aliases
 #
+alias andreas	"andreas@planix.com (Andreas Wrede)"
+alias andy	"andy@weird.com (Andy Mills)"
 alias bruce	"bdb@gts.net (Bruce Becker)"
+alias bryan	"bryan@aci.on.ca (Bryan Challenger)"
 alias dan	"dan@compus.ca (Dan Tomlinson)"
 alias dave	"mason@tmsoftware.ca (Dave Mason)"
 alias dennis	"dennis@nebulus.net (Dennis Breckenridge VE6TCP)"
@@ -40,13 +43,12 @@ alias dumais	"dumais@Apple.COM (Paul Dumais)"
 alias evan	"evan@telly.on.ca (Evan Leibovitch)"
 alias henry	"henry@utzoo.cs.utoronto.ca (Henry Spencer)"
 alias jerqs	"jerqs@clsc.utoronto.ca (jerq users)"
+alias jet-fuel  "jet-fuel@weird.com (Caffeine is fuel for your mind)"
 alias jmm	"jmm@Elegant.COM (John Macdonald)"
 alias me	"woods@planix.com (Greg A. Woods)"
+alias nik	"habern@caledon.org (Nik Habermel)"
 alias norman	"norman@cs.yorku.ca (Norman Wilson)"
 alias planix	"planix@planix.com (Those PlanIX Dudes)"
 alias peter	"peter@renzland.org (Peter Renzland)"
 alias rayan	"rayan@uunet.ca (Rayan Zachariassen)"
-
-# Local Variables:
-# local-write-file-hooks: (list (lambda () (setq mail-aliases t) nil))
-# End:
+alias woods	"woods@planix.com (Greg A. Woods)"
