@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.15	95/11/22 23:47:33 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.16	95/11/24 13:49:02 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -376,19 +376,20 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-unforwarded-header-regexp "only-drop-this-header"
       vm-virtual-folder-alist nil
       vm-virtual-mirror t
-      vm-visible-headers '("Resent-"
-			   "Original-"
+      vm-visible-headers '("Newsgroups:"
+			   "X-[^V]"		; try to avoid X-VM-*
+			   "Resent-[^M]"	; try to avoid Resent-Message-ID:
+			   "Original-[^M]"	; try to avoid Original-Message-ID:
 			   "From:"
+			   "Reply-to:"
 			   "Sender:"
 			   "To:"
 			   "Apparently-To:"
 			   "Cc:"
-			   "Subject:"
 			   "Date:"
-			   "Newsgroups:"
-			   "Reply-to:"
+			   "Subject:"
 			   "Keywords:"
-			   "X-"
+			   "Summary:"
 			   )
 ;;;   vm-visit-folder-hook nil
       vm-visit-when-saving nil		; try it this way for a while
