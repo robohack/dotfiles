@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	19.1	98/01/11 20:58:31 (woods)"
+#ident	"@(#)HOME:.kshrc	19.2	98/02/01 20:37:34 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -522,6 +522,8 @@ else
 fi
 alias gman='MANPATH=$GNU/man man'
 alias lman='MANPATH=$LOCAL/share/man man'
+alias pkgman='MANPATH=$PKG/share/man man'
+alias optman='MANPATH=$OPT/share/man man'
 alias tkman='MANPATH=$LOCAL/share/man.tcltk man'
 alias x11man='MANPATH=$X11PATH/man man'
 
