@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.17	96/04/11 15:11:30 (woods)"
+#ident	"@(#)HOME:.twmrc	2.18	96/05/28 10:32:30 (woods)"
 #
 
 AutoRelativeResize
@@ -163,6 +163,10 @@ function "start-weight-xterm" {
 	f.exec "$RSH -n weight.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
+function "start-box1-xterm" {
+	f.exec "$RSH -n box1.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
 function "start-quicksilver-xterm" {
 	f.exec "$RSH -n quicksilver.infoshare.net exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
@@ -221,6 +225,32 @@ function "start-pretty-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin pretty.weird.com &"
 }
 
+#	for slogin-weird menu
+#
+function "start-weird-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin ns.weird.com &"
+}
+
+function "start-most-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin most.weird.com &"
+}
+
+function "start-very-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin very.weird.com &"
+}
+
+function "start-sometimes-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e slogin sometimes.weird.com &"
+}
+
+function "start-always-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e slogin always.weird.com &"
+}
+
+function "start-pretty-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e slogin pretty.weird.com &"
+}
+
 #	for rlogin-cyclic menu
 #
 function "start-totoro-rlogin" {
@@ -230,31 +260,61 @@ function "start-totoro-rlogin" {
 #	for rlogin-planix menu
 #
 function "start-whome-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin whome.planix.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin whome.planix.com &"
 }
 
 function "start-woffi-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin woffi.planix.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin woffi.planix.com &"
 }
 
 function "start-wind-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin wind.planix.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin wind.planix.com &"
 }
 
 function "start-wish-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin wish.planix.com &"
 }
 
-function "start-weight-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin weight.planix.com &"
-}
-
 function "start-worm-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin worm.planix.com &"
 }
 
-function "start-martech-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin martech.planix.com &"
+function "start-weight-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin weight.planix.com &"
+}
+
+function "start-box1-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin box1.planix.com &"
+}
+
+#	for srlogin-planix menu
+#
+function "start-whome-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin whome.planix.com &"
+}
+
+function "start-woffi-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin woffi.planix.com &"
+}
+
+function "start-wind-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin wind.planix.com &"
+}
+
+function "start-wish-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin wish.planix.com &"
+}
+
+function "start-worm-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin worm.planix.com &"
+}
+
+function "start-weight-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin weight.planix.com &"
+}
+
+function "start-box1-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin box1.planix.com &"
 }
 
 #	for rlogin-infoshare menu
@@ -666,6 +726,7 @@ menu "applications"
 	"Applications"			f.title
 	"Xterm's Everywhere..."		f.menu "xterm"
 	"Rlogin's Everywhere..."	f.menu "rlogin"
+	"Slogin's Everywhere..."	f.menu "slogin"
 	"GhostView Everywhere..."	f.menu "ghostviews"
 	"WWW Everywhere..."		f.menu "www"
 	"Games..."			f.menu "games"
@@ -742,6 +803,14 @@ menu "www"
 	"@woffi"			f.function "start-woffi-netscape"
 	"@netserver"			f.function "start-netserver-netscape"
 	"@spinne"			f.function "start-spinne-netscape"
+	"  Netscape-Gold:"		f.nop
+	"@localhost"			f.function "start-local-netscape-gold"
+	"@weirdo"			f.function "start-weirdo-netscape-gold"
+	"@sometimes"			f.function "start-sometimes-netscape-gold"
+	"@always"			f.function "start-always-netscape-gold"
+	"@woffi"			f.function "start-woffi-netscape-gold"
+	"@netserver"			f.function "start-netserver-netscape-gold"
+	"@spinne"			f.function "start-spinne-netscape-gold"
 }
 
 menu "games"
@@ -783,6 +852,7 @@ menu "xterm"
 	"Xterm @woffi"			f.function "start-woffi-xterm"
 	"Xterm @wind"			f.function "start-wind-xterm"
 	"Xterm @weight"			f.function "start-weight-xterm"
+	"Xterm @box1"			f.function "start-box1-xterm"
 	"    infoshare.net hosts"	f.nop
 	"Xterm @quicksilver"		f.function "start-quicksilver-xterm"
 	"    web.net hosts"		f.nop
@@ -816,6 +886,13 @@ menu "rlogin"
 	"Rlogin's at Web.net..."	f.menu "rlogin-web"
 }
 
+menu "slogin"
+{
+	"Slogin's Everywhere"		f.title
+	"Rlogin's at Weird.com..."	f.menu "slogin-weird"
+	"Rlogin's at Planix.com..."	f.menu "slogin-planix"
+}
+
 menu "rlogin-weird"
 {
 	"Rlogin's At Weird.com"		f.title
@@ -825,6 +902,17 @@ menu "rlogin-weird"
 	"Rlogin @weirdo"		f.function "start-weird-rlogin"
 	"Rlogin @sometimes"		f.function "start-sometimes-rlogin"
 	"Rlogin @always"		f.function "start-always-rlogin"
+}
+
+menu "slogin-weird"
+{
+	"Slogin's At Weird.com"		f.title
+	"Slogin @most"			f.function "start-most-slogin"
+	"Slogin @very"			f.function "start-very-slogin"
+	"Slogin @pretty"		f.function "start-pretty-slogin"
+	"Slogin @weirdo"		f.function "start-weird-slogin"
+	"Slogin @sometimes"		f.function "start-sometimes-slogin"
+	"Slogin @always"		f.function "start-always-slogin"
 }
 
 menu "rlogin-cyclic"
@@ -842,8 +930,19 @@ menu "rlogin-planix"
 	"Rlogin @wish.planix.com"	f.function "start-wish-rlogin"
 	"Rlogin @weight.planix.com"	f.function "start-weight-rlogin"
 	"Rlogin @worm.planix.com"	f.function "start-worm-rlogin"
-	""				f.nop
-	"Rlogin @martech.planix.com"	f.function "start-martech-rlogin"
+	"Rlogin @box1.planix.com"	f.function "start-box1-rlogin"
+}
+
+menu "slogin-planix"
+{
+	"Slogin's At Planix.com"	f.title
+	"Slogin @whome.planix.com"	f.function "start-whome-slogin"
+	"Slogin @woffi.planix.com"	f.function "start-woffi-slogin"
+	"Slogin @wind.planix.com"	f.function "start-wind-slogin"
+	"Slogin @wish.planix.com"	f.function "start-wish-slogin"
+	"Slogin @weight.planix.com"	f.function "start-weight-slogin"
+	"Slogin @worm.planix.com"	f.function "start-worm-slogin"
+	"Slogin @box1.planix.com"	f.function "start-box1-slogin"
 }
 
 menu "rlogin-infoshare"
