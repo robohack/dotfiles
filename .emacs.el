@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	8.4	94/02/28 19:15:54 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	8.5	94/03/04 11:46:36 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -142,11 +142,10 @@ directory in the list PATHLIST, otherwise nil."
 			      (cons (concat "^" (expand-file-name "~")
 					    "/src/")
 				    "~SRC|"))
-			file-name-abbreviation-alist)))
-      (require 'mode-line)))
+			file-name-abbreviation-alist)))))
 
 (if (elisp-file-in-loadpath-p "c-boxes")
-    (autoload 'reindent-c-comment "c-boxes" nil t))
+    (autoload 'reindent-c-comment "c-boxes" "Function for boxing C comments." t))
 
 (if (elisp-file-in-loadpath-p "ksh-mode")
     (autoload 'ksh-mode "ksh-mode" "Major mode for editing sh Scripts." t))
@@ -156,6 +155,13 @@ directory in the list PATHLIST, otherwise nil."
 	 (require 'func-menu)
 	 (define-key global-map [S-down-mouse-1]
 	   'function-menu)))
+
+(if (elisp-file-in-loadpath-p "vm")
+    (progn
+      (autoload 'vm "vm" "Start View-Mail" t)
+      (autoload 'vm-mail "vm" "Send mail using View-Mail" t)
+      (autoload 'vm-visit-folder "vm" "View-Mail on a folder" t)
+      (autoload 'vm-mode "vm" "View-Mail Major Mode" t)))
 
 ; must appear after display-time is invoked (thus after time.el is loaded)
 ; [only called on emacs-19(?)]
@@ -241,6 +247,8 @@ Status: headers for O, or Forward to in mailboxes."
 
 (setq auto-mode-alist
       (append
+       '(("/[^/]+\.vm$" . emacs-lisp-mode))	; VM customisation file
+       '(("/\.vm$" . emacs-lisp-mode))		; VM init file
        '(("/[^/]+\\.[chtly].[.0-9]+$" . c-mode)) ; cvs backup file
        '(("/[^/]+\\.t$" . c-mode))		; APC "ling" file
        '(("/[^/chtly]+\\.[0-9][a-z]?$" . nroff-mode)) ; man page
@@ -273,6 +281,13 @@ Status: headers for O, or Forward to in mailboxes."
 	   '(("\\.sh$" . ksh-mode))
 	   '(("\\.ksh.*$" . ksh-mode))
 	   '(("\\..*profile" . ksh-mode))
+	   auto-mode-alist)))
+
+(if (elisp-file-in-loadpath-p "vm")
+    (setq auto-mode-alist
+	  (append
+	   '(("mbox$" . vm-mode))
+	   '(("/Mail/.*$" . vm-mode))
 	   auto-mode-alist)))
 
 (setq completion-ignored-extensions
