@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	21.5	00/03/20 11:18:27 (woods)"
+;;;#ident	"@(#)HOME:.vm	21.6	00/03/23 11:43:24 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -1321,9 +1321,10 @@ message/rfc822 attachments."
 	       (list (symbol-value 'my-vm-virtual-leftovers-folder)
 		     (list (list "INBOX")
 			   '(not (virtual-folder-member)))))
-	      '(("BUGTRAQ"
+	      '(("BUGTRAQ+INCIDENTS"
 		 (("INBOX")
-		  (recipient "bugtraq@")))
+		  (or (recipient "incidents@")
+		      (recipient "bugtraq@"))))
 		("CM-stuff"
 		 (("INBOX")
 		  (or (recipient "aegis-users@")
