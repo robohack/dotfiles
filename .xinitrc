@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file
 #
-#ident	"@(#)HOME:.xinitrc	4.6	94/11/03 16:24:50 (woods)"
+#ident	"@(#)HOME:.xinitrc	5.1	94/12/20 14:38:49 (woods)"
 
 . /etc/profile
 
