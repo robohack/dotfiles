@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.7	93/11/02 17:43:03 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	1.8	93/11/03 19:42:47 (woods)"
 ;;;
 ;;; per-user start-up functions
 ;;;
@@ -480,10 +480,9 @@ current emacs server process..."
 	  (function
 	   (lambda ()
 	     "Private cvs-mode stuff."
-	     (setq cvs-diff-flags '("-c"))		; List of strings to use as flags to pass to ``diff'' and ``cvs diff''.
+	     (setq cvs-diff-flags '("-u"))		; List of strings to use as flags to pass to ``diff'' and ``cvs diff''.
 	     (setq cvs-status-flags '("-Q"))		; List of strings to pass to ``cvs status''
-	     (setq cvs-diff-ignore-marks t)		; Non-nil if cvs-diff and cvs-mode-diff-backup should ignore any marked files. 
-	     (define-key cvs-mode-map "S" 'cvs-change-cvsroot))))
+	     (setq cvs-diff-ignore-marks t))))		; Non-nil if cvs-diff and cvs-mode-diff-backup should ignore any marked files. 
 
 (add-hook 'emacs-lisp-mode-hook
 	  (function
