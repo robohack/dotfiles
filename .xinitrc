@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	19.6	98/02/15 02:21:48 (woods)"
+#ident	"@(#)HOME:.xinitrc	19.7	98/04/25 22:45:19 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -150,25 +150,27 @@ if [ -z "$ONX11SERVER" ] ; then
 	#
 	if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
 		case "$XDMHOST" in
-		very.weird.com)
-			ONX11SERVER="$RSH -n most.weird.com exec"
-			export ONX11SERVER
+		some.diskless.workstation)
+			X11SERVER="some.more.powerful.host"
+			ONX11SERVER="$RSH -n $X11SERVER exec"
+			export X11SERVER ONX11SERVER
 			echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
 			# now start special programs we like for this scenario
-			$ONX11SERVER $X11BIN/xbuffy -mail /var/spool/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/opt/games/bin/auplay -audio '$AUDIOSERVER' /local/audio/newmail1.au"' &
+			$ONX11SERVER $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &
 			;;
 		almost.weird.com)
-			ONX11SERVER="$RSH -n most.weird.com exec"
-			export ONX11SERVER
+			X11SERVER="most.weird.com"
+			ONX11SERVER="$RSH -n $X11SERVER exec"
+			export X11SERVER ONX11SERVER
 			echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
 			# now start special programs we like for this scenario
-			$ONX11SERVER $X11BIN/xbuffy -mail /var/spool/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &
+			$ONX11SERVER $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/usr/local/bin/auplay -audio '$AUDIOSERVER' '$HOME'/sounds/newmail1.au"' &
 			;;
 		*)
 			# not setting this just makes WM run stuff on the
 			# current login host....
-			unset ONX11SERVER
-			echo "$argv0: have unset ONX11SERVER, XDMHOST is $XDMHOST"
+			unset X11SERVER ONX11SERVER
+			echo "$argv0: have unset X11SERVER and ONX11SERVER; XDMHOST is $XDMHOST"
 			;;
 		esac
 	fi
@@ -229,15 +231,11 @@ else
 	#
 	#	probably starting on an independent xterm....
 	#
-	if [ -r $HOME/bin/xerrors ] ; then
-		xterm -geometry 80x12-0-0 -cn -rw -sb -si -sk -sl 200 -e xerrors &
+	if [ -r $HOME/.xsession-errors-$DISPLAY ] ; then
+		xterm -geometry 60x12-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 500 -T "Xsession Messages for '$DISPLAY'" -e sh -c "mesg n; exec tail -200f $HOME/.xsession-errors-$DISPLAY" &
 	else
-		if [ -r $HOME/.xsession-errors.$$ ] ; then
-			xterm -geometry 60x12-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 500 -T "Xsession PID #$$" -e sh -c "mesg n; exec tail -200f $HOME/.xsession-errors.$$" && sleep 300 && rm $HOME/.xsession-errors.$$ &
-		else
-			echo "$argv0: didn't find .xsession-errors.$$"
-			xterm -geometry 60x12-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 500 -T "Xsession Messages" -e sh -c "mesg n; exec tail -200f $HOME/.xsession-errors" &
-		fi
+		echo "$argv0: didn't find .xsession-errors-$DISPLAY"
+		xterm -geometry 60x12-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 500 -T "Xsession Messages" -e sh -c "mesg n; exec tail -200f $HOME/.xsession-errors" &
 	fi
 fi
 
@@ -256,5 +254,6 @@ fi
 exec $WM
 
 # Local Variables:
-# local-write-file-hooks: (set-file-modes (buffer-file-name) 493)
+# eval: (defun save-this-file-and-make-it-executable () (write-region (point-min) (point-max) buffer-file-name nil 't) (set-file-modes buffer-file-name 493) nil)
+# local-write-file-hooks: (save-this-file-and-make-it-executable)
 # End:
