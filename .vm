@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	21.6	00/03/23 11:43:24 (woods)"
+;;;#ident	"@(#)HOME:.vm	21.7	00/04/14 13:18:50 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -22,6 +22,15 @@
     ;; mail-abbrev-end-of-buffer is useless with signature files.
     (substitute-key-definition 'next-line 'mail-abbrev-next-line
                                mail-mode-map global-map)))
+
+;; Kyle's filladapt from http://www.wonderworks.com/
+;;
+(if (and (fboundp 'elisp-file-in-loadpath-p)
+	 (elisp-file-in-loadpath-p "filladapt"))
+    (progn
+      (require 'filladapt)
+      (add-to-list 'filladapt-token-table '("To: " bullet))
+      (add-to-list 'filladapt-token-table '("Cc: " bullet))))
 
 ;; Thanks to John Owens <owens@graphics.stanford.edu>
 ;;
@@ -163,6 +172,64 @@ domain is undefined, the domain name is got from it."
 		    (substring date (match-beginning 5) (match-end 5)) ;Second
 		    )
 	  (error "Cannot understand current-time-string: %s." date)))))
+
+;;;
+;;; this borrowed from gnus-art.el....
+;;;
+(defun vm-url-unhex (x)
+  "Convert X from a hex representation to the actual value."
+  (if (> x ?9)
+      (if (>= x ?a)
+          (+ 10 (- x ?a))
+        (+ 10 (- x ?A)))
+    (- x ?0)))
+
+;;;
+;;; this also borrowed from gnus-art.el....
+;;;
+(defun vm-url-unhex-string (str &optional allow-newlines)
+  "Return a string with the %XX embedded codes removed from the url giving in STR.
+If optional second argument ALLOW-NEWLINES is non-nil, then allow the
+decoding of carriage returns and line feeds in the string, which is normally
+forbidden in URL encoding."
+  (setq str (or str ""))
+  (let ((tmp "")
+        (case-fold-search t))
+    (while (string-match "%[0-9a-f][0-9a-f]" str)
+      (let* ((start (match-beginning 0))
+             (ch1 (vm-url-unhex (elt str (+ start 1))))
+             (code (+ (* 16 ch1)
+                      (vm-url-unhex (elt str (+ start 2))))))
+        (setq tmp (concat
+                   tmp (substring str 0 start)
+                   (cond
+                    (allow-newlines
+                     (char-to-string code))
+                    ((or (= code ?\n) (= code ?\r))
+                     " ")
+                    (t (char-to-string code))))
+              str (substring str (match-end 0)))))
+    (setq tmp (concat tmp str))
+    tmp))
+
+;;; Turn this horror of a URL:
+;;;
+;;;	http://angelfire.com%40%77%77%77%2E%63%79ber%67%61%74%65w%61%79%2E%6E%65%74/t%68e%72%65%6D%6F%76e%31/r%65%6Do%76%65%2E%68%74%6D#@f%72%65%65%79%65%6C%6C%6Fw.%63%6F%6D/%6D%65%6D%62%65%72%73/b%69%67%6Der%63%68a%6E%74%73%74%75%66%66/i%6Edex%2E%68%74%6D%6C
+;;;
+;;; into this at least semi-readable URL:
+;;;
+;;;	http://angelfire.com@www.cybergateway.net/theremove1/remove.htm#@freeyellow.com/members/bigmerchantstuff/index.html
+;;;
+(defun vm-url-unhex-region (beg end)
+  "Remove %XX embedded codes in a URL marked as the current region."
+  (interactive "r")
+  (if (integerp end)			; dunno -- was in morse.el
+      (setq end (copy-marker end)))
+  (save-excursion
+    (let ((str (buffer-substring beg end)))
+      (goto-char beg)
+      (delete-region beg end)
+      (insert (vm-url-unhex-string str)))))
 
 ;;;From: friedman@splode.com (Noah Friedman)
 ;;;In-Reply-To: <srandall@quixote.asic.sc.ti.com> , 13 May 1997 10:32:32 -0500
@@ -912,7 +979,7 @@ message/rfc822 attachments."
       vm-keep-crash-boxes "~/tmp/"	; crash inbox saviour
       vm-keep-sent-messages 8		; keep a few for reference
       vm-mail-check-interval 300
-      vm-mail-header-from (concat (user-login-name) "@" (vm-fqdn)
+      vm-mail-header-from (concat (user-login-name) "@" (vm-fqdn t)
 				  " (" (user-full-name) ")") ; this is also for
 							     ; resent-from
       vm-mail-header-insert-date nil	; don't do this!
@@ -1123,7 +1190,7 @@ message/rfc822 attachments."
 ;;;   vm-undisplay-buffer-hook nil
       vm-unforwarded-header-regexp "only-drop-this-header"
       vm-url-browser 'vm-mouse-send-url-to-netscape
-      vm-url-search-limit 32000		; the more the merrier
+      vm-url-search-limit 1000000	; the more the merrier
       vm-use-menus '(folder
 		     motion
 		     send
