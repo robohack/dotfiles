@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.19	99/05/11 12:57:03 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.20	99/06/10 11:53:20 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -74,16 +74,8 @@
 (if (= init-emacs-type 20)
     (setq inhibit-eol-conversion t))	; show MS crap for what it is....
 
-;(if (= init-emacs-type 20)
-;    ;; You probably want/need this.
-;    ;; From: Johan Vromans <johan_vromans@nl.compuware.com>
-;    (defadvice standard-display-european
-;      (around maintain-multibyte-character-mode activate)
-;      "Inhibit standard-display-european from disabling multibyte-character mode."
-;      (let ((enable-multibyte-characters enable-multibyte-characters))
-;	ad-do-it)))
-
-(standard-display-european t)		; This forces iso8859-1
+(set-language-environment "Latin-1")	; force the issue
+(set-terminal-coding-system 'no-conversion) ; force the issue
 
 ;;; Let's make sure we're "home"....
 (cd "~")
@@ -347,6 +339,47 @@ scripts (alias)." t)
 
 (setq frame-title-format
       '("" mode-line-process " %b [%f] %F@" system-name))
+
+(setq icon-title-format frame-title-format)
+
+(setq same-window-buffer-names
+      '("*shell*"
+	"*mail*"
+	"*inferior-lisp*"
+	"*ielm*"
+	"*scheme*")) ; *info* nixed
+
+(setq special-display-buffer-names
+      '("*Completions*"
+	"*compilation*"
+	"*grep*"
+	"*tex-shell*"))
+
+(setq special-display-regexps
+      '((".*\\*Apropos\\*.*" '((top . 0)
+			       (left . -1)
+			       (height . 40)
+			       (width . 80)
+			       (unsplittable . t)))
+	(".*\\*Help\\*.*" '((top . 0)
+			    (left . -1)
+			    (height . 40)
+			    (width . 80)))
+	(".*\\*info\\*.*" '((top . 0)
+			    (left . -1)
+			    (height . 40)
+			    (width . 80)))
+	(".*\\*scratch\\*.*" '((top . 300)
+			       (left . -0)
+			       (height . 44)
+			       (width . 90)))))
+
+(setq special-display-frame-alist
+      '((top . 0)
+	(left . -1)
+	(height . 12)
+	(width . 80)
+	(unsplittable . t)))
 
 ;; GNUS specific stuff
 (defvar gnus-read-active-file)
@@ -1036,7 +1069,6 @@ suffixes `.elc' or `.el' to the specified name FILE."
 
 ;;; Message-Id: <m0tGNOF-0003dDC@fly.CNUCE.CNR.IT>
 ;;; Organization: CNUCE-CNR, Via S.Maria 36, Pisa - Italy +39-50-593211
-;;; Content-Transfer-Encoding: 7BIT
 ;;; From: Francesco Potorti` <pot@cnuce.cnr.it>
 ;;; Subject: negative argument for indent-for-comment
 ;;; Date: Fri, 17 Nov 1995 10:47 +0100 (MET)
