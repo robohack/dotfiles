@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.3	98/09/15 02:26:59 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.4	98/09/16 01:48:40 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -695,7 +695,7 @@ message/rfc822 attachments."
 ;; 	rsh $NETSCAPEHOST $NETSCAPEPATH -display $DISPLAY 
 ;; fi
       vm-netscape-program "netscape"
-      vm-netscape-program-switches '("-display" my-vm-netscape-display "-install")
+      vm-netscape-program-switches (list "-display" my-vm-netscape-display "-install")
 ;;; shouldn't mess with this
 ;;;   vm-options-file "~/.vm.options"
       vm-pop-bytes-per-session nil
