@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	7.1	94/02/02 22:53:19 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	7.2	94/02/07 20:51:15 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -420,8 +420,20 @@ Make a new one if NEW (or prefix arg) is non-nil."
           (setq c (1+ c)))
         (message "Building ascii table...done.")))))
 
+(defun date (&optional insert)
+  "Display today's date and the current time in the echo area.
+If the optional argument INSERT (prefix-arg, in interactive) is given and its
+value is non-nil, then insert at point today's date and the current time,
+advancing point."
+  (interactive "P")
+  (if insert
+      (progn
+        (barf-if-buffer-read-only)
+        (insert (current-time-string)))
+    (message (current-time-string))))
+
 (defun insert-date-in-current-buffer ()
-  "Insert time and date in current buffer at point."
+  "Insert output of date process in current buffer at point."
   (interactive)
   (call-process "date" nil t t))
 
