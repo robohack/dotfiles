@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	24.2	02/08/11 21:38:40 (woods)"
+#ident	"@(#)HOME:.profile	24.3	02/08/23 01:12:41 (woods)"
 
 #
 # Assumptions that may cause breakage:
@@ -147,9 +147,17 @@ fi
 if "${PATH_IS_OKAY:-false}" ; then
 	: # we trust $PATH has been initialized correctly on these machines....
 else
+	# otherwise start fresh...
 	OPATH=$PATH
-	PATH="/bin" ; export PATH	# otherwise start fresh...
-	dirappend PATH /usr/bin /usr/lbin
+	if [ -h /bin ] ; then
+		PATH="/usr/bin"
+	elif [ -h /usr/bin -o ! -d /usr/bin ] ; then
+		PATH="/bin"
+	else
+		PATH="/bin:/usr/bin"
+	fi
+	export PATH
+	dirappend PATH /usr/lbin
 fi
 export PATH
 
