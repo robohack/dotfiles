@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.31	96/09/07 23:47:46 (woods)"
+#ident	"@(#)HOME:.twmrc	2.32	96/09/07 23:54:12 (woods)"
 #
 
 AutoRelativeResize
@@ -405,6 +405,14 @@ function "start-weight-slogin" {
 
 #	for rlogin-ipass menu
 #
+function "start-seachange-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin seachange.com &"
+}
+
+function "start-auth1-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin auth1.seachange.com &"
+}
+
 function "start-clapton-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin clapton.seachange.com &"
 }
@@ -440,9 +448,45 @@ function "start-auth1-telnet" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet auth1.ipass.com &"
 }
 
+function "start-auth1-telnet" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet auth1.seachange.com &"
+}
+
+function "start-clapton-telnet" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet clapton.seachange.com &"
+}
+
+function "start-tugboat-telnet" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet tugboat.seachange.com &"
+}
+
+function "start-sparky-telnet" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet sparky.seachange.com &"
+}
+
+function "start-hamlet-telnet" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet hamlet.seachange.com &"
+}
+
+function "start-bsdibox-telnet" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet bsdibox.seachange.com &"
+}
+
+function "start-rock-telnet" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet rock.seachange.com &"
+}
+
 
 #	for slogin-ipass menu
 #
+function "start-seachange-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin seachange.com &"
+}
+
+function "start-auth1-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin auth1.seachange.com &"
+}
+
 function "start-clapton-slogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin clapton.seachange.com &"
 }
@@ -1442,6 +1486,9 @@ menu "slogin-planix"
 menu "rlogin-ipass"
 {
 	"Rlogin's At Ipass.com"		f.title
+	"Rlogin @seachange"		f.function "start-seachange-rlogin"
+	"Rlogin @auth1"			f.function "start-auth1-rlogin"
+	""				f.nop
 	"Rlogin @clapton"		f.function "start-clapton-rlogin"
 	"Rlogin @tugboat"		f.function "start-tugboat-rlogin"
 	"Rlogin @sparky"		f.function "start-sparky-rlogin"
@@ -1455,11 +1502,21 @@ menu "telnet-ipass"
 	"Telnet's At Ipass.com"		f.title
 	"telnet @seachange"		f.function "start-seachange-telnet"
 	"telnet @auth1"			f.function "start-auth1-telnet"
+	""				f.nop
+	"Telnet @clapton"		f.function "start-clapton-telnet"
+	"Telnet @tugboat"		f.function "start-tugboat-telnet"
+	"Telnet @sparky"		f.function "start-sparky-telnet"
+	"Telnet @hamlet"		f.function "start-hamlet-telnet"
+	"Telnet @bsdibox"		f.function "start-bsdibox-telnet"
+	"Telnet @rock"			f.function "start-rock-telnet"
 }
 
 menu "slogin-ipass"
 {
 	"Slogin's At Ipass.com"		f.title
+	"Slogin @seachange"		f.function "start-seachange-slogin"
+	"Slogin @auth1"			f.function "start-auth1-slogin"
+	""				f.nop
 	"Slogin @clapton"		f.function "start-clapton-slogin"
 	"Slogin @tugboat"		f.function "start-tugboat-slogin"
 	"Slogin @sparky"		f.function "start-sparky-slogin"
