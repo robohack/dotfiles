@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	19.7	98/04/25 22:45:19 (woods)"
+#ident	"@(#)HOME:.xinitrc	19.8	98/06/09 23:06:50 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -232,10 +232,10 @@ else
 	#	probably starting on an independent xterm....
 	#
 	if [ -r $HOME/.xsession-errors-$DISPLAY ] ; then
-		xterm -geometry 60x12-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 500 -T "Xsession Messages for '$DISPLAY'" -e sh -c "mesg n; exec tail -200f $HOME/.xsession-errors-$DISPLAY" &
+		xterm -geometry 60x12-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 500 -ut -T "Xsession Messages for '$DISPLAY'" -e sh -c "mesg n; exec tail -200f $HOME/.xsession-errors-$DISPLAY" &
 	else
 		echo "$argv0: didn't find .xsession-errors-$DISPLAY"
-		xterm -geometry 60x12-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 500 -T "Xsession Messages" -e sh -c "mesg n; exec tail -200f $HOME/.xsession-errors" &
+		xterm -geometry 60x12-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 500 -ut -T "Xsession Messages" -e sh -c "mesg n; exec tail -200f $HOME/.xsession-errors" &
 	fi
 fi
 
