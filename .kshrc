@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	5.3	95/01/27 13:04:12 (woods)"
+#ident	"@(#)HOME:.kshrc	5.4	95/01/27 18:34:56 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -160,11 +160,20 @@ if [ "$id" -eq 0 ] ; then
 	fi
 	dirappend PATH /usr/lib/uucp /usr/lib
 	dirappend PATH /usr/ot/bin
+	case "$UUNAME" in
+	web )
+		dirappend PATH /etc/apc/bin $APCBIN/xbin
+		dirappend PATH $APCCONFIG/bin /apc/bin /apc/xbin /apc/lbin
+		dirappend PATH /usr/local/apc/bin /usr/local/apc/xbin
+		dirappend MANPATH /apc/man
+		;;
+	sunweb )
+		dirappend PATH $APCBIN/xbin $APCCONFIG/bin
+		dirappend PATH /apc/xbin /apc/bin
+		dirappend MANPATH /apc/man
+		;;
+	esac
 	dirappend PATH $HOME/bin
-	dirappend PATH /etc/apc/bin $APCBIN/xbin
-	dirappend PATH $APCCONFIG/bin /apc/bin /apc/xbin /apc/lbin
-	dirappend PATH /usr/local/apc/bin /usr/local/apc/xbin
-	dirappend MANPATH /apc/man
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		MYXBAN_R='$uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN'
 		PS1='[!] # '
