@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	19.6	98/03/23 19:52:01 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	19.7	98/03/23 20:40:35 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -266,16 +266,19 @@ scripts (alias)." t)
   "fixed"
   "My preferred font")
 
-;; The pxlsz of '0' forces use of the type-1 fonts.
-;;
 ;; Unfortunately the cleaner Bitstream Courier doesn't seem to have a matching
 ;; size italic (and has no oblique) fonts
 ;;
-;; assuming it's X, that is!  ;-)
+;; A pxlsz of '0' would force the use of Type-1 fonts...  but since they don't
+;; always have a proper back-tick, we're hosed and we must stay with this
+;; slightly bigger and slightly uglier version (which still doesn't have proper
+;; back-ticks for italic fonts).
+;;
+;; ... assuming it's X, that is!  ;-)
 ;;
 (if (eq window-system 'x)
     (setq preferred-frame-font
-	  "-adobe-*-medium-r-normal--0-120-*-*-m-*-iso8859-1"))
+	  "-adobe-*-medium-r-normal--*-120-*-*-m-*-iso8859-1"))
 
 (require 'frame)
 (defun set-frame-face-to-preferred-frame-font (frame)
