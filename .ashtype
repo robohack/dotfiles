@@ -1,0 +1,42 @@
+#
+#	.ashtype - This should be, but is not, a builtin in /bin/ash
+#
+#ident	"@(#)HOME:.ashtype	1.1	95/06/07 21:32:25 (woods)"
+
+type () {
+	if [ $# -ne 1 ]
+	then
+		echo "Usage: type command" >&2
+		return 2
+	fi
+	hashv=`hash | grep "function $1\$"`
+	if [ -n "$hashv" ]
+	then
+		echo "$hashv" | sed 's/^\([^ ]*\) \(.*\)$/\2 is a \1/'
+		unset hashv
+		return 0
+	fi
+	case "$1" in
+	.|bg|bltin|cd|echo|eval|exec|exit|export|fg|getopts|hash|jobid|jobs|lc|local|pwd|read|readonly|return|set|setvar|shift|trap|umask|unset|wait)
+		typeout="$1 is a builtin"
+		;;
+	*)
+		typeout="$1 not found"
+		oifs="$IFS"
+		IFS=":"
+		for pathseg in $PATH
+		do
+			if [ -x $pathseg/$1 ]
+			then
+				typeout="$1 is $pathseg/$1"
+				break
+			fi
+		done
+		IFS="$oifs"
+		unset oifs
+		;;
+	esac
+	echo $typeout
+	unset hashv pathseg typeout
+	return 0
+}
