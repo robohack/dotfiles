@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.7	98/10/24 15:16:25 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.8	98/11/11 12:16:09 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -334,15 +334,19 @@ scripts (alias)." t)
 (setq delete-auto-save-files t)		; delete auto-save file when saved
 (setq enable-local-variables 1)		; non-nil, non-t means query...
 (setq make-backup-files nil)		; too much clutter
+(setq message-log-max 1000)		; default of 50 loses too much!
 (setq next-line-add-newlines nil)	; I hate it when it does that!  ;-)
 (setq search-highlight 1)		; not sure when this begins to work
 (setq track-eol nil)			; too hard to control (it's sticky!)
 (setq window-min-height 1)		; don't be snobbish
 (setq window-min-width 1)
+
 (setq completion-ignored-extensions
       (append '(".out")
 	      completion-ignored-extensions))
 
+;; GNUS specific stuff
+(defvar gnus-read-active-file)
 (setq gnus-read-active-file t)		; default of 'some causes it to hang
 
 (if window-system
