@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	18.2	97/01/22 12:35:55 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	18.3	97/01/22 13:55:13 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1231,7 +1231,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 (if (elisp-file-in-loadpath-p "perl-mode")
     (progn
       (add-hook 'perl-mode-hook
-		(funtion
+		(function
 		 (lambda ()
 		   "Private perl-mode-hook."
 		   (override-default-variable-settings)
