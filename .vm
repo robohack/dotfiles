@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	23.1	02/01/12 14:43:19 (woods)"
+;;;#ident	"@(#)HOME:.vm	23.2	02/02/21 13:04:08 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -1316,6 +1316,10 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("bind@" . "bind-l")
 			      ("bind-users@" . "bind-users-l")
 			      ("bind-workers@" . "bind-workers-l")
+			      ("bind9@" . "bind9-l")
+			      ("bind9-users@" . "bind9-users-l")
+			      ("bind9-bugs@" . "bind9-bugs-l")
+			      ("bind9-workers@" . "bind9-workers-l")
 			      ("bitkeeper-users@" . "bitkeeper-users-l")
 			      ("bkl@" . "bitkeeper-license-l")
 			      ("bug-vm@" . "bug-vm")
@@ -1510,6 +1514,9 @@ ORGANIZATION.  If not nil, takes precedence over the file
 		      (recipient "namedroppers@")
 		      (recipient "bind-workers@")
 		      (recipient "bind-users@")
+		      (recipient "bind9-workers@")
+		      (recipient "bind9-users@")
+		      (recipient "bind9-bugs@")
 		      (recipient "comp-protocols-dns-bind@")
 		      (recipient "rs-info@"))))
 		("jet-fuel"
