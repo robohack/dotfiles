@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	12.4	94/03/31 14:45:22 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	12.5	94/03/31 14:48:40 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -613,6 +613,7 @@ suffixes `.elc' or `.el' to the specified name FILE."
 	(string-equal (getenv "VISUAL") "emacsclient"))
     (progn
       ;; to quiet the v19 byte compiler
+      (defvar server-temp-file-regexp)
       (defvar server-process)
       (eval-and-compile
 	(autoload 'server-buffer-done "server"
