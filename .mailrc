@@ -1,4 +1,4 @@
-#ident	"@(#)HOME:.mailrc  18.1    97/01/20 10:10:13 (woods)"
+#ident	"@(#)HOME:.mailrc  18.2    97/10/30 22:53:23 (woods)"
 #
 #	.mailrc - for mailx and emacs-VM
 #
@@ -75,7 +75,7 @@ alias norman	'(Norman Wilson) norman@clsc.utoronto.ca'
 alias ost	'(Open Systems Today) editor@ost.com'
 alias paul	'(Paul Dumais) dumais@Apple.COM'
 alias ped	'(Paul Dumais) dumais@Apple.COM'
-alias planix	'(Those PlanIX Dudes) planix@planix.com'
+alias allplanix	'(Those PlanIX Dudes) planix@planix.com'
 alias peter	'(Peter Renzland) peter@renzland.org'
 alias rayan	'(Rayan Zachariassen) rayan@uunet.ca'
 alias scott	'(Scott Campbell) scott@skypod.uucp'
