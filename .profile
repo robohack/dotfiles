@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	18.8	97/09/16 11:56:23 (woods)"
+#ident	"@(#)HOME:.profile	18.9	97/09/16 12:27:35 (woods)"
 
 #
 # Assumptions:
@@ -18,10 +18,10 @@
 #	$HOME/.editor	- name of prefered text editor command
 #	$HOME/.kshlogin	- sourced once, if running ksh(1)
 #	$HOME/.kshlogout - set on trap 0, if running ksh(1)[, or bash(1)?]
-#	$HOME/.localprofile - sourced once, near end of this file
+#	$HOME/.localprofile - sourced once early in here to set system-local prefs.
 #	$HOME/.mailer	- name of prefered MUA command
 #	$HOME/.shell	- mktable'd and exec'ed as shell (see end of this file)
-#	$HOME/.shlogin	- sourced once
+#	$HOME/.shlogin	- sourced once, if running sh(1)
 #	$HOME/.shlogout	- set on trap 0, if running sh(1) or ash(1)
 #	$HOME/.shrc	- sourced once from .shlogin, and pathname used in $ENV
 #	$HOME/.stty	- sourced for stty command(s), etc. just before tset(1)
@@ -64,30 +64,25 @@ if [ -z "$HOSTNAME" ] ; then
 fi
 
 if [ -z "$DOMAINNAME" ] ; then
-	case "$UUNAME" in
-	toile | oldweb )		# 386/ix machines
-		DOMAINNAME=".web.apc.org"
-		;;
-	* )
-		if expr "`type domainname`" : '.* is .*/domainname$' >/dev/null 2>&1 ; then
-			DOMAINNAME="`domainname`"
-		elif expr "$HOSTNAME" : '^[^\.]*\.' >/dev/null 2>&1 ; then
-			DOMAINNAME="."`expr "$HOSTNAME" : '^[^\.]*\.\(.*\)$'`
-		else
-			# these cases for machines without domainname,
-			# and a short hostname....
-			#
-			case "$UUNAME" in
-			weirdo )
-				DOMAINNAME=".weird.com"
-				;;
-			* )
-				DOMAINNAME=".UUCP"
-				;;
-			esac
-		fi
-		;;
-	esac
+	if [ -r /etc/resolv.conf ] && fgrep domain /etc/resolv.conf >/dev/null 2>&1; then
+		eval `sed -n 's/domain /DOMAINNAME=./p' /etc/resolv.conf`
+	elif expr "`type domainname`" : '.* is .*/domainname$' >/dev/null 2>&1 ; then
+		DOMAINNAME="`domainname`"
+	elif expr "$HOSTNAME" : '^[^\.]*\.' >/dev/null 2>&1 ; then
+		DOMAINNAME="."`expr "$HOSTNAME" : '^[^\.]*\.\(.*\)$'`
+	else
+		# these cases for machines without domainname,
+		# and a short hostname....
+		#
+		case "$UUNAME" in
+		weirdo )
+			DOMAINNAME=".weird.com"
+			;;
+		* )
+			DOMAINNAME=".UUCP"
+			;;
+		esac
+	fi
 	export DOMAINNAME
 fi
 
@@ -134,16 +129,19 @@ dirprepend ()
 	unset varname varvalue
 }
 
-case "$UUNAME" in
-robohack | kuma | araignee | tar | spinne | toile | wombat | weirdo | most | very | isit | pretty | whats )
-	# we trust $PATH has been initialized correctly on these machines....
-	;;
-* )
+# system-local user preferences go in here
+#
+if [ -r $HOME/.localprofile ] ; then
+	. $HOME/.localprofile
+fi
+
+if "${PATH_IS_OKAY:-false}" ; then
+	: # we trust $PATH has been initialized correctly on these machines....
+else
 	OPATH=$PATH
 	PATH="/bin" ; export PATH	# otherwise start fresh...
 	dirappend PATH /usr/bin /usr/lbin
-	;;
-esac
+fi
 
 if [ -z "$LOCAL" ] ; then
 	if [ -d /local -a -d /local/bin ] ; then
@@ -233,7 +231,8 @@ if [ ! -d $LOCAL/share/man ] ; then
 	dirappend MANPATH $LOCAL/man
 fi
 dirprepend MANPATH $LOCAL/share/man $GNU/man $CONTRIB/man $X11PATH/man
-dirappend MANPATH $LOCAL/share/man.tcltk
+# XXX tcl manpages are horrible as they override many others!
+#dirappend MANPATH $LOCAL/share/man.tcltk
 
 ISSUN=false; export ISSUN
 if [ -x /usr/bin/sun ] ; then
@@ -250,6 +249,7 @@ if [ -x /usr/bin/sun ] ; then
 			dirprepend PATH /opt/SUNWspro/bin
 		fi
 		# XXX FIXME: should use OPENWINHOME ???
+		# XXX FIXME: should only do this if DISPLAY set???
 		dirappend PATH /usr/openwin/bin /usr/openwin/demo
 		dirappend MANPATH /usr/openwin/share/man
 	fi
@@ -778,12 +778,6 @@ if [ -d $HOME/notes ] ; then
 fi
 if [ -r $HOME/.trninit$TERM ] ; then
 	TRNINIT="$HOME/.trninit$TERM" ; export TRNINIT
-fi
-
-# final system-local user preferences go in here
-#
-if [ -r $HOME/.localprofile ] ; then
-	. $HOME/.localprofile
 fi
 
 # minor cleanup
