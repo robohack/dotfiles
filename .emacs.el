@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	16.1	95/02/15 11:08:01 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	16.2	95/03/12 18:01:24 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -139,6 +139,15 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 	       ;; (require 'time)	; this isn't provided by time.el!
 	       (setq display-time-day-and-date t) ; autoload'ed though
 	       (setq display-time-24hr-format t)
+	       (if (not (string=
+			 (substring rmail-spool-directory
+				    (- (length rmail-spool-directory) 1))
+			 "/"))
+		   ;; damn, but 19.28's time.el seems incompatible with the
+		   ;; supplied default setting of rmail-spool-directory
+		   (setq rmail-spool-directory (concat
+						rmail-spool-directory
+						"/")))
 	       (if (or (string-equal (system-name) "robohack")
 		       (string-equal (system-name) "web"))
 		   (setq display-time-interval 300)) ; poor little machines....
