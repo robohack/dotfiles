@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.28	99/11/18 13:07:02 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.29	99/11/18 13:09:42 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -333,7 +333,6 @@ scripts (alias)." t)
 (setq default-tab-width 8)		; a tab is a tab is a tab is a tab....
 (setq delete-auto-save-files t)		; delete auto-save file when saved
 (setq enable-local-variables 1)		; non-nil, non-t means query...
-(setq font-lock-maximum-size nil)	; don't worry about the buffer size...
 (setq make-backup-files nil)		; too much clutter
 (setq message-log-max 1000)		; default of 50 loses too much!
 (setq next-line-add-newlines nil)	; I hate it when it does that!  ;-)
@@ -342,6 +341,9 @@ scripts (alias)." t)
 (setq window-min-height 1)		; don't be snobbish
 (setq window-min-width 1)
 (setq file-name-handler-alist nil)	; turn off ange-ftp entirely
+
+(require 'font-lock)
+(setq font-lock-maximum-size nil)	; don't worry about the buffer size...
 
 (setq list-faces-sample-text
       "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789!@\#$%^&*()_+-=\\[];'`,./|{}:\"~<>?")
@@ -1208,17 +1210,14 @@ Use `list-faces-display' to see all available faces")
 ;;; From: ehgasm2@uts.mcc.ac.uk (Simon Marshall)
 ;;; Subject: Re: Quick routine to BOLDFACE directories in DIRED buffers
 ;;;
-(if window-system
-    (progn
-      ;; to quiet the v19 byte compiler
-      (defvar font-lock-keywords)
-      (require 'font-lock)
-      (add-hook 'dired-mode-hook
-		(function
-		 (lambda ()
-		   (font-lock-mode t)
-		   (setq font-lock-keywords
-			 dired-font-lock-keywords))))))
+(progn
+  ;; to quiet the v19 byte compiler
+  (add-hook 'dired-mode-hook
+	    (function
+	     (lambda ()
+	       (font-lock-mode t)
+	       (setq font-lock-keywords
+		     dired-font-lock-keywords)))))
 
 (add-hook 'display-time-hook
 	  (function
