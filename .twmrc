@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.28	96/09/07 20:59:55 (woods)"
+#ident	"@(#)HOME:.twmrc	2.29	96/09/07 21:57:25 (woods)"
 #
 
 AutoRelativeResize
@@ -619,6 +619,10 @@ function "start-kuma-mosaic" {
 	f.exec "$RSH -n kuma.web.net exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
 }
 
+function "start-rock-mosaic" {
+	f.exec "$RSH -n rock.seachange.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/Mosaic -ics 65536 &"
+}
+
 function "start-local-netscape" {
 	f.exec "$LOCAL/bin/netscape -display $DISPLAY &"
 }
@@ -644,7 +648,11 @@ function "start-always-netscape" {
 }
 
 function "start-woffi-netscape" {
-	f.exec "$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
+	f.exec "$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
+}
+
+function "start-rock-netscape" {
+	f.exec "$RSH -n rock.seachange.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
 }
 
 function "start-local-netscape-gold" {
@@ -970,6 +978,7 @@ menu "www"
 	"@woffi"			f.function "start-woffi-mosaic"
 	"@spinne"			f.function "start-spinne-mosaic"
 	"@kuma"				f.function "start-kuma-mosaic"
+	"@rock"				f.function "start-rock-mosaic"
 	"  Netscape:"			f.nop
 	"@localhost"			f.function "start-local-netscape"
 	"@weirdo"			f.function "start-weirdo-netscape"
@@ -978,6 +987,7 @@ menu "www"
 	"@woffi"			f.function "start-woffi-netscape"
 	"@netserver"			f.function "start-netserver-netscape"
 	"@spinne"			f.function "start-spinne-netscape"
+	"@rock"				f.function "start-rock-netscape"
 	"  Netscape-Gold:"		f.nop
 	"@localhost"			f.function "start-local-netscape-gold"
 	"@weirdo"			f.function "start-weirdo-netscape-gold"
