@@ -1,7 +1,7 @@
 #
 #	.mushrc - private mush initialization
 #
-#ident	"@(#)HOME:.mushrc	1.1	93/11/17 19:20:34 (woods)"
+#ident	"@(#)HOME:.mushrc	1.2	93/11/18 16:26:26 (woods)"
 
 # Set up the display early to allow quick exit in headers-only mode.
 # The hdrs_only flag is true if the command line was: "mush -H".
@@ -10,7 +10,7 @@ if hdrs_only
 endif
 
 set autosign=~/.signature
-set autosign2='!web @web @web.apc.org *becker *shields *scott *brian: \
+set autosign2='!web @web @web.apc.org @web.net *becker *shields *scott *brian: \
 \--\n\
 						Greg.'
 if iscurses
