@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	10.4	94/03/14 11:56:33 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	10.5	94/03/14 12:10:15 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;;
@@ -1035,21 +1035,22 @@ feeling, but you'll get used to it."
       (eval-after-load "appt" '(ad-activate 'appt-disp-window))
       (setq calendar-latitude 43.75)
       (setq calendar-longitude -79.45)
+      (setq today-visible-calendar-hook 'calendar-mark-today)
       (setq calendar-time-display-form 
 	    '(24-hours ":" minutes
 		       (if time-zone " (") time-zone (if time-zone ")")))
-      (setq appt-message-warning-time 20)
+      (setq appt-message-warning-time 20) ; minutes of warning prior to appt
       (setq view-diary-entries-initially t)
-;;;   (setq mark-diary-entries-in-calendar t)
+;;;   (setq mark-diary-entries-in-calendar t) ; too expensive....
       (setq mark-holidays-in-calendar t)
       (setq diary-display-hook (list 'appt-make-list 'fancy-diary-display))
       (setq appt-display-duration 60)	; seconds to display appointment message
       (setq appt-issue-message t)
-      (setq number-of-diary-entries [2 2 2 2 2 4 2])
+      (setq number-of-diary-entries [3 3 3 3 3 4 3])
       (setq all-christian-calendar-holidays t)
       (setq other-holidays
 	    '((holiday-fixed 1 11 "Sir John A. Macdonald's birthday")
-	      (holiday-float 2 1 3 "Heritage Day") ; third Monday
+	      (holiday-float 2 1 3 "Heritage Day") ; (unoff.) third Monday
 	      (holiday-fixed 4 21 "Queen Elizabeth's birthday")
 	      (holiday-fixed 4 22 "Earth Day")
 	      (holiday-float 5 1 -2 "Victoria Day") ; second last Monday
