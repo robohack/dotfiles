@@ -1,4 +1,4 @@
-#ident	"@(#)HOME:.mailrc  18.5    97/11/07 02:53:44 (woods)"
+#ident	"@(#)HOME:.mailrc  18.6    97/11/20 16:11:36 (woods)"
 #
 #	.mailrc - for mailx and emacs-VM
 #
@@ -40,6 +40,8 @@ alias dave	"mason@tmsoftware.ca (Dave Mason)"
 alias dennis	"dennis@nebulus.net (Dennis Breckenridge VE6TCP)"
 alias dick	"rhl@the-wire.com (R. H. Lathwell)"
 alias dumais	"dumais@Apple.COM (Paul Dumais)"
+alias ecarroll	"ecarroll@rogers.wave.ca (Eric M. Carroll)"
+alias eric.carroll "eric.carroll@acm.org (Eric M. Carroll)"
 alias evan	"evan@telly.on.ca (Evan Leibovitch)"
 alias henry	"henry@utzoo.cs.utoronto.ca (Henry Spencer)"
 alias jerqs	"jerqs@clsc.utoronto.ca (jerq users)"
@@ -51,4 +53,5 @@ alias norman	"norman@cs.yorku.ca (Norman Wilson)"
 alias planix	"planix@planix.com (Those PlanIX Dudes)"
 alias peter	"peter@renzland.org (Peter Renzland)"
 alias rayan	"rayan@uunet.ca (Rayan Zachariassen)"
+alias sandu	"sandu@mail.on.rogers.wave.ca (Alexandru Sburlan)"
 alias woods	"woods@planix.com (Greg A. Woods)"
