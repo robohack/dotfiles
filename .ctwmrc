@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.1	98/01/11 20:59:07 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.2	98/01/30 01:40:13 (woods)"
 #
 
 # Ideas on how to use more powerful M4 processing on this file:
@@ -649,7 +649,7 @@ menu "emacs"
 {
 	"Emacsen"			f.title
 	"@localhost"			!"emacs -i &"
-	"@x11server"			!"$RSH -n $X11SERVER '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
+	"@x11server"			!"$RSH -n $XDMHOST '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
 	"@most"				!"$RSH -n most.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/spool/mail/$LOGNAME'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
 	"@whats"			!"$RSH -n whats.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
 	"@woffi"			!"$RSH -n woffi.planix.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /local/bin/emacs -display '$DISPLAY' -i' &"
@@ -668,8 +668,8 @@ menu "monitors"
 	"xbiff @x11server"	!"$ONX11SERVER $X11BIN/xbiff -rv -bw 0 -display $DISPLAY &"
 	"xlbiff"		!"xlbiff &"
 	"xbuffy"		!"xbuffy -geometry 100x25-0+250 -shortnames -header 0 -acmd 'auplay -audio $AUDIOSERVER HOME/sounds/newmail' &"
-	"xbuffy @x11server"	!"$ONX11SERVER $X11BIN/xbuffy -mail $MAILPATH -display $DISPLAY -geometry 100x25-0+250 -shortnames -header 0 -acmd '\"/opt/games/bin/auplay -audio $AUDIOSERVER HOME/sounds/newmail\"' &"
-	"xbuffy @most"		!"$ONX11SERVER $X11BIN/xbuffy -mail /var/spool/mail/$LOGNAME -display $DISPLAY -geometry 100x25-0+250 -shortnames -header 0 -acmd '\"/opt/games/bin/auplay -audio $AUDIOSERVER /local/audio/newmail1.au\"' &"
+	"xbuffy @x11server"	!"$ONX11SERVER $X11BIN/xbuffy -mail $MAILPATH -display $DISPLAY -geometry 100x25-0+250 -shortnames -header 0 -acmd '\"/opt/games/bin/auplay -audio '$AUDIOSERVER' HOME/sounds/newmail\"' &"
+	"xbuffy @most"		!"$ONX11SERVER $X11BIN/xbuffy -mail /var/spool/mail/$LOGNAME -display $DISPLAY -geometry 100x25-0+250 -shortnames -header 0 -acmd '\"/opt/games/bin/auplay -audio '$AUDIOSERVER' /local/audio/newmail1.au\"' &"
 	""			f.separator
 	"xload"			!"xload -geometry 120x130-200+0 -hl grey90 &"
 	"xload @x11server"	!"$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x130-200+148 -hl grey90 &"
