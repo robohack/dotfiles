@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	18.8	97/01/29 08:06:33 (woods)"
+#ident	"@(#)HOME:.twmrc	18.9	97/02/21 16:38:42 (woods)"
 #
 
 AutoRelativeResize
@@ -471,7 +471,7 @@ function "start-seachange-rlogin" {
 }
 
 function "start-auth1-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin auth1.seachange.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin auth1.ipass.com &"
 }
 
 function "start-clapton-rlogin" {
@@ -553,11 +553,11 @@ function "start-seachange-slogin" {
 }
 
 function "start-auth1-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C auth1.seachange.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C auth1.ipass.com &"
 }
 
 function "start-www-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C www.seachange.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C www.ipass.com &"
 }
 
 function "start-clapton-slogin" {
