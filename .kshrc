@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	8.3	95/11/07 21:57:28 (woods)"
+#ident	"@(#)HOME:.kshrc	8.4	95/11/30 11:56:44 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -30,7 +30,7 @@ trap '
 	else
 		EMSG=""
 	fi;
-	echo "ksh: exit code: $rc$EMSG"
+	print "ksh: exit code: $rc$EMSG"
 ' ERR
 
 if typeset -f dirappend >/dev/null ; then
@@ -40,7 +40,7 @@ fi
 function dirappend
 {
 	if [ $# -le 1 -o -z "$1" ] ; then
-		echo "Usage: dirappend variable directory [...]" >&2
+		print "Usage: dirappend variable directory [...]" >&2
 		exit 2
 	fi
 	varname="$1"
@@ -62,7 +62,7 @@ fi
 function dirprepend
 {
 	if [ $# -le 1 -o -z "$1" ] ; then
-		echo "Usage: dirprepend variable directory [...]" >&2
+		print "Usage: dirprepend variable directory [...]" >&2
 		exit 2
 	fi
 	varname=$1
@@ -87,11 +87,11 @@ function do_first_time
 {
 	if [ -x /usr/games/fortune ] ; then
 		/usr/games/fortune
-	elif [ -x $LOCAL/games/fortune ] ; then
-		$LOCAL/games/fortune
+	elif [ -x "$FORTUNE" ] ; then
+		$FORTUNE
 	fi
 	if [ -r calendar -o -r .month ] ; then
-		echo "\nToday's Events:"
+		print "\nToday's Events:"
 		if [ -r .month ] ; then
 			month -B
 		fi
@@ -103,7 +103,7 @@ function do_first_time
 		(
 			cd $HOME/notes
 			if [ $(ls|wc -w) != 0 ] ; then
-				echo '\nNotes on: ' *
+				print '\nNotes on: ' *
 			fi
 		)
 	fi
@@ -237,7 +237,7 @@ if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	MYXCLR="${MYXCLR_L}${MYXCLR_C}${MYXCLR_R}"
 	MYXBAN_L='$PWD'
 
-	alias clearban='echo "${MYXCLR}\c"'
+	alias clearban='print "${MYXCLR}\c"'
 
 	function setban
 	{
@@ -262,7 +262,7 @@ if [ "$TERM" = "xterm" ] ; then
 	function setban
 	{
 		eval TBANNER='"${WBANNER:+$WBANNER | }$PWD | $uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN"'
-		echo "\033]0;$TBANNER\007\c"
+		print "\033]0;$TBANNER\007\c"
 		WBANNER=""
 	}
 
@@ -425,7 +425,7 @@ if [ "$TERM" = xterm ] ; then
 			break
 			;;
 		*)
-			echo "Usage: $0 display message";
+			print "Usage: $0 display message";
 			exit 2
 			;;
 		esac
@@ -498,8 +498,8 @@ alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok'
 alias maillog='$PAGER -e +G $MAILLOG'
 alias realias='let LEV=$LEV-1;exec ksh'		# useless?
 alias rstty='stty $SANE'
-alias scvs='export CVSROOT="$(cat CVS/Root)"; echo "CVSROOT=$CVSROOT"'
-alias wcvs='echo $CVSROOT'
+alias scvs='export CVSROOT="$(cat CVS/Root)"; print "CVSROOT=$CVSROOT"'
+alias wcvs='print $CVSROOT'
 
 # TODO: find a test so these are usable.
 #alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok rows $LINES cols $COLUMNS'
@@ -566,7 +566,7 @@ function lastlog
 	if [ $# -eq 1 -a "$1" = "-a" ] ; then
 		YearGrep="grep -v 1969"
 	elif [ $# -ne 0 ] ; then
-		echo 'Usage: lastlog [-a]' >&2
+		print 'Usage: lastlog [-a]' >&2
 	fi
 	/usr/lib/acct/fwtmp < /usr/adm/lastlog.ut | $YearGrep |
 		awk '{printf("%-8s %-12s %s\n", $1, $3, substr($0, 56))}'
