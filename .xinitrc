@@ -3,18 +3,36 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	18.2	97/01/27 14:45:19 (woods)"
+#ident	"@(#)HOME:.xinitrc	18.3	97/01/28 23:56:35 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
 argv0="`basename $0`"
-
-. /etc/profile
-. $HOME/.profile
-
 echo "$argv0: running from $0"
-echo "$argv0: current PATH='$PATH'"
+XOPATH=$PATH
+echo "$argv0: initial PATH='$PATH'"
+XODISPLAY=$DISPLAY
 echo "$argv0: starting up with DISPLAY='$DISPLAY'"
+
+if [ -r /etc/profile ] ; then
+	. /etc/profile
+else
+	echo "$argv0: no /etc/profile on this host!"
+fi
+if [ -r $HOME/.profile ] ; then
+	. $HOME/.profile
+else
+	echo "$argv0: no $HOME/.profile on this host!"
+fi
+
+if [ "$XOPATH" != "$PATH" ] ; then
+	echo "$argv0: adjusted PATH='$PATH'"
+fi
+unset XOPATH
+if [ "$XODISPLAY" != "$DISPLAY" ] ; then
+	echo "$argv0: adjusted DISPLAY='$DISPLAY'"
+fi
+unset XODISPLAY
 
 if [ $argv0 = ".xsession" -a -z "$XDMHOST" ] ; then
 	# assume HOSTNAME & DOMAINNAME are set by profile(s)
@@ -29,6 +47,7 @@ case "$DISPLAY" in
 	# don't bother with this unless it'll do us some good...
 	if [ -w /dev/console ] ; then
 		ONCONSOLE=true; export ONCONSOLE
+		echo "$argv0: redirecting stdout and stderr to /dev/console."
 		exec 1>/dev/console 2>&1
 	fi
 	DISPLAY="${XDMHOST:-${HOSTNAME}${DOMAINNAME}}:0.0"
@@ -41,7 +60,7 @@ esac
 if [ -z "$RSH" ] ; then
 	if [ -x /usr/ucb/rsh ] ; then
 		RSH=/usr/ucb/rsh
-	else
+	else				# TODO: also remsh?
 		RSH=/usr/bin/rsh
 	fi
 	export RSH					# used by .twmrc
@@ -69,23 +88,26 @@ if [ -z "$ONX11SERVER" ] ; then
 	esac
 fi
 
-if [ -z "$LOGNAME" ] ; then
-	LOGNAME="$USER"
-	export LOGNAME
+if [ -r "/usr/lib/X11/Xdefaults" ] ; then
+	xrdb /usr/lib/X11/Xdefaults	# Load default X11 resource database
+elif [ -r "$X11PATH/lib/X11/Xdefaults" ] ; then
+	xrdb $X11PATH/lib/X11/Xdefaults	# Load default X11 resource database
+elif [ -r "$OPENWINHOME/lib/Xdefaults" ] ; then
+	xrdb $OPENWINHOME/lib/Xdefaults	# Load default X11 resource database
 fi
-
-if [ -f "/usr/lib/X11/Xdefaults" ] ; then
-	xrdb /usr/lib/X11/Xdefaults	# Load Default X11 resource database
-elif [ -f "$X11PATH/lib/X11/Xdefaults" ] ; then
-	xrdb $X11PATH/lib/X11/Xdefaults	# Load Default X11 resource database
-elif [ -f "$OPENWINHOME/lib/Xdefaults" ] ; then
-	xrdb $OPENWINHOME/lib/Xdefaults	# Load Default X11 resource database
-fi
-if [ -f $HOME/.Xdefaults ] ; then
+if [ -r $HOME/.Xdefaults ] ; then
 	xrdb $HOME/.Xdefaults		# Load user's X11 resource database
 fi
-if [ -f $HOME/.Xmodmap ] ; then
-	xmodmap $HOME/.Xmodmap		# Load user's keymap
+if [ -r $HOME/.Xmodmap ] ; then
+	# what we really need is some way to tell what type of keyboard
+	# is attached.... as this is primarily to fix dumb PC(-like) kybds
+	case "$UUNAME" in
+	very|pretty|sometimes|always)
+		;;
+	*)
+		xmodmap $HOME/.Xmodmap	# Load user's keymap
+		;;
+	esac
 fi
 
 # TODO: this might be a mistake, but it might also save your bacon!
@@ -120,6 +142,7 @@ if [ "$argv0" = .xinitrc ] ; then
 			XEGAMMA="-gamma 1.6 -night 15"		# for Sun CG3
 		fi
 		xearth $XEGAMMA -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
+		unset DEPTHSTR
 	elif [ -x $X11BIN/xphoon ] ; then
 		xphoon -t 10 &
 	elif [ -r $X11PATH/include/X11/bitmaps/escherknot ] ; then
@@ -180,8 +203,23 @@ if [ -x $X11BIN/xmailwatcher ] ; then
 		# WARNING: assumes MAILPATH is same on server....
 		$RSH -n most.weird.com exec $X11BIN/xmailwatcher -display $DISPLAY -geometry 300x100-4+235 -iconic -icongeometry -4+235 -iconic -mailbox $MAILPATH &
 		;;
+	*)
+		xmailwatcher -display $DISPLAY -geometry 300x100-4+235 -iconic -icongeometry -4+235 -iconic &
+		;;
 	esac
-else                          # think about using xlbiff too...
+elif [ -x $X11BIN/xbuffy ] ; then
+	case "$DOMAINNAME" in
+	*seachange.com)
+		$RSH -n clapton.seachange.com /usr/local/bin/xbuffy -display $DISPLAY -geometry 90x30-4+260 -mail /var/mail/woods -shortnames -header 5 &
+		;;
+	*weird.com)
+		$RSH -n most.weird.com $X11BIN/xbuffy -display $DISPLAY -geometry 90x30-4+260 -shortnames -header 5 -mail $MAILPATH &
+		;;
+	*)
+		xbuffy -display $DISPLAY -geometry 90x30-4+260 -shortnames -header 5 &
+		;;
+	esac
+else
 	case "$HOME" in
 	*/most/*)
 		$RSH -n most.weird.com exec $X11BIN/xbiff -display $DISPLAY -geometry 48x48-4+4 -title Most-biff &
@@ -195,8 +233,11 @@ else                          # think about using xlbiff too...
 	esac
 fi
 
-# Ah!  Your Free localhost Window!
-xterm -geometry 80x24-4-195 -sl 500 -sb -sk -si -rw  -ls -T Primary &
+DIMENSIONS="`xdpyinfo | fgrep 'dimensions:'`"
+if expr "$DIMENSIONS" : '[ ]*dimensions:[ ]*1600x1280 ' >/dev/null 2>&1 ; then
+	xterm -geometry 80x24-4-195 -sl 500 -sb -sk -si -rw  -ls -T "Initial Xterm Window" &
+fi
+unset DIMENSIONS
 
 # when the window manager exits so shall we...
 #
