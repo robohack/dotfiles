@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	18.7	97/01/27 14:41:52 (woods)"
+#ident	"@(#)HOME:.twmrc	18.8	97/01/29 08:06:33 (woods)"
 #
 
 AutoRelativeResize
@@ -513,8 +513,8 @@ function "start-auth1-telnet" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet auth1.ipass.com &"
 }
 
-function "start-auth1-telnet" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet auth1.seachange.com &"
+function "start-www-telnet" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet www.ipass.com &"
 }
 
 function "start-clapton-telnet" {
@@ -554,6 +554,10 @@ function "start-seachange-slogin" {
 
 function "start-auth1-slogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C auth1.seachange.com &"
+}
+
+function "start-www-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C www.seachange.com &"
 }
 
 function "start-clapton-slogin" {
@@ -1787,6 +1791,7 @@ menu "telnet-ipass"
 	"Telnet's At Ipass.com"		f.title
 	"telnet @seachange"		f.function "start-seachange-telnet"
 	"telnet @auth1"			f.function "start-auth1-telnet"
+	"telnet @www"			f.function "start-www-telnet"
 	""				f.nop
 	"Telnet @clapton"		f.function "start-clapton-telnet"
 	"Telnet @tugboat"		f.function "start-tugboat-telnet"
@@ -1802,6 +1807,7 @@ menu "slogin-ipass"
 	"Slogin's At Ipass.com"		f.title
 	"Slogin @seachange"		f.function "start-seachange-slogin"
 	"Slogin @auth1"			f.function "start-auth1-slogin"
+	"Slogin @www"			f.function "start-www-slogin"
 	""				f.nop
 	"Slogin @clapton"		f.function "start-clapton-slogin"
 	"Slogin @tugboat"		f.function "start-tugboat-slogin"
