@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.6	93/11/01 17:23:50 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	1.7	93/11/02 17:43:03 (woods)"
 ;;;
 ;;; per-user start-up functions
 ;;;
@@ -651,25 +651,26 @@ display-buffer for it"
 ;; have hardly touched my mouse since I started using it :-)
 ;; 
 (if (= init-emacs-type '19) 
-    (global-set-key "\C-co" 'keyboard-focus-next-or-previous-frame)
-  ;;
-  (defun keyboard-focus-next-or-previous-frame (parg)
-    "Switch the focus to the next logical frame (and raise that frame to
+    (progn
+      (global-set-key "\C-co" 'keyboard-focus-next-or-previous-frame)
+      ;;
+      (defun keyboard-focus-next-or-previous-frame (parg)
+	"Switch the focus to the next logical frame (and raise that frame to
 the front).  Keyboard input will go to the newly selected frame.
-Prefix arg means go to previous frame, not next frame.
+Prefix ARG means go to previous frame, not next frame.
 The mouse cursor will not follow you, which is kind of a weird
 feeling, but you'll get used to it."
-    (interactive "P")
-    (let* ((nowframe (selected-frame))
-	   (nextframe (if parg (previous-frame) (next-frame)))
-	   (visip (frame-visible-p nextframe)))
-      (and visip
-	   (progn
-	     (select-frame nextframe)
-	     (if (eq visip 'icon) (iconify-or-deiconify-frame))
-	     (redirect-frame-focus nowframe nextframe)
-	     (raise-frame nextframe))))))
-
+	(interactive "P")
+	(let* ((nowframe (selected-frame))
+	       (nextframe (if parg (previous-frame) (next-frame)))
+	       (visip (frame-visible-p nextframe)))
+	  (and visip
+	       (progn
+		 (select-frame nextframe)
+		 (if (eq visip 'icon) (iconify-or-deiconify-frame))
+		 (redirect-frame-focus nowframe nextframe)
+		 (raise-frame nextframe)))))))
+  
 ;; Based on suggestions by David G. Grubbs <dgg@ksr.com> and Paul Palmer
 ;; <palmerp@math.orst.edu>.
 ;;
