@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	21.12	00/03/28 12:03:17 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	21.13	00/06/13 13:50:42 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -499,7 +499,7 @@ scripts (alias)." t)
 	     '("/[Mm]ake[^/]*\\.am$" . makefile-mode)
 	     '("/[Pp]\\.[Mm]ake[^/]*$" . makefile-mode)
 	     '("/[Mm]\\.include$" . makefile-mode)
-	     '("/[^/]+mk.conf[^/]*$" . makefile-mode)
+	     '("/[^/]*mk.conf[^/]*$" . makefile-mode)
 	     '("/[^/]+\\.mk$" . makefile-mode)
 	     '("/[^/]+\\.mk\\.in$" . makefile-mode))))
 
@@ -1289,7 +1289,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		   (override-local-key-settings)
 		   (override-default-variable-settings)
 		   (setq fill-column 79)
-		   (setq comment-column 40)
+		   (setq comment-column 48)
 		   (setq comment-multi-line t)
 		   (setq c-basic-offset 8)	; 2
 		   (c-set-offset 'inline-open '0) ; +
@@ -1300,7 +1300,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		   (setq c-block-comments-indent-p nil)
 		   (setq c-cleanup-list '(scope-operator brace-else-brace)) ; '(scope-operator)
 		   (setq c-comment-only-line-offset '(0 . 0))
-		   (setq c-backslash-column 48)
+		   (setq c-backslash-column 56)
 		   (setq c-delete-function 'backward-delete-char-untabify)
 		   (setq c-electric-pound-behavior '(alignleft)) ; nil
 		   (setq c-hanging-braces-alist '((brace-list-open)
