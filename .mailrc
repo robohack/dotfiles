@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc  20.11    99/02/02 22:49:52 (woods)"
+# ident	"@(#)HOME:.mailrc  20.12    99/04/07 15:21:52 (woods)"
 
 set keep
 set keepsave
@@ -50,11 +50,13 @@ alias tech-ports	"tech-ports@NetBSD.ORG (NetBSD Porting Technical Discussion Lis
 alias tech-security	"tech-security@NetBSD.ORG (NetBSD Security Technical Discussion List)"
 alias tech-toolchain	"tech-toolchain@NetBSD.ORG (NetBSD Toolchain Technical Discussion List)"
 alias tech-userlevel	"tech-userlevel@NetBSD.ORG (NetBSD Userlevel Technical Discussion List)"
+alias shape-l		"SHAPE-L%DB0TUI11.BITNET@vm.gmd.de (ShapeTools Discussion Mailing List)"
 alias smail-bugs	"smail-bugs@planix.com (Smail PR Reports and followups)"
 alias smail3-maintainers "smail3-maintainers@smail.sbay.org (Smail-3 Maintainers Mailing List)"
 alias smail3-wizards	"smail3-wizards@cs.athabascau.ca (Smail-3 Wizards Mailing List)"
 alias smail3-users	"smail3-users@cs.athabascau.ca (Smail-3 Users Mailing List)"
-alias shape-l		"SHAPE-L%DB0TUI11.BITNET@vm.gmd.de (ShapeTools Discussion Mailing List)"
+alias ssh		"ssh@clinet.fi (SSH Users Mailing List)"
+alias suns-at-home	"suns-at-home@net-kitchen.com (Suns-at-Home Mailing List)"
 alias tpc-rp		"tpc-rp@aarnet.edu.au (TPC-Int)"
 alias trn-test		"trn-test@borland.com (TRN Beta Test List)"
 alias vmailer-testers   "vmailer-testers@porcupine.org (VMailer Testers List)"
@@ -68,8 +70,10 @@ alias jet-fuel  "jet-fuel@weird.com (Caffeine is fuel for your mind)"
 #	friendly aliases
 #
 alias alex	"alex@corelan.com (Alex von Tiesenhausen)"
+alias all-planix "all@planix.com (Those Planix Dudes)"
 alias andreas	"andreas@planix.com (Andreas Wrede)"
 alias andy	"andy@weird.com (Andy Mills)"
+alias andy-work	"andy@numetrix.com (Andy Mills)"
 alias bdb	"bdb@gts.net (Bruce Becker)"
 alias bernie	"becker@proxy.com (Bernard Becker)"
 alias bruce	"bdb@gts.net (Bruce Becker)"
@@ -77,14 +81,18 @@ alias bryan	"bryan@aci.on.ca (Bryan Challenger)"
 alias dan	"dan@compus.ca (Dan Tomlinson)"
 alias darcy	"darcy@druid.net (D'Arcy J.M. Cain)"
 alias dave	"mason@tmsoftware.ca (Dave Mason)"
+alias david	"david@maxwell.net (David Maxwell)"
 alias dennis	"dennis@nebulus.net (Dennis Breckenridge VE6TCP)"
 alias dick	"rhl@the-wire.com (R. H. Lathwell)"
 alias dumais	"dumais@mad.scientist.com (Paul E. Dumais)"
+alias dwm	"david@fundy.ca (David Maxwell)"
 alias ecarroll	"ecarroll@rogers.wave.ca (Eric M. Carroll)"
 alias eric.carroll "eric.carroll@acm.org (Eric M. Carroll)"
 alias evan	"evan@telly.on.ca (Evan Leibovitch)"
 alias henry	"henry@utzoo.cs.utoronto.ca (Henry Spencer)"
+alias jeff	"jeff@aci.on.ca (Jeff Royle)"
 alias jerqs	"jerqs@clsc.utoronto.ca (jerq users)"
+alias jim	"jim@reptiles.org (Jim Mercer)"
 alias jmm	"jmm@Elegant.COM (John Macdonald)"
 alias me	"woods@weird.com (Greg A. Woods)"
 alias nik	"habern@caledon.org (Nik Habermel)"
