@@ -1,7 +1,7 @@
 #-*-sh-*-
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	22.3	01/12/07 01:11:08 (woods)"
+#ident	"@(#)HOME:.ctwmrc	22.4	01/12/07 02:11:32 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -479,7 +479,10 @@ menu "quickies"
 	"Xterm @whats"		!"$RSH -n whats.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
 	"Rlogin @isit"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin isit.weird.com &"
-	"ConServer"		f.menu "conserver"
+	""			f.separator
+	"Console Server"	f.menu "consoles"
+	""			f.separator
+	"TermSrvr Telnets"	f.menu "termservers"
  ])
 	""			f.separator
 	"Toggle workspace"	f.togglestate
@@ -493,56 +496,68 @@ menu "quickies"
 }
 
 ifdef([AT_WEIRD], [
-menu "conserver"
+menu "consoles"
 {
-	"Console Servers"	f.title
-	"telnet constantly"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n constantly -T 'constantly Virtual Console' -e telnet constantly.weird.com &"
+	"Console Server"	f.title
+  define(CONSOLE_REP, [
+	"$1 []"			!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n '$1' -T '$1 Virtual Console' -e console $1 &"
+  ])
+	CONSOLE_REP(most)
+	CONSOLE_REP(proven)
+	CONSOLE_REP(sometimes)
+	CONSOLE_REP(starting-out)
+	CONSOLE_REP(becoming)
+	CONSOLE_REP(isit)
+	CONSOLE_REP(always)
+	CONSOLE_REP(raid-00)
+	CONSOLE_REP(raid-00)
+	CONSOLE_REP(exb210)
+	CONSOLE_REP(hubly)
+	CONSOLE_REP(best-1.4)
+	CONSOLE_REP(caller-id)
+ undefine(CONSOLE_REP)
+}
+
+menu "termservers"
+{
+	"Term Srvr Telnets"	f.title
 	"telnet tserv"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n tserv -T 'tserv Virtual Console' -e telnet tserv.weird.com &"
-	"oCons-1 [hub]"		!"xterm -display $DISPLAY -geometry 88x31+0+768   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP -n oCn1 -T 'oCons-1 [DEChub 900MS]' -e telnet constantly 2001 &"
-	"Cons-01 [EXB-210]"	!"xterm -display $DISPLAY -geometry 88x31+475+768 -fn 5x7 -cn -rw -sb -si -sk -sl 100  -ls OPT_ZICONBEEP -n Cn01 -T 'Console-01 [Exabyte-210 library]' -e telnet tserv 2001 &"
-	"Cons-02 [BEST-UPS]"	!"xterm -display $DISPLAY -geometry 88x24-0-410   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP -n Cn02 -T 'Console-02 [BEST UPS]' -e telnet tserv 2002 &"
-	"Cons-03 [sometimes]"	!"xterm -display $DISPLAY -geometry 88x31+475+256 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP -n Cn03 -T 'Console-03 [sometimes.weird.com]' -e telnet tserv 2003 &"
-	"Cons-04 [RAID-/work]"	!"xterm -display $DISPLAY -geometry 88x24-0-205   -fn 5x7 -cn -rw -sb -si -sk -sl 100  -ls OPT_ZICONBEEP -n Cn04 -T 'Console-04 [RAID-00 /work]' -e telnet tserv 2004 &"
-	"Cons-05 [RAID-/cvs]"	!"xterm -display $DISPLAY -geometry 88x24-0-0     -fn 5x7 -cn -rw -sb -si -sk -sl 100  -ls OPT_ZICONBEEP -n Cn05 -T 'Console-05 [RAID-01 /cvs]' -e telnet tserv 2005 &"
-	"Cons-06 [proven]"	!"xterm -display $DISPLAY -geometry 88x31+0+256   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP -n Cn06 -T 'Console-06 [proven.weird.com]' -e telnet tserv 2006 &"
-	"Cons-07 [isit]"	!"xterm -display $DISPLAY -geometry 88x31+0+0     -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP -n Cn07 -T 'Console-07 [isit.weird.com]' -e telnet tserv 2007 &"
-	"Cons-08 [becoming]"	!"xterm -display $DISPLAY -geometry 88x31+0+512   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP -n Cn08 -T 'Console-08 [becoming.weird.com]' -e telnet tserv 2008 &"
-	"Cons-09 [always]"	!"xterm -display $DISPLAY -geometry 88x31+475+512 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP -n Cn09 -T 'Console-09 [always.weird.com]' -e telnet tserv 2009 &"
-	"Cons-10 [most]"	!"xterm -display $DISPLAY -geometry 88x31+475+0   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP -n Cn10 -T 'Console-10 [most.weird.com]' -e telnet tserv 2010 &"
-	"Cons-11 [starting-out]" !"xterm -display $DISPLAY -geometry 88x31        -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP -n Cn11 -T 'Console-11 [starting-out.weird.com]' -e telnet tserv 2011 &"
   define(TSERV_REP, [
-	"Tserv-$1 []"		!"xterm -display $DISPLAY -geometry 88x31 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP -n Ts$1 -T 'Tserv-$1 [manual]' -e telnet tserv 20$1 &"
+	"Tserv-$1"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 88x31 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP -n Ts$1 -T 'Tserv-$1' -e telnet tserv 20$1 &"
   ])
-  TSERV_REP(12)
-  TSERV_REP(13)
-  TSERV_REP(14)
-  TSERV_REP(15)
-  TSERV_REP(16)
-  TSERV_REP(17)
-  TSERV_REP(18)
-  TSERV_REP(19)
-  TSERV_REP(20)
-  TSERV_REP(21)
-  TSERV_REP(22)
-  TSERV_REP(23)
-  TSERV_REP(24)
-  TSERV_REP(25)
-  TSERV_REP(26)
-  TSERV_REP(27)
-  TSERV_REP(28)
-  TSERV_REP(29)
-  TSERV_REP(30)
-  TSERV_REP(31)
-  TSERV_REP(32)
+	TSERV_REP(12)
+	TSERV_REP(13)
+	TSERV_REP(14)
+	TSERV_REP(15)
+	TSERV_REP(16)
+	TSERV_REP(17)
+	TSERV_REP(18)
+	TSERV_REP(19)
+	TSERV_REP(20)
+	TSERV_REP(21)
+	TSERV_REP(22)
+	TSERV_REP(23)
+	TSERV_REP(24)
+	TSERV_REP(25)
+	TSERV_REP(26)
+	TSERV_REP(27)
+	TSERV_REP(28)
+	TSERV_REP(29)
+	TSERV_REP(30)
+	TSERV_REP(31)
+	TSERV_REP(32)
+  undefine(TSERV_REP)
+	"telnet constantly"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n constantly -T 'constantly Virtual Console' -e telnet constantly.weird.com &"
   define(CONSTANTLY_REP, [
-	"Constantly-$1 []"	!"xterm -display $DISPLAY -geometry 88x31 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP -n Cn$1 -T 'Constantly-$1 [manual]' -e telnet constantly 20$1 &"
+	"Constantly-$1"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 88x31 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP -n Cn$1 -T 'Constantly-$1' -e telnet constantly 200$1 &"
   ])
-  CONSTANTLY_REP(2)
-  CONSTANTLY_REP(3)
-  CONSTANTLY_REP(4)
-  CONSTANTLY_REP(5)
-  CONSTANTLY_REP(6)
-  CONSTANTLY_REP(7)
+	CONSTANTLY_REP(2)
+	CONSTANTLY_REP(3)
+	CONSTANTLY_REP(4)
+	CONSTANTLY_REP(5)
+	CONSTANTLY_REP(6)
+	CONSTANTLY_REP(7)
+  undefine(CONSTANTLY_REP)
 }
 ])
 
@@ -1199,8 +1214,9 @@ menu "rlogin"
 {
 	"Rlogin's Everywhere"		f.title
 	"Rlogin's at Weird.com..."	f.menu "rlogin-weird"
+ ifdef([AT_PLANIX], [
 	"Rlogin's at Planix.com..."	f.menu "rlogin-planix"
-	"Rlogin's at Dancing.org..."	f.menu "rlogin-dancing"
+ ])
  ifdef([AT_ACI], [
 	"Rlogin's at ACI.on.ca..."	f.menu "rlogin-aci"
  ])
@@ -1210,8 +1226,9 @@ menu "telnet"
 {
 	"Telnet's Everywhere"		f.title
 	"Telnet's at Weird.com..."	f.menu "telnet-weird"
+ ifdef([AT_PLANIX], [
 	"Telnet's at Planix.com..."	f.menu "telnet-planix"
-	"Telnet's at Dancing.org..."	f.menu "telnet-dancing"
+ ])
 }
 
 menu "slogin"
@@ -1281,16 +1298,17 @@ menu "slogin-weird"
 	"Slogin @starting-out"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C starting-out.weird.com &"
 }
 
+ifdef([AT_PLANIX], [
 menu "rlogin-planix"
 {
 	"Rlogin's At Planix.com" f.title
 	"Rlogin @whome"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin whome.planix.com &"
 	"Rlogin @woffi"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin woffi.planix.com &"
-	"Rlogin @weight"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin weight.planix.com &"
 	"Rlogin @warlord"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin warlord.planix.com &"
-	"Rlogin @worm"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin worm.planix.com &"
 }
+])
 
+ifdef([AT_PLANIX], [
 menu "telnet-planix"
 {
 	"Telnet's At Planix.com" f.title
@@ -1300,10 +1318,12 @@ menu "telnet-planix"
 	"telnet @wind"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet wind.planix.com &"
 	"telnet @wish"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet wish.planix.com &"
 	"telnet @warlord"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet warlord.planix.com &"
+	"telnet @wanut"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet walnut.planix.com &"
 	"telnet @water"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet water.planix.com &"
 	"telnet @worm"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet worm.planix.com &"
 	"telnet @weight"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet weight.planix.com &"
 }
+])
 
 menu "slogin-planix"
 {
@@ -1312,20 +1332,10 @@ menu "slogin-planix"
 	"Slogin @woffi"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C woffi.planix.com &"
 	"Slogin @weight"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C weight.planix.com &"
 	"Slogin @warlord"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C warlord.planix.com &"
+	"Slogin @walnut"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C walnut.planix.com &"
+	"Slogin @ws"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C ws.planix.com &"
 }
 
-
-menu "rlogin-dancing"
-{
-	"Rlogin's At Dancing.org" f.title
-	"Rlogin @lindy"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin lindy.dancing.org &"
-}
-
-menu "telnet-dancing"
-{
-	"Telnet's At Dancing.org" f.title
-	"Telnet @lindy"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet lindy.dancing.org &"
-}
 
 menu "slogin-dancing"
 {
@@ -1350,22 +1360,28 @@ menu "slogin-proxy"
 	"Slogin @apple.proxy.com" !"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin apple.proxy.com &"
 }
 
+ifdef([AT_ACI], [
 menu "rlogin-aci"
 {
 	"Rlogin's At ACI.on.ca"	f.title
-	"Rlogin @aci"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin aci.on.ca &"
-	"Rlogin @sunrise"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin sunrise.aci.on.ca &"
-	"Rlogin @dhcp"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin dhcp.aci.on.ca &"
-	"Rlogin @secret"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin secret.aci.on.ca &"
+	"Rlogin @admin"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin admin.sec.aci.on.ca &"
+	"Rlogin @sunrise"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin sunrise.sec.aci.on.ca &"
+	"Rlogin @sunset"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin sunset.sec.aci.on.ca &"
+	"Rlogin @public"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin public.sec.aci.on.ca &"
+	"Rlogin @corporate"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin corporate.sec.aci.on.ca &"
+	"Rlogin @lucky"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin lucky.sec.aci.on.ca &"
 }
+])
 
 menu "slogin-aci"
 {
 	"Slogin's At ACI.on.ca"	f.title
-	"Slogin @aci"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin aci.on.ca &"
-	"Slogin @sunrise"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin sunrise.aci.on.ca &"
-	"Slogin @dhcp"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin dhcp.aci.on.ca &"
-	"Slogin @secret"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin secret.aci.on.ca &"
+	"Slogin @admin"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin admin.aci.on.ca &"
+	"Slogin @public"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin public.aci.on.ca &"
+	"Slogin @corporate"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin corporate.aci.on.ca &"
+	"Slogin @sunrise"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin sunrise.aci.on.ca &"
+	"Slogin @sunset"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin sunset.aci.on.ca &"
+	"Slogin @lucky"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin lucky.aci.on.ca &"
 }
 
 menu "slogin-sols"
