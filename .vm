@@ -1,12 +1,14 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.2	98/02/01 22:48:49 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.3	98/02/02 01:25:34 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
 
 (require 'sendmail)			; get this over with right away
+
+(setq vm-version-number (string-to-number vm-version))
 
 (add-hook 'mail-setup-hook 'mail-abbrevs-setup)
 (add-hook
@@ -23,7 +25,7 @@
 ;; Version: $Id: rmime.el,v 1.2 1996/05/30 02:24:58 moody Exp $
 ;; NOTE: elisp-file-in-loadpath-p comes from my .emacs.el
 (if (and (elisp-file-in-loadpath-p "rmime")
-	 (< (string-to-number (vm-version)) 6.0))
+	 (< vm-version-number 6.0))
     (progn
       ;; automatic rmime-mode for all messages...
       ;;(setq vm-preview-lines t)
@@ -198,7 +200,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 (setq mail-default-headers
       (concat
        (concat "X-Mailer: ViewMail (vm) Version "
-	       (vm-version)
+	       vm-version
 	       "\n\twith "
 	       (emacs-version)
 	       "\n")
@@ -244,6 +246,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;;;	VM related things
 ;;;
 (defun my-vm-auto-archive-messages ()
+  "Local version of vm-auto-archive-messages that obtains user confirmation."
   (interactive)
   (if (y-or-n-p "Are you sure you want to archive all messages???")
       (vm-auto-archive-messages)))
@@ -251,9 +254,13 @@ ORGANIZATION.  If not nil, takes precedence over the file
 (define-key vm-mode-map "A" 'my-vm-auto-archive-messages)
 
 (defun my-vm-quit ()
+  "Local version of vm-quit that obtains user confirmation if the current
+buffer is not not a composition preview buffer" 
   (interactive)
-  (if (y-or-n-p "Are you sure you want to quit?")
-      (vm-quit)))
+  (if (eq (string-match "^composition preview" (buffer-name)) 0)
+      (vm-quit)
+    (if (y-or-n-p "Are you sure you want to quit?")
+	(vm-quit))))
 
 (define-key vm-mode-map "q" 'my-vm-quit)
 
@@ -319,6 +326,8 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;;;   vm-arrived-message-hook nil
 ;;;   vm-arrived-messages-hook nil
       vm-auto-center-summary nil
+      vm-auto-decode-mime-messages nil
+      vm-auto-displayed-mime-content-types '("text" "multipart")
       vm-auto-folder-alist '(
 			     ;; To: & Cc: entries here.
 			     ("^\\(to\\|cc\\|resent-to\\|apparently-to\\)"
@@ -443,6 +452,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-confirm-quit 1			; ask about quitting if unsaved changes
       vm-convert-folder-types t
       vm-crash-box "~/Mail/INBOX.CRASH"	; keep everything in the vm-folder-directory
+      vm-crash-box-suffix nil
       vm-default-folder-type 'From_
       vm-default-window-configuration '((startup
 					 ((((top . 70)
@@ -504,37 +514,50 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-delete-after-bursting nil
       vm-delete-after-saving nil
       vm-delete-empty-folders t
-      vm-digest-burst-type "rfc934"
+      vm-digest-burst-type "guess"	; let it try to figure out what to do
       vm-digest-identifier-header-format "X-Digest: %s\n"
       vm-digest-center-preamble t
       vm-digest-preamble-format "\"%s\" (%F)"
-      vm-digest-send-type "rfc934"
+      vm-digest-send-type (if (< vm-version-number 6.0)
+			      "rfc934"
+			    "mime")	; go for the good
+      vm-display-using-mime t
 ;;;   vm-edit-message-hook nil
       vm-edit-message-mode 'indented-text-mode ; slightly better than text-mode
       vm-flush-interval t
       vm-folder-directory "~/Mail/"	; the usual place
-      vm-folder-read-only nil
+;;;   vm-folder-read-only nil		; don't set this (becomes buffer local!)
       vm-follow-summary-cursor t
 ;;;   vm-forward-message-hook nil
       vm-forwarded-headers nil
-      vm-forwarding-digest-type "rfc934"
-      vm-forwarding-subject-format "forwarded message from %F"
+      vm-forwarding-digest-type (if (< vm-version-number 6.0)
+				    "rfc934"
+				  "mime") ; go for the good
+      vm-forwarding-subject-format "(forwarded) %s\nSummary: forwarded message from %F"
       vm-frame-parameter-alist nil
       vm-frame-per-composition nil	;
       vm-frame-per-edit nil
       vm-frame-per-folder nil		;
+      vm-frame-per-help t		;
+      vm-frame-per-summary nil
       vm-highlight-url-face 'bold-italic
       vm-highlighted-header-regexp "^From:\\|^Subject:" ; highlight these headers
       vm-honor-page-delimiters nil
+;;;   vm-image-directory "/local/gnu/share/emacs/19.34/etc/vm/"
       vm-in-reply-to-format "%F's message\n	of \"%w, %m %d, %y %h %z\"\n	regarding \"%s\"\n	id %i"
 					; just the way I like it!
       vm-included-text-attribution-format "[ On %w, %m %d, %y at %h (%z), %F wrote: ]\n> Subject: %s\n>\n"
 					; just the way I like it!
       vm-included-text-discard-header-regexp nil
-      vm-included-text-headers '("Keywords:"
-				 "Newsgroups:"
-				 "MIME-"
-				 "Content-") ; try for manual MIME replies
+      vm-included-text-headers (if (< vm-version-number 6.0)
+				   '("Keywords:"
+				     "Summary:"
+				     "Newsgroups:"
+				     "MIME-"
+				     "Content-") ; try for manual MIME replies
+				 '("Keywords:"
+				   "Summary:"
+				   "Newsgroups"))
       vm-included-text-prefix "> "
       vm-inhibit-startup-message t	; don't bother me with legalese
 ;;;   vm-init-file "~/.vm"
@@ -542,13 +565,58 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-jump-to-new-messages t
       vm-jump-to-unread-messages t
       vm-keep-crash-boxes "~/tmp/"	; crash inbox saviour
-      vm-keep-sent-messages 4		; keep a few for reference
+      vm-keep-sent-messages 8		; keep a few for reference
+      vm-mail-check-interval 300
       vm-mail-header-from (concat (user-login-name) "@" (vm-fqdn)
 				  " (" (user-full-name) ")") ; this is also for
 							     ; resent-from
 ;;;   vm-mail-hook nil
 ;;;   vm-mail-mode-hook nil
+      vm-make-crash-box-name nil
+      vm-make-spool-file-name nil
+      vm-mime-7bit-composition-charset "us-ascii"
+      vm-mime-8bit-composition-charset "iso-8859-1"
+      vm-mime-8bit-text-transfer-encoding 'quoted-printable
+      vm-mime-alternative-select-method 'best-internal
+      vm-mime-attachment-auto-type-alist '(("\\.jpe?g" . "image/jpeg")
+					   ("\\.gif" . "image/gif")
+					   ("\\.png" . "image/png")
+					   ("\\.tiff?" . "image/tiff")
+					   ("\\.html?" . "text/html")
+					   ("\\.au" . "audio/basic")
+					   ("\\.mpe?g" . "video/mpeg")
+					   ("\\.ps" . "application/postscript")
+					   )
+      vm-mime-attachment-save-directory nil
+      vm-mime-avoid-folding-content-type t
+      vm-mime-base64-decoder-program nil
+      vm-mime-base64-decoder-switches nil
+      vm-mime-base64-encoder-program nil
+      vm-mime-base64-encoder-switches nil
+      vm-mime-button-face 'gui-button-face
+      vm-mime-charset-font-alist nil
+      vm-mime-default-face-charsets '("us-ascii" "iso-8859-1")
+      vm-mime-digest-discard-header-regexp nil
+      vm-mime-digest-headers '("Resent-"
+			       "From:"
+			       "Sender:"
+			       "To:"
+			       "Cc:"
+			       "Subject:"
+			       "Summary:"
+			       "Date:"
+			       "Message-ID:"
+			       "Keywords:"
+			       "Newsgroups:"
+			       "MIME-Version:"
+			       "Content-")
+      vm-mime-display-function nil
+      vm-mime-external-content-types-alist nil
+      vm-mime-ignore-mime-version t
+      vm-mime-internal-content-types t
+      vm-mime-max-message-size nil
 ;;;   vm-mode-hook nil
+;;;   vm-mode-hooks nil			; >6.0?
       vm-mode-line-format '("" "  %&%& "
 			    ("VM: " minor-mode-alist " "
 			     (vm-folder-read-only "read-only ")
@@ -569,6 +637,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			     ("  %[%]   "))
 			    "%p" "   " global-mode-string) ; show minor-mode too
       vm-mosaic-program "Mosaic"
+      vm-mosaic-program-switches nil
       vm-move-after-deleting t		; keep on rolling
       vm-move-after-undeleting nil
       vm-move-messages-physically nil
@@ -589,9 +658,16 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;; 	rsh $NETSCAPEHOST $NETSCAPEPATH -display $DISPLAY 
 ;; fi
       vm-netscape-program "netscape"
+      vm-netscape-program-switches nil
 ;;; shouldn't mess with this
 ;;;   vm-options-file "~/.vm.options"
+      vm-pop-bytes-per-session nil
+      vm-pop-max-message-size nil
+      vm-pop-messages-per-session nil
       vm-pop-md5-program "md5"
+      vm-popup-menu-on-mouse-3 t
+;;; shouldn't mess with this either????
+;;;   vm-preferences-file "~/.vm.preferences"
       vm-preview-lines 4		; allow 4 lines of the body to show
       vm-preview-read-messages nil
       vm-primary-inbox "~/Mail/INBOX"	; keep everything in vm-folder-directory
@@ -622,6 +698,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 				  "To:"
 				  "Cc:"
 				  "Subject:"
+				  "Summary:"
 				  "Message-ID:"
 				  "In-Reply-To:"
 				  "Newsgroups:"
@@ -646,6 +723,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 				  "To:"
 				  "Cc:"
 				  "Subject:"
+				  "Summary:"
 				  "Message-ID:"
 				  "In-Reply-To:"
 				  "Newsgroups:"
@@ -678,15 +756,18 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;;;   vm-select-new-message-hook nil
 ;;;   vm-select-unread-message-hook nil
 ;;;   vm-send-digest-hook nil
+      vm-send-using-mime t
       vm-skip-deleted-messages 1	; don't bother if none to see...
       vm-skip-read-messages nil
+      vm-spool-file-suffixes nil
       vm-startup-with-summary t
       vm-strip-reply-headers nil
       vm-summary-format "%3n%*%A %-18.18F %4y/%02M/%02d-%H %4l/%-5c %I\"%s\"\n"
 					; ah, that's better! (except %02d
 					; doesn't put leading zeros out)
       vm-summary-highlight-face nil	; don't bother -- too much CPU!
-;;;   vm-summary-mode-hook nil
+;;;   vm-summary-mode-hook nil		; < 6.0?
+;;;   vm-summary-mode-hooks nil
 ;;;   vm-summary-redo-hook nil
       vm-summary-show-threads nil
       vm-summary-subject-no-newlines t
@@ -705,6 +786,8 @@ ORGANIZATION.  If not nil, takes precedence over the file
 					; just me!
       vm-summary-uninteresting-senders-arrow "To: "
       vm-tale-is-an-idiot t		; sounds good to me!
+;;;   vm-toolbar-pixmap-directory "/local/gnu/share/emacs/19.34/etc/vm/"
+      vm-temp-file-directory "~/tmp"	; better for keeping secrets!
       vm-trust-From_-with-Content-Length nil
 ;;;   vm-undisplay-buffer-hook nil
       vm-unforwarded-header-regexp "only-drop-this-header"
@@ -723,6 +806,19 @@ ORGANIZATION.  If not nil, takes precedence over the file
 		     nil
 		     help
 		     )
+      vm-use-toolbar '(next
+		       previous
+		       delete/undelete
+		       autofile
+		       file
+		       reply
+		       compose
+		       print
+		       visit
+		       quit
+		       nil
+		       help
+		       )
       vm-virtual-folder-alist nil
       vm-virtual-mirror t
       vm-visible-headers '("Newsgroups:"	; better for forwarded news
