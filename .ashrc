@@ -1,7 +1,7 @@
 #
 #	.ashrc - per-shell startup stuff for ash via $ENV
 #
-#ident	"@(#)HOME:.ashrc	2.4	96/02/02 13:00:56 (woods)"
+#ident	"@(#)HOME:.ashrc	2.5	96/02/13 15:35:23 (woods)"
 
 case $- in *i*)
 # everything in this file is for interactive use only
@@ -52,6 +52,8 @@ dirprepend ()
 }
 
 # UGLY, but it works
+#
+# WARNING: this sed expression breaks if there isn't a group-id for each gid
 #
 eval "$(id|sed -e 's/^uid=\([0-9]*\)(\(..*\)) gid=[0-9]*(\([^) ]*\)).*$/id=\1 uid=\2 gid=\3/')"
 
