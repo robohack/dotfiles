@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	27.1	03/11/23 19:15:54 (woods)"
+#ident	"@(#)HOME:.kshrc	27.2	04/01/19 16:52:35 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -654,7 +654,7 @@ alias ilog='$PAGER -en +G /var/log/important'
 alias j='jobs -l'
 alias l='/bin/ls -CF'
 alias la='/bin/ls -CFa'
-alias ld='/bin/ls -CFd'
+alias lD='/bin/ls -CFd'
 alias lL='/bin/ls -CFL'
 alias ll='/bin/ls -lis'
 alias llL='/bin/ls -lisL'
