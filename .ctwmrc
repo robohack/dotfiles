@@ -1,7 +1,7 @@
 #-*-sh-*-
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	22.1	01/10/17 12:09:45 (woods)"
+#ident	"@(#)HOME:.ctwmrc	22.2	01/11/05 15:02:04 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -318,6 +318,10 @@ OccupyAll {
 	"xosview"
 	"xsm"
 	"XSysStats"
+	"XMMS"
+	"XMMS Equalizer"
+	"XMMS Playlist"
+	"Dual Spectogram 1.2"
 }
 
 NoTitle {
@@ -337,6 +341,10 @@ NoTitle {
 	"xosview"
 	"XSysStats"
 	"xv"
+	"XMMS"
+	"XMMS Equalizer"
+	"XMMS Playlist"
+	"Dual Spectogram 1.2"
 }
 
 NoHighlight {
@@ -757,6 +765,8 @@ menu "applications"
 menu "audios"
 {
 	"Audio Tools"			f.title
+	"xmms"				!"xmms -m &"
+	""				f.separator
 	"audemo"			!"cd HOME/lib/sounds; audemo &"
 	"auedit"			!"auedit &"
 	"aupanel"			!"aupanel &"
