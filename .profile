@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	8.10	95/03/16 23:23:58 (woods)"
+#ident	"@(#)HOME:.profile	8.11	95/06/07 21:08:40 (woods)"
 
 #
 # Assumptions:
@@ -14,7 +14,7 @@
 #	$HOME/.ashlogin		- sourced once, if running ash(1)
 #	$HOME/.editor		- name of prefered text editor command
 #	$HOME/.kshlogin		- sourced once, if running ksh(1)[, or bash(1)?]
-#	$HOME/.shlogout		- set on trap 0, if running ksh(1)[, or bash(1)?]
+#	$HOME/.kshlogout	- set on trap 0, if running ksh(1)[, or bash(1)?]
 #	$HOME/.localprofile	- sourced once, near end of this file
 #	$HOME/.mailer		- name of prefered MUA command
 #	$HOME/.shell		- mktable'd and exec'ed as shell (see end of this file)
@@ -40,14 +40,14 @@ fi
 
 if [ -z "$DOMAINNAME" ] ; then
 	case "$UUNAME" in
-	toile | web )		# 386/ix machines
+	toile | oldweb )		# 386/ix machines
 		DOMAINNAME=".web.apc.org" ; export DOMAINNAME
 		;;
 	* )
 		if expr "`type domainname`" : '.* is .*/domainname$' >/dev/null 2>&1 ; then
 			DOMAINNAME="`domainname`" ; export DOMAINNAME
 		else
-			# these cases for machines without domanname....
+			# these cases for machines without domainname....
 			#
 			case "$UUNAME" in
 			weirdo )
@@ -390,8 +390,8 @@ TRNINIT="$HOME/.trninit" ; export TRNINIT
 
 # set terminal type...
 case "$UUNAME" in
-robohack | toile | wombat | spinne | tar | sunweb | weirdo | isit | most | very )
-	: we trust that everything is all set up as it should be....
+robohack | toile | wombat | spinne | tar | web | weirdo | isit | most | very )
+	: we trust that everything is all set up as it should be on sites we know....
 	;;
 * )
 	get_newterm ()
