@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.13	98/03/03 01:39:36 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.14	98/03/04 21:29:32 (woods)"
 #
 
 changequote([, ])
@@ -777,10 +777,12 @@ menu "ghostviews"
 	"GhostView"	f.title
 	"@localhost"	!"ghostview &"
 	"gv @localhost"	!"gv &"
-	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
+	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/ghostview &"
+	"gv @x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /usr/pkg/bin/gv &"
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
 	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/ghostview &"
+	"gv @most"	!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/pkg/bin/gv &"
   ])
   ifelse(HOSTNAME, whats.weird.com, [], [
 	"@whats"	!"$RSH -n whats.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/ghostview &"
@@ -1078,15 +1080,15 @@ menu "telnet-weird"
 menu "slogin-weird"
 {
 	"Slogin's At Weird.com" f.title
-	"Slogin @most"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e $LOCAL/bin/slogin -C most.weird.com &"
-	"Slogin @very"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -C very.weird.com &"
-	"Slogin @almost"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C almost.weird.com &"
-	"Slogin @once"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C once.weird.com &"
-	"Slogin @whats"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -C whats.weird.com &"
-	"Slogin @pretty"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -C pretty.weird.com &"
-	"Slogin @weirdo"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e $LOCAL/bin/slogin -C ns.weird.com &"
-	"Slogin @sometimes"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -C sometimes.weird.com &"
-	"Slogin @always"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -C always.weird.com &"
+	"Slogin @most"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e slogin -C most.weird.com &"
+	"Slogin @very"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e slogin -C very.weird.com &"
+	"Slogin @almost"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin -C almost.weird.com &"
+	"Slogin @once"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin -C once.weird.com &"
+	"Slogin @whats"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e slogin -C whats.weird.com &"
+	"Slogin @pretty"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e slogin -C pretty.weird.com &"
+	"Slogin @weirdo"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e slogin -C ns.weird.com &"
+	"Slogin @sometimes"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e slogin -C sometimes.weird.com &"
+	"Slogin @always"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e slogin -C always.weird.com &"
 }
 
 menu "rlogin-cyclic"
@@ -1122,10 +1124,10 @@ menu "telnet-planix"
 menu "slogin-planix"
 {
 	"Slogin's At Planix.com" f.title
-	"Slogin @whome"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e $LOCAL/bin/slogin -C whome.planix.com &"
-	"Slogin @woffi"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e $LOCAL/bin/slogin -C woffi.planix.com &"
-	"Slogin @weight"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e $LOCAL/bin/slogin -C weight.planix.com &"
-	"Slogin @warlord"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e $LOCAL/bin/slogin -C warlord.planix.com &"
+	"Slogin @whome"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e slogin -C whome.planix.com &"
+	"Slogin @woffi"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e slogin -C woffi.planix.com &"
+	"Slogin @weight"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e slogin -C weight.planix.com &"
+	"Slogin @warlord"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e slogin -C warlord.planix.com &"
 }
 
 
@@ -1160,7 +1162,7 @@ menu "telnet-dancing"
 menu "slogin-dancing"
 {
 	"Slogin's At Dancing.org" f.title
-	"Slogin @lindy"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C lindy.dancing.org &"
+	"Slogin @lindy"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin -C lindy.dancing.org &"
 }
 
 
@@ -1174,10 +1176,10 @@ menu "rlogin-infoshare"
 menu "slogin-infoshare"
 {
 	"Slogin's At Infoshare.net" f.title
-	"Slogin @quicksilver"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -C quicksilver.infoshare.net &"
-	"Slogin @cyberia"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -C cyberia.infoshare.net &"
-	"Slogin @cola"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -C cola.infoshare.net &"
-	"Slogin @mercury"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -C mercury.infoshare.net &"
+	"Slogin @quicksilver"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e slogin -C quicksilver.infoshare.net &"
+	"Slogin @cyberia"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e slogin -C cyberia.infoshare.net &"
+	"Slogin @cola"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e slogin -C cola.infoshare.net &"
+	"Slogin @mercury"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e slogin -C mercury.infoshare.net &"
 }
 
 menu "rlogin-proxy"
@@ -1190,8 +1192,8 @@ menu "rlogin-proxy"
 menu "slogin-proxy"
 {
 	"Slogin's At Proxy.com"	f.title
-	"Slogin @server.proxy.com" !"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin server.proxy.com &"
-	"Slogin @apple.proxy.com" !"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin apple.proxy.com &"
+	"Slogin @server.proxy.com" !"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin server.proxy.com &"
+	"Slogin @apple.proxy.com" !"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin apple.proxy.com &"
 }
 
 menu "rlogin-aci"
@@ -1204,20 +1206,20 @@ menu "rlogin-aci"
 menu "slogin-aci"
 {
 	"Slogin's At ACI.on.ca"	f.title
-	"Slogin @aci"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin aci.on.ca &"
-	"Slogin @secret"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin secret.aci.on.ca &"
+	"Slogin @aci"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin aci.on.ca &"
+	"Slogin @secret"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin secret.aci.on.ca &"
 }
 
 menu "rlogin-logon"
 {
 	"Rlogin's At Log.on.ca"	f.title
-	"Rlogin @log.on.ca"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin log.on.ca &"
+	"Rlogin @log.on.ca"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin log.on.ca &"
 }
 
 menu "slogin-logon"
 {
 	"Slogin's At Log.on.ca"	f.title
-	"Slogin @log.on.ca"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin log.on.ca &"
+	"Slogin @log.on.ca"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin log.on.ca &"
 }
 
 menu "telnet-rogers"
@@ -1230,8 +1232,8 @@ menu "telnet-rogers"
 menu "slogin-rogers"
 {
 	"Slogin's At Rogers.WAVE.ca"	f.title
-	"Slogin @nds.net"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -l gwoods nds.net.rogers.wave.ca &"
-	"Slogin @captive.net"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -l gwoods captive.net.rogers.wave.ca &"
+	"Slogin @nds.net"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e slogin -l gwoods nds.net.rogers.wave.ca &"
+	"Slogin @captive.net"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e slogin -l gwoods captive.net.rogers.wave.ca &"
 }
 
 menu "rlogin-fgsc"
@@ -1251,9 +1253,9 @@ menu "rlogin-pageactive"
 menu "slogin-pageactive"
 {
 	"Slogin's At Pageactive.com"	f.title
-	"Slogin @warp"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin warp.pageactive.com &"
-	"Slogin @deephaze"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin deephaze.pageactive.com &"
-	"Slogin @dynamic"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin dynamic.pageactive.com &"
+	"Slogin @warp"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e slogin warp.pageactive.com &"
+	"Slogin @deephaze"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin deephaze.pageactive.com &"
+	"Slogin @dynamic"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e slogin dynamic.pageactive.com &"
 }
 
 menu "rlogin-passport"
@@ -1267,9 +1269,9 @@ menu "rlogin-passport"
 menu "slogin-passport"
 {
 	"Slogin's At Passport.ca" f.title
-	"Slogin @diplomatic"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin passport.ca &"
-	"Slogin @cayaman"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin cayman.passport.ca &"
-	"Slogin @news"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin news.passport.ca &"
+	"Slogin @diplomatic"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin passport.ca &"
+	"Slogin @cayaman"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin cayman.passport.ca &"
+	"Slogin @news"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin news.passport.ca &"
 }
 
 menu "rlogin-sols"
@@ -1282,8 +1284,8 @@ menu "rlogin-sols"
 menu "slogin-sols"
 {
 	"Slogin's At SOLS.on.ca" f.title
-	"Slogin @solsinfo"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin solsinfo.sols.on.ca &"
-	"Slogin @solsweb"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin solsweb.sols.on.ca &"
+	"Slogin @solsinfo"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin solsinfo.sols.on.ca &"
+	"Slogin @solsweb"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin solsweb.sols.on.ca &"
 }
 
 menu "rlogin-vex"
@@ -1325,7 +1327,7 @@ menu "rlogin-web"
 menu "slogin-web"
 {
 	"Slogin's At Web.net"	f.title
-	"Slogin @kuma"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin kuma.web.net &"
-	"Slogin @web"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin web.net &"
+	"Slogin @kuma"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e slogin kuma.web.net &"
+	"Slogin @web"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin web.net &"
 }
 
