@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.13	99/01/27 18:51:30 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.14	99/03/01 17:52:51 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -644,7 +644,7 @@ message/rfc822 attachments."
       vm-make-spool-file-name nil
       vm-mime-7bit-composition-charset "us-ascii"
       vm-mime-8bit-composition-charset "iso-8859-1"
-      vm-mime-8bit-text-transfer-encoding 'quoted-printable
+      vm-mime-8bit-text-transfer-encoding '8bit
       vm-mime-alternative-select-method 'best-internal
       vm-mime-attachment-auto-type-alist '(("\\.jpe?g" . "image/jpeg")
 					   ("\\.gif" . "image/gif")
