@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	19.2	98/01/30 01:30:31 (woods)"
+#ident	"@(#)HOME:.xinitrc	19.3	98/02/01 01:53:32 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -60,7 +60,10 @@ case "$DISPLAY" in
 esac
 
 VENDORSTR="`xdpyinfo | sed -n 's/^vendor string:[ ]*\(.*\)$/\1/p'`"
-export VENDORSTR
+DEPTHSTR="`xdpyinfo | fgrep 'depth of root window'`"
+WINDOWDEPTH=`expr "$DEPTHSTR" : '[ ]*depth of root window:[ ]*\([0-9]*\) '`
+export VENDORSTR WINDOWDEPTH
+unset DEPTHSTR
 
 # TODO:  think about using `type` ala .profile, but type isn't everywhere
 if [ -z "$RSH" ] ; then
@@ -102,7 +105,11 @@ if [ -z "$WM" ] ; then
 	elif [ -x $X11BIN/xsession -a -r $HOME/.X11Startup ] ; then
 		WM=xsession	# TODO: '$ONX11SERVER xsession -remote'?
 	elif [ \( -x $X11BIN/ctwm -o -x $HOME/bin/ctwm \) -a -r $HOME/.ctwmrc ] ; then
-		WM=ctwm
+		if [ $SCREENDEPTH -eq 1 ] ; then
+			WM="ctwm -W"
+		else
+			WM=ctwm
+		fi
 	else
 		WM=twm					# assumptions....
 	fi
@@ -185,19 +192,11 @@ if [ "$argv0" = .xinitrc ] ; then
 	sleep 1
 	if [ -x $X11BIN/xearth ] ; then
 		XEGAMMA=""
-		DEPTHSTR="`xdpyinfo | fgrep 'depth of root window'`"
-		if [ `expr "$DEPTHSTR" : '[ ]*depth of root window:[ ]*\([0-9]*\) '` -ne 1 ] ; then
-			case "$VENDORSTR" in
-			"Network Computing Devices"*)
-				XEGAMMA="-gamma 1.3"		# for NCDhmx with Samsung SyncMaster 6c
-				;;
-			"MIT X Consortium"*)
-				XEGAMMA="-gamma 1.6 -night 15"	# for Sun3 CG2
-				;;
-			esac
+		if [ $SCREENDEPTH -ne 1 ] ; then
+			XEGAMMA="-gamma 1.6 -night 15"	# for Sun3 CG2
 		fi
 		xearth $XEGAMMA -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
-		unset DEPTHSTR XEGAMMA
+		unset XEGAMMA
 	elif [ -x $X11BIN/xphoon ] ; then
 		xphoon -t 10 &
 	elif [ -r $X11PATH/include/X11/bitmaps/escherknot ] ; then
