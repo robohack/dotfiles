@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.2	98/09/18 00:55:49 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.3	98/09/18 01:54:56 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -46,6 +46,31 @@
       (message "Not running emacs v19 I see -- you'll have trouble with this .emacs!")
       (sit-for 5)))
 
+;;; stolen by way of Len Tower from Noah Freidman from /home/fsf/friedman/etc/init/emacs/init.el
+(defun emacs-version-get-component (component)
+  (let ((old-match-data (match-data))
+        (version 0)
+        (regexp (cond
+                 ((eq 'major component) "^\\([0-9]+\\)")
+                 ((eq 'minor component) "^[0-9]+\\.\\([0-9]+\\)")
+                 ((eq 'build component) "^[0-9]+\\.[0-9]+\\.\\([0-9]+\\)"))))
+    (unwind-protect
+        (and (string-match regexp emacs-version)
+             (setq version
+                   (string-to-int (substring emacs-version
+                                             (match-beginning 1)
+                                             (match-end 1)))))
+      (store-match-data old-match-data))
+    version))
+
+(defvar emacs-version-major (emacs-version-get-component 'major)
+  "Major version number for this Emacs.")
+(defvar emacs-version-minor (emacs-version-get-component 'minor)
+  "Minor version number for this Emacs.")
+(defvar emacs-version-build (emacs-version-get-component 'build)
+  "Build number for this Emacs.")
+;;; end by Noah Freidman from /home/fsf/friedman/etc/init/emacs/init.el
+
 ;(if (= init-emacs-type 20)
 ;    ;; You probably want/need this.
 ;    ;; From: Johan Vromans <johan_vromans@nl.compuware.com>
@@ -77,7 +102,8 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 	       (if (or (string-equal (system-name) "robohack")
 		       (string-equal (system-name) "very.weird.com"))
 		   (setq display-time-interval 300)) ; poor little machines....
-	       (display-time)		; also autoload'ed
+	       (let ((process-connection-type nil)) ;pty's are limited, pipes aren't
+		 (display-time))	; also autoload'ed
 	       ;;
 	       ;; Message-Id: <9601081816.AA07579@alex.x.org>
 	       ;; From: Stephen Gildea <gildea@x.org>
@@ -325,6 +351,23 @@ scripts (alias)." t)
 (defvar gnats::format-string)
 (setq gnats::format-string
       "%5n %-14,14c %,1e%,1p %-8,8r %,6L %,4s %-4*4S %-12*-12R %j\n")
+
+;;; From Len Tower again:
+(cond
+ ((eq system-type 'unix-SVR4)
+  (setq dired-listing-switches "-lba"
+        list-directory-verbose-switches "-lbaF"
+        list-directory-brief-switches "-abCF"))
+ ((or (eq system-type 'netbsd)
+      (eq system-type 'berkeley-unix)
+      (equal (getenv "ARCH") "symmetry"))
+  (setq dired-listing-switches "-lag"
+        list-directory-verbose-switches "-laFg"
+        list-directory-brief-switches "-aCFg"))
+ (t
+  (setq dired-listing-switches "-lbag"
+        list-directory-verbose-switches "-lbaFg"
+        list-directory-brief-switches "-abCFg")))
 
 ;;;; ----------
 ;;;; auto-mode-alist setup
@@ -586,17 +629,36 @@ A numeric argument serves as a repeat count."
 ;;How about having what-line print the total number of lines in the
 ;;buffer, as well as the current line?
 ;;
+;; merged with enhancements by Michael D. Prange to print line in a narrowed
+;; region too.
+;;
 (defun what-line ()
-  "Print the current line number of point, and total lines in buffer."
+  "Print the current line number of point, and total lines in buffer (and
+similarly the line in the narrowed region and the number of lines in the
+region, if there is one).
+
+Note that a buffer always has one more line in it than the file has."
   (interactive)
   (save-restriction
-    (widen)
     (save-excursion
       (beginning-of-line)
-      (let ((ln (1+ (count-lines 1 (point)))))
-	(message "Line %d of %d"
-		 ln
-		 (+ ln (count-lines (point) (point-max))))))))
+      (let* ((narrowed-point-min (point-min))
+	     (narrowed-lines-after-point (count-lines (point) (point-max)))
+	     (lines-after-narrowed-point-min (count-lines narrowed-point-min (point))))
+	(widen)
+	(if (= narrowed-point-min (point-min)) ;test for narrowing
+	    (message "Line %d of %d"
+		     (1+ lines-after-narrowed-point-min)
+		     (+ 1 lines-after-narrowed-point-min (count-lines (point) (point-max))))
+	  (let* ((lines-after-point (count-lines (point) (point-max)))
+		 (lines-before-region (progn (goto-char narrowed-point-min)
+					     (beginning-of-line)
+					     (count-lines 1 (point)))))
+	    (message "Line %d of %d in buffer.  Line %d of %d in narrowed region."
+		     (+ 1 lines-after-narrowed-point-min lines-before-region)
+		     (+ 1 lines-after-narrowed-point-min lines-before-region lines-after-point)
+		     (+ 1 lines-after-narrowed-point-min)
+		     (+ 1 lines-after-narrowed-point-min narrowed-lines-after-point))))))))
 (global-set-key "\C-xl" 'what-line)
 (global-set-key "\C-xL" 'count-lines-page)
 
