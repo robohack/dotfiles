@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.13	93/11/25 17:20:36 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	1.14	93/11/25 17:26:30 (woods)"
 ;;;
 ;;; per-user start-up functions
 ;;;
@@ -76,7 +76,20 @@ directory in the list PATHLIST, otherwise nil."
 
 (if (/= init-emacs-type '19)
     (if (elisp-file-in-loadpath-p "mode-line")
-	(require 'mode-line)))
+	(progn
+	  (if (boundp 'file-name-abbreviation-alist)
+	      (setq file-name-abbreviation-alist
+		    (append (list '("^/big/web/work/apc/" . "APC|")
+				  '("^/big/web/work/" . "WEB|")
+				  '("^/big/web/update.d/" . "UPD|")
+				  '((concat "^" (getenv "LOCAL") "/src") . "LSRC|")
+				  '((concat "^" (getenv "LOCAL")) . "LOCAL|")
+				  (cons (concat "^" (expand-file-name "~") "/src/work.d/")
+					"~WRK|")
+				  (cons (concat "^" (expand-file-name "~") "/src/")
+					"~SRC|"))
+			    file-name-abbreviation-alist)))
+	  (require 'mode-line))))
 
 (if (elisp-file-in-loadpath-p "c-boxes")
     (autoload 'reindent-c-comment "c-boxes" nil t))
@@ -162,23 +175,6 @@ directory in the list PATHLIST, otherwise nil."
 (setq completion-ignored-extensions
       (append '(".out")
 	      completion-ignored-extensions))
-
-;;(expand-file-name "~/lib/elisp")
-
-(if (boundp 'file-name-abbreviation-alist)
-    (setq file-name-abbreviation-alist	; this is for package mode-line
-	  (append (list '("^/big/local/src/" . "KSRC|")
-			'("^/big/local/" . "L|")
-			'("^/big/web/work/apc/" . "APC|")
-			'("^/big/web/work/" . "WEB|")
-			'("^/usr/local/src" . "LSRC|")
-			'("^/usr/local/" . "LOCAL|")
-			(cons (concat "^" (expand-file-name "~") "/src/work.d/")
-			      "~WRK|")
-			(cons (concat "^" (expand-file-name "~") "/src/")
-			      "~SRC|")
-			)
-		  file-name-abbreviation-alist)))
 
 (and (fboundp 'setenv)
      (progn
