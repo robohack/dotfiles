@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.27	99/10/12 14:57:15 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.28	99/11/18 13:07:02 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -333,6 +333,7 @@ scripts (alias)." t)
 (setq default-tab-width 8)		; a tab is a tab is a tab is a tab....
 (setq delete-auto-save-files t)		; delete auto-save file when saved
 (setq enable-local-variables 1)		; non-nil, non-t means query...
+(setq font-lock-maximum-size nil)	; don't worry about the buffer size...
 (setq make-backup-files nil)		; too much clutter
 (setq message-log-max 1000)		; default of 50 loses too much!
 (setq next-line-add-newlines nil)	; I hate it when it does that!  ;-)
@@ -340,6 +341,10 @@ scripts (alias)." t)
 (setq track-eol nil)			; too hard to control (it's sticky!)
 (setq window-min-height 1)		; don't be snobbish
 (setq window-min-width 1)
+(setq file-name-handler-alist nil)	; turn off ange-ftp entirely
+
+(setq list-faces-sample-text
+      "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789!@\#$%^&*()_+-=\\[];'`,./|{}:\"~<>?")
 
 (setq completion-ignored-extensions
       (append '(".out")
