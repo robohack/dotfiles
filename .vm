@@ -1,23 +1,62 @@
 ;;;;
 ;;;;	.vm.el
 ;;;;
-;;;#ident	"@(#)HOME:.vm	2.2	94/03/26 15:58:17 (woods)"
+;;;#ident	"@(#)HOME:.vm	2.3	94/03/31 16:04:03 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
 
 ;;;
-;;;some stuff for sendmail....
+;;;	some stuff for sendmail.el ...
 ;;;
 
 (setq mail-signature t)			; auto-insert ~/.signature
 (setq mail-archive-file-name "~/Mail/.outgoing") ; for posterity
-;; mail-mode needs the trailing newline, VM will cope either way
+
+(defvar mail-default-organization "~/.organization"
+  "The default name of your organization (or filename containing a string
+defining the organization name), if not set in the environment variable
+ORGANIZATION.  If not nil, takes precedence over the file
+{$LOCAL,/usr}/lib/news/organization.")
+
 (setq mail-default-headers
       (concat "Organization: "
-	      (or (getenv "ORGANIZATION")
-		  "PlanIX, Inc.; Toronto, Ontario; Canada")
-	      "\n"))
+	      (let* ((org-list (list (getenv "ORGANIZATION")
+				     mail-default-organization
+				     (concat (or (getenv "LOCAL")
+						 "/usr/")
+					     "lib/news/organization")))
+		     (org nil))
+		(while (and (not org)
+			    (cdr org-list))
+		  (let ((org-file (car org-list)))
+		    (setq org-list (cdr org-list))
+		    (cond ((not org-file)
+			   (setq org nil))
+			  ((file-name-absolute-p org-file)
+			   (setq org-file (expand-file-name org-file "/"))
+			   (if (file-exists-p org-file)
+			       (let ((org-buffer (generate-new-buffer
+						  (generate-new-buffer-name
+						   "orgbuf"))))
+				 (save-excursion
+				   (set-buffer org-buffer)
+				   (insert-file-contents org-file)
+				   (goto-char (point-max))
+				   (let ((fill-prefix "\t")
+					 (fill-column 72))
+				     (fill-region (point-min) (point-max)))
+				   (let ((end-pt (point)))
+				     (skip-chars-backward "\ \t\n")
+				     (delete-region (point) end-pt))
+				   (setq org (buffer-string))
+				   (not-modified)
+				   (kill-buffer nil)))))
+			  (t
+			   (setq org org-file)))))
+		org)
+	      "\n"))			; mail-mode needs the trailing newline,
+					; VM will cope either way
 
 ;;;
 ;;;	VM related things
