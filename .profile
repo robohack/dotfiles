@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	9.16	96/02/07 11:35:33 (woods)"
+#ident	"@(#)HOME:.profile	9.17	96/08/27 00:16:49 (woods)"
 
 #
 # Assumptions:
@@ -127,7 +127,7 @@ dirprepend ()
 }
 
 case "$UUNAME" in
-robohack | kuma | araignee | tar | spinne | toile | wombat | weirdo | most | very | isit )
+robohack | kuma | araignee | tar | spinne | toile | wombat | weirdo | most | very | isit | pretty )
 	# we trust $PATH has been initialized correctly on these machines....
 	;;
 * )
@@ -491,7 +491,7 @@ if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 	fi
 
 	case "$UUNAME" in
-	robohack | toile | wombat | spinne | tar | web | weirdo | most | very )
+	robohack | toile | wombat | spinne | tar | web | weirdo | most | very | isit | pretty )
 		# we trust that everything is all set up as it should be on
 		# sites we know, except for personal preferences set above...
 		:
