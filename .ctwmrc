@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	21.2	00/01/04 20:40:18 (woods)"
+#ident	"@(#)HOME:.ctwmrc	21.3	00/01/07 01:20:10 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -61,7 +61,7 @@ DontMoveOff
 DontPaintRootWindow
 DontSqueezeTitle
 NoGrabServer
-NoOpaqueResize
+OpaqueResize
 NoRaiseOnMove
 NoRaiseOnResize
 NoMenuShadows
@@ -91,8 +91,8 @@ IconManagerShadowDepth		3
 MaxWindowSize			"WIDTH[x]HEIGHT"
 MenuShadowDepth			3
 MoveDelta			3
-OpaqueMoveThreshold		80	# window % of screen size
-#OpaqueResizeThreshold		80	# turned off above
+OpaqueMoveThreshold		100	# window % of screen size
+OpaqueResizeThreshold		100	# window % of screen size
 TitleButtonShadowDepth		3
 TitleShadowDepth		3
 UsePPosition			"on"
@@ -1090,6 +1090,7 @@ menu "games"
 	"Spider"		!"spider &"
 	"mahjongg"		!"mahjongg &"
 	"xmahjongg"		!"xmahjongg &"
+	"xscrabble"		!"xscrabble &"
 	"xdragon (mahjongg)"	!"xdragon -geometry 40x40 &"
 	"Xtetris"		!"xtetris -bw &"
 	"Xtetris for colour"	!"xtetris -color &"
