@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	18.4	97/01/25 17:13:47 (woods)"
+#ident	"@(#)HOME:.kshrc	18.5	97/01/25 18:03:12 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -277,11 +277,15 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		alias emacs=_emacs
 		function _emacs
 		{
-			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			trap "trap 1 2 3 15; setban" 1 2 3 15
 			WBANNER="GNU Emacs @ $UUNAME"
 			setban
+			REMESG=`mesg | sed 's/is/mesg/'`
 			mesg n
 			emacs "$@"
+			setban
+			$REMESG
+			unset REMESG
 		}
 	fi
 
@@ -290,15 +294,19 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	function _cu
 	{
 		if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
-			trap "trap 0 1 2 3 15; mkmenu -; setban" 0 1 2 3 15
+			trap "trap 1 2 3 15; mkmenu -; setban" 1 2 3 15
 			myxsize -s
 		else
-			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			trap "trap 1 2 3 15; setban" 1 2 3 15
 		fi
-		WBANNER="cu $*"
+		WBANNER="CU $*"
 		setban
+		REMESG=`mesg | sed 's/is/mesg/'`
 		mesg n
 		/usr/bin/cu "$@"
+		setban
+		$REMESG
+		unset REMESG
 	}
 
 	unalias ckermit
@@ -306,15 +314,19 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	function _ckermit
 	{
 		if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
-			trap "trap 0 1 2 3 15; mkmenu -; setban" 0 1 2 3 15
+			trap "trap 1 2 3 15; mkmenu -; setban" 1 2 3 15
 			myxsize -s
 		else
-			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			trap "trap 1 2 3 15; setban" 1 2 3 15
 		fi
 		WBANNER="C-Kermit $*"
 		setban
+		REMESG=`mesg | sed 's/is/mesg/'`
 		mesg n
 		$LOCAL/bin/ckermit "$@"
+		setban
+		$REMESG
+		unset REMESG
 	}
 
 	if expr "$(type rlogin)" : '.* is .*/rlogin$' >/dev/null 2>&1 ; then
@@ -323,11 +335,15 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		alias rlogin=_rlogin
 		function _rlogin
 		{
-			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			trap "trap 1 2 3 15; setban" 1 2 3 15
 			WBANNER="rlogin $*"
 			setban
+			REMESG=`mesg | sed 's/is/mesg/'`
 			mesg n
 			$RLOGIN "$@"
+			setban
+			$REMESG
+			unset REMESG
 		}
 	fi
 
@@ -338,15 +354,19 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		function _telnet
 		{
 			if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
-				trap "trap 0 1 2 3 15; mkmenu -; setban" 0 1 2 3 15
+				trap "trap 1 2 3 15; mkmenu -; setban" 1 2 3 15
 				myxsize -s
 			else
-				trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+				trap "trap 1 2 3 15; setban" 1 2 3 15
 			fi
 			WBANNER="telnet $*"
 			setban
+			REMESG=`mesg | sed 's/is/mesg/'`
 			mesg n
 			$TELNET "$@"
+			setban
+			$REMESG
+			unset REMESG
 		}
 	fi
 
@@ -355,10 +375,15 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		alias mushC=_mushC
 		function _mushC
 		{
-			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			trap "trap 1 2 3 15; setban" 1 2 3 15
 			WBANNER="MUSH $*"
 			setban
+			REMESG=`mesg | sed 's/is/mesg/'`
+			mesg n
 			mush -C "$@"
+			setban
+			$REMESG
+			unset REMESG
 		}
 	fi
 
@@ -366,7 +391,10 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	alias su=_su
 	function _su
 	{
-		trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+		trap "trap 1 2 3 15; setban" 1 2 3 15
+		WBANNER="SU $*"
+		setban
+		REMESG=`mesg | sed 's/is/mesg/'`
 		mesg n
 		if [ -x /usr/5bin/su ] ; then
 			/usr/5bin/su "$@"
@@ -375,20 +403,28 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		else
 			/bin/su "$@"
 		fi
+		setban
+		$REMESG
+		unset REMESG
 	}
 
 	if [ -x $LOCAL/games/nethack ] ; then
 		function nethack
 		{
 			if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
-				trap "trap 0 1 2 3 15; loadfont thin.9x14; setban" 0 1 2 3 15
+				trap "trap 1 2 3 15; loadfont thin.9x14; setban" 1 2 3 15
 				loadfont rogue.9x18
 			else
-				trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+				trap "trap 1 2 3 15; setban" 1 2 3 15
 			fi
 			WBANNER="NetHack"
 			setban
+			REMESG=`mesg | sed 's/is/mesg/'`
+			mesg n
 			$LOCAL/games/nethack
+			setban
+			$REMESG
+			unset REMESG
 		}
 	fi
 
