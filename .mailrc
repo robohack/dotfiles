@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc  20.18    99/07/29 22:36:33 (woods)"
+# ident	"@(#)HOME:.mailrc	20.19	99/09/11 15:45:05 (woods)"
 
 set keep
 set keepsave
@@ -45,6 +45,13 @@ alias port-sparc	"port-sparc@NetBSD.ORG (NetBSD/sparc Discussion List)"
 alias port-sun3		"port-sun3@NetBSD.ORG (NetBSD/sun3 Discussion List)"
 alias postfix-testers	"postfix-testers@postfix.org (Postfix Testers List)"
 alias postfix-users	"postfix-users@postfix.org (Postfix Users List)"
+alias shape-l		"SHAPE-L%DB0TUI11.BITNET@vm.gmd.de (ShapeTools Discussion Mailing List)"
+alias smail-bugs	"smail-bugs@planix.com (Smail PR Reports and followups)"
+alias smail3-maintainers "smail3-maintainers@smail.sbay.org (Smail-3 Maintainers Mailing List)"
+alias smail3-wizards	"smail3-wizards@cs.athabascau.ca (Smail-3 Wizards Mailing List)"
+alias smail3-users	"smail3-users@cs.athabascau.ca (Smail-3 Users Mailing List)"
+alias ssh		"ssh@clinet.fi (SSH Users Mailing List)"
+alias suns-at-home	"suns-at-home@net-kitchen.com (Suns-at-Home Mailing List)"
 alias tech-embed	"tech-embed@NetBSD.ORG (NetBSD for Embedded Systems Technical Discussion List)"
 alias tech-install	"tech-install@NetBSD.ORG (NetBSD Install Process Technical Discussion List)"
 alias tech-kern		"tech-kern@NetBSD.ORG (NetBSD Kernel Technical Discussion List)"
@@ -55,21 +62,15 @@ alias tech-ports	"tech-ports@NetBSD.ORG (NetBSD Porting Technical Discussion Lis
 alias tech-security	"tech-security@NetBSD.ORG (NetBSD Security Technical Discussion List)"
 alias tech-toolchain	"tech-toolchain@NetBSD.ORG (NetBSD Toolchain Technical Discussion List)"
 alias tech-userlevel	"tech-userlevel@NetBSD.ORG (NetBSD Userlevel Technical Discussion List)"
-alias shape-l		"SHAPE-L%DB0TUI11.BITNET@vm.gmd.de (ShapeTools Discussion Mailing List)"
-alias smail-bugs	"smail-bugs@planix.com (Smail PR Reports and followups)"
-alias smail3-maintainers "smail3-maintainers@smail.sbay.org (Smail-3 Maintainers Mailing List)"
-alias smail3-wizards	"smail3-wizards@cs.athabascau.ca (Smail-3 Wizards Mailing List)"
-alias smail3-users	"smail3-users@cs.athabascau.ca (Smail-3 Users Mailing List)"
-alias ssh		"ssh@clinet.fi (SSH Users Mailing List)"
-alias suns-at-home	"suns-at-home@net-kitchen.com (Suns-at-Home Mailing List)"
+alias tkined		"tkined@ibr.cs.tu-bs.de (Scotty Mailing List)"
 alias tpc-rp		"tpc-rp@aarnet.edu.au (TPC-Int)"
 alias trn-test		"trn-test@borland.com (TRN Beta Test List)"
-alias vmailer-testers   "vmailer-testers@porcupine.org (VMailer Testers List)"
+alias vmailer-testers	"vmailer-testers@porcupine.org (VMailer Testers List)"
 
 #
 #	local mailing list aliases
 #
-alias jet-fuel  "jet-fuel@weird.com (Caffeine is fuel for your mind)"
+alias jet-fuel	"jet-fuel@weird.com (Caffeine is fuel for your mind)"
 
 #
 #	friendly aliases
