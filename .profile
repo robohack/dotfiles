@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	6.6	94/11/28 16:03:08 (woods)"
+#ident	"@(#)HOME:.profile	6.7	94/11/30 15:52:51 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -99,11 +99,12 @@ esac
 
 case "$UUNAME" in
 tar | kuma )
-#	APCSRCDIR=/apcsoft/work.d/$LOGNAME/apc ; export APCSRCDIR
-#	APCCONFIG=/apcsoft/work.d/$LOGNAME/apc/configure ; export APCCONFIG
-#	if [ `expr "$MFLAGS" : ".*$APCCONFIG.*"` -eq 0 ] ; then
-#		MFLAGS="$MFLAGS -I $APCCONFIG" ; export MFLAGS
-#	fi
+	APCSRCDIR=/apcsoft/work.d/$LOGNAME/apc ; export APCSRCDIR
+	APCCONFIG=$APCSRCDIR/configure ; export APCCONFIG
+	apcmake ()
+	{
+		gmake -I $APCCONFIG APCSRCDIR=$APCSRCDIR APCCONFIG=$APCCONFIG APCINCDIR=$APCSRCDIR/include APCLIBDIR=$APCSRCDIR/lib ${1+"$@"}
+	}
 	;;
 web )
 	APCCONFIG=/etc/apc ; export APCCONFIG
