@@ -1,0 +1,126 @@
+;;;
+;;;	.vm.el
+;;;
+;;;#ident	"@(#)HOME:.vm	1.1	94/03/07 19:42:15 (woods)"
+;;;
+;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
+;;;
+
+;;
+;; some stuff for sendmail....
+;;
+(setq mail-signature t)			; auto-insert ~/.signature
+(setq mail-archive-file-name "~/Mail/.outgoing") ; for posterity
+
+;;
+;;	VM related things
+;;
+;; commented lines indicate changed values....  (from v5.62)
+;;
+(setq
+     vm-arrived-message-hook nil
+;;;  vm-auto-center-summary 1		; only if not the only existing window
+     vm-auto-center-summary nil
+     vm-auto-folder-case-fold-search nil
+     vm-auto-get-new-mail t		; don't go to next msg unless I say so!
+     vm-auto-next-message nil
+     vm-berkeley-mail-compatibility t	; read & write Status: headers
+     vm-check-folder-types t
+     vm-circular-folders nil		; I don't like it wrapping to the top
+     vm-confirm-new-folders t		; force confirmation when interactive
+     vm-confirm-quit 1			; ask if there are unsaved changes or
+					; messages will be lost
+     vm-convert-folder-types t		; go for it!
+     vm-crash-box "~/Mail/INBOX.CRASH"	; matching pathname for INBOX
+     vm-default-folder-type 'From_
+     vm-delete-after-archiving nil
+     vm-delete-after-bursting nil
+     vm-delete-after-saving nil
+     vm-delete-empty-folders t
+     vm-digest-burst-type "rfc934"
+     vm-digest-identifier-header-format "X-Digest: %s\n"
+     vm-digest-center-preamble t
+     vm-digest-preamble-format "\"%s\" (%F)"
+     vm-digest-send-type "rfc934"
+     vm-edit-message-hook nil
+     vm-edit-message-mode 'indented-text-mode ; this is slightly better than text-mode
+     vm-flush-interval t
+     vm-folder-directory "~/Mail/"	; the usual place
+;;;  vm-folder-read-only nil
+     vm-follow-summary-cursor t		; operate on current pointed to message
+     vm-forward-message-hook nil
+     vm-forwarded-headers nil
+     vm-forwarding-digest-type "rfc934"
+     vm-forwarding-subject-format "forwarded message from %F"
+;;;  vm-highlighted-header-regexp "^From:\\|^Subject:" ; highlight these headers
+     vm-honor-page-delimiters t		; honour page marks in message
+     vm-in-reply-to-format "Your message of \"%w, %m %d, %y %h %z\"\n	\"%s\"\n	id %i" ; this is the way I like it
+     vm-included-text-attribution-format "[ On %w, %m %d, %y at %h (%z), %F wrote: ]\n> Subject: %s\n>\n" ; this is the way I like it
+     vm-included-text-discard-header-regexp nil
+     vm-included-text-headers nil
+     vm-included-text-prefix "> "	; k.i.s.s.
+     vm-inhibit-startup-message t	; don't bother me with legalese!
+;;;  vm-init-file "~/.vm"		; that's us!
+     vm-invisible-header-regexp nil
+     vm-jump-to-new-messages t
+     vm-jump-to-unread-messages t
+     vm-keep-crash-boxes "~/tmp/"	; crash inbox saviour
+     vm-keep-sent-messages 1
+     vm-mail-header-from "woods@web.net (Greg A. Woods)" ; this is also for resent-from
+     vm-mail-hook nil
+     vm-mail-mode-hook nil
+     vm-mode-hook nil
+     vm-move-after-deleting t		; keep on rolling
+     vm-move-after-undeleting t		; keep on rolling
+     vm-move-messages-physically nil
+     vm-movemail-program "movemail"
+     vm-mutable-frames nil
+     vm-mutable-windows t		; allow resizing of windows
+     vm-pop-md5-program "md5"
+     vm-preview-lines 4			; allow 4 lines of the body to show
+     vm-preview-read-messages nil	; only preview unread messages
+     vm-primary-inbox "~/Mail/INBOX"	; primary inbox
+     vm-quit-hook nil
+     vm-recognize-pop-maildrops "^[^:]+:[^:]+:[^:]+:[^:]+:[^:]+"
+     vm-reply-hook nil
+     vm-reply-ignored-addresses nil
+     vm-reply-ignored-reply-tos nil
+     vm-reply-subject-prefix "Re: "	; do the right thing!
+     vm-resend-bounced-discard-header-regexp nil
+     vm-resend-bounced-headers '("Resent-" "From:" "Sender:" "To:" "Cc:" "Subject:" "Newsgroups:" "In-Reply-To:" "References:" "Keywords:" "X-")
+     vm-resend-bounced-message-hook nil
+     vm-resend-discard-header-regexp "\\(\\(X400-\\)?Received:\\|Resent-\\)"
+     vm-resend-headers nil
+     vm-resend-message-hook nil
+     vm-retrieved-spooled-mail-hook nil
+     vm-rfc1153-digest-discard-header-regexp "\\(X400-\\)?Received:"
+     vm-rfc1153-digest-headers '("Resent-" "Date:" "From:" "Sender:" "To:" "Cc:" "Subject:" "Message-ID:" "Keywords:")
+     vm-rfc934-digest-discard-header-regexp nil
+     vm-rfc934-digest-headers '("Resent-" "From:" "Sender:" "To:" "Cc:" "Subject:" "Date:" "Message-ID:" "Keywords:")
+     vm-search-using-regexps nil
+     vm-select-message-hook nil
+     vm-select-new-message-hook nil
+     vm-select-unread-message-hook nil
+     vm-send-digest-hook nil
+     vm-skip-deleted-messages t
+     vm-skip-read-messages nil
+     vm-startup-with-summary 1		; pop up summary window right away
+     vm-strip-reply-headers nil
+     vm-summary-format "%n %*%a %-20.20F %-3.3m %2d/%y %4l/%-5c %I\"%s\"\n"
+     vm-summary-highlight-face nil
+     vm-summary-mode-hook nil
+     vm-summary-mode-hooks nil
+     vm-summary-redo-hook nil
+     vm-summary-show-threads nil
+     vm-summary-subject-no-newlines t
+     vm-summary-thread-indent-level 2
+     vm-summary-uninteresting-senders nil
+     vm-summary-uninteresting-senders-arrow "To: "
+     vm-tale-is-an-idiot nil
+     vm-unforwarded-header-regexp "only-drop-this-header"
+     vm-virtual-folder-alist nil
+     vm-virtual-mirror t
+     vm-visible-headers '("Resent-" "From:" "Sender:" "To:" "Apparently-To:" "Cc:" "Subject:" "Date:")
+     vm-visit-folder-hook nil
+     vm-visit-when-saving 0
+     )
