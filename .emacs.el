@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	25.1	02/11/25 16:09:46 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	25.2	03/01/03 14:04:38 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -33,7 +33,6 @@
 ;;;; if that's where we should be.
 (if (<= (safe-length command-line-args) 1)
     (cd "~"))
-
 ;;;; ----------
 ;;;; stolen from cl.el -- find out where we are!
 
@@ -97,8 +96,7 @@
 
 ;;;; ----------
 ;;;; What to do after this file has been loaded...
-(defvar display-time-24hr-format)	; to quiet the v19 byte compiler
-(defvar display-time-interval)		; to quiet the v19 byte compiler
+;;;;
 (add-hook 'after-init-hook
 	  (function
 	   (lambda ()
@@ -106,16 +104,10 @@
 The call is not protected by a condition-case, so you can set `debug-on-error'
 in `.emacs', and put all the actual code on `after-init-hook'."
 	     (progn
+	       ;;;(setq debug-on-error t)	; need this to debug in here...
 	       ;; (require 'time)	; this isn't provided by time.el!
-	       (setq display-time-day-and-date t) ; autoload'ed though
-	       (setq display-time-24hr-format t)
-;;;	       (if (or (string-equal (system-name) "robohack")
-;;;		       (string-equal (system-name) "almost.weird.com")
-;;;		       (string-equal (system-name) "always.weird.com"))
-;;;		   (setq display-time-interval 300)) ; poor little machines....
-	       (if (not (= (user-uid) 0))
-		   (let ((process-connection-type nil)) ;pty's are limited, pipes aren't
-		     (display-time)))	; also autoload'ed
+	       (let ((process-connection-type nil)) ;pty's are limited, pipes aren't
+		 (display-time))	; also autoload'ed
 	       ;;
 	       ;; Message-Id: <9601081816.AA07579@alex.x.org>
 	       ;; From: Stephen Gildea <gildea@x.org>
@@ -280,7 +272,7 @@ scripts (alias)." t)
 ;;;; ----------
 ;;;; If running as root, don't make backup files.  This should be default!!!
 
-(cond ((eq (user-uid) 0)
+(cond ((= (user-uid) 0)
        (setq make-backup-files nil)
        (setq auto-save-default nil)))
 
@@ -398,7 +390,6 @@ when our preferred font is not available."
 (setq colon-double-space t)		; ah ha!  this should mirror sentence-end-double-space!
 (setq default-tab-width 8)		; a tab is a tab is a tab is a tab....
 (setq delete-auto-save-files t)		; delete auto-save file when saved
-(setq display-time-24hr-format t)	; time in 24hour-mode
 (setq enable-local-variables 1)		; non-nil, non-t means query...
 (setq file-name-handler-alist nil)	; turn off ange-ftp entirely
 (setq indicate-empty-lines t)		; show which window lines are past the EOF
@@ -421,6 +412,16 @@ when our preferred font is not available."
 
 (require 'font-lock)
 (setq font-lock-maximum-size nil)	; don't worry about the buffer size...
+
+;; (require 'time)			; this isn't provided by time.el!
+(setq display-time-day-and-date t)	; what day is it again?
+(defvar display-time-24hr-format)	; to quiet the v19 byte compiler
+(setq display-time-24hr-format t)	; time in 24hour-mode
+;(defvar display-time-interval)		; to quiet the v19 byte compiler
+;(if (or (string-equal (system-name) "robohack")
+;	(string-equal (system-name) "almost.weird.com")
+;	(string-equal (system-name) "always.weird.com"))
+;    (setq display-time-interval 300)) ; poor little machines....
 
 (if (fboundp 'column-number-mode)
     (column-number-mode 1))		; XXX does this stick?  I hope so!
@@ -1481,24 +1482,6 @@ Use `list-faces-display' to see all available faces")
 	       (setq font-lock-keywords
 		     dired-font-lock-keywords)))))
 
-(add-hook 'display-time-hook
-	  (function
-	   (lambda ()
-	     (if (elisp-file-in-loadpath-p "vm")
-		 nil			; we want mail checking....
-	       (progn
-		 ;; display-time can't check "Status:" headers or "Forward to"
-		 ;; files so if not running vm or something else that cleans
-		 ;; out the spool files, disable the mail checking feature
-		 ;;
-		 ;; must appear after display-time is invoked (thus after
-		 ;; time.el is loaded)
-		 ;;
-		 (defun display-time-file-nonempty-p (file)
-		   "This function returns 'nil, as it would only be useful if
-it could check Status: headers for O, or Forward to in mailboxes."
-		   nil))))))
-
 (add-hook 'emacs-lisp-mode-hook
 	  (function
 	   (lambda ()
@@ -1714,9 +1697,11 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	  (function
 	   (lambda ()
 	     "Private vc-mode stuff."
+	     (require 'vc)
 	     (setq vc-checkout-carefully t)
 	     (setq vc-command-messages t)
 	     (setq vc-initial-comment t)
+	     (defvar vc-maximum-comment-ring-size) ; not defvar'ed!
 	     (setq vc-maximum-comment-ring-size 64) ; 32 is too small!
 	     (add-hook 'vc-checkin-hook
 		       'vc-comment-to-change-log))))
@@ -2134,7 +2119,8 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		   "Private compilation-frame stuff."
 		   (raise-frame compilation-frame-id))))))
 
-(if (or window-system server-process)
+(if (or window-system (and (fboundp 'server-process)
+			   server-process))
     (progn
       (setq kill-emacs-query-functions '(ask-really-exit-emacs))))
 
@@ -2192,7 +2178,8 @@ current emacs server process..."
 ;;; -n means don't expand \input or \include commands.
 ;;; -l means force LaTeX mode.
 ;;;
-(if (elisp-file-in-loadpath-p "ispell")
+(if (and (elisp-file-in-loadpath-p "ispell")
+	 (file-in-pathlist-p "ispell" exec-path))
     (progn
       ;; to quiet the v19 byte compiler
       (defvar ispell-filter-hook)
@@ -2268,28 +2255,32 @@ current emacs server process..."
 	(dayname "\\W")))
 
 (setq appt-audible t)			; beep to warn of appointments
-(setq appt-display-mode-line t)		; show sppt msg in mode line
-(setq appt-display-duration 30)		; seconds to display appointment msg
-					; (must be less than appt-display-interval!)
-(setq appt-display-interval 1)		; be a little more agressive
+(setq appt-display-mode-line t)		; show minutes to appt time in mode line
+(setq appt-display-duration 60)		; seconds to display appointment msg
+					; (NOTE: must be less than appt-display-interval!)
+(setq appt-display-interval 2)		; minutes between checks of appointment list (def. 3)
 
 (if (<= (safe-length command-line-args) 1)
     (progn
       ;; only if we're running a long-term session....
       (setq appt-display-diary t)	; display diary at midnight (want?)
-      (setq appt-issue-message t)))	; enable appt msgs
+      (setq appt-issue-message t))	; enable appt msgs
+  (progn
+    (setq appt-display-diary nil)
+    (setq appt-issue-message nil)))
 
 ;; NOTE: this is really also the minimum interval allowed between appointments.
-;; Any more dense than this and they will clobber each other as only one can
-;; be shown at a time.
+;; If appointments are made any more dense than this interval then they will
+;; clobber each other as only one can be shown at a time.
 (setq appt-message-warning-time 15)	; minutes of warning prior to appt
 
-;; This would help appointment messages stay visible 
-;;
-;;(setq appt-msg-window t)		; show appt message in a window!
-;;(setq appt-delete-window-function 'ignore) ; never delete the window automatically
-
+(setq appt-msg-window nil)		; do not show appt message in a separate window!
 (setq appt-visible t)			; show appt msg in echo area (only if appt-msg-window is nil)
+
+;; This would help appointment messages stay visible in their wee window.
+;; if we had appt-msg-window set, that is....
+;;
+;;(setq appt-delete-window-function 'ignore) ; never delete the window automatically
 
 (add-hook 'today-visible-calendar-hook 'calendar-mark-today)
 (add-hook 'diary-display-hook 'fancy-diary-display)
@@ -2371,7 +2362,12 @@ current emacs server process..."
 ;;
 (require 'timeclock)
 
-(timeclock-modeline-display)
+(setq timeclock-use-display-time t)
+
+;; NOTE:  you must have a ~/.timelog file or this will crap out...
+;;
+(if (file-exists-p "~/.timelog")
+    (timeclock-modeline-display))
 
 ;; There's probably a better way to do this....
 ;;
@@ -2408,6 +2404,8 @@ current emacs server process..."
 ;;;;
 
 ;; todo-mode autoloads itself and may even be autoloaded by calendar....
+
+(setq todo-prefix "&%%(equal (calendar-current-date) date)")
 
 (global-set-key "\C-cTs" 'todo-show) ;; switch to TODO buffer
 (global-set-key "\C-cTi" 'todo-insert-item) ;; insert new item
