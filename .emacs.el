@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.17	96/02/09 16:03:26 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.18	96/02/20 00:36:44 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1008,7 +1008,6 @@ it could check Status: headers for O, or Forward to in mailboxes."
 (global-set-key "\C-x\C-d" 'insert-date-in-current-buffer)
 
 (global-set-key "\C-x\C-v" 'find-file)	; I never liked "visit"....
-;;;(global-set-key "\C-xv" 'view-file)	; this is now the prefix for vc
 (global-set-key "\C-xV" 'find-alternate-file)
 
 (global-set-key "\ez" 'scroll-one-line-down)
@@ -1033,6 +1032,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 
 (if window-system
     (progn
+      (global-set-key "\C-xp" 'previous-multiframe-window)
       (global-set-key "\C-x5i" 'iconify-frame)
       (global-set-key "\C-x5T" 'find-tag-other-frame)))
 
