@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	22.6	01/12/07 02:13:03 (woods)"
+#ident	"@(#)HOME:.xinitrc	22.7	01/12/28 10:54:47 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -365,7 +365,7 @@ xtremely.weird.com:*)
 	xterm -display $DISPLAY -geometry 88x24+475+205 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn03 -T "Console-03 [sometimes.weird.com]" -e console -S sometimes &
 	xterm -display $DISPLAY -geometry 88x24+475+410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn09 -T "Console-09 [always.weird.com]" -e console -S always &
 	xterm -display $DISPLAY -geometry 88x24+475+615 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn11 -T "Console-11 [starting-out.weird.com]" -e console -S starting-out &
-c	xterm -display $DISPLAY -geometry 88x24+475+820 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n cid -T "very:/dev/ttyb [Caller ID Box]" -e console -S callerid &
+	xterm -display $DISPLAY -geometry 88x24+475+820 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n cid -T "very:/dev/ttyb [Caller ID Box]" -e console -S callerid &
 
 	# right side...
 	xterm -display $DISPLAY -geometry 80x24-0-410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn02 -T "Console-02 [BEST-UPS]" -e console -S best1.4 &
@@ -416,8 +416,8 @@ esac
 exec $WM
 
 # Local Variables:
-# eval: (defun make-buffer-file-executable () (set-file-modes buffer-file-name 365) nil)
-# eval: (defun save-this-file-and-make-it-executable () (write-region (point-min) (point-max) buffer-file-name nil 't) (set-file-modes buffer-file-name 493) nil)
-# local-write-file-hooks: (save-this-file-and-make-it-executable)
-# local-vc-checkin-hook: (make-buffer-file-executable)
+# eval: (defun make-buffer-file-executable () (let* ((current-mode (file-modes (buffer-file-name))) (add-mode (logand ?\111 (default-file-modes)))) (or (/= (logand ?\111 current-mode) 0) (zerop add-mode) (set-file-modes (buffer-file-name) (logior current-mode add-mode)))))
+# vc-checkout-hook: (make-buffer-file-executable)
+# vc-checkin-hook: (make-buffer-file-executable)
+# after-save-hook: (make-buffer-file-executable)
 # End:
