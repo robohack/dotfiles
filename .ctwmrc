@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.10	98/02/05 15:12:50 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.11	98/03/03 01:19:24 (woods)"
 #
 
 changequote([, ])
@@ -765,7 +765,8 @@ menu "backgrounds"
 menu "ghostviews"
 {
 	"GhostView"	f.title
-	"@localhost"	!"$X11BIN/ghostview &"
+	"@localhost"	!"ghostview &"
+	"gv @localhost"	!"gv &"
 	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
@@ -778,6 +779,7 @@ menu "ghostviews"
  ifdef([AT_PLANIX], [
   ifelse(HOSTNAME, woffi.planix.com, [], [
 	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/bin/X11/bin/ghostview &"
+	"gv @woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/bin/X11/bin/gv &"
   ])
  ])
  ifdef([AT_WEB], [
@@ -967,13 +969,16 @@ menu "xterm"
 	"Xterm @brain"	!"$RSH -n brain.zeus.leitch.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
   ])
   ifelse(HOSTNAME, bitter.zeus.leitch.com, [], [
-	"Xterm @bitter"	!"$RSH -n bitter.zeus.leitch.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm @bitter"	!"$RSH -n bitter.zeus.leitch.com exec /usr/X11R6/bin/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ])
+  ifelse(HOSTNAME, new.zeus.leitch.com, [], [
+	"Xterm @new"	!"$RSH -n new.zeus.leitch.com exec /usr/X11R6/bin/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
   ])
   ifelse(HOSTNAME, sonet.zeus.leitch.com, [], [
-	"Xterm @sonet"	!"$RSH -n sonet.zeus.leitch.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm @sonet"	!"$RSH -n sonet.zeus.leitch.com exec /usr/X11R6/bin/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
   ])
   ifelse(HOSTNAME, tap.zeus.leitch.com, [], [
-	"Xterm @tap"	!"$RSH -n tap.zeus.leitch.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm @tap"	!"$RSH -n tap.zeus.leitch.com exec /usr/X11R6/bin/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
   ])
 ])
 }
