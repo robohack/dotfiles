@@ -1,7 +1,7 @@
 #
 #	greg's ~/.ircrc
 #
-#ident	"@(#)HOME:.ircrc	1.2	95/11/30 11:01:44 (woods)"
+#ident	"@(#)HOME:.ircrc	1.3	97/01/19 14:09:35 (woods)"
 
 set NOVICE off
 set CLOCK on
@@ -42,9 +42,24 @@ addop [*!andy@*weird.com]
 addop [*!andy@*seachange.com]
 addop [*!gegai@*io.org]
 addinv [dreamzz!*@*]
+addinv [*!andy@*weird.com]
+addinv [*!andy@*seachange.com]
 
 mode #secrets +o dreamzz
 topic #secrets The Secrets of the *WEIRD* ....
+
+# I don't know if this works....
+#
+#addchan [#Planix]
+#addop [*!andreas@*planix.com]
+#addop [*!peter@*planix.com]
+#addop [*!peter@*passport.ca]
+#addinv [who-me!*@*planix.com]
+#addinv [*!andreas@*planix.com]
+
+mode #Planix +it
+mode #Planix +o who-me
+topic #Planix Thoze PlanIX Dudes....
 
 who *weird.com
 who *planix.com
@@ -64,6 +79,8 @@ alias r msg $,
 alias a msg $.
 
 alias i invite
+
+alias oo away Sleeping, working, playing, eating, drinking, whatever....
 
 alias unset set -$*
 alias unalias alias -$*
