@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	8.1	95/02/15 11:08:07 (woods)"
+#ident	"@(#)HOME:.profile	8.2	95/02/15 17:55:59 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -86,6 +86,37 @@ dirprepend ()
 		shift
 	done
 	unset varname varvalue
+}
+
+# first time in for window systems which emulate login shells in each window
+#
+do_first_time ()
+{
+	if [ -x /usr/games/fortune ] ; then
+		/usr/games/fortune
+	elif [ -x $LOCAL/games/fortune ] ; then
+		$LOCAL/games/fortune
+	fi
+	if [ -r calendar -o -r .month ] ; then
+		echo "\nToday's Events:"
+		if [ -r .month ] ; then
+			month -B
+		fi
+		if [ -r calendar ] ; then
+			calendar
+		fi
+	fi
+	if [ -d $HOME/notes ] ; then
+		(
+			cd $HOME/notes
+			if [ `ls|wc -w` != 0 ] ; then
+				echo '\nNotes on: ' *
+			fi
+		)
+	fi
+	if [ -r $HOME/.trninit$TERM ] ; then
+		TRNINIT="$HOME/.trninit$TERM" ; export TRNINIT
+	fi
 }
 
 case "$UUNAME" in
@@ -501,17 +532,13 @@ if $HAVEX && [ "`tty`" = "/dev/console" ] ; then
 		trap 2
 		case "$yn" in
 			"" | [yY]*)
-			TRNINIT="$HOME/.trninitX" ; export TRNINIT
 			trap '' 2
 			xinit
 			tput clear
-			$HAVEFORTUNE && fortune
 			exec sleep 1
 			;;
 		*)
-			if $HAVEMONTH && [ -r .month ] ; then
-				monthd -i5
-			fi
+			echo "OK, not starting X..."
 			;;
 		esac
 		;;
@@ -521,13 +548,7 @@ if $HAVEX && [ "`tty`" = "/dev/console" ] ; then
 fi
 
 if [ "$TERM" = "xterm" ] ; then
-	$HAVEFORTUNE && fortune
-	if $HAVEMONTH && [ -r .month ] ; then
-		monthd -i5
-	fi
-	if [ -r $HOME/.trninitX11 ] ; then
-		TRNINIT="$HOME/.trninitX11" ; export TRNINIT
-	fi
+	do_first_time
 	PS1="]0;$PS1$PS1" ; export PS1
 fi
 
@@ -543,9 +564,6 @@ if $HAVELAYERS && [ "$TERM" = "dmd" -a "`ismpx`" != "yes" ] ; then
 			layers=layers-DEBUG
 		else
 			layers=layers
-		fi
-		if [ -r $HOME/.trninitdmd ] ; then
-			TRNINIT="$HOME/.trninitdmd" ; export TRNINIT
 		fi
 		if [ "$VISUAL" = "emacs" ] ; then
 			VISUAL="emacsclient" ; export VISUAL
