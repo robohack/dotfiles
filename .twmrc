@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.16	96/04/09 22:01:59 (woods)"
+#ident	"@(#)HOME:.twmrc	2.17	96/04/11 15:11:30 (woods)"
 #
 
 AutoRelativeResize
@@ -358,6 +358,14 @@ function "start-druid-rlogin" {
 function "start-skeptic-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin skeptic.druid.com &"
 }
+
+
+#	for rlogin-vex menu
+#
+function "start-vexnet-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin vex.net &"
+}
+
 
 #	for rlogin-web menu
 #
@@ -802,6 +810,7 @@ menu "rlogin"
 	"Rlogin's at Passport.ca..."	f.menu "rlogin-passport"
 	"Rlogin's at PSI.ca..."		f.menu "rlogin-psi"
 	"Rlogin's at SOLS.on.ca..."	f.menu "rlogin-sols"
+	"Rlogin's at Vex.net..."	f.menu "rlogin-vex"
 	"Rlogin's at Reptiles.org..."	f.menu "rlogin-reptiles"
 	"Rlogin's at Druid.com..."	f.menu "rlogin-druid"
 	"Rlogin's at Web.net..."	f.menu "rlogin-web"
@@ -896,6 +905,12 @@ menu "rlogin-sols"
 	"Rlogin's At SOLS.on.ca"	f.title
 	"Rlogin @solsinfo"		f.function "start-solsinfo-rlogin"
 	"Rlogin @solsweb"		f.function "start-solsweb-rlogin"
+}
+
+menu "rlogin-vex"
+{
+	"Rlogin's At Vex.net"		f.title
+	"Rlogin @vex"			f.function "start-vexnet-rlogin"
 }
 
 menu "rlogin-reptiles"
