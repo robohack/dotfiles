@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	9.13	95/12/05 21:56:22 (woods)"
+#ident	"@(#)HOME:.profile	9.14	96/01/12 22:39:52 (woods)"
 
 #
 # Assumptions:
@@ -253,6 +253,13 @@ if [ "X$HOME" != "X/" ] ; then
 	dirprepend PATH $HOME/bin
 	PATH="${PATH}:"
 fi
+
+#
+# PATH should finally be set properly!  Just Mh and X11 set below
+#
+
+# turn this off by default, turn it on by hand?
+mesg n
 
 if [ -r /usr/spool/smail/log/logfile ] ; then
 	MAILLOG="/usr/spool/smail/log/logfile"
