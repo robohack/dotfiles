@@ -1,7 +1,7 @@
 #
 #	.bashrc - per-shell startup stuff for bash via $ENV
 #
-#ident	"@(#)HOME:.bashrc	18.2	97/10/24 13:54:07 (woods)"
+#ident	"@(#)HOME:.bashrc	18.3	97/10/24 16:32:43 (woods)"
 
 # Assumptions:
 
@@ -207,7 +207,7 @@ if [ "$TERM" = "xterm" ] ; then
 	cd ()
 	{
 		builtin cd $*
-		BANNERWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;'`
+		BANNERWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;' -e 's;^/;;'`
 # not yet implemented in 4.4BSD ash...
 #		BANNERWD=`pwd`
 #		case "$BANNERWD" in
