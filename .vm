@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	18.7	97/05/14 10:01:34 (woods)"
+;;;#ident	"@(#)HOME:.vm	18.8	97/05/15 03:21:54 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -98,9 +98,7 @@ domain is undefined, the domain name is got from it."
 
 (define-key mail-mode-map "\C-i" 'mail-goto-next-header-or-insert)
 
-;; FIXME:  Why doesn't Emacs see "Shift-TAB"??????
-;;(define-key mail-mode-map [Shift-tab] 'mail-goto-previous-header)
-(define-key mail-mode-map [C-tab] 'mail-goto-previous-header)
+(define-key mail-mode-map [S-tab] 'mail-goto-previous-header)
 
 (defun mail-goto-previous-header (&optional count)
   "Call mail-goto-next-header-or-insert with (- COUNT)"
