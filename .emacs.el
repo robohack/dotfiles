@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.11	95/11/13 14:34:50 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.12	95/11/16 15:52:18 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -874,9 +874,9 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		   "Private cvs-mode stuff."
 		   ;; List of strings to use as  flags to pass to
 		   ;; ``diff'' and ``cvs diff''.
-		   (setq cvs-diff-flags '("-u"))
+		   (setq cvs-diff-flags '("-c"))
 		   ;; List of strings to pass to ``cvs status''
-		   (setq cvs-status-flags '("-Q" "-v"))
+		   (setq cvs-status-flags '("-v"))
 		   ;; List of strings to pass to ``cvs update''
 		   (setq cvs-update-optional-flags '("-d" "-P"))
 		   ;; Non-nil if cvs-diff and cvs-mode-diff-backup
