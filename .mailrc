@@ -1,4 +1,4 @@
-#ident	"@(#)HOME:.mailrc  18.7    97/12/17 16:00:53 (woods)"
+#ident	"@(#)HOME:.mailrc  18.8    97/12/17 21:36:42 (woods)"
 #
 #	.mailrc - for mailx and emacs-VM
 #
@@ -20,7 +20,7 @@ alias netbsd-current	"netbsd-current@NetBSD.ORG (NetBSD-current Discussion List)
 alias mush-users	"mush-users-request@garp.mit.edu (Mush Users)"
 alias port-alpha	"port-alpha@NetBSD.ORG (NetBSD/alpha Discussion List)"
 alias port-sun3		"port-sun3@NetBSD.ORG (NetBSD/sun3 Discussion List)"
-alias smail3-maintainers "smail3-maintainsers@smail.sbay.org (Smail-3 Maintainers Mailing List)"
+alias smail3-maintainers "smail3-maintainers@smail.sbay.org (Smail-3 Maintainers Mailing List)"
 alias smail3-wizards	"smail3-wizards@cs.athabascau.ca (Smail-3 Wizards Mailing List)"
 alias smail3-users	"smail3-users@cs.athabascau.ca (Smail-3 Users Mailing List)"
 alias shape-l		"SHAPE-L%DB0TUI11.BITNET@vm.gmd.de (ShapeTools Discussion Mailing List)"
