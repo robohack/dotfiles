@@ -2,7 +2,7 @@
 ;;;	~/.zenirc.el -- stuff for ZenIRC
 ;;;
 
-;;;#ident	"@(#)HOME:.zenirc.el	20.3	98/10/23 02:37:33 (woods)"
+;;;#ident	"@(#)HOME:.zenirc.el	20.4	99/07/22 18:52:57 (woods)"
 
 ;; A good way to use this is to add something like to .emacs(.el)
 ;;(autoload 'zenirc (expand-file-name "~/.zenirc") "Major mode to waste time" t nil)
@@ -108,14 +108,32 @@
 
 (defun zenirc-custom-startup ()
   "Private startup hook for zenirc"
-  ;; this is a list of IRC servers you use
-  ;; it consists of servername, portnumber, password, nickname, username
+  ;;
+  ;; From a recent list of EFnet servers:
+  ;;
+  ;; [AB] irc.powersurfr.com         24.108.60.60            6660-6669,7000
+  ;; [MB] irc.magic.ca               207.161.152.101         6660-6669
+  ;; [MB] irc.mbnet.mb.ca            204.112.54.14           6660-6669
+  ;; [NB] irc.nbnet.nb.ca            198.164.211.2           6667
+  ;; [ON] irc.idirect.ca             205.210.36.2            6667
+  ;; [ON] irc.rift.com               205.150.226.4           6667
+  ;; [QC] irc.mlink.net              205.236.182.76          6667
+  ;; [QC] irc.total.net              205.236.175.138         6667
+  ;;
+  ;; servername, portnumber, password, nickname, username
   ;;(setq zenirc-server-alist 
   ;;      '(("flinch.io.org" 6667)	; 198.133.36.153
   ;;	("irc.sdsc.edu" 6667)
   ;;	("cs-pub.bu.edu" 6666)
-  ;;    ("irc.rift.com"))		; 205.150.226.4
-  (setq zenirc-server-default "irc.rift.com")
+  ;;	("irc.rift.com")		; 205.150.226.4
+  ;;	("irc.lagged.com"))
+  ;;
+  ;; WARNING: this is over-ridden by $IRCSERVER in the environment!
+  ;;
+  ;; WARNING: not also that if zenirc-server-alist is not set then it will be
+  ;; set from this variable and further attempts to change it must set that
+  ;; variable instead.
+  (setq zenirc-server-default "irc.sdsc.edu")
 
   (setq case-fold-search t)		; K.I.S.S.
 
