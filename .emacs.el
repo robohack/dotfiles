@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.1	95/07/01 10:44:12 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.2	95/07/01 16:42:24 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -677,15 +677,6 @@ suffixes `.elc' or `.el' to the specified name FILE."
 ;;; perhaps this should be wrapped with something that returns nil....
 ;;;				(server-buffer-done
 ;;;				 (current-buffer))))))))
-      (defun server-really-exit ()	; for those times we forget
-	"Query user if he really wants to exit since this will destroy the
-current emacs server process..."
-	(interactive)
-	(if server-process
-	    (if (yes-or-no-p
-		 "Are you sure you *really* want to exit? ")
-		(save-buffers-kill-emacs))))
-      (global-set-key "\C-x\C-c" 'server-really-exit)
       (server-start)))
 
 ;;; Reset mail-aliases to t when ~/.mailrc is written, so that mail-aliases
@@ -1046,6 +1037,40 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		 (lambda ()
 		   "Private compilation-frame stuff."
 		   (raise-frame compilation-frame-id))))))
+
+;;; Message-Id: <199504171641.KAA21020@async.cs.utah.edu>
+;;; Original-To: bug-gnu-emacs@prep.ai.mit.edu
+;;; From: willrich@async.cs.utah.edu (William F Richardson)
+;;; Subject: GNU Emacs suggestions/contributions
+;;; Date: Mon, 17 Apr 1995 10:41:54 -0600 (MDT)
+;;;
+(if window-system 
+    (progn
+      (global-set-key "\C-x51" 'delete-other-frames)))
+;;;
+;; This is only useful under X windows.
+(defun delete-other-frames ()
+  "Delete all frames other than the currently selected one."
+  (interactive)
+  (let ((me (selected-frame))
+	(list (frame-list)))
+    (while (car list)
+      (if (not (eq me (car list)))
+	  (delete-frame (car list)))
+      (setq list (cdr list)))))
+
+(if (or window-system server-process)
+    (progn
+      (setq kill-emacs-query-functions '(ask-really-exit-emacs))))
+
+;;; for those times we forget...
+;;;
+(defun ask-really-exit-emacs ()
+  "Query user if he really wants to exit since this will destroy the
+current emacs server process..."
+  (interactive)
+  (beep)
+  (yes-or-no-p "Are you sure you *really* want to exit? "))
 
 ;;; From: kfogel@occs.cs.oberlin.edu (Karl Fogel)
 ;;; Date: Mon, 1 Nov 1993 10:23:04 -0500
