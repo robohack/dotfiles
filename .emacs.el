@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.9	99/01/27 18:46:51 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.10	99/02/22 15:50:06 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -400,6 +400,9 @@ scripts (alias)." t)
        '(("[tT][hH][aA][nN][kK][^/]*$" . indented-text-mode))
        '(("[rR][eE][aA][dD][^/chsly]*$" . indented-text-mode))
        '(("[rR][eE][aA][dD][mM][eE][^/]*$" . indented-text-mode))
+       '(("MESSAGE$" . indented-text-mode))
+       '(("DESCR$" . indented-text-mode))
+       '(("COMMENT$" . indented-text-mode))
        '(("\\.te?xt\\'" . indented-text-mode))
        '(("\\.notes?\\'" . indented-text-mode))
        '(("\\.vm$" . emacs-lisp-mode))		; VM init file
