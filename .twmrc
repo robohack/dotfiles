@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.13	96/03/25 08:47:31 (woods)"
+#ident	"@(#)HOME:.twmrc	2.14	96/03/25 17:53:07 (woods)"
 #
 
 AutoRelativeResize
@@ -117,7 +117,6 @@ Button1 = : iconmgr : f.raise
 Button2 = : iconmgr : f.iconify
 Button3 = : iconmgr : f.lower
 
-#
 #	for xterms menu
 #
 function "start-local-xterm" {
@@ -196,8 +195,7 @@ function "start-tar-xterm" {
 	f.exec "$RSH -n tar.web.net exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
-#
-#	for rlogins menu
+#	for rlogin-weird menu
 #
 function "start-weird-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin ns.weird.com &"
@@ -223,24 +221,32 @@ function "start-pretty-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin pretty.weird.com &"
 }
 
+#	for rlogin-cyclic menu
+#
 function "start-totoro-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin totoro.cyclic.com &"
 }
 
+#	for rlogin-planix menu
+#
 function "start-whome-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin whome.planix.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin whome.planix.com &"
 }
 
 function "start-woffi-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin woffi.planix.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin woffi.planix.com &"
 }
 
 function "start-wind-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin wind.planix.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin wind.planix.com &"
+}
+
+function "start-wish-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin wish.planix.com &"
 }
 
 function "start-weight-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin weight.planix.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin weight.planix.com &"
 }
 
 function "start-worm-rlogin" {
@@ -251,22 +257,36 @@ function "start-martech-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin martech.planix.com &"
 }
 
+#	for rlogin-infoshare menu
+#
 function "start-quicksilver-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin quicksilver.infoshare.net &"
 }
 
+function "start-cyberia-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin cyberia.infoshare.net &"
+}
+
+#	for rlogin-aci menu
+#
 function "start-aci-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin aci.on.ca &"
 }
 
+#	for rlogin-logon menu
+#
 function "start-logon-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin log.on.ca &"
 }
 
+#	for rlogin-fgsc menu
+#
 function "start-fgsc-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin mailgate.fgsc.ca &"
 }
 
+#	for rlogin-cancom menu
+#
 function "start-cancom-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin cancom.net &"
 }
@@ -275,22 +295,52 @@ function "start-newscancom-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin news.cancom.net &"
 }
 
-function "start-pageactive-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin pageactive.com &"
+#	for rlogin-pageactive menu
+#
+function "start-deephaze-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin deephaze.pageactive.com &"
 }
 
+function "start-insanity-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin insanity.pageactive.com &"
+}
+
+#	for rlogin-passport menu
+#
 function "start-passport-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin passport.ca &"
 }
 
+function "start-cayaman-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin cayman.passport.ca &"
+}
+
+function "start-forged-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin forged.passport.ca &"
+}
+
+#	for rlogin-psi menu
+#
+function "start-psi1-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin ns1.psi.ca &"
+}
+
+function "start-psi2-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin ns2.psi.ca &"
+}
+
+#	for rlogin-sols menu
+#
 function "start-solsinfo-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin solsinfo.sols.on.ca &"
 }
 
-function "start-lsuc-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin news.lsuc.on.ca &"
+function "start-solsweb-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin solsweb.sols.on.ca &"
 }
 
+#	for rlogin-reptiles menu
+#
 function "start-iguana-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin iguana.reptiles.org &"
 }
@@ -299,6 +349,8 @@ function "start-tuatara-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin tuatara.reptiles.org &"
 }
 
+#	for rlogin-druid menu
+#
 function "start-druid-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin druid.com &"
 }
@@ -307,6 +359,8 @@ function "start-skeptic-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin skeptic.druid.com &"
 }
 
+#	for rlogin-web menu
+#
 function "start-araignee-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin araignee.web.net &"
 }
@@ -333,21 +387,6 @@ function "start-web-rlogin" {
 
 function "start-spinne-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin spinne.web.net &"
-}
-
-
-#	for emacs menu
-#
-function "start-local-emacs" {
-	f.exec "$GNU/bin/emacs -d $DISPLAY -i &"
-}
-
-function "start-most-emacs" {
-	f.exec "$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/emacs -i &"
-}
-
-function "start-kuma-emacs" {
-	f.exec "$RSH -n kuma.web.net exec env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/emacs -i &"
 }
 
 
@@ -619,7 +658,6 @@ menu "applications"
 	"Applications"			f.title
 	"Xterm's Everywhere..."		f.menu "xterm"
 	"Rlogin's Everywhere..."	f.menu "rlogin"
-	"Emacs Everywhere..."		f.menu "emacs"
 	"GhostView Everywhere..."	f.menu "ghostviews"
 	"WWW Everywhere..."		f.menu "www"
 	"Games..."			f.menu "games"
@@ -665,14 +703,6 @@ menu "miscapps"
 	"xphoon"			!"xphoon -t 10 &"
 	"xsetroot eschernknot"		!"xsetroot -bitmap $X11PATH/include/X11/bitmaps/escherknot"
 	"xsetroot xsnow"		!"xsetroot -bitmap $X11PATH/include/X11/bitmaps/snow"
-}
-
-menu "emacs"
-{
-	"GNU Emacs"			f.title
-	"@localhost"			f.function "start-local-emacs"
-	"@most"				f.function "start-most-emacs"
-	"@kuma"				f.function "start-kuma-emacs"
 }
 
 menu "ghostviews"
@@ -760,52 +790,136 @@ menu "xterm"
 menu "rlogin"
 {
 	"Rlogin's Everywhere"		f.title
-	"Rlogin @most.weird.com"	f.function "start-most-rlogin"
-	"Rlogin @very.weird.com"	f.function "start-very-rlogin"
-	"Rlogin @pretty.weird.com"	f.function "start-pretty-rlogin"
-	"Rlogin @weird.com"		f.function "start-weird-rlogin"
-	"Rlogin @sometimes.weird.com"	f.function "start-sometimes-rlogin"
-	"Rlogin @always.weird.com"	f.function "start-always-rlogin"
-	""				f.nop
+	"Rlogin's at Weird.com..."	f.menu "rlogin-weird"
+	"Rlogin's at Cyclic.com..."	f.menu "rlogin-cyclic"
+	"Rlogin's at Planix.com..."	f.menu "rlogin-planix"
+	"Rlogin's at Infoshare.net..."	f.menu "rlogin-infoshare"
+	"Rlogin's at ACI.on.ca..."	f.menu "rlogin-aci"
+	"Rlogin's at Log.on.ca..."	f.menu "rlogin-logon"
+	"Rlogin's at FGSC.ca..."	f.menu "rlogin-fgsc"
+	"Rlogin's at Cancom.net..."	f.menu "rlogin-cancom"
+	"Rlogin's at Pageactive.com..."	f.menu "rlogin-pageactive"
+	"Rlogin's at Passport.ca..."	f.menu "rlogin-passport"
+	"Rlogin's at PSI.ca..."		f.menu "rlogin-psi"
+	"Rlogin's at SOLS.on.ca..."	f.menu "rlogin-sols"
+	"Rlogin's at Reptiles.org..."	f.menu "rlogin-reptiles"
+	"Rlogin's at Druid.com..."	f.menu "rlogin-druid"
+	"Rlogin's at Web.net..."	f.menu "rlogin-web"
+}
+
+menu "rlogin-weird"
+{
+	"Rlogin's At Weird.com"		f.title
+	"Rlogin @most"			f.function "start-most-rlogin"
+	"Rlogin @very"			f.function "start-very-rlogin"
+	"Rlogin @pretty"		f.function "start-pretty-rlogin"
+	"Rlogin @weirdo"		f.function "start-weird-rlogin"
+	"Rlogin @sometimes"		f.function "start-sometimes-rlogin"
+	"Rlogin @always"		f.function "start-always-rlogin"
+}
+
+menu "rlogin-cyclic"
+{
+	"Rlogin's At Cyclic.com"	f.title
 	"Rlogin @totoro.cyclic.com"	f.function "start-totoro-rlogin"
-	""				f.nop
+}
+
+menu "rlogin-planix"
+{
+	"Rlogin's At Planix.com"	f.title
 	"Rlogin @whome.planix.com"	f.function "start-whome-rlogin"
 	"Rlogin @woffi.planix.com"	f.function "start-woffi-rlogin"
 	"Rlogin @wind.planix.com"	f.function "start-wind-rlogin"
+	"Rlogin @wish.planix.com"	f.function "start-wish-rlogin"
 	"Rlogin @weight.planix.com"	f.function "start-weight-rlogin"
 	"Rlogin @worm.planix.com"	f.function "start-worm-rlogin"
 	""				f.nop
 	"Rlogin @martech.planix.com"	f.function "start-martech-rlogin"
-	""				f.nop
+}
+
+menu "rlogin-infoshare"
+{
+	"Rlogin's At Infoshare.net"	f.title
 	"Rlogin @quicksilver"		f.function "start-quicksilver-rlogin"
-	""				f.nop
+	"Rlogin @cyberia"		f.function "start-cyberia-rlogin"
+}
+
+menu "rlogin-aci"
+{
+	"Rlogin's At ACI.on.ca"		f.title
 	"Rlogin @aci.on.ca"		f.function "start-aci-rlogin"
+}
+
+menu "rlogin-logon"
+{
+	"Rlogin's At Log.on.ca"		f.title
 	"Rlogin @log.on.ca"		f.function "start-logon-rlogin"
-	""				f.nop
+}
+
+menu "rlogin-fgsc"
+{
+	"Rlogin's At FGSC.ca"		f.title
 	"Rlogin @fgsc.ca"		f.function "start-fgsc-rlogin"
-	""				f.nop
-	"Rlogin @cancom.net"		f.function "start-cancom-rlogin"
-	"Rlogin @news.cancom.net"	f.function "start-newscancom-rlogin"
-	""				f.nop
-	"Rlogin @pageactive"		f.function "start-pageactive-rlogin"
-	""				f.nop
-	"Rlogin @passport.ca"		f.function "start-passport-rlogin"
-	""				f.nop
-	"Rlogin @solsinfo.sols.on.ca"	f.function "start-solsinfo-rlogin"
-	""				f.nop
-	"Rlogin @news.lsuc.on.ca"	f.function "start-lsuc-rlogin"
-	""				f.nop
-	"Rlogin @iguana.reptiles.org"	f.function "start-iguana-rlogin"
-	"Rlogin @tuatara.reptiles.org"	f.function "start-tuatara-rlogin"
-	""				f.nop
+}
+
+menu "rlogin-cancom"
+{
+	"Rlogin's At Cancom.net"	f.title
+	"Rlogin @mail"			f.function "start-cancom-rlogin"
+	"Rlogin @news"			f.function "start-newscancom-rlogin"
+}
+
+menu "rlogin-pageactive"
+{
+	"Rlogin's At Pageactive.com"	f.title
+	"Rlogin @deephaze"		f.function "start-deephaze-rlogin"
+	"Rlogin @insanity"		f.function "start-insanity-rlogin"
+}
+
+menu "rlogin-passport"
+{
+	"Rlogin's At Passport.ca"	f.title
+	"Rlogin @diplomatic"		f.function "start-passport-rlogin"
+	"Rlogin @cayaman"		f.function "start-cayaman-rlogin"
+	"Rlogin @forged"		f.function "start-forged-rlogin"
+}
+
+menu "rlogin-psi"
+{
+	"Rlogin's At PSI.ca"		f.title
+	"Rlogin @ns1"			f.function "start-psi1-rlogin"
+	"Rlogin @ns2"			f.function "start-psi2-rlogin"
+}
+
+menu "rlogin-sols"
+{
+	"Rlogin's At SOLS.on.ca"	f.title
+	"Rlogin @solsinfo"		f.function "start-solsinfo-rlogin"
+	"Rlogin @solsweb"		f.function "start-solsweb-rlogin"
+}
+
+menu "rlogin-reptiles"
+{
+	"Rlogin's At Reptiles.Org"	f.title
+	"Rlogin @iguana"		f.function "start-iguana-rlogin"
+	"Rlogin @tuatara"		f.function "start-tuatara-rlogin"
+}
+
+menu "rlogin-druid"
+{
+	"Rlogin's At Druid.com"		f.title
 	"Rlogin @druid.com"		f.function "start-druid-rlogin"
-	"Rlogin @skeptic.druid.com"	f.function "start-skeptic-rlogin"
-	""				f.nop
-	"Rlogin @araignee.web.net"	f.function "start-araignee-rlogin"
-	"Rlogin @jala.web.net"		f.function "start-jala-rlogin"
-	"Rlogin @kuma.web.net"		f.function "start-kuma-rlogin"
-	"Rlogin @netserver.web.net"	f.function "start-netserver-rlogin"
-	"Rlogin @spinne.web.net"	f.function "start-spinne-rlogin"
-	"Rlogin @tar.web.net"		f.function "start-tar-rlogin"
-	"Rlogin @web.net"		f.function "start-web-rlogin"
+	"Rlogin @skeptic"		f.function "start-skeptic-rlogin"
+}
+
+menu "rlogin-web"
+{
+	"Rlogin's At Web.net"		f.title
+	"Rlogin @araignee"		f.function "start-araignee-rlogin"
+	"Rlogin @jala"			f.function "start-jala-rlogin"
+	"Rlogin @kuma"			f.function "start-kuma-rlogin"
+	"Rlogin @netserver"		f.function "start-netserver-rlogin"
+	"Rlogin @spinne"		f.function "start-spinne-rlogin"
+	"Rlogin @tar"			f.function "start-tar-rlogin"
+	"Rlogin @web"			f.function "start-web-rlogin"
 }
