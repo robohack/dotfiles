@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.11	98/03/03 01:19:24 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.12	98/03/03 01:35:28 (woods)"
 #
 
 changequote([, ])
@@ -662,43 +662,43 @@ menu "miscapps"
 
 menu "xvs"
 {
-	"XV"				f.title
-	"@localhost"			!"$X11BIN/xv &"
-	"@x11server"			!"$ONX11SERVER $X11BIN/xv -display $DISPLAY &"
+	"XV"			f.title
+	"@localhost"		!"$X11BIN/xv &"
+	"@x11server"		!"$ONX11SERVER $X11BIN/xv -display $DISPLAY &"
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
 	"@most"			!"$RSH -n most.weird.com exec $X11BIN/xv -display $DISPLAY &"])
   ifelse(HOSTNAME, whats.weird.com, [], [
-	"@whats"			!"$RSH -n whats.weird.com exec $X11BIN/xv -display $DISPLAY &"
+	"@whats"		!"$RSH -n whats.weird.com exec $X11BIN/xv -display $DISPLAY &"
   ])
  ])
  ifdef([AT_PLANIX], [
   ifelse(HOSTNAME, woffi.planix.com, [], [
-	"@woffi"			!"$RSH -n woffi.planix.com exec $X11BIN/xv -display $DISPLAY &"
+	"@woffi"		!"$RSH -n woffi.planix.com exec $X11BIN/xv -display $DISPLAY &"
   ])
  ])
 }
 
 menu "emacs"
 {
-	"Emacsen"			f.title
-	"@localhost"			!"emacs -i &"
-	"@x11server"			!"$RSH -n $XDMHOST '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
+	"Emacsen"		f.title
+	"@localhost"		!"emacs -i &"
+	"@x11server"		!"$RSH -n $XDMHOST '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
  ifelse(HOSTNAME, most.weird.com, [], [
-	"@most"				!"$RSH -n most.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/spool/mail/$LOGNAME'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
+	"@most"			!"$RSH -n most.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /usr/pkg/bin/emacs -display '$DISPLAY' -i' &"
  ])
  ifelse(HOSTNAME, whats.weird.com, [], [
-	"@whats"			!"$RSH -n whats.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
+	"@whats"		!"$RSH -n whats.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
  ])
  ifelse(HOSTNAME, woffi.planix.com, [], [
-	"@woffi"			!"$RSH -n woffi.planix.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /local/bin/emacs -display '$DISPLAY' -i' &"
+	"@woffi"		!"$RSH -n woffi.planix.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /local/bin/emacs -display '$DISPLAY' -i' &"
  ])
  ifelse(HOSTNAME, kuma.web.net, [], [
-	"@kuma"				!"$RSH -n kuma.web.net '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/spool/mail/$LOGNAME'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
+	"@kuma"			!"$RSH -n kuma.web.net '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/spool/mail/$LOGNAME'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
  ])
  ifdef([AT_SEACHANGE], [
   ifelse(HOSTNAME, kuma.web.net, [], [
-	"@clapton"			!"$RSH -n clapton.seachange.com '. ./.localprofile; PATH='$PATH':/usr/contrib/bin; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /usr/contrib/bin/emacs -display '$DISPLAY' -i ' &"
+	"@clapton"		!"$RSH -n clapton.seachange.com '. ./.localprofile; PATH='$PATH':/usr/contrib/bin; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /usr/contrib/bin/emacs -display '$DISPLAY' -i ' &"
   ])
  ])
 }
@@ -712,15 +712,20 @@ menu "monitors"
 	""			f.separator
 	"xbiff"			!"xbiff -rv -bw 0 &"
 	"xlbiff"		!"xlbiff &"
-	"xbuffy"		!"xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd \"$AUDIOPLAYER HOME/sounds/newmail\" &"
+	"xbuffy"		!"xbuffy -geometry 80x25-0+235 -shortnames -header 0 &"
+	"xbuffy w/-acmd"	!"xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd \"$AUDIOPLAYER HOME/sounds/newmail\" &"
 
-    ifdef([AT_WEIRD],
-    [	"xbuffy @most w/-acmd"	!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/spool/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"/opt/games/bin/auplay -audio '$AUDIOSERVER' /local/audio/newmail1.au\"' &"
-	"xbuffy @most"		!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/spool/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &"
+  ifdef([AT_WEIRD], [
+    ifelse(HOSTNAME, most.weird.com, [], [
+	"xbuffy @most w/-acmd"	!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"/usr/local/bin/auplay -audio '$AUDIOSERVER' /usr/local/audio/newmail1.au\"' &"
+	"xbuffy @most"		!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &"
     ])
-    ifdef([AT_LEITCH],
-    [	"xbuffy @bitter"	!"$RSH -n bitter.zeus.leitch.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &"
+  ])
+  ifdef([AT_LEITCH], [
+    ifelse(HOSTNAME, bitter.zeus.leitch.com, [], [
+	"xbuffy @bitter"	!"$RSH -n bitter.zeus.leitch.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &"
     ])
+  ])
 	""			f.separator
 	"xload"			!"xload -geometry 120x130-200+0 -hl grey90 &"
 	"xload @x11server"	!"$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x130-200+148 -hl grey90 &"
@@ -733,7 +738,12 @@ menu "monitors"
 	"xnetload @xdmhost"	!"xnetload -hl grey90 -scale 0 -label ${XDMHOST}-net $XDMHOST &"
 	""			f.separator
 	"tkined"		!"tkined &"
-	"tkined in /local/monitor" !"cd $LOCAL/monitor ; tkined &"
+  ifdef([AT_WEIRD], [
+	"tkined in /usr/local/monitor" !"cd /usr/local/monitor ; tkined &"
+  ])
+  ifdef([AT_PLANIX], [
+	"tkined in /local/monitor" !"cd /local/monitor ; tkined &"
+  ])
 }
 
 menu "locks"
@@ -749,12 +759,12 @@ menu "backgrounds"
 	"xearth"		!"xearth -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth nogrid"		!"xearth -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -wait 900 -nice 10 &"
 	"xearth orbiting"	!"xearth -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
-	"xearth orbiting fast"	!"xearth -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid &"
+	"xearth orbiting fast"	!"xearth -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 0 &"
  ifelse(COLOR, Yes,
 	["xearth -gamma 1.7"	!"xearth -gamma 1.7 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth -gamma 1.7 nogrid" !"xearth -gamma 1.7 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -wait 900 -nice 10 &"
 	"xearth -gamma 1.7 orbiting" !"xearth -gamma 1.7 -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
-	"xearth -gamma 1.7 orbiting fast" !"xearth -gamma 1.7 -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid &"
+	"xearth -gamma 1.7 orbiting fast" !"xearth -gamma 1.7 -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 0 &"
 	"xearth on greyscale"	!"xearth -gamma 1.6 -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"],
 	["xearth on mono"	!"xearth -mono -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"])
 	"xphoon"		!"xphoon -t 10 &"
@@ -770,10 +780,10 @@ menu "ghostviews"
 	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
-	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
+	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/ghostview &"
   ])
   ifelse(HOSTNAME, whats.weird.com, [], [
-	"@whats"	!"$RSH -n whats.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
+	"@whats"	!"$RSH -n whats.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/ghostview &"
   ])
  ])
  ifdef([AT_PLANIX], [
@@ -870,7 +880,7 @@ menu "www-netscape-cmap"
 	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
 }
 
-ifelse([HOSTNAME], most.weird.com,
+ifelse([HOSTNAME], once.weird.com,
 	[define(OPT_GAMES_PATH_, [/opt/games/bin/])],
 	[define(OPT_GAMES_PATH_, [])],
 [HOSTNAME], very.weird.com,
@@ -936,6 +946,9 @@ menu "xterm"
   ])
   ifelse(HOSTNAME, almost.weird.com, [], [
 	"Xterm @almost"	!"$RSH -n almost.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ])
+  ifelse(HOSTNAME, once.weird.com, [], [
+	"Xterm @almost"	!"$RSH -n once.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
   ])
   ifelse(HOSTNAME, whats.weird.com, [], [
 	"Xterm @whats"	!"$RSH -n whats.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
@@ -1040,6 +1053,7 @@ menu "rlogin-weird"
 	"Rlogin @most"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin most.weird.com &"
 	"Rlogin @very"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin very.weird.com &"
 	"Rlogin @almost"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin almost.weird.com &"
+	"Rlogin @once"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin once.weird.com &"
 	"Rlogin @whats"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin whats.weird.com &"
 	"Rlogin @pretty"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin pretty.weird.com &"
 	"Rlogin @weirdo"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin ns.weird.com &"
@@ -1053,6 +1067,7 @@ menu "telnet-weird"
 	"telnet @most"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e telnet most.weird.com &"
 	"telnet @very"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e telnet very.weird.com &"
 	"telnet @almost"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet almost.weird.com &"
+	"telnet @once"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet once.weird.com &"
 	"telnet @whats"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e telnet whats.weird.com &"
 	"telnet @pretty"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e telnet pretty.weird.com &"
 	"telnet @weirdo"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e telnet ns.weird.com &"
@@ -1066,6 +1081,7 @@ menu "slogin-weird"
 	"Slogin @most"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e $LOCAL/bin/slogin -C most.weird.com &"
 	"Slogin @very"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -C very.weird.com &"
 	"Slogin @almost"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C almost.weird.com &"
+	"Slogin @once"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C once.weird.com &"
 	"Slogin @whats"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -C whats.weird.com &"
 	"Slogin @pretty"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -C pretty.weird.com &"
 	"Slogin @weirdo"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e $LOCAL/bin/slogin -C ns.weird.com &"
