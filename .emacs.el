@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.29	96/11/04 10:14:15 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.30	96/11/08 00:14:55 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -161,6 +161,7 @@ directory in the list PATHLIST, otherwise nil."
 (if (elisp-file-in-loadpath-p "shwtmpbuf")
     (progn
       (load "shwtmpbuf")
+      ;; FIXME: need an undo-temp-buffers to revert frame composition....
       (global-set-key "\C-xH" 'hide-temp-buffers))) ; defaults to C-x t in shwtmpbuf
 
 (if (and (elisp-file-in-loadpath-p "ksh-mode")
@@ -907,6 +908,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	     "Private emacs-lisp-mode-hook."
 	     (override-local-key-settings)
 	     (override-default-variable-settings)
+	     (local-set-key "\eJ" 'indent-sexp)
 	     (local-set-key "\ej" 'lisp-fill-paragraph))))
 
 (add-hook 'lisp-interaction-mode-hook
@@ -1539,6 +1541,23 @@ Violence Against Women")
 ;;; don't need to do this -- was done above
 ;;;      (add-hook 'initial-calendar-window-hook 'display-time)
 (autoload 'appt-make-list "appt.el" nil t)
+
+;; Organization: CNUCE-CNR, Via S.Maria 36, Pisa - Italy +39-50-593211
+;; Message-ID: <x4d8xra1xr.fsf@fly.cnuce.cnr.it>
+;; References: <m0vKlHf-0003uLC@fly.cnuce.cnr.it>
+;; 	<rcu3r4poo5.fsf@emr.cs.uiuc.edu>
+;; Newsgroups: gnu.emacs.bug
+;; From: Francesco Potorti` <F.Potorti@cnuce.cnr.it>
+;; To: gnu-emacs-bug@cis.ohio-state.edu
+;; Date: 06 Nov 1996 12:38:24 +0100
+;; Subject: Re: list-diary-entries
+;; 
+;; To be removed if emacs modified.
+(defadvice list-diary-entries (before find-file-noselect activate)
+  "Unconditionally refresh diary-file from disk."
+  (let ((buf (find-buffer-visiting (substitute-in-file-name diary-file))))
+    (if (and buf (not (verify-visited-file-modtime buf)))
+	(save-excursion (set-buffer buf) (revert-buffer t t)))))
 
 ;;; ;; Appointments every 3 minutes not every 1 minute!
 ;;; (defadvice appt-check (around my-appt-advice activate)
