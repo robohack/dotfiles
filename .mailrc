@@ -1,4 +1,4 @@
-# ident	"@(#)HOME:.mailrc  19.1    98/01/11 20:58:59 (woods)"
+# ident	"@(#)HOME:.mailrc  19.2    98/01/15 19:05:41 (woods)"
 #
 #	.mailrc - for mailx and emacs-VM
 #
@@ -14,8 +14,8 @@ set crt=24
 # mailing lists
 #
 alias aegis-users	"aegis-users@bmr.gov.au (Aegis Users Mailing List)"
-alias bug-cvs		"bug-cvs@prep.ai.mit.edu (CVS-II Bugs Mailing List)"
-alias info-cvs		"info-cvs@prep.ai.mit.edu (CVS-II Discussion Mailing List)"
+alias bug-cvs		"bug-cvs@gnu.org (CVS-II Bugs Mailing List)"
+alias info-cvs		"info-cvs@gnu.org (CVS-II Discussion Mailing List)"
 alias netbsd-current	"netbsd-current@NetBSD.ORG (NetBSD-current Discussion List)"
 alias mush-users	"mush-users-request@garp.mit.edu (Mush Users)"
 alias port-alpha	"port-alpha@NetBSD.ORG (NetBSD/alpha Discussion List)"
