@@ -1,7 +1,7 @@
 #-*-sh-*-
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	23.1	02/01/12 14:43:19 (woods)"
+#ident	"@(#)HOME:.ctwmrc	23.2	02/01/19 17:25:25 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -113,10 +113,10 @@ IconManagerFont	"-*-helvetica-bold-r-normal-*-*-80-100-100-*-*-*-*"
 # Define some useful functions for motion-based actions.
 # DefaultFunction must come after fonts....
 #
-ChangeWorkspaceFunction		!"$AUDIOPLAYER /usr/local/lib/sounds/wm-wschange &"
-IconifyFunction			!"$AUDIOPLAYER /usr/local/lib/sounds/wm-iconify &"
-DeIconifyFunction		!"$AUDIOPLAYER /usr/local/lib/sounds/wm-deiconify &"
-DefaultFunction			!"$AUDIOPLAYER /usr/local/lib/sounds/wm-default &"
+ChangeWorkspaceFunction		!"$AUDIOPLAYER HOME/lib/sounds/wm-wschange &"
+IconifyFunction			!"$AUDIOPLAYER HOME/lib/sounds/wm-iconify &"
+DeIconifyFunction		!"$AUDIOPLAYER HOME/lib/sounds/wm-deiconify &"
+DefaultFunction			!"$AUDIOPLAYER HOME/lib/sounds/wm-default &"
 
 ifelse(COLOR, Yes, [
 
