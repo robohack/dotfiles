@@ -3,13 +3,15 @@
 #
 #	.xinitrc - X Window System startup file
 #
-#ident	"@(#)HOME:.xinitrc	4.1	94/06/17 22:17:50 (woods)"
+#ident	"@(#)HOME:.xinitrc	4.2	94/07/22 16:50:07 (woods)"
+
 
 PATH=$PATH:$HOME/bin
 export PATH
 
 argv0="`basename $0`"
 
+echo "$0: current PATH='$PATH'"
 echo "$argv0: starting on $DISPLAY...."
 
 case "$DISPLAY" in
