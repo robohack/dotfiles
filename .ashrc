@@ -1,7 +1,7 @@
 #
 #	.ashrc - per-shell startup stuff for ash via $ENV
 #
-#ident	"@(#)HOME:.ashrc	24.1	02/07/04 17:19:32 (woods)"
+#ident	"@(#)HOME:.ashrc	25.1	02/11/25 16:09:47 (woods)"
 
 # Assumptions:
 #	- chdir must be synonymous with cd, and cd can be reset to a function

@@ -1,7 +1,7 @@
 #
 #	.shlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.shlogin	24.1	02/07/04 17:19:32 (woods)"
+#ident	"@(#)HOME:.shlogin	25.1	02/11/25 16:09:47 (woods)"
 
 # this doesn't do anything but let you type '. $ENV'
 ENV=$HOME/.shrc ; export ENV
