@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.37	96/09/25 19:15:33 (woods)"
+#ident	"@(#)HOME:.twmrc	2.38	96/10/30 09:20:21 (woods)"
 #
 
 AutoRelativeResize
@@ -41,22 +41,49 @@ Monochrome {
 #	IconManagerForeground	"grey95"
 }
 
+Grayscale {
+	BorderColor		"grey50"
+	DefaultBackground	"grey98"
+	DefaultForeground	"grey6"
+	TitleBackground		"white"
+	TitleForeground		"gray95"
+	MenuBackground		"white"
+	MenuForeground		"grey95"
+	MenuTitleBackground	"grey70"
+	MenuTitleForeground	"white"
+	IconBackground		"grey25"
+	IconForeground		"grey85"
+	IconBorderColor		"grey50"
+	IconManagerBackground	"white"
+	IconManagerForeground	"grey95"
+}
+
 Color
 {
-	BorderColor		"slategrey"
-	DefaultBackground	"maroon"
-	DefaultForeground	"gray85"
-	TitleBackground		"maroon"
-	TitleForeground		"gray85"
-	MenuBackground		"maroon"
-	MenuForeground		"gray85"
-	MenuTitleBackground	"gray70"
-	MenuTitleForeground	"maroon"
-	IconBackground		"maroon"
-	IconForeground		"gray85"
-	IconBorderColor		"gray85"
-	IconManagerBackground	"maroon"
-	IconManagerForeground	"gray85"
+	PointerForeground	"black"
+	PointerBackground	"white"
+	BorderColor		"LightBlue" {
+		"xload" "red"
+		"xclock" "orange"
+	}
+# docs lie -- these don't exist:
+#	BorderTitleBackground	"blue"
+#	BorderTitleForeground	"LightBlue"
+	DefaultBackground	"LightSteelBlue"
+	DefaultForeground	"SteelBlue"
+	TitleBackground		"blue"
+	TitleForeground		"white"
+	MenuBackground		"DarkGreen"
+	MenuForeground		"white"
+	MenuTitleBackground	"DarkSeaGreen"
+	MenuTitleForeground	"white"
+	MenuShadowColor		"gray50"
+	IconBackground		"DarkBlue"
+	IconForeground		"yellow"
+	IconBorderColor		"gray95"
+	IconManagerBackground	"blue"
+	IconManagerForeground	"lightblue"
+	IconManagerHighlight	"yellow"
 }
 
 Cursors
@@ -80,6 +107,17 @@ NoTitle {
 	"xload"
 	"xlogo"
 	"xbiff"
+	"xbuffy"
+	"XSysStats"
+}
+
+NoHighlight {
+	"xclock"
+	"xeyes"
+	"xload"
+	"xlogo"
+	"xbiff"
+	"xbuffy"
 	"XSysStats"
 }
 
@@ -844,7 +882,7 @@ function "start-spinne-telnet" {
 #	for xv menu
 #
 function "start-local-xv" {
-	f.exec "$X11BIN/xv -d $DISPLAY &"
+	f.exec "$X11BIN/xv &"
 }
 
 function "start-x11server-xv" {
@@ -879,7 +917,7 @@ function "start-kuma-ghostview" {
 }
 
 function "start-clapton-ghostview" {
-	f.exec "$RSH -n clapton.seachange.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/contrib/bin/ghostview &"
+	f.exec "$RSH -n clapton.seachange.com exec env PATH=$PATH:/usr/contrib/bin DISPLAY=$DISPLAY /usr/contrib/bin/ghostview &"
 }
 
 
@@ -913,8 +951,12 @@ function "start-kuma-mosaic" {
 	f.exec "$RSH -n kuma.web.net exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
 }
 
-function "start-rock-mosaic" {
-	f.exec "$RSH -n rock.seachange.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/Mosaic -ics 65536 &"
+function "start-clapton-mosaic" {
+	f.exec "$RSH -n clapton.seachange.com exec env PATH=$PATH:/usr/contrib/bin DISPLAY=$DISPLAY /usr/local/bin/Mosaic -ics 65536 &"
+}
+
+function "start-sparky-mosaic" {
+	f.exec "$RSH -n sparky.seachange.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/Mosaic -ics 65536 &"
 }
 
 function "start-local-netscape" {
@@ -945,8 +987,12 @@ function "start-woffi-netscape" {
 	f.exec "$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
 }
 
-function "start-rock-netscape" {
-	f.exec "$RSH -n rock.seachange.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
+function "start-clapton-netscape" {
+	f.exec "$RSH -n clapton.seachange.com exec env PATH=$PATH:/usr/contrib/bin DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
+}
+
+function "start-sparky-netscape" {
+	f.exec "$RSH -n sparky.seachange.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
 }
 
 function "start-local-netscape-gold" {
@@ -977,6 +1023,14 @@ function "start-woffi-netscape-gold" {
 	f.exec "$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape-gold -display $DISPLAY &"
 }
 
+function "start-clapton-netscape-gold" {
+	f.exec "$RSH -n clapton.seachange.com exec env PATH=$PATH:/usr/contrib/bin DISPLAY=$DISPLAY /usr/local/bin/netscape-gold -display $DISPLAY &"
+}
+
+function "start-sparky-netscape-gols" {
+	f.exec "$RSH -n sparky.seachange.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape-gold -display $DISPLAY &"
+}
+
 #
 #	And the menus, with all of the usual things...
 #
@@ -985,6 +1039,9 @@ menu "quickies"
 	"Short Cuts"		f.title
 	"Move"			f.move
 	"Resize"		f.resize
+	"Lower"			f.lower
+	"Iconify"		f.iconify
+	""			f.nop
 	"WinDelete"		f.delete
 	"Kill"			f.menu "kill"
 	""			f.nop
@@ -1116,6 +1173,8 @@ menu "preferences"
 menu "cmap"
 {
 	"Colour Map Control"	f.title
+	"View Default Map"	!"xcmap &"
+	""			f.nop
 	"Set All"		!"xstdcmap -all -verbose &"
 	"Set Best"		!"xstdcmap -best -verbose &"
 	"Set Default"		!"xstdcmap -default -verbose &"
@@ -1242,7 +1301,10 @@ menu "monitors"
 	"xbiff"				!"xbiff -rv -bw 0 &"
 	"xbiff @x11server"		!"$ONX11SERVER $X11BIN/xbiff -rv -bw 0 -display $DISPLAY &"
 	"xlbiff"			!"xlbiff &"
-	"xmailwatcher"			!"xmailwatcher -geometry 300x100-4+240 -iconic -icongeometry -4+240 -iconic -mailbox $MAILPATH &"
+	"xbuffy"			!"xbuffy -geometry 90x30-4+235 -shortnames -header 5 &"
+	"xbuffy @x11server"		!"$ONX11SERVER $X11BIN/xbuffy -mail $MAILPATH -display $DISPLAY -geometry 90x30-4+235 -shortnames -header 5 &"
+	"xbuffy @clapton"		!"$RSH -n clapton.seachange.com /usr/local/bin/xbuffy -display $DISPLAY -geometry 90x30-4+235 -mail /var/mail/woods -shortnames -header 5 &"
+	"xmailwatcher"			!"xmailwatcher -geometry 300x100-4+240 -iconic -icongeometry -4+235 -iconic -mailbox $MAILPATH &"
 	"xmailwatcher @x11server"	!"$ONX11SERVER $X11BIN/xmailwatcher -display $DISPLAY -geometry 300x100-4+235 -iconic -icongeometry -4+235 -iconic -mailbox $MAILPATH &"
 	"xload"				!"xload -geometry 120x137-205+4 -hl grey90 &"
 	"xload @x11server"		!"$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x137-205+150 -hl grey90 &"
@@ -1261,6 +1323,7 @@ menu "backgrounds"
 	"Backgrounds"			f.title
 	"xearth"			!"xearth -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth on greyscale"		!"xearth -gamma 1.6 -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
+	"xearth on mono"		!"xearth -mono -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xphoon"			!"xphoon -t 10 &"
 	"xsetroot eschernknot"		!"xsetroot -bitmap $X11PATH/include/X11/bitmaps/escherknot"
 	"xsetroot xsnow"		!"xsetroot -bitmap $X11PATH/include/X11/bitmaps/snow"
@@ -1288,7 +1351,8 @@ menu "www"
 	"@woffi"			f.function "start-woffi-mosaic"
 	"@spinne"			f.function "start-spinne-mosaic"
 	"@kuma"				f.function "start-kuma-mosaic"
-	"@rock"				f.function "start-rock-mosaic"
+	"@clapton"			f.function "start-clapton-mosaic"
+	"@sparky"			f.function "start-sparky-mosaic"
 	"  Netscape:"			f.nop
 	"@localhost"			f.function "start-local-netscape"
 	"@weirdo"			f.function "start-weirdo-netscape"
@@ -1297,7 +1361,8 @@ menu "www"
 	"@woffi"			f.function "start-woffi-netscape"
 	"@netserver"			f.function "start-netserver-netscape"
 	"@spinne"			f.function "start-spinne-netscape"
-	"@rock"				f.function "start-rock-netscape"
+	"@clapton"			f.function "start-clapton-netscape"
+	"@sparky"			f.function "start-sparky-netscape"
 	"  Netscape-Gold:"		f.nop
 	"@localhost"			f.function "start-local-netscape-gold"
 	"@weirdo"			f.function "start-weirdo-netscape-gold"
@@ -1306,6 +1371,8 @@ menu "www"
 	"@woffi"			f.function "start-woffi-netscape-gold"
 	"@netserver"			f.function "start-netserver-netscape-gold"
 	"@spinne"			f.function "start-spinne-netscape-gold"
+	"@clapton"			f.function "start-clapton-netscape-gold"
+	"@sparky"			f.function "start-sparky-netscape-gold"
 }
 
 menu "games"
