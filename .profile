@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	4.3	94/03/29 19:32:17 (woods)"
+#ident	"@(#)HOME:.profile	4.4	94/03/31 15:47:32 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -279,17 +279,15 @@ robohack )
 toile | wombat )
 	if [ -r $HOME/.kshedit ] ; then
 		if grep "^set -o vi" $HOME/.kshedit ; then
+			# this horrible hack assumes that vi users
+			# will also have the prevailing default stty
+			# settings in /etc/profile....
 			: real men use emacs!
 		else
+			# we don't want no stinking defaults!
 			stty intr '^?'
 		fi
 	fi
-	case $TTY in
-	/dev/tty[p-zP-Z]* | /dev/vt* | /dev/console )
-		echo "Setting up an 8-bit tty environment...."
-		stty cs8 -istrip -parenb
-		;;
-	esac
 	;;
 * )
 	echo "Re-setting terminal preferences...."
