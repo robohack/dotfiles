@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.4	98/02/02 02:34:57 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.5	98/02/06 22:13:50 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -531,9 +531,8 @@ buffer is not not a composition preview buffer"
       vm-follow-summary-cursor t
 ;;;   vm-forward-message-hook nil
       vm-forwarded-headers nil
-      vm-forwarding-digest-type (if (< vm-version-number 6.0)
-				    "rfc934"
-				  "mime") ; go for the good
+      vm-forwarding-digest-type "rfc934" ; Pine 3.96 cannot show headers in
+					 ; MIME message/rfc822 attachments
       vm-forwarding-subject-format "(forwarded) %s\nSummary: forwarded message from %F"
       vm-frame-parameter-alist nil
       vm-frame-per-composition nil	;
@@ -550,15 +549,7 @@ buffer is not not a composition preview buffer"
       vm-included-text-attribution-format "[ On %w, %m %d, %y at %h (%z), %F wrote: ]\n> Subject: %s\n>\n"
 					; just the way I like it!
       vm-included-text-discard-header-regexp nil
-      vm-included-text-headers (if (< vm-version-number 6.0)
-				   '("Keywords:"
-				     "Summary:"
-				     "Newsgroups:"
-				     "MIME-"
-				     "Content-") ; try for manual MIME replies
-				 '("Keywords:"
-				   "Summary:"
-				   "Newsgroups"))
+      vm-included-text-headers nil	; nah, not worth it...
       vm-included-text-prefix "> "
       vm-inhibit-startup-message t	; don't bother me with legalese
 ;;;   vm-init-file "~/.vm"
