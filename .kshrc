@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	1.4	93/11/29 11:27:39 (woods)"
+#ident	"@(#)HOME:.kshrc	1.5	94/02/16 18:14:44 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -585,8 +585,14 @@ function signo
 
 function typeof
 {
+	if $ISSUN; then
+		LLIBDIR=/usr/lib/lint
+	else
+		LLIBDIR=/usr/lib
+	fi
 	# should expand to allow '-l{lib}'
-	grep "$1" /usr/lib/llib-lc /usr/lib/llib-lm /usr/lib/llib-lcurses
+	egrep -i "$1" $LLIBDIR/llib-lc $LLIBDIR/llib-lm $LLIBDIR/llib-lcurses
+	unset LLIBDIR
 }
 
 alias pushd='unalias pushd popd showd sd;. $HOME/.kshdir; pushd'
