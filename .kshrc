@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	25.3	02/11/28 18:28:49 (woods)"
+#ident	"@(#)HOME:.kshrc	25.4	02/11/30 17:45:45 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -634,12 +634,14 @@ fi
 # NOTE: never forget this -- it's the most incredible sed script!!!!
 alias blstrip='sed "/./,/^$/!d"'
 # XXX write one to collapse back-slash continued lines too!
+alias dlog='$PAGER -en +G /var/log/debug'
 alias ds='$PAGER'
 alias e='${VISUAL:-$EDITOR}'
 alias ealias='e $ENV'
 alias elc='emacs -batch -q -no-site-file -f batch-byte-compile'
 alias f='finger'
 alias h='fc -l | tail'
+alias ilog='$PAGER -en +G /var/log/important'
 alias j='jobs -l'
 alias l='/bin/ls -CF'
 alias la='/bin/ls -CFa'
@@ -655,6 +657,7 @@ alias logout='exit 0'
 alias nosgr='echo '
 alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok'
 alias maillog='$PAGER -en -p ": \[[0-9]*\] remote [A-Z ]*:" +G $MAILLOG'
+alias mlog='$PAGER -en +G /var/log/messages'
 alias rblcount='fgrep " matched " $MAILLOG | cut -d " " -f 13 | cut -d . -f 5- | sort | uniq -c'
 alias rblstats='fgrep " matched " $MAILLOG | cut -d " " -f 10- | sort | uniq -c | sort -n | ds'
 alias realias='let LEV=$LEV-1;exec ksh'		# useless?
