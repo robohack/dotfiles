@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	7.4	95/02/14 11:17:36 (woods)"
+#ident	"@(#)HOME:.profile	7.5	95/02/14 17:42:25 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -178,6 +178,17 @@ elif [ -r $LOCAL/lib/smail/logfile ] ; then
 elif [ -r $LOCAL/lib/smail/mail.log ] ; then
 	MAILLOG="$LOCAL/lib/smail/mail.log" ; export MAILLOG
 fi
+
+(echo "hi there\c" ; echo " ") >$HOME/echotmp
+# Configure checks to make sure grep returns a status...
+if grep c echotmp >/dev/null 2>&1 ; then
+	n='-n'
+	c=''
+else
+	n=''
+	c='\c'
+fi
+rm -f $HOME/echotmp
 
 if expr "`type mktable`" : '.* is .*/mktable$' >/dev/null 2>&1 ; then
 	MKTABLE="mktable"
@@ -484,7 +495,8 @@ if $HAVEX && [ "`tty`" = "/dev/console" ] ; then
 	case "$TERM" in
 	sun|pc3|at386|AT386)
 		trap '' 2
-		echo "\nDo you want to start X? ([y]/n) \c"
+		echo ""
+		echo $n "Do you want to start X? ([y]/n) $c"
 		read yn
 		trap 2
 		case "$yn" in
@@ -508,7 +520,7 @@ if $HAVEX && [ "`tty`" = "/dev/console" ] ; then
 	esac
 fi
 
-if $HAVEX && [ "$TERM" = "xterm" ] ; then
+if [ "$TERM" = "xterm" ] ; then
 	$HAVEFORTUNE && fortune
 	if $HAVEMONTH && [ -r .month ] ; then
 		monthd -i5
@@ -516,11 +528,13 @@ if $HAVEX && [ "$TERM" = "xterm" ] ; then
 	if [ -r $HOME/.trninitX11 ] ; then
 		TRNINIT="$HOME/.trninitX11" ; export TRNINIT
 	fi
+	PS1="]0;$PS1$PS1" ; export PS1
 fi
 
 if $HAVELAYERS && [ "$TERM" = "dmd" -a "`ismpx`" != "yes" ] ; then
 	trap '' 2
-	echo "\nDo you want to start layers? ([y]/n/debug) \c"
+	echo ""
+	echo $n "Do you want to start layers? ([y]/n/debug) $c"
 	read yn
 	trap 2
 	case "$yn" in
