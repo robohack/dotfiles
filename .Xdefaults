@@ -1,5 +1,5 @@
 !
-!#ident	"@(#)HOME:.Xdefaults	23.1	02/01/12 14:43:21 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	23.2	02/05/27 14:08:39 (woods)"
 !
 #ifdef COLOR
 *customization:			-color
@@ -185,4 +185,12 @@ plan*weekTitleFont:     -*-helvetica-*-r-*-*-18-*
 plan*weekDayFont:       -*-helvetica-*-o-*-*-14-*
 plan*weekHourFont:      -*-helvetica-*-r-*-*-14-*
 plan*weekNoteFont:      -*-helvetica-*-r-*-*-14-*
+#endif
+
+GV*beNiceToColormap:	True
+
+#ifdef COLOR
+GV*antialias:		True
+#else
+GV*antialias:		False
 #endif
