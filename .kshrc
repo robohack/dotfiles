@@ -1,7 +1,7 @@
 #
-#	.kshrc - per-shell startup stuff
+#	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	24.3	02/10/27 13:43:53 (woods)"
+#ident	"@(#)HOME:.kshrc	24.4	02/10/28 16:31:55 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -549,15 +549,52 @@ xterm*)
 	;;
 esac
 
-export SECONDS="$(date '+3600*%H+60*%M+%S')"
-typeset -Z2 _h _m
+# initialize SECONDS to the number of seconds since the last
+# local wall-clock midnight hour
+#
+alias set_secs_to_midnight='SECONDS="$(date '"'"'+3600*%H+60*%M+%S'"'"')"'
+set_secs_to_midnight
+
+# We wouldn't normally have to reset $SECONDS since our calculations
+# for hours and minutes only need to find the remainder values for the
+# seconds/unit since any epoch.  However wall-clock time will shift
+# when daylight savings time transitions happen.  Resetting $SECONDS
+# once per hour is probably overkill but will do the job -- it only
+# really needs to be done once a day at most in order to catch any
+# number of daylight savings time transitions.
+#
+# The first one in the loop should only sleep to the top of the hour,
+# but calculating that would really be overkill!
+#
+# The extra sub-shell is to prevent the main shell from tracking the
+# kill job...
+#
+#trap 'SECONDS="$(date '+3600*%H+60*%M+%S')"; ( { sleep 3600; kill -14 $$; } & )' 14
+
+# start the cycle
+#
+#kill -14 $$
+
+# expressions to calculate hours, minutes, and seconds since midnight
+# given the number of $SECONDS (we ignore the number of days that may
+# have passed since that midnight hour)
+#
 _hh="(SECONDS/3600)%24"
 _mm="(SECONDS/60)%60"
+_ss="(SECONDS)%60"
+
+# We'll be wanting zero-filled 2-digit expansion for our hours and
+# minutes variables
+#
+typeset -Z2 _h _m
+
+# a magic expression that evaluates the above expressions to set the two
+# variables we've configured specially above, and then expands those two
+# variables in a standard "HH:MM" 24-hr format to show the current time.
+#
 _time='${_x[(_m=_mm)==(_h=_hh)]}$_h:$_m'
 
 PS1="$_time $PS1"
-
-
 PS2=">>> "
 PS3="??? "
 
