@@ -1,7 +1,7 @@
 #
 #	.shlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.shlogin	2.1	95/07/01 10:44:23 (woods)"
+#ident	"@(#)HOME:.shlogin	2.2	97/01/19 14:05:54 (woods)"
 
 # this doesn't do anything but let you type '. $ENV'
 ENV=$HOME/.shrc ; export ENV
@@ -43,6 +43,8 @@ export WORKDIR
 if [ -z "$MAILPATH" ] ; then
 	if [ -d /var/spool/mail ] ; then
 		MAILPATH="/var/spool/mail/$LOGNAME"
+	elif [ -d /var/mail ] ; then
+		MAILPATH="/var/mail/$LOGNAME"
 	elif [ -d /usr/mail ] ; then
 		MAILPATH="/usr/mail/$LOGNAME"
 	elif [ -d /usr/spool/mail ] ; then
