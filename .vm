@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.1	98/07/20 11:23:38 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.2	98/07/25 13:23:56 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -835,6 +835,7 @@ message/rfc822 attachments."
 			      ("bind-users@" . "bind-users-l")
 			      ("bind-workers@" . "bind-workers-l")
 			      ("bitkeeper-users@" . "bitkeeper-users-l")
+			      ("bugtraq@" . "bugtraq-l")
 			      ("com-priv@.*psi.com" . "com-priv-l")
 			      ("devel-cvs@" . "devel-cvs-l")
 			      ("djb-qmailbeta@" . "djb-qmailbeta-l")
@@ -957,18 +958,26 @@ message/rfc822 attachments."
 	       (list (symbol-value 'my-vm-virtual-leftovers-folder)
 		     (list (list "INBOX")
 			   '(not (virtual-folder-member)))))
-	      '(("CM-stuff"
+	      '(("BUGTRAQ"
+		 (("INBOX")
+		  (recipient "bugtraq@")))
+		("CM-stuff"
 		 (("INBOX")
 		  (or (recipient "aegis-users@")
 		      (recipient "cssc-users@")
 		      (recipient "prcs-list@")
 		      (recipient "bitkeeper-users@")
 		      (recipient "shape-l@"))))
-
+		("Languages"
+		 (("INBOX")
+		  (recipient "stk@")))
 		("NANOG"
 		 (("INBOX")
 		  (or (recipient "nanog@")
 		      (recipient "nanog-announce@"))))
+		("SSH"
+		 (("INBOX")
+		  (recipient "ssh@")))
 		("VM"
 		 (("INBOX")
 		  (or (recipient "bug-vm@")
@@ -1070,12 +1079,6 @@ message/rfc822 attachments."
 		("smail3"
 		 (("INBOX")
 		  (recipient "smail3")))
-		("ssh"
-		 (("INBOX")
-		  (recipient "ssh@")))
-		("stk"
-		 (("INBOX")
-		  (recipient "stk@")))
 		("tkined"
 		 (("INBOX")
 		  (recipient "tkined@")))
