@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.13	99/04/05 19:13:35 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.14	99/04/09 14:17:42 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -344,6 +344,9 @@ scripts (alias)." t)
 (setq completion-ignored-extensions
       (append '(".out")
 	      completion-ignored-extensions))
+
+(setq frame-title-format
+      '("" mode-line-process " %b [%f] %F@" system-name))
 
 ;; GNUS specific stuff
 (defvar gnus-read-active-file)
