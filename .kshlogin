@@ -1,7 +1,7 @@
 #
 #	.kshlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.kshlogin	25.1	02/11/25 16:09:46 (woods)"
+#ident	"@(#)HOME:.kshlogin	25.2	02/11/28 14:36:19 (woods)"
 
 set -o ignoreeof	# we only do this for our login shell....
 
@@ -37,6 +37,12 @@ export HISTSIZE=2000
 if [ -z "$LOGNAME" ] ; then
 	# some systems won't allow this...
 	export LOGNAME=${HOME##*/}
+fi
+
+# for emacs timeclock.el
+#
+if [ ! -f ~/.timelog ] ; then
+	touch ~/.timelog
 fi
 
 export PWD=$HOME
