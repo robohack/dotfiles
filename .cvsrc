@@ -1,3 +1,4 @@
 export	-kv
 update	-d -P
 checkout	-P
+tag	-c
