@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	21.1	99/11/18 13:12:58 (woods)"
+#ident	"@(#)HOME:.kshrc	21.2	99/12/28 23:05:25 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -683,7 +683,7 @@ trap '
 	else
 		EMSG=""
 	fi;
-	print "ksh: exit code: $rc$EMSG"
+	print "${0#-}: exit code: $rc$EMSG"
 ' ERR
 
 set -o monitor
