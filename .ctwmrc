@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	1.14	98/01/11 20:50:56 (woods)"
+#ident	"@(#)HOME:.ctwmrc	1.15	98/01/11 20:55:55 (woods)"
 #
 
 # Ideas on how to use more powerful M4 processing on this file:
@@ -1019,12 +1019,14 @@ menu "rlogin-proxy"
 {
 	"Rlogin's At Proxy.com"	f.title
 	"Rlogin @server.proxy.com" !"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin server.proxy.com &"
+	"Rlogin @apple.proxy.com" !"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin apple.proxy.com &"
 }
 
 menu "slogin-proxy"
 {
 	"Slogin's At Proxy.com"	f.title
 	"Slogin @server.proxy.com" !"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin server.proxy.com &"
+	"Slogin @apple.proxy.com" !"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin apple.proxy.com &"
 }
 
 menu "rlogin-aci"
