@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	8.8	97/01/19 13:46:15 (woods)"
+#ident	"@(#)HOME:.kshrc	8.9	97/01/19 13:57:09 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -197,6 +197,10 @@ if [ "$id" -eq 0 ] ; then
 		MAILPATH="/var/spool/mail/${LOGNAME}:/var/spool/mail/root\
 :/var/spool/mail/adm:/var/spool/mail/uucp:/var/spool/mail/badmail\
 :/var/spool/mail/usenet:/usr/adm/lastlog:/usr/adm/sulog"
+	elif [ -d /var/mail ] ; then
+		MAILPATH="/var/mail/${LOGNAME}:/var/mail/root\
+:/var/mail/adm:/var/mail/uucp:/var/mail/badmail\
+:/var/mail/usenet:/var/adm/lastlog:/var/adm/sulog"
 	else
 		MAILPATH="/usr/mail/${LOGNAME}:/usr/mail/root:/usr/mail/adm\
 :/usr/mail/uucp:/usr/mail/badmail:/usr/mail/usenet:/usr/adm/lastlog\
@@ -205,8 +209,6 @@ if [ "$id" -eq 0 ] ; then
 	if [ "$VISUAL" = "emacsclient" ] ; then
 		export VISUAL="emacs"
 	fi
-	# fix for ksh-11/16/88b
-	#alias passwd='/bin/passwd'
 elif [ "$uid" != "$LOGNAME" ] ; then
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		MYXBAN_R='$uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN'
