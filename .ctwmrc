@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	1.2	97/11/20 00:10:47 (woods)"
+#ident	"@(#)HOME:.ctwmrc	1.3	97/11/20 00:25:33 (woods)"
 #
 
 AutoRelativeResize
@@ -138,26 +138,12 @@ MapWindowDefaultWorkSpace {
 # MapWindowCurrentWorkSpace { "White" "Black" "grey98" }
 # MapWindowDefaultWorkSpace { "Black" "grey50" "grey98" }
 
-SaveColor {
-	BorderColor
-	BorderTileBackground
-	BorderTileForeground
-# these don't work....
-#	DefaultBackground
-#	DefaultForeground
-	TitleBackground
-	TitleForeground
-	IconBackground
-	IconForeground
-	IconBorderColor
-}
-
 IconJustification		"right"
 
 IconRegion	"500x250-0+300" North East 25 25
 
-IconDirectory		"/usr/include/X11/bitmaps"
-PixmapDirectory		"/usr/lib/X11/twm/images"
+IconDirectory		"HOME/lib/bitmaps:/usr/include/X11/bitmaps"
+PixmapDirectory		"HOME/lib/pixmaps:/usr/lib/X11/twm/images"
 
 #IconManagers	{ "XTerm" "=305x100-200+0" 1 }
 
