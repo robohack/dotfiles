@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	10.1	94/03/10 18:56:13 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	10.2	94/03/14 11:28:38 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -578,6 +578,29 @@ If STRING is not given, use the current buffer.  See `string-match'."
   (if (stringp string)
       (substring string (match-beginning n) (match-end n))
     (buffer-substring (match-beginning n) (match-end n))))
+
+; From: terra@diku.dk (Morten Welinder)
+; Sender: gnu-emacs-sources-request@prep.ai.mit.edu
+; To: gnu-emacs-sources@prep.ai.mit.edu
+; Subject: Making TAB scroll completions
+; Date: Sat, 12 Mar 1994 12:43:48 GMT
+;
+;;; Make multiple TABs scroll completions
+(defun minibuf-tab ()
+  "Like `minibuffer-complete', but if you use this repeatedly it will scroll
+the window showing completions."
+  (interactive)
+  (or (eq last-command this-command) (setq minibuffer-scroll-window nil))
+  (if minibuffer-scroll-window
+      (save-excursion
+	(set-buffer (window-buffer minibuffer-scroll-window))
+	(if (pos-visible-in-window-p (point-max) minibuffer-scroll-window)
+	    (set-window-start minibuffer-scroll-window (point-min))
+	  (scroll-other-window)))
+    (minibuffer-complete)))
+
+(define-key minibuffer-local-must-match-map "\t" 'minibuf-tab)
+(define-key minibuffer-local-completion-map "\t" 'minibuf-tab)
 
 ;; ----------
 ;; some special hooks.....
