@@ -1,7 +1,7 @@
 #
 #	.shrc - per-shell startup stuff for /bin/sh
 #
-#ident	"@(#)HOME:.shrc	2.1	95/02/15 11:08:09 (woods)"
+#ident	"@(#)HOME:.shrc	2.2	95/03/08 15:41:22 (woods)"
 
 export PATH="$PATH"
 
@@ -43,7 +43,7 @@ dirprepend ()
 
 # UGLY, but it works
 #
-eval "$(id|sed -e 's/^uid=\([0-9]*\)(\(..*\)) gid=[0-9]*(\([^) ]*\)).*$/id=\1 uid=\2 gid=\3/')"
+eval "`id|sed -e 's/^uid=\([0-9]*\)(\(..*\)) gid=[0-9]*(\([^) ]*\)).*$/id=\1 uid=\2 gid=\3/'`"
 
 if [ "$id" -eq 0 ] ; then
 	# got to get rid of lone ":" in PATH
@@ -88,3 +88,142 @@ else
 		;;
 	esac
 fi
+if type ismpx 2>&1 >/dev/null ; then
+	: might just be running layers
+else
+	# otherwise it's just not possible....
+	ismpx ()
+	{
+		false
+	}
+fi
+
+if $ISSUN; then
+	df ()
+	{
+		/usr/bin/df $*
+	}
+fi
+if [ -d /var/spool/uucp ] ; then
+	uufollow ()
+	{
+		xtail /var/spool/uucp/.[AL]*/*
+	}
+else
+	uufollow ()
+	{
+		xtail /usr/spool/uucp/.[AL]*/*
+	}
+fi
+
+if [ -x /usr/ucb/rsh -a -x /bin/rsh ] ; then
+	rsh ()
+	{
+		/usr/ucb/rsh $*
+	}
+fi
+
+if [ -r $HOME/.shsccs ] ; then
+	. $HOME/.shsccs
+fi
+
+errno ()
+{
+	grep "^#define[ 	]*[A-Z][A-Z]*[ 	]*$1[ 	]" /usr/include/sys/errno.h
+}
+
+lastcmd ()
+{
+	tr '[\001-\007]' '[\012*]' < .sh_history | \
+		tr '[\176-\377]' '[ *]' | \
+		egrep -v '^[	 }#]|^$' | \
+		tail ${1+"$@"}
+}
+
+malias ()
+{
+	grep "alias[ 	]$*" $LOCAL/lib/mush/Mail.rc ~/.mushrc
+}
+
+signm ()
+{
+	grep "^#define[ 	]*SIG.*[ 	]*${1}[ 	]" /usr/include/sys/signal.h
+}
+
+signo ()
+{
+	grep -i "^#define[ 	]*.*${1}[ 	]*[0-9]" /usr/include/sys/signal.h
+}
+
+typeof ()
+{
+	if $ISSUN; then
+		LLIBDIR=/usr/lib/lint
+	else
+		LLIBDIR=/usr/lib
+	fi
+	# should expand to allow '-l{lib}'
+	egrep -i "$1" $LLIBDIR/llib-lc $LLIBDIR/llib-lm $LLIBDIR/llib-lcurses
+	unset LLIBDIR
+}
+
+blstrip ()
+{
+	sed "/./,/^$/!d"
+}
+ds ()
+{
+	$PAGER $*
+}
+e ()
+{
+	${VISUAL:-$EDITOR} $*
+}
+l ()
+{
+	/bin/ls -CF $*
+}
+la ()
+{
+	/bin/ls -CFa $*
+}
+ll ()
+{
+	/bin/ls -lis $*
+}
+lla ()
+{
+	/bin/ls -lisa $*
+}
+llr ()
+{
+	/bin/ls -lisR $*
+}
+llra ()
+{
+	/bin/ls -lisaR $*
+}
+lr ()
+{
+	/bin/ls -CFR $*
+}
+lra ()
+{
+	/bin/ls -CFRa $*
+}
+lsa ()
+{
+	/bin/ls -a $*
+}
+nstty ()
+{
+	stty sane intr "^?" erase "^h" kill "^u" echoe echok
+}
+maillog ()
+{
+	$PAGER -e +G $MAILLOG
+}
+rstty ()
+{
+	stty $SANE
+}
