@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	18.11	97/05/22 11:43:02 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	18.12	97/10/15 02:12:28 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -357,7 +357,10 @@ scripts (alias)." t)
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "vm")
     (progn
-      (if window-system
+      (if (and window-system
+	       (boundp 'menu-bar-tools-menu))
+	  ;; to quiet the v19 byte compiler
+	  (defvar menu-bar-tools-menu)
 	  (progn
 	    (define-key menu-bar-tools-menu [rmail] '("Read Mail" . vm))
 	    (define-key-after menu-bar-tools-menu [smail] '("Send Mail" . vm-mail) 'rmail)))
