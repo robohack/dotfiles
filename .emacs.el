@@ -1,9 +1,9 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	11.1	94/03/25 18:34:28 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	11.2	94/03/25 19:13:33 (woods)"
 ;;;;
-;;;; per-user start-up functions for GNU-emacs v18 or v19
+;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
 
 ;;; to debug, eval (^X^E) these after "emacs -q":
@@ -29,6 +29,9 @@
 			      ((string-match "Lucid" emacs-version) 'lucid)
 			      (t 19)))
 
+(if (/= init-emacs-type '19)
+    (message "Not running emacs v19 I see -- you'll have trouble with this .emacs!")) 
+
 ;;;; ----------
 ;;;; get ready to load stuff
 
@@ -42,32 +45,11 @@
 
 (setq load-path (cons (expand-file-name "~/lib/elisp") load-path))
 
-(if (= init-emacs-type '19)
-    (setq load-path (append load-path
-			    (list (concat local-gnu-path
-					  "/lib/emacs/site-lisp")
-				  (concat local-gnu-path
-					  "/lib/emacs/site-lisp/hyperbole")))))
-
-(if (= init-emacs-type '18)		; emacs-18 doesn't have these...
-    (defmacro dont-compile (&rest body)
-      "Like `progn', but the body always runs interpreted (not compiled).
-If you think you need this, you're probably making a mistake somewhere."
-      (list 'eval (list 'quote (if (cdr body) (cons 'progn body) (car body))))))
-
-(if (= init-emacs-type '18)
-    (defmacro eval-when-compile (&rest body)
-      "Like `progn', but evaluates the body at compile time.
-The result of the body appears to the compiler as a quoted constant."
-      ;; Not necessary because we have it in b-c-initial-macro-environment
-      ;; (list 'quote (eval (cons 'progn body)))
-      (cons 'progn body)))
-
-(if (= init-emacs-type '18)
-    (defmacro eval-and-compile (&rest body)
-      "Like `progn', but evaluates the body at compile time and at load time."
-      ;; Remember, it's magic.
-      (cons 'progn body)))
+(setq load-path (append load-path
+			(list (concat local-gnu-path
+				      "/lib/emacs/site-lisp")
+			      (concat local-gnu-path
+				      "/lib/emacs/site-lisp/hyperbole"))))
 
 ;;; This could probably be rewritten to use mapcar
 (defun elisp-file-in-loadpath-p (file-name)
@@ -106,47 +88,9 @@ directory in the list PATHLIST, otherwise nil."
 
 (if (elisp-file-in-loadpath-p "time")
     (dont-compile
-      ;; display-time can't check "Status:" headers or "Forward to" files
-      ;; so if not running vm or something else that cleans out the spool
-      ;; files, disable the mail checking feature
-      (if (and (/= init-emacs-type '19)
-	       (not (elisp-file-in-loadpath-p "vm")))
-	  (setq display-time-mail-file "/THIS-IS-NOT-A-FILE"))
       (setq display-time-day-and-date t)
-      (if (= init-emacs-type '19)
-	  (setq display-time-24hr-format t))
-      (display-time)))			; also enabled by mode-line, if avail.
-
-(if (and (/= init-emacs-type '19)
-	 (elisp-file-in-loadpath-p "mode-line"))
-    (dont-compile
-      (require 'mode-line)
-      (if (boundp 'file-name-abbreviation-alist)
-	  (setq file-name-abbreviation-alist
-		(append (list '("^/big/web/work/apc/" . "APC|")
-			      '("^/big/web/work/" . "WEB|")
-			      '("^/big/web/update.d/" . "UPD|")
-			      (cons (concat "^"
-					    (cond
-					     ((getenv "LOCAL")
-					      (getenv "LOCAL") "/src")
-					     (t
-					      "/local")))
-				    "LOCAL|")
-			      (cons (concat "^"
-					    (cond
-					     ((getenv "GNU")
-					      (getenv "GNU") "/src")
-					     (t
-					      "/gnu")))
-				    "GNU|")
-			      (cons (concat "^" (expand-file-name "~")
-					    "/src/work.d/") 
-				    "~WRK|")
-			      (cons (concat "^" (expand-file-name "~")
-					    "/src/")
-				    "~SRC|"))
-			file-name-abbreviation-alist)))))
+      (setq display-time-24hr-format t))
+      (display-time))			; also enabled by mode-line, if avail.
 
 (if (elisp-file-in-loadpath-p "c-boxes")
     (autoload 'reindent-c-comment "c-boxes" "Function for boxing C comments." t))
@@ -154,11 +98,12 @@ directory in the list PATHLIST, otherwise nil."
 (if (elisp-file-in-loadpath-p "ksh-mode")
     (autoload 'ksh-mode "ksh-mode" "Major mode for editing sh Scripts." t))
 
-(if (elisp-file-in-loadpath-p "func-menu")
-    (and window-system
-	 (require 'func-menu)
-	 (define-key global-map [S-down-mouse-1]
-	   'function-menu)))
+(if (and (elisp-file-in-loadpath-p "func-menu")
+	 window-system)
+    (dont-compile
+      (require 'func-menu)
+      (define-key global-map [S-down-mouse-1]
+	'function-menu)))
 
 (if (elisp-file-in-loadpath-p "shwtmpbuf")
     (progn
@@ -179,7 +124,6 @@ directory in the list PATHLIST, otherwise nil."
     ;; files, disable the mail checking feature
     ;;
     ;; must appear after display-time is invoked (thus after time.el is loaded)
-    ;; [only called on emacs-19(?)]
     ;; 
     (defun display-time-file-nonempty-p (file)
       "This function returns 'nil, as it would only be useful if it could check
@@ -233,30 +177,14 @@ Status: headers for O, or Forward to in mailboxes."
 	("^[^ ].*$" 0 font-lock-comment-face t)
 	("^..d.* \\([^ ]+\\)$" 1 font-lock-keyword-face))))
 
-(dont-compile
-  (if (= init-emacs-type 18)
-      (setq ask-about-buffer-names t)))
 (setq backup-by-copying t)		; copy, thus preserving modes and owner
-(dont-compile
-  (if (= init-emacs-type 18)
-      (setq completion-auto-exit t)))	; have completing-reads exit when unique
 (setq compilation-window-height 10)	; default height for a compile window
 (setq default-tab-width 8)		; a tab is a tab is a tab is a tab....
 (setq delete-auto-save-files t)		; delete auto-save file when saved
-(dont-compile
-  (if (= init-emacs-type 18)
-      (setq inhibit-local-variables t)	; confirm modes, etc. (security!)
-    (progn
-      (if (eq window-system 'x)
-	  (setq search-highlight t))	; i-search hightlight match
-      (setq enable-local-variables t)))) ; (is this the default in v19?)
+(if window-system
+    (setq search-highlight t))		; i-search hightlight match
+(setq enable-local-variables t)		; (is this the default in v19?)
 (setq make-backup-files nil)		; too much clutter
-(dont-compile
-  (if (= init-emacs-type 18)
-      (setq search-delete-char 8)))	; C-h, same as delete-backward-char
-(dont-compile
-  (if (= init-emacs-type 18)
-      (setq spell-command "spell -b")))	; we're British, you know! :-)
 (setq track-eol nil)			; too hard to control (it's sticky!)
 (setq window-min-height 1)
 (setq window-min-width 1)
@@ -279,8 +207,8 @@ Status: headers for O, or Forward to in mailboxes."
        '(("^.*/tmp/[^/]*nf.*$" . indented-text-mode)) ; notesfile compose buffer
        auto-mode-alist))
 
-(dont-compile
-  (if (elisp-file-in-loadpath-p "hyperbole")
+(if (elisp-file-in-loadpath-p "hyperbole")
+    (dont-compile
       (setq hyperb:init-hook
 	    (list (function (lambda () (setq smart-scroll-proportional t)))))))
 
@@ -483,25 +411,6 @@ BUFFER-NAME.  Optional command args to process supplied by ARGS"
   (goto-char (point-min))
   (pop-to-buffer (current-buffer)))
 
-(or (fboundp 'start-process-shell-command)
-    ;; From version 19 subr.el.
-    (defun start-process-shell-command (name buffer &rest args)
-      "Start a program in a subprocess.  Return the process object for it.
-Args are NAME BUFFER COMMAND &rest COMMAND-ARGS.
-NAME is name for process.  It is modified if necessary to make it unique.
-BUFFER is the buffer or (buffer-name) to associate with the process.
- Process output goes at end of that buffer, unless you specify
- an output stream or filter function to handle the output.
- BUFFER may be also nil, meaning that this process is not associated
- with any buffer
-Third arg is command name, the name of a shell command.
-Remaining arguments are the arguments for the command.
-Wildcards and redirection are handle as usual in the shell."
-      (if (eq system-type 'vax-vms)
-          (apply 'start-process name buffer args)
-        (start-process name buffer shell-file-name "-c"
-                       (concat "exec " (mapconcat 'identity args " "))))))
-
 ;;; for orthogonality (thx to john@xanth.UUCP (John Owens))
 (defun find-file-read-only-other-window (filename)
   "Like find-file-read-only, but does it in another window."
@@ -551,22 +460,6 @@ might have been overridden by the major mode."
   (setq case-fold-search t		; allow case-insensitive searches
         indent-tabs-mode t		; allow tabs in indentation
         selective-display nil))		; don't allow selective display
-
-(or (fboundp 'add-hook)
-    ;; From version 19 subr.el
-    (defun add-hook (hook function)
-      "Add to the value of HOOK the function FUNCTION unless already present.
-HOOK should be a symbol, and FUNCTION may be any valid function.
-HOOK's value should be a list of functions, not a single function.
-If HOOK is void, it is first set to nil."
-      (or (boundp hook) (set hook nil))
-      (or (if (consp function)
-              ;; Clever way to tell whether a given lambda-expression
-              ;; is equal to anything in the hook.
-              (let ((tail (assoc (cdr function) (symbol-value hook))))
-                (equal function tail))
-            (memq function (symbol-value hook)))
-          (set hook (cons function (symbol-value hook))))))
 
 ;;; From gnu@ai.mit.edu Sat Jan 22 01:37:54 1994
 ;;; Date: Fri, 21 Jan 94 08:54:28 GMT
@@ -700,46 +593,33 @@ suffixes `.elc' or `.el' to the specified name FILE."
 ;;;; ----------
 ;;;; some special hooks.....
 
-(dont-compile
-  (if (and (elisp-file-in-loadpath-p "server")
-	   (string-equal (getenv "VISUAL") "emacsclient"))
-      (progn
-	(require 'server)
-	;; I *USUALLY* EXPECT THE BACKSPACE KEY TO GENERATE AN ASCII BACKSPACE!
-	(define-key function-key-map [backspace] [8])
-	(define-key function-key-map [backspace] [?\C-h])
-	(define-key function-key-map [C-backspace] [?\C-h])
-	(define-key function-key-map [M-backspace] [?\M-\C-h])
-	;; From: qhslali@aom.ericsson.se (Lars Lindberg EHS/PBE 80455 2122 { tom -> 940531  ansv. EHS/PBE Christer Nilsson })
-	;; Message-Id: <9402170914.AA18291@aom.ericsson.se>
-	;; Subject: [19.22] emacsclient server should have a hook for kill-buffer
-	(add-hook 'server-visit-hook
-		  (function
-		   (lambda ()
-		     (add-hook 'kill-buffer-hook
-			       (function
-				(lambda ()
-				  (server-buffer-done (current-buffer))))))))
-	(defun server-really-exit ()	; for those times we forget
-	  "Query user if he really wants to exit since this will destroy the
-current emacs server process..."
-	  (interactive)
-	  (if server-process
-	      (if (yes-or-no-p "Are you sure you *really* want to exit? ")
-		  (save-buffers-kill-emacs))))
-	(global-set-key "\C-x\C-c" 'server-really-exit)
-	(server-start))))
-
-;;; (enable-arrow-keys) must be done by this hook, since the .emacs file
-;;; is loaded and executed before the terminal code is loaded...
-;;;
-(dont-compile
-  (if (fboundp 'enable-arrow-keys) ; byte-compile-file may complain
-      (add-hook 'term-setup-hook
+(if (string-equal (getenv "VISUAL") "emacsclient")
+    (progn
+      (require 'server)
+      ;; I *USUALLY* EXPECT THE BACKSPACE KEY TO GENERATE AN ASCII BACKSPACE!
+      (define-key function-key-map [backspace] [8])
+      (define-key function-key-map [backspace] [?\C-h])
+      (define-key function-key-map [C-backspace] [?\C-h])
+      (define-key function-key-map [M-backspace] [?\M-\C-h])
+      ;; From: qhslali@aom.ericsson.se (Lars Lindberg EHS/PBE 80455 2122 { tom -> 940531  ansv. EHS/PBE Christer Nilsson })
+      ;; Message-Id: <9402170914.AA18291@aom.ericsson.se>
+      ;; Subject: [19.22] emacsclient server should have a hook for kill-buffer
+      (add-hook 'server-visit-hook
 		(function
 		 (lambda ()
-		   "Private term-setup-hook."
-		   (enable-arrow-keys)))))) ; that enable-arrow-keys is not defined
+		   (add-hook 'kill-buffer-hook
+			     (function
+			      (lambda ()
+				(server-buffer-done (current-buffer))))))))
+      (defun server-really-exit ()	; for those times we forget
+	"Query user if he really wants to exit since this will destroy the
+current emacs server process..."
+	(interactive)
+	(if server-process
+	    (if (yes-or-no-p "Are you sure you *really* want to exit? ")
+		(save-buffers-kill-emacs))))
+      (global-set-key "\C-x\C-c" 'server-really-exit)
+      (server-start)))
 
 ;;;; ----------
 ;;;; some major-mode hooks...
@@ -750,8 +630,9 @@ current emacs server process..."
 ;;; From: ehgasm2@uts.mcc.ac.uk (Simon Marshall)
 ;;; Subject: Re: Quick routine to BOLDFACE directories in DIRED buffers
 ;;;
-(dont-compile
-  (if window-system
+(if window-system
+    (progn
+      (require 'font-lock)
       (add-hook 'dired-mode-hook
 		(function (lambda ()
 			    (font-lock-mode t)
@@ -794,8 +675,8 @@ current emacs server process..."
 	     (setq c-label-offset -8)
 	     (setq c-tab-always-indent nil))))
 
-(dont-compile
-  (if (elisp-file-in-loadpath-p "vc")
+(if (elisp-file-in-loadpath-p "vc")
+    (dont-compile
       (add-hook 'vc-mode-hook
 		(function
 		 (lambda ()
@@ -804,8 +685,8 @@ current emacs server process..."
 		   (setq vc-initial-comment t)
 		   (add-hook 'vc-checkin-hook vc-comment-to-change-log))))))
 
-(dont-compile
-  (if (elisp-file-in-loadpath-p "pcl-cvs")
+(if (elisp-file-in-loadpath-p "pcl-cvs")
+    (dont-compile
       (add-hook 'cvs-mode-hook
 		(function
 		 (lambda ()
@@ -819,7 +700,7 @@ current emacs server process..."
 						       ; and
 						       ; cvs-mode-diff-backup
 						       ; should ignore any
-						       ; marked files.  
+						       ; marked files.
 
 (add-hook 'emacs-lisp-mode-hook
 	  (function
@@ -855,8 +736,8 @@ current emacs server process..."
 	     "Private nroff-mode stuff."
 	     (run-hooks 'text-mode-hook))))
 
-(dont-compile
-  (if (elisp-file-in-loadpath-p "ksh-mode")
+(if (elisp-file-in-loadpath-p "ksh-mode")
+    (dont-compile
       (add-hook 'ksh-mode-hook
 		(function
 		 (lambda ()
@@ -868,14 +749,14 @@ current emacs server process..."
 		   (setq ksh-case-indent 8)
 		   (setq ksh-match-and-tell t))))))
 
-(dont-compile
-  (if (elisp-file-in-loadpath-p "c-boxes")
-      (add-hook 'c-mode-hook
-		(function
-		 (lambda ()
-		   "Private c-boxes stuff."
-		   (local-set-key "\eq" 'reindent-c-comment)
-		   (setq c-comment-starting-blank t))))))
+(if (elisp-file-in-loadpath-p "c-boxes")
+      (dont-compile
+	(add-hook 'c-mode-hook
+		  (function
+		   (lambda ()
+		     "Private c-boxes stuff."
+		     (local-set-key "\eq" 'reindent-c-comment)
+		     (setq c-comment-starting-blank t))))))
 
 ;;;; ----------
 ;;;; some default key re-binding....
@@ -940,9 +821,8 @@ current emacs server process..."
 
 (global-set-key "\eS" 'spell-buffer)
 
-(if (and (= init-emacs-type '19)
-	 window-system)
-    (dont-compile
+(if window-system
+    (progn
       (global-set-key "\C-x\C-a" 'super-apropos)
       (global-set-key "\C-x5i" 'iconify-frame)
       (global-set-key "\C-x5T" 'find-tag-other-frame)))
@@ -1019,13 +899,12 @@ current emacs server process..."
 ;;; Distribution: world
 ;;; Message-Id: <CA.93Oct8162822@yangtze.cs.umd.edu>
 ;;; 
-(dont-compile
-  (if (and (elisp-file-in-loadpath-p "compile-frame")
-	   window-system)
-      (progn
-	(require 'compile-frame)
-	(add-hook 'compilation-frame-selected-hook
-		  '(lambda () (raise-frame compilation-frame-id))))))
+(if (and (elisp-file-in-loadpath-p "compile-frame")
+	 window-system)
+    (dont-compile
+      (require 'compile-frame)
+      (add-hook 'compilation-frame-selected-hook
+		'(lambda () (raise-frame compilation-frame-id)))))
 
 ;;; From: kfogel@occs.cs.oberlin.edu (Karl Fogel)
 ;;; Date: Mon, 1 Nov 1993 10:23:04 -0500
@@ -1043,9 +922,8 @@ current emacs server process..."
 ;;; can see, it's quite short (shorter than this paragraph, okay), but I
 ;;; have hardly touched my mouse since I started using it :-)
 ;;; 
-(if (and (= init-emacs-type '19)
-	 window-system)
-    (dont-compile
+(if window-system
+    (progn
       (global-set-key "\C-co" 'keyboard-focus-next-or-previous-frame)
       ;;
       (defun keyboard-focus-next-or-previous-frame (parg)
@@ -1073,8 +951,7 @@ feeling, but you'll get used to it."
 ;;; -n means don't expand \input or \include commands.
 ;;; -l means force LaTeX mode.
 ;;;
-(if (and (= init-emacs-type '19) 
-	 (elisp-file-in-loadpath-p "ispell"))
+(if (elisp-file-in-loadpath-p "ispell")
     (dont-compile
       (require 'ispell)
       (define-key global-map "\M-S" 'ispell-buffer)
@@ -1112,47 +989,45 @@ feeling, but you'll get used to it."
 ;;;      (autoload 'appt-make-list "appt.el" nil t)
 ;;;      (add-hook 'initial-calendar-window-hook 'display-time)
 ;;;      (calendar)))
-(if (= init-emacs-type '19) 
-    (dont-compile
-      (require 'advice)
-      (defadvice appt-disp-window (around kn-appt-disp-win compile)
-	(if (or (= min-to-app 20)
-		(and (<= min-to-app 6) (= (mod min-to-app 2) 0)))
-	    ad-do-it))
-      (eval-after-load "appt" '(ad-activate 'appt-disp-window))
-      (setq calendar-latitude 43.75)
-      (setq calendar-longitude -79.45)
-      (setq today-visible-calendar-hook 'calendar-mark-today)
-      (setq calendar-time-display-form 
-	    '(24-hours ":" minutes
-		       (if time-zone " (") time-zone (if time-zone ")")))
-      (setq appt-message-warning-time 20) ; minutes of warning prior to appt
-      (setq view-diary-entries-initially t)
+(require 'advice)
+(defadvice appt-disp-window (around kn-appt-disp-win compile)
+  (if (or (= min-to-app 20)
+	  (and (<= min-to-app 6) (= (mod min-to-app 2) 0)))
+      ad-do-it))
+(eval-after-load "appt" '(ad-activate 'appt-disp-window))
+(setq calendar-latitude 43.75)
+(setq calendar-longitude -79.45)
+(setq today-visible-calendar-hook 'calendar-mark-today)
+(setq calendar-time-display-form 
+      '(24-hours ":" minutes
+		 (if time-zone " (") time-zone (if time-zone ")")))
+(setq appt-message-warning-time 20) ; minutes of warning prior to appt
+(setq view-diary-entries-initially t)
 ;;;   (setq mark-diary-entries-in-calendar t) ; too expensive....
-      (setq mark-holidays-in-calendar t)
-      (setq diary-display-hook (list 'appt-make-list 'fancy-diary-display))
-      (setq appt-display-duration 60)	; seconds to display appointment message
-      (setq appt-issue-message t)
-      (setq number-of-diary-entries [3 3 3 3 3 4 3])
-      (setq all-christian-calendar-holidays t)
-      (setq other-holidays
-	    '((holiday-fixed 1 11 "Sir John A. Macdonald's birthday")
-	      (holiday-float 2 1 3 "Heritage Day") ; (unoff.) third Monday
-	      (holiday-fixed 4 21 "Queen Elizabeth's birthday")
-	      (holiday-fixed 4 22 "Earth Day")
-	      (holiday-float 5 1 -2 "Victoria Day") ; second last Monday
-	      (holiday-fixed 7 14 "Bastille Day")
-	      (holiday-fixed 7 1 "Canada Day")
-	      (holiday-float 8 1 1 "Civic Holiday") ; first Monday
-	      (holiday-float 9 1 1 "Labour Day") ; first Monday
-	      (holiday-float 10 1 2 "Thanksgiving Day (Canada)")
-	      (holiday-fixed 10 16 "World Food Day") ; ????
-	      (holiday-fixed 12 6 "National Day of Remembrance and Action on
+(setq mark-holidays-in-calendar t)
+(setq diary-display-hook (list 'appt-make-list 'fancy-diary-display))
+(setq appt-display-duration 60)	; seconds to display appointment message
+(setq appt-issue-message t)
+(setq number-of-diary-entries [3 3 3 3 3 4 3])
+(setq all-christian-calendar-holidays t)
+(setq other-holidays
+      '((holiday-fixed 1 11 "Sir John A. Macdonald's birthday")
+	(holiday-float 2 1 3 "Heritage Day") ; (unoff.) third Monday
+	(holiday-fixed 4 21 "Queen Elizabeth's birthday")
+	(holiday-fixed 4 22 "Earth Day")
+	(holiday-float 5 1 -2 "Victoria Day") ; second last Monday
+	(holiday-fixed 7 14 "Bastille Day")
+	(holiday-fixed 7 1 "Canada Day")
+	(holiday-float 8 1 1 "Civic Holiday") ; first Monday
+	(holiday-float 9 1 1 "Labour Day") ; first Monday
+	(holiday-float 10 1 2 "Thanksgiving Day (Canada)")
+	(holiday-fixed 10 16 "World Food Day") ; ????
+	(holiday-fixed 12 6 "National Day of Remembrance and Action on
 Violence Against Women")
-	      (holiday-fixed 12 26 "Boxing Day")))
+	(holiday-fixed 12 26 "Boxing Day")))
 ;;; don't need to do this -- was done above
 ;;;      (add-hook 'initial-calendar-window-hook 'display-time)
-      (autoload 'appt-make-list "appt.el" nil t)))
+(autoload 'appt-make-list "appt.el" nil t)
 
 ;;; ;; Appointments every 3 minutes not every 1 minute!
 ;;; (defadvice appt-check (around my-appt-advice activate)
