@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	18.20	97/10/15 02:47:52 (woods)"
+#ident	"@(#)HOME:.twmrc	18.21	97/10/25 12:59:48 (woods)"
 #
 
 AutoRelativeResize
@@ -426,6 +426,21 @@ function "start-woffi-slogin" {
 
 function "start-warlord-slogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C warlord.planix.com &"
+}
+
+
+#	for dancing.org menus
+#
+function "start-lindy-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin lindy.dancing.org &"
+}
+
+function "start-lindy-telnet" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet lindy.dancing.org &"
+}
+
+function "start-lindy-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C lindy.dancing.org &"
 }
 
 
@@ -1379,6 +1394,7 @@ menu "rlogin"
 	"Rlogin's Everywhere"		f.title
 	"Rlogin's at Weird.com..."	f.menu "rlogin-weird"
 	"Rlogin's at Planix.com..."	f.menu "rlogin-planix"
+	"Rlogin's at Dancing.org..."	f.menu "rlogin-dancing"
 	"Rlogin's at Infoshare.net..."	f.menu "rlogin-infoshare"
 	"Rlogin's at Proxy.com..."	f.menu "rlogin-proxy"
 	"Rlogin's at PageActive.com..."	f.menu "rlogin-pageactive"
@@ -1400,6 +1416,7 @@ menu "telnet"
 	"Telnet's Everywhere"		f.title
 	"Telnet's at Weird.com..."	f.menu "telnet-weird"
 	"Telnet's at Planix.com..."	f.menu "telnet-planix"
+	"Telnet's at Dancing.org..."	f.menu "telnet-dancing"
 	"Telnet's at Rogers.WAVE.ca..."	f.menu "telnet-rogers"
 }
 
@@ -1408,6 +1425,7 @@ menu "slogin"
 	"Slogin's Everywhere"		f.title
 	"Slogin's at Weird.com..."	f.menu "slogin-weird"
 	"Slogin's at Planix.com..."	f.menu "slogin-planix"
+	"Slogin's at Dancing.org..."	f.menu "slogin-dancing"
 	"Slogin's at Infoshare.net..."	f.menu "slogin-infoshare"
 	"Slogin's at Proxy.com..."	f.menu "slogin-proxy"
 	"Slogin's at PageActive.com..."	f.menu "slogin-pageactive"
@@ -1492,6 +1510,25 @@ menu "slogin-planix"
 	"Slogin @whome"			f.function "start-whome-slogin"
 	"Slogin @woffi"			f.function "start-woffi-slogin"
 	"Slogin @warlord"		f.function "start-warlord-slogin"
+}
+
+
+menu "rlogin-dancing"
+{
+	"Rlogin's At Dancing.org"	f.title
+	"Rlogin @lindy"			f.function "start-lindy-rlogin"
+}
+
+menu "telnet-dancing"
+{
+	"Telnet's At Dancing.org"	f.title
+	"Telnet @lindy"			f.function "start-lindy-telnet"
+}
+
+menu "llogin-dancing"
+{
+	"Slogin's At Dancing.org"	f.title
+	"Slogin @lindy"			f.function "start-lindy-slogin"
 }
 
 
