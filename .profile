@@ -1,13 +1,28 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	8.9	95/03/16 22:29:53 (woods)"
+#ident	"@(#)HOME:.profile	8.10	95/03/16 23:23:58 (woods)"
 
 #
 # Assumptions:
 #
 #	- $argv0 is `basename $0` from .xinitrc or .xsession
 #
+
+# Files referenced:
+#
+#	$HOME/.ashlogin		- sourced once, if running ash(1)
+#	$HOME/.editor		- name of prefered text editor command
+#	$HOME/.kshlogin		- sourced once, if running ksh(1)[, or bash(1)?]
+#	$HOME/.shlogout		- set on trap 0, if running ksh(1)[, or bash(1)?]
+#	$HOME/.localprofile	- sourced once, near end of this file
+#	$HOME/.mailer		- name of prefered MUA command
+#	$HOME/.shell		- mktable'd and exec'ed as shell (see end of this file)
+#	$HOME/.shfuncs		- sourced once, and pathname set in $ENV
+#	$HOME/.shlogin		- sourced once
+#	$HOME/.shlogout		- set on trap 0
+#	$HOME/.stty		- sourced for stty command(s), etc. just before tset(1)
+#	$HOME/.trninit		- pathname set as value for $TRNINIT
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -165,6 +180,7 @@ OMANPATH="$MANPATH" ; export OMANPATH
 dirprepend MANPATH $LOCAL/share/man $LOCAL/man $GNU/man $CONTRIB/man $X11PATH/man
 #
 # TODO: We also need to strop $LOCAL/man if it's a symlink -> $LOCAL/share/man
+# TODO: but we can't depend on 'test -h' being available....
 
 ISSUN=false; export ISSUN
 if [ -x /usr/bin/sun ] ; then
@@ -218,6 +234,7 @@ if expr "`type mktable`" : '.* is .*/mktable$' >/dev/null 2>&1 ; then
 	MKTABLE="mktable"
 else
 	# a little ditty to throw away comments....
+	# TODO: should call mkline (ala smail-3) if available....
 	mktable ()
 	{
 		sed '	/^[ 	]*#/d
@@ -239,10 +256,13 @@ fi
 HAVEMUSH=false ; export HAVEMUSH
 MAILER=mail ; export MAILER
 if [ -s $HOME/.mailer ] ; then
+	# mktable just throws away comments....
 	MAILER="`mktable $HOME/.mailer`"
 elif expr "`type mush`" : '.* is .*/mush$' >/dev/null 2>&1 ; then
 	HAVEMUSH=true
 	MAILER="mush"
+elif expr "`type Mail`" : '.* is .*/mailx$' >/dev/null 2>&1 ; then
+	MAILER="Mail"
 elif expr "`type mailx`" : '.* is .*/mailx$' >/dev/null 2>&1 ; then
 	MAILER="mailx"
 fi
@@ -287,6 +307,7 @@ MANPAGER="$PAGER -s"; export MANPAGER
 LESS="-eM" ; export LESS
 
 if [ -s "$HOME/.editor" ] ; then
+	# mktable just throws away comments....
 	EDPREF=`mktable $HOME/.editor` ; export EDPREF
 fi
 
@@ -350,53 +371,6 @@ EDITOR="`expr "$EDITOR" : '^.*/\([^/]*\)$'`"; export EDITOR
 VISUAL="`expr "$VISUAL" : '^.*/\([^/]*\)$'`"; export VISUAL
 EXINIT="set sm" ; export EXINIT
 
-# TODO: move this to .localprofile
-#
-if [ -n "$APCCONFIG" ] ; then
-	case "$UUNAME" in
-	web )
-		# for pnotes message composition...
-		#
-		APCEDIT="`type $VISUAL`" ; export APCEDIT
-		APCEDIT="`expr "$APCEDIT" : '^[^/]*\(/.*\)$'`"
-		#
-		APCEDITOR="`type $VISUAL`" ; export APCEDITOR
-		APCEDITOR="`expr "$APCEDITOR" : '^[^/]*\(/.*\)$'`"
-		#
-		dirappend PATH /usr/local/apc/xbin /usr/local/apc/bin
-		dirprepend MANPATH /usr/catman
-		;;
-	sunweb )
-		# the hacker editor (takes precedence if you're a hacker)
-		#
-		APCEDIT="pico" ; export APCEDIT
-		#
-		# the default editor for APC-soft tools
-		#
-		APCEDITOR="pico" ; export APCEDITOR
-		;;
-	* )
-		# assume anywhere but old web has the execvp() support
-		#
-		# the hacker editor (takes precedence if you're a hacker)
-		#
-		APCEDIT="$VISUAL" ; export APCEDIT
-		#
-		# the default editor for APC-soft tools
-		#
-		APCEDITOR="$VISUAL" ; export APCEDITOR
-		;;
-	esac
-	dirappend PATH $APCCONFIG/bin $APCCONFIG/xbin /apc/bin /apc/xbin
-	dirappend PATH /usr/local/apc/bin /usr/local/apc/xbin
-	dirappend MANPATH /apc/man
-	if [ -d $HOME/.pn -a "$argv0" != ".xsession" -a "$argv0" != ".xinitrc" ] ; then
-		echo "$TERM" > $HOME/.pn/TERM
-		stty -g > $HOME/.pn/SANE
-		echo "$TERMINFO" > $HOME/.pn/TERMINFO
-	fi
-fi
-
 if [ -z "$CVSROOT" ] ; then
 	CVSROOT="$LOCAL/src-CVS" ; export CVSROOT
 fi
@@ -420,16 +394,65 @@ robohack | toile | wombat | spinne | tar | sunweb | weirdo | isit | most | very 
 	: we trust that everything is all set up as it should be....
 	;;
 * )
+	get_newterm ()
+	{
+		while [ "$TERM" != "$ttytype" ] ; do
+			echo $n "Please enter your terminal type [$ttytype]: $c"
+			read newttytype
+			if [ -n "$newttytype" ] ; then
+				ttytype="$newttytype"
+			fi
+			# NOTE: we assume tput is everywhere these days....
+			if tput -T"$ttytype" cr >/dev/null 2>&1 ; then
+				TERM="$ttytype"
+			else
+				echo "Sorry, I don't know that terminal type."
+				echo "Use 'dumb' if you are stuck."
+				echo ""
+			fi
+		done
+		unset newttytype
+	}
+
 	echo "Re-setting terminal preferences...."
-	stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
-	# TODO: use getttytype()
-	eval `tset -I -sr -m dmd:dmd -m dmd-myx:dmd-myx -m sun:sun -m xterm:xterm -m vt100:vt100 -m vt102:vt102 -m at386:at386 -m AT386:at386 -m ibmpc3:ibmpc3 -m :?$TERM -`
-	case $TTY in
-	/dev/tty[p-zP-Z]* | /dev/vt* | /dev/console )
-		echo "Setting up an 8-bit tty environment...."
+	if [ -r "$HOME/.stty" ] ; then
+		. $HOME/.stty
+	else
+		stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
+	fi
+
+	case "$TERM" in
+	""|network|dialup|unknown)
+		ttytype=dumb
+		get_newterm
+		;;
+	esac
+
+	if expr "`type tset`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
+		# On BSD, without the "-I" it uses /etc/termcap....
+		# TODO: tset might not work like this everywhere (clears screen
+		# TODO: and doesn't print erase/kill settings on SysVr4)
+		tset -I -r
+	fi
+
+	case $TTYN in
+	tty[p-zP-Z]*|vt*|vg*|console)
+		echo "Setting terminal for 8-bit transparency...."
 		stty cs8 -istrip -parenb
 		;;
 	esac
+
+	# try setting up for X11 if possible....
+	case "$TERM" in
+	xterm|sun|pc3|ibmpc3)
+		# users will have to set their own $DISPLAY....
+		dirappend PATH /usr/bin/X11 $X11PATH/bin
+		dirappend MANPATH /usr/share/X11/man $X11PATH/man
+		;;
+	esac
+
+	echo "Your terminal is port $TTY."
+	export TERM
 	;;
 esac
 
