@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	21.2	99/12/23 12:42:46 (woods)"
+#ident	"@(#)HOME:.profile	21.3	99/12/28 23:04:44 (woods)"
 
 #
 # Assumptions that may cause breakage:
@@ -608,13 +608,16 @@ elif expr "`type gdiff`" : '.* is .*/jove$' >/dev/null 2>&1 ; then
 	DIFF="`type gdiff`" ; export DIFF
 fi
 
-if expr "`type auplay`" : '.* is .*/auplay$' >/dev/null 2>&1 ; then
-	AUDIOPLAYER="`type auplay`"
-elif expr "`type audioplay`" : '.* is .*/more$' >/dev/null 2>&1 ; then
-	AUDIOPLAYER="`type audioplay`"
-fi
+
 if [ -n "$AUDIOPLAYER" ] ; then
-	AUDIOPLAYER="`expr "$AUDIOPLAYER" : '^.*/\([^/]*\)$'`"; export AUDIOPLAYER
+	if expr "`type auplay`" : '.* is .*/auplay$' >/dev/null 2>&1 ; then
+		AUDIOPLAYER="`type auplay` -v 20"
+	elif expr "`type audioplay`" : '.* is .*/more$' >/dev/null 2>&1 ; then
+		AUDIOPLAYER="`type audioplay`"
+	fi
+	if [ -n "$AUDIOPLAYER" ] ; then
+		AUDIOPLAYER="`expr "$AUDIOPLAYER" : '^.*/\([^/]*\)$'`"; export AUDIOPLAYER
+	fi
 fi
 
 MONTH="AIKO" ; export MONTH
