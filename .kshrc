@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	24.2	02/09/17 21:41:27 (woods)"
+#ident	"@(#)HOME:.kshrc	24.3	02/10/27 13:43:53 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -147,6 +147,11 @@ function krcmd
 }
 
 if [ "$id" -eq 0 ] ; then
+	#
+	# we always want persistent (and shared) history for 'su'
+	#
+	# XXX this should probably look for ~root/.sh_history first...
+	#
 	if [ -n "$HISTFILE" ] ; then
 		HISTFILE="/$(basename $HISTFILE)"
 	else
