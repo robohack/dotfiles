@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file
 #
-#ident	"@(#)HOME:.xinitrc	3.2	94/05/10 12:19:54 (woods)"
+#ident	"@(#)HOME:.xinitrc	3.3	94/05/27 18:31:00 (woods)"
 
 PATH=$PATH:$HOME/bin
 export PATH
@@ -54,8 +54,8 @@ xclock -geometry 190x30-4+196 -digital &
 sleep 1
 xclock -geometry 190x190-4+4 &
 
-rsh -n kuma /usr/openwin/bin/perfmeter -geometry 130x640-205+4 -display $DISPLAY kuma.web.net &
-rsh -n kuma /usr/openwin/bin/perfmeter -geometry 130x640-340+4 -display $DISPLAY tar.web.net &
+rsh -n kuma /usr/openwin/bin/perfmeter -geometry 148x870-200+4 -display $DISPLAY kuma.web.net &
+rsh -n kuma /usr/openwin/bin/perfmeter -geometry 148x870-355+4 -display $DISPLAY tar.web.net &
 
 xmailwatcher -geometry 300x100-4+240 -iconic -icongeometry -140+240 -iconic -mailbox /var/spool/mail/$LOGNAME &
 xmailwatcher -geometry 300x100-4+300 -iconic -icongeometry -140+300 -iconic -mailbox /kuma/big/var/spool/mail/$LOGNAME &
