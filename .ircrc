@@ -1,7 +1,7 @@
 #
 #	greg's ~/.ircrc
 #
-#ident	"@(#)HOME:.ircrc	26.2	03/01/21 19:20:35 (woods)"
+#ident	"@(#)HOME:.ircrc	27.1	03/11/23 19:15:55 (woods)"
 
 set NOVICE off
 set CLOCK on
