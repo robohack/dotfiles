@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	6.3	94/07/28 10:32:49 (woods)"
+#ident	"@(#)HOME:.profile	6.4	94/11/03 17:02:51 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -89,7 +89,7 @@ dirprepend ()
 }
 
 case "$UUNAME" in
-robohack | araignee | tar | spinne | toile | wombat )
+robohack | kuma | araignee | tar | spinne | toile | wombat )
 	;;
 * )
 	PATH="/bin" ; export PATH
@@ -99,8 +99,8 @@ esac
 
 case "$UUNAME" in
 tar )
-	APCSRCDIR=/kuma/big/web/work/apc ; export APCSRCDIR
-	APCCONFIG=/kuma/big/web/work/apc/configure ; export APCCONFIG
+	APCSRCDIR=/kuma/source/web/work/apc ; export APCSRCDIR
+	APCCONFIG=/kuma/source/web/work/apc/configure ; export APCCONFIG
 	if [ `expr "$MFLAGS" : ".*$APCCONFIG.*"` -eq 0 ] ; then
 		MFLAGS="$MFLAGS -I $APCCONFIG" ; export MFLAGS
 	fi
