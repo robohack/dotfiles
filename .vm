@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.10	95/09/25 12:51:13 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.11	95/09/25 14:20:49 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -124,6 +124,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("namedroppers@internic.net" . "namedroppers-l")
 			      ("net-dist@nikhef.nl" . "nikhef.net-dist-l")
 			      ("qotd@" . "qotd-l")
+			      ("rs-info@internic.net" . "rs-info-l")
 			      ("smail3-maintainers@" . "smail3-maintainers-l")
 			      ("smail3-users@" . "smail3-users-l")
 			      ("smail3-wizards@" . "smail3-wizards-l")
@@ -162,6 +163,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("owner-admin-l@io.org" . "planix/io-admin-l")
 			      ("owner-namedroppers@internic.net" . "namedroppers-l")
 			      ("owner-net-dist@nikhef.nl" . "nikhef.net-dist-l")
+			      ("owner-rs-info@internic.net" . "rs-info-l")
 			      ("owner-\\([^@%]+\\)[@%]NetBSD.ORG" .
 			       (concat "netbsd/"
 				       (buffer-substring (match-beginning 1)
