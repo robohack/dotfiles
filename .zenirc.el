@@ -2,7 +2,7 @@
 ;;;	~/.zenirc.el -- stuff for ZenIRC
 ;;;
 
-;;;#ident	"@(#)HOME:.zenirc.el	18.1	97/01/20 10:10:16 (woods)"
+;;;#ident	"@(#)HOME:.zenirc.el	18.2	97/10/15 02:22:03 (woods)"
 
 ;; A good way to use this is to add something like
 ;;(autoload 'zenirc
@@ -64,10 +64,11 @@
   ;; this is a list of IRC servers you use
   ;; it consists of servername, portnumber, password, nickname, username
   ;;(setq zenirc-server-alist 
-  ;;      '(("flinch.io.org" 6667)
+  ;;      '(("flinch.io.org" 6667)	; 198.133.36.153
   ;;	("irc.sdsc.edu" 6667)
-  ;;	("cs-pub.bu.edu" 6666)))
-  (setq zenirc-server-default "198.133.36.153") ; emacs vs. resolver problems...
+  ;;	("cs-pub.bu.edu" 6666)
+  ;;    ("irc.rift.com"))		; 205.150.226.4
+  (setq zenirc-server-default "205.150.226.4") ; emacs vs. resolver problems...
 
   (setq case-fold-search t)		; K.I.S.S.
 
@@ -175,7 +176,7 @@
   ;; use the following to get an ircII like /notify command
   (require 'zenirc-notify)
   (setq zenirc-notify-list		; a list of notificated people
-	'("dreamzz" "robo2" "robohacker" "robotester" "pope13"))
+	'("dreamzz" "hmmmm" "robo2" "robohacker" "robotester" "pope13"))
 
   ;; allow CTCP "iwantop <channel>" commands to work automatically....
   (require 'zenirc-iwantop)
