@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	20.1	98/07/20 11:23:39 (woods)"
+#ident	"@(#)HOME:.ctwmrc	20.2	98/10/05 01:08:42 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -1066,7 +1066,7 @@ menu "rlogin"
 	"Rlogin's at Log.on.ca..."	f.menu "rlogin-logon"
 	"Rlogin's at FGSC.ca..."	f.menu "rlogin-fgsc"
 	"Rlogin's at Passport.ca..."	f.menu "rlogin-passport"
-	"Rlogin's at SOLS.on.ca..."	f.menu "rlogin-sols"
+	"Rlogin's at sols.org..."	f.menu "rlogin-sols"
 	"Rlogin's at Vex.net..."	f.menu "rlogin-vex"
 	"Rlogin's at Reptiles.org..."	f.menu "rlogin-reptiles"
 	"Rlogin's at vrx.net..."	f.menu "rlogin-vrx"
@@ -1094,7 +1094,7 @@ menu "slogin"
 	"Slogin's at Proxy.com..."	f.menu "slogin-proxy"
 	"Slogin's at PageActive.com..."	f.menu "slogin-pageactive"
 	"Slogin's at Passport.ca..."	f.menu "slogin-passport"
-	"Slogin's at SOLS.on.ca..."	f.menu "slogin-sols"
+	"Slogin's at sols.org..."	f.menu "slogin-sols"
 	"Slogin's at ACI.on.ca..."	f.menu "slogin-aci"
 	"Slogin's at Log.on.ca..."	f.menu "slogin-logon"
 	"Slogin's at Rogers.WAVE.ca..." f.menu "slogin-rogers"
@@ -1328,16 +1328,16 @@ menu "slogin-passport"
 
 menu "rlogin-sols"
 {
-	"Rlogin's At SOLS.on.ca" f.title
-	"Rlogin @solsinfo"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin solsinfo.sols.on.ca &"
-	"Rlogin @solsweb"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin solsweb.sols.on.ca &"
+	"Rlogin's At sols.org" f.title
+	"Rlogin @solsinfo"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin solsinfo.sols.org &"
+	"Rlogin @solsweb"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin solsweb.sols.org &"
 }
 
 menu "slogin-sols"
 {
-	"Slogin's At SOLS.on.ca" f.title
-	"Slogin @solsinfo"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin solsinfo.sols.on.ca &"
-	"Slogin @solsweb"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin solsweb.sols.on.ca &"
+	"Slogin's At sols.org" f.title
+	"Slogin @solsinfo"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin solsinfo.sols.org &"
+	"Slogin @solsweb"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin solsweb.sols.org &"
 }
 
 menu "rlogin-vex"
