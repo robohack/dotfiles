@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	25.6	02/12/12 22:32:35 (woods)"
+#ident	"@(#)HOME:.kshrc	25.7	02/12/13 01:45:11 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -652,7 +652,7 @@ alias llra='/bin/ls -lisaR'
 alias lr='/bin/ls -CFR'
 alias lra='/bin/ls -CFRa'
 alias lsa='/bin/ls -a'
-alais deadlinks='find . -type l -a ! \( -follow -type f \) -print'
+alias deadlinks='find . -type l -a ! \( -follow -type f \) -print'
 alias logout='exit 0'
 alias nosgr='echo '
 alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok'
