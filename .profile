@@ -1,16 +1,18 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	8.11	95/06/07 21:08:40 (woods)"
+#ident	"@(#)HOME:.profile	8.12	95/06/07 21:30:48 (woods)"
 
 #
 # Assumptions:
 #
+#	- standard environment has been set by login(1)
 #	- $argv0 is `basename $0` from .xinitrc or .xsession
 #
 
 # Files referenced:
 #
+#	$HOME/.ashtype		- sourced once, if readable and if running ash(1)
 #	$HOME/.ashlogin		- sourced once, if running ash(1)
 #	$HOME/.editor		- name of prefered text editor command
 #	$HOME/.kshlogin		- sourced once, if running ksh(1)[, or bash(1)?]
@@ -28,6 +30,11 @@ if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
 elif [ -r $HOME/.shlogout ] ; then
 	trap '. $HOME/.shlogout ; exit $?' 0
+fi
+
+if [ `echo ~` = $HOME -a -r .ashtype ] ; then
+	# TODO: actually, maybe this should be a Posix shell environment...
+	. $HOME/.ashtype
 fi
 
 if [ -z "$UUNAME" ] ; then
