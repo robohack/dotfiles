@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.22	99/08/10 20:17:39 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.23	99/08/10 20:19:46 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1892,8 +1892,8 @@ current emacs server process..."
 	  (and (<= min-to-app 6) (= (mod min-to-app 2) 0)))
       ad-do-it))
 (eval-after-load "appt" '(ad-activate 'appt-disp-window))
-(setq calendar-latitude 43.75)
-(setq calendar-longitude -79.45)
+(setq calendar-latitude 43.77681)
+(setq calendar-longitude -79.420865)
 (setq today-visible-calendar-hook 'calendar-mark-today)
 (setq calendar-time-display-form
       '(24-hours ":" minutes
