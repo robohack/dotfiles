@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	4.4	94/03/31 15:47:32 (woods)"
+#ident	"@(#)HOME:.profile	5.1	94/03/31 16:05:42 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0

@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el
 ;;;;
-;;;#ident	"@(#)HOME:.vm	2.3	94/03/31 16:04:03 (woods)"
+;;;#ident	"@(#)HOME:.vm	3.1	94/03/31 16:05:10 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
