@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc  20.14    99/04/21 23:11:15 (woods)"
+# ident	"@(#)HOME:.mailrc  20.15    99/07/06 19:34:53 (woods)"
 
 set keep
 set keepsave
@@ -20,6 +20,7 @@ alias bitkeeper-users	"bitkeeper-users@bitmover.com (BitKeeper Discussion List)"
 alias bug-cvs		"bug-cvs@gnu.org (CVS-II Bugs Mailing List)"
 alias bug-gnu-emacs	"bug-gnu-emacs@gnu.org (GNU Emacs Bugs Mailing List)"
 alias bug-vm		"bug-vm@UUnet.UU.net (ViewMail Bugs Mailing List)"
+alias bugtraq		"BUGTRAQ@SECURITYFOCUS.COM (BUGTRAQ: Full Disclosure Security Mailing List)
 alias current-users	"current-users@NetBSD.ORG (NetBSD-current Discussion List)"
 alias datacenter	"datacenter@shorty.com (Data Centre Discussion List)"
 alias devel-cvs		"devel-cvs@cyclic.com (CVS Developers)"
