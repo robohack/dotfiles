@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	2.1	93/12/08 16:14:58 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	3.1	93/12/13 11:57:29 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -800,23 +800,32 @@ feeling, but you'll get used to it."
       (setq calendar-time-display-form 
 	    '(24-hours ":" minutes
 		       (if time-zone " (") time-zone (if time-zone ")")))
+      (setq appt-message-warning-time 20)
+      (setq view-diary-entries-initially t)
+      (setq mark-diary-entries-in-calendar t)
+      (setq mark-holidays-in-calendar t)
+      (setq diary-display-hook (list 'appt-make-list 'fancy-diary-display))
+      (setq appt-display-duration 60)	; seconds to display appointment message
+      (setq appt-issue-message t)
       (setq number-of-diary-entries [2 2 2 2 2 4 2])
       (setq all-christian-calendar-holidays t)
       (setq other-holidays
-	    '((holiday-fixed 7 14 "Bastille Day")))
-      (defun my-calendar-start ()
-	(interactive)
-	(setq 
-	 appt-message-warning-time 20
-	 view-diary-entries-initially t
-	 mark-diary-entries-in-calendar t
-	 mark-holidays-in-calendar t
-	 diary-display-hook (list 'appt-make-list 'fancy-diary-display)
-	 appt-display-duration 60	; seconds to display appointment message
-	 appt-issue-message t)
-	(autoload 'appt-make-list "appt.el" nil t)
-	(add-hook 'initial-calendar-window-hook 'display-time)
-	(calendar))))
+	    '((holiday-fixed 1 11 "Sir John A. Macdonald's birthday")
+	      (holiday-fixed 2 17 "Heritage Day") ; ?????
+	      (holiday-fixed 4 21 "Queen Elizabeth's birthday")
+	      (holiday-fixed 4 22 "Earth Day")
+	      (holiday-float 5 1 -2 "Victoria Day") ; second last Monday
+	      (holiday-fixed 7 14 "Bastille Day")
+	      (holiday-fixed 7 1 "Canada Day")
+	      (holiday-float 8 1 1 "Civic Holiday") ; first Monday
+	      (holiday-float 9 1 1 "Labour Day") ; first Monday
+	      (holiday-float 10 1 2 "Thanksgiving Day (Canada)")
+	      (holiday-fixed 10 16 "World Food Day") ; ????
+	      (holiday-fixed 12 6 "National Day of Remembrance and Action on
+Violence Against Women")
+	      (holiday-fixed 12 26 "Boxing Day")))
+      (autoload 'appt-make-list "appt.el" nil t)
+      (add-hook 'initial-calendar-window-hook 'display-time)))
 
 ; ;; Appointments every 3 minutes not every 1 minute!
 ; (defadvice appt-check (around my-appt-advice activate)
