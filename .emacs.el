@@ -1,11 +1,11 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	19.2	98/02/01 20:38:17 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	19.3	98/02/23 21:27:34 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
-;;;; primarily tested on v19.28 and v19.34.
+;;;; primarily tested on v19.28 and v19.34, and a wee bit on v20.2.
 ;;;;
 
 ;;; This file should be stored in "~/.emacs.el".
@@ -32,17 +32,34 @@
 ;;;; stolen from cl.el -- find out where we are!
 
 (defvar init-emacs-type
-  (cond ((or (and (fboundp 'epoch::version)
+  (cond ((boundp 'emacs-major-version)
+	 emacs-major-version)
+	((or (and (fboundp 'epoch::version)
 		  (symbol-value 'epoch::version))
-	     (string-lessp emacs-version "19")) 18)
-	((string-match "Lucid" emacs-version) 'lucid)
-	(t 19))
+	     (string-lessp emacs-version "19"))
+	 18)				; was there ever anything less?
+	(t 19))				; what else could it be?
   "Emacs major version for testing compatibility.")
 
-(if (/= init-emacs-type '19)
+(if (/= init-emacs-type 19)
     (progn
       (message "Not running emacs v19 I see -- you'll have trouble with this .emacs!")
       (sit-for 5)))
+
+(if (= init-emacs-type 20)
+    ;; You probably want/need this.
+    ;; From: Johan Vromans <johan_vromans@nl.compuware.com>
+    (defadvice standard-display-european
+      (around maintain-multibyte-character-mode activate)
+      "Inhibit standard-display-european from disabling multibyte-character mode."
+      (let ((enable-multibyte-characters enable-multibyte-characters))
+	ad-do-it)))
+
+;;; Load VM.
+;(require 'vm)
+;;; Inhibit fatal message.
+;(defun vm-check-emacs-version ()
+;  (message "WARNING: vm-check-emacs-version disabled."))
 
 ;;;; ----------
 ;;;; What to do after this file has been loaded...
