@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.18	99/04/21 23:51:54 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.19	99/05/11 12:57:03 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -388,6 +388,21 @@ scripts (alias)." t)
 ;;
 (setq auto-mode-alist
       (append
+       '(("/[Cc]onfig[^/\\.]*$" . sh-mode)) ; sh-mode, in 19.28 and newer
+       '(("[^/]*rc$" . sh-mode))
+       '(("/rc\\.[^/]*$" . sh-mode))
+       '(("/rc\\.[^/]*/[^/]*$" . sh-mode))
+       '(("[-\\.]ash[^/]*$" . sh-mode))
+       '(("[-\\.]ksh[^/]*$" . sh-mode))
+       '(("[-\\.]sh[^/]*$" . sh-mode))
+       '(("\\.[^/]*profile" . sh-mode))
+       '(("/pkg/COMMENT$" . indented-text-mode)) ; NetBSD pkgsrc
+       '(("/pkg/DEINSTALL$" . sh-mode))	; NetBSD pkgsrc
+       '(("/pkg/DESCRIPTION$" . indented-text-mode)) ; NetBSD pkgsrc
+       '(("/pkg/INSTALL$" . sh-mode))	; NetBSD pkgsrc
+       '(("/pkg/MESSAGE$" . indented-text-mode)) ; NetBSD pkgsrc
+       '(("/pkg/PLIST$" . sh-mode))	; NetBSD pkgsrc (not sh, but...)
+       '(("/pkg/REQUIRE$" . sh-mode))	; NetBSD pkgsrc
        '(("/[^/]+\\.java$" . java-mode))	; cc-mode
        '(("/[^/]+\\.[0-9][a-z]?$" . nroff-mode)) ; man page
        '(("/[^/]+\\.[0-9][a-z]?\\.in$" . nroff-mode)) ; man page
@@ -441,35 +456,6 @@ scripts (alias)." t)
 	  (append
 	   '(("/configure.in$" . m4-mode))
 	   auto-mode-alist)))
-
-;; assume the autoloads are done for this...
-(if (and (elisp-file-in-loadpath-p "ksh-mode")
-	 (not (elisp-file-in-loadpath-p "sh-script")))
-    (setq auto-mode-alist
-	  (append
-	   '(("/[Cc]onfig[^/\\.]*$" . ksh-mode))
-	   '(("[^/]*rc$" . ksh-mode))
-	   '(("^rc\\.[^/]*$" . ksh-mode))
-	   '(("^rc\\.[^/]*/[^/]*$" . ksh-mode))
-	   '(("[-\\.]ash[^/]*$" . ksh-mode))
-	   '(("[-\\.]ksh[^/]*$" . ksh-mode))
-	   '(("[-\\.]sh[^/]*$" . ksh-mode))
-	   '(("\\.[^/]*profile" . ksh-mode))
-	   auto-mode-alist)))
-
-;; the real thing, in 19.28 and above
-(if (elisp-file-in-loadpath-p "sh-script")
-      (setq auto-mode-alist
-	    (append
-	     '(("/[Cc]onfig[^/\\.]*$" . sh-mode))
-	     '(("[^/]*rc$" . sh-mode))
-	     '(("/rc\\.[^/]*$" . sh-mode))
-	     '(("/rc\\.[^/]*/[^/]*$" . sh-mode))
-	     '(("[-\\.]ash[^/]*$" . sh-mode))
-	     '(("[-\\.]ksh[^/]*$" . sh-mode))
-	     '(("[-\\.]sh[^/]*$" . sh-mode))
-	     '(("\\.[^/]*profile" . sh-mode))
-	     auto-mode-alist)))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "vm")
