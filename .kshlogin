@@ -1,7 +1,7 @@
 #
 #	.kshlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.kshlogin	4.1	94/12/20 14:38:50 (woods)"
+#ident	"@(#)HOME:.kshlogin	4.2	95/06/25 20:38:51 (woods)"
 
 set -o ignoreeof	# we only do this for our login shell....
 
@@ -10,15 +10,17 @@ export FCEDIT="$(whence ed)"
 
 export ENVFILE=$HOME/.kshrc
 
-# the one in the book says....
-#
-#export ENV='${ENVFILE[(_$-=0)+(_=1)-_${-%%*i*}]}'
-#
-# this one seems more correct, and I think was what Korn posted
-# to Usenet once upon a time (it also works with all the
-# versions of ksh I've run across, including ksh-85 and AIX-3.2)
-#
-export ENV='${ENVFILE[(_$-=1)+(_=0)-(_$-!=_${-%%*i*})]}'
+if [ -n "$ENVFILE" -a -r "$ENVFILE" ] ; then
+	# the one in the book says....
+	#
+	#export ENV='${ENVFILE[(_$-=0)+(_=1)-_${-%%*i*}]}'
+	#
+	# this one seems more correct, and I think was what Korn posted
+	# to Usenet once upon a time (it also works with all the
+	# versions of ksh I've run across, including ksh-85 and AIX-3.2)
+	#
+	export ENV='${ENVFILE[(_$-=1)+(_=0)-(_$-!=_${-%%*i*})]}'
+fi
 
 export HISTSIZE=2000
 

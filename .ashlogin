@@ -1,7 +1,7 @@
 #
 #	.ashlogin - login shell startup for ash
 #
-#ident	"@(#)HOME:.ashlogin	1.2	95/03/08 18:46:09 (woods)"
+#ident	"@(#)HOME:.ashlogin	1.3	95/06/25 20:39:04 (woods)"
 
 set -o ignoreeof	# we only do this for our login shell....
 
@@ -9,16 +9,9 @@ export FPATH=$HOME/lib/sh
 
 export ENVFILE=$HOME/.ashrc
 
-# the one in the book says....
-#
-#export ENV='${ENVFILE[(_$-=0)+(_=1)-_${-%%*i*}]}'
-#
-# this one seems more correct, and I think was what Korn posted
-# to Usenet once upon a time (it also works with all the
-# versions of ksh I've run across, including ksh-85 and AIX-3.2)
-#
-#export ENV='${ENVFILE[(_$-=1)+(_=0)-(_$-!=_${-%%*i*})]}'
-export ENV=$ENVFILE
+if [ -n "$ENVFILE" -a -r "$ENVFILE" ] ; then
+	export ENV=$ENVFILE
+fi
 
 export HISTSIZE=2000
 
