@@ -1,0 +1,69 @@
+#
+#	.shrc - per-shell startup stuff for /bin/sh
+#
+#ident	"@(#)HOME:.shrc	1.1	94/12/20 14:15:39 (woods)"
+
+export PATH="$PATH"
+
+dirappend ()
+{
+	if [ $# -le 1 ] ; then
+		echo "Usage: dirappend variable directory [...]" >&2
+		exit 2
+	fi
+	varname=$1
+	shift
+	eval varvalue='$'$varname
+	while [ $# -gt 0 ] ; do
+		if [ -d "$1" -a `expr ":$varvalue:" : ".*:$1:.*"` -eq 0 ] ; then
+			eval $varname='$'"$varname"'":$1"'
+		fi
+		shift
+	done
+	unset varname varvalue
+}
+
+dirprepend ()
+{
+	if [ $# -le 1 ] ; then
+		echo "Usage: dirprepend variable directory [...]" >&2
+		exit 2
+	fi
+	varname=$1
+	shift
+	eval varvalue='$'$varname
+	while [ $# -gt 0 ] ; do
+		if [ -d "$1" -a `expr ":$varvalue:" : ".*:$1:.*"` -eq 0 ] ; then
+			eval $varname='"$1:"$'"$varname"
+		fi
+		shift
+	done
+	unset varname varvalue
+}
+
+# UGLY, but it works
+#
+eval "$(id|sed -e 's/^uid=\([0-9]*\)(\(..*\)) gid=[0-9]*(\([^) ]*\)).*$/id=\1 uid=\2 gid=\3/')"
+
+if [ "$id" -eq 0 ] ; then
+	# got to get rid of lone ":" in PATH
+	PATH="`echo $PATH | sed -e 's/::/:/g' -e 's/^://' -e 's/:$//'`"
+	dirprepend PATH /sbin /usr/sbin
+	dirappend PATH /usr/etc /usr/lbin /usr/ucb /usr/bin/X11
+	if [ -n "$LOCAL" ] ; then
+		dirappend PATH $LOCAL/etc $LOCAL/sbin $LOCAL/bin $LOCAL/lib
+	fi
+	if [ -n "$GNU" ] ; then
+		dirappend PATH $GNU/etc $GNU/sbin $GNU/bin $GNU/lib
+	fi
+	if [ -n "$CONTRIB" ] ; then
+		dirappend PATH $CONTRIB/etc $CONTRIB/sbin $CONTRIB/bin $CONTRIB/lib
+	fi
+	dirappend PATH /usr/lib/uucp /usr/lib
+	dirappend PATH $HOME/bin
+	PS1="$TTYN:<$LOGNAME@$UUNAME> # "
+elif [ "$uid" != "$LOGNAME" ] ; then
+	PS1="$TTYN:<$uid($LOGNAME)@$UUNAME)> $ "
+else
+	PS1="$TTYN:<$LOGNAME@$UUNAME> $ "
+fi
