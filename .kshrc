@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	3.1	94/03/25 18:33:34 (woods)"
+#ident	"@(#)HOME:.kshrc	3.2	94/05/10 12:34:18 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -136,6 +136,15 @@ if [ "$id" -eq 0 ] ; then
 		PS1='[!] # '
 	else
 		PS1='$TTYN:$LOGNAME@$UUNAME[$LEV.!] ${PWD#$HOME} # '
+	fi
+	if [ -d /var/spool/mail ] ; then
+		MAILPATH="/var/spool/mail/${LOGNAME}:/var/spool/mail/root\
+:/var/spool/mail/adm:/var/spool/mail/uucp:/var/spool/mail/badmail\
+:/var/spool/mail/usenet:/usr/adm/lastlog:/usr/adm/sulog"
+	else
+		MAILPATH="/usr/mail/${LOGNAME}:/usr/mail/root:/usr/mail/adm\
+:/usr/mail/uucp:/usr/mail/badmail:/usr/mail/usenet:/usr/adm/lastlog\
+:/usr/adm/sulog"
 	fi
 	# fix for ksh-11/16/88b
 	#alias passwd='/bin/passwd'
