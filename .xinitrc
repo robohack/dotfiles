@@ -3,9 +3,10 @@
 #
 #	.xinitrc - X Window System startup file
 #
-#ident	"@(#)HOME:.xinitrc	2.1	94/02/23 12:59:01 (woods)"
+#ident	"@(#)HOME:.xinitrc	2.2	94/02/23 12:59:49 (woods)"
 
 PATH=$PATH:$HOME/bin
+export PATH
 
 argv0="`basename $0`"
 
