@@ -1,7 +1,7 @@
 #
 #	.shlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.shlogin	19.1	98/01/11 20:58:21 (woods)"
+#ident	"@(#)HOME:.shlogin	19.2	98/04/26 16:01:09 (woods)"
 
 # this doesn't do anything but let you type '. $ENV'
 ENV=$HOME/.shrc ; export ENV
@@ -40,29 +40,19 @@ tar*)
 esac
 export WORKDIR
 
-if [ -z "$MAILPATH" ] ; then
-	if [ -d /var/spool/mail ] ; then
-		MAILPATH="/var/spool/mail/$LOGNAME"
-	elif [ -d /var/mail ] ; then
-		MAILPATH="/var/mail/$LOGNAME"
+# use MAIL instead of MAILPATH, primarily to avoid the clash of using
+# a POP specification in MAILPATH for emacs VM
+# 
+unset MAILPATH
+if [ -z "$MAIL" ] ; then
+	if [ -d /var/mail ] ; then
+		MAIL="/var/mail/$LOGNAME"
+	elif [ -d /var/spool/mail ] ; then
+		MAIL="/var/spool/mail/$LOGNAME"
 	elif [ -d /usr/mail ] ; then
-		MAILPATH="/usr/mail/$LOGNAME"
+		MAIL="/usr/mail/$LOGNAME"
 	elif [ -d /usr/spool/mail ] ; then
-		MAILPATH="/usr/spool/mail/$LOGNAME"
+		MAIL="/usr/spool/mail/$LOGNAME"
 	fi
 fi
-export MAILPATH
-
-#
-# only supported in a very few /bin/sh's
-#
-CDPATH=":$HOME:$HOME/src:$HOME/src/lib:$HOME/src/work.d\
-:$HOME/src/work.d/lib:$HOME/lib:$WORKDIR"
-export CDPATH
-
-dirappend CDPATH /usr/src /usr/src/lib /usr/src/cmd /usr/src/add-on
-dirappend CDPATH /usr/src/gnu /usr/src/games
-dirappend CDPATH /usr/src/local /usr/src/local/lib /usr/src/local/cmd
-dirappend CDPATH $LOCAL/src $LOCAL/src/lib $LOCAL/src/gnu $LOCAL/src/bsd
-dirappend CDPATH /usr/src/ucbcmd /usr/src/ucblib
-dirappend CDPATH $LOCAL $LOCAL/lib /usr/lib /usr/spool / /usr
+export MAIL
