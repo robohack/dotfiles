@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	1.4	95/03/19 17:53:30 (woods)"
+#ident	"@(#)HOME:.twmrc	1.5	95/03/19 22:19:47 (woods)"
 #
 
 AutoRelativeResize
@@ -264,11 +264,10 @@ menu "defops"
 {
 	"Twm"			f.title
 	"Window Operations..."	f.menu "winops"
+	"Window Manager..."	f.menu "wmops"
 	""			f.nop
 	"Applications..."	f.menu "applications"
-	""			f.nop
-	"Refresh"		f.refresh
-	"Restart"		f.restart
+	"Preferences..."	f.menu "preferences"
 	""			f.nop
 	"Exit..."		f.menu "exit"
 }
@@ -290,8 +289,6 @@ menu "winops"
 	"Save"			f.saveyourself
 	"Identify"		f.identify
 	""			f.nop
-	"Icon Manager..."	f.menu "iconmgr"
-	""			f.nop
 	"Iconify"		f.iconify
 	"DeIconify"		f.deiconify
 	""			f.nop
@@ -300,6 +297,18 @@ menu "winops"
 	""			f.nop
 	"Delete"		f.delete
 	"Kill"			f.destroy
+}
+
+menu "wmops"
+{
+	"Refresh"		f.refresh
+	"Restart"		f.restart
+	""			f.nop
+	"Icon Manager..."	f.menu "iconmgr"
+	""			f.nop
+	"Version"		f.version
+	""			f.nop
+	"Window Summary..."	f.menu "TwmWindows"
 }
 
 menu "zooms"
@@ -332,6 +341,19 @@ menu "iconmgr"
 	"Right"			f.righticonmgr
 }
 
+# "personal preference" adjustment
+menu "preferences"
+{
+	"Preferences"		f.title
+	"Bell On"		!"xset b 100 800 &"
+	"Bell Off"		!"xset b 0 &"
+	"Click On"		!"xset c on &"
+	"Click Off"		!"xset c off &"
+	"Mouse Fast"		!"xset m 9 5&"
+	"Mouse Normal"		!"xset m 6 3&"
+	"Mouse Slow"		!"xset m 1 1&"
+}
+
 menu "exit"
 {
 	"Exit TWM"				f.title
@@ -348,6 +370,15 @@ menu "applications"
 	"Emacs Everywhere..."		f.menu "emacs"
 	"Netscape Everywhere..."	f.menu "netscape"
 	"Games Everywhere..."		f.menu "games"
+	""				f.nop
+	"xclock"			!"xclock -geometry 190x190-4+4 &"
+	"xclock -digital"		!"xclock -geometry 190x30-4+196 -digital &"
+	"xcalc"				!"xcalc &"
+	"xload"				!"xload -geometry 120x137-205+4 -hl grey90 &"
+	"xlock"				!"xlock -mode flame &"
+	"xman"				!"xman &"
+	"xshell"			!"xshell &"
+	"OpenWin-2 xlock"		!"env LD_LIBRARY_PATH=/usr/openwin/lib:/usr/lib xlock -mode qix &"
 }
 
 menu "emacs"
