@@ -2,7 +2,7 @@
 ;;;	~/.zenirc.el -- stuff for ZenIRC
 ;;;
 
-;;;#ident	"@(#)HOME:.zenirc.el	20.2	98/09/18 02:01:29 (woods)"
+;;;#ident	"@(#)HOME:.zenirc.el	20.3	98/10/23 02:37:33 (woods)"
 
 ;; A good way to use this is to add something like to .emacs(.el)
 ;;(autoload 'zenirc (expand-file-name "~/.zenirc") "Major mode to waste time" t nil)
@@ -17,10 +17,18 @@
 ;;
 ;; :pfawww.pp.se 001 Omnion :Welcome to the Internet Relay Network Onion
 ;;
-(defvar zenirc-startup-channels "&internex,#NetBSD,#secrets,#Planix"
+(defvar zenirc-startup-channels nil
   "*Comma separated string of channels to join during startup")
 
+(setq zenirc-startup-channels "#srh,&internex,#NetBSD,#secrets,#Planix")
+
 (defun zenirc-startup-join (proc parsedmsg)
+  "*Hook function run in zenirc-server-001-hook."
+
+  ;; pause and wait for any auto-invites to take effect.....
+  (message "pausing and waiting for possible invites....")
+  (sleep-for 10)
+
   (process-send-string proc
 		       (concat "JOIN " zenirc-startup-channels "\n"))
 
@@ -56,6 +64,45 @@
 )
 
 (zenirc-add-hook 'zenirc-server-001-hook 'zenirc-startup-join)
+
+(defvar zenirc-auto-invite-secrets-list nil
+  "*List of nicknames to invite to #secrets.  Must be lower-case.")
+
+(setq zenirc-auto-invite-secrets-list '("dreamzz"
+					"ghoti"
+					"hmmm-"
+					"robo2"
+					"robohack"
+					"robotest"))
+
+(defun zenirc-auto-invite-secrets (proc nick)
+  "*For use on zenirc-notify-is-on-hook."
+  (if (member (downcase nick) zenirc-auto-invite-secrets-list)
+      (progn
+	(zenirc-message proc "[debug] Auto-inviting %s to #secrets...." nick)
+	(zenirc-dotowho nick '(process-send-string proc
+						 (concat "INVITE "
+							 (aref whoreply 7)
+							 " #secrets\n"))))))
+
+(defvar zenirc-auto-invite-planix-list nil
+  "*List of nicknames to invite to #planix.  Must be lower-case.")
+
+(setq zenirc-auto-invite-planix-list '("robohack"
+				       "robo2"
+				       "robotest"
+				       "whome"
+				       "who-me"))
+
+(defun zenirc-auto-invite-planix (proc nick)
+  "*For use on zenirc-notify-is-on-hook."
+  (if (member (downcase nick) zenirc-auto-invite-planix-list)
+      (progn
+	(zenirc-message proc "[debug] Auto-inviting %s to #planix...." nick)
+	(zenirc-dotowho nick '(process-send-string proc
+						   (concat "INVITE "
+							   (aref whoreply 7)
+							   " #planix\n"))))))
 
 ;;; This is a big startup hook for zenirc...
 
@@ -181,11 +228,14 @@
   (require 'zenirc-notify)
   (setq zenirc-notify-list		; a list of notificated people
 	'("dreamzz"
-	  "hmmmm"
+	  "hmmm-"
 	  "pope13"
 	  "robo2"
 	  "robotest"
-	  "whome"))
+	  "whome"
+	  "who-me"))
+  (zenirc-add-hook 'zenirc-notify-is-on-hook 'zenirc-auto-invite-secrets)
+  (zenirc-add-hook 'zenirc-notify-is-on-hook 'zenirc-auto-invite-planix)
 
   ;; allow CTCP "iwantop <channel>" commands to work automatically....
   (require 'zenirc-iwantop)
@@ -202,12 +252,15 @@
   ;; colourizing a certain victim's output, "/uncolor #victim" to stop.
   (require 'zenirc-color)
   (zenirc-color-mode)
-  (zenirc-add-color-victim "purple" "dreamzz")
-  (zenirc-add-color-victim "red" "druidz")
-  (zenirc-add-color-victim "green" "whome")
-  (zenirc-add-color-victim "blue" "robotest")
-  (zenirc-add-color-victim "steelblue" "robo2")
-  (zenirc-add-color-victim "yellow" "hmmmm")
+  (zenirc-add-color-victim "purple" "#secrets")
+  (zenirc-add-color-victim "red" "#planix")
+  (zenirc-add-color-victim "orange" "#netbsd")
+  (zenirc-add-color-victim "blue" "&internex")
+  (zenirc-add-color-victim "darkgreen" "#srh")
+  (zenirc-add-color-victim "green" "robotest")
+  (zenirc-add-color-victim "yellow" "robo2")
+  (zenirc-add-color-victim "steelblue" "hmmm-")
+  ;; TODO: modify "/color" to print the list when given no args...
 
   ;; end of zenirc-custom-startup
 )
@@ -242,6 +295,19 @@
 						channel their-nick)))))))
 		 
 (zenirc-add-hook 'zenirc-server-JOIN-hook 'zenirc-auto-op-on-join)
+
+;; this is effectively an alias for /part
+(defvar zenirc-command-leave-hook nil
+  "Hook run for /leave command.")
+(zenirc-add-hook 'zenirc-command-leave-hook 'zenirc-command-part)
+
+;; /myaway
+;; set my custom away message
+(defvar zenirc-command-myaway-hook '(zenirc-command-myaway))
+(defun zenirc-command-myaway (proc parsedcmd)
+  (process-send-string proc
+		       "AWAY :Sleeping, working, playing, eating, drinking, whatever....\n"))
+
 
 ;;; TODO: set zenirc-exit-hook to try re-connecting after a pause....
 
