@@ -1,4 +1,4 @@
-# ident	"@(#)HOME:.mailrc  19.6    98/03/29 19:05:08 (woods)"
+# ident	"@(#)HOME:.mailrc  19.7    98/03/29 19:41:52 (woods)"
 #
 #	.mailrc - for mailx and emacs-VM
 #
@@ -16,6 +16,7 @@ set crt=24
 alias aegis-users	"aegis-users@bmr.gov.au (Aegis Users Mailing List)"
 alias automake		"automake@gnu.org (GNU Automake Mailing List)"
 alias bug-cvs		"bug-cvs@gnu.org (CVS-II Bugs Mailing List)"
+alias bug-vm		"bug-vm@UUnet.UU.net (ViewMail Bugs Mailing List)"
 alias exim-users	"exim-users@exim.org (Exim Users Mailing List)"
 alias info-cvs		"info-cvs@gnu.org (CVS-II Discussion Mailing List)"
 alias ipfilter		"ipfilter@postbox.anu.edu.au (IP-Filter Mailing List)"
