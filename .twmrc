@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	1.1	95/03/11 20:20:13 (woods)"
+#ident	"@(#)HOME:.twmrc	1.2	95/03/16 22:13:23 (woods)"
 #
 
 AutoRelativeResize
@@ -121,68 +121,52 @@ function "start-xterm" {
 	f.exec "/usr/bin/X11/xterm -cn -rw -sb -si -sk -sl 2048 -ls &"
 }
 
-function "start-kuma-xterm" {
-	f.exec "/usr/ucb/rsh -n kuma /usr/bin/X11/xterm -display $DISPLAY  -cn -rw -sb -si -sk -sl 2048 -ls &"
+function "start-most-xterm" {
+	f.exec "/usr/ucb/rsh -n most /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
 }
 
-function "start-spinne-xterm" {
-	f.exec "/usr/ucb/rsh -n spinne /usr/bin/X11/xterm -display $DISPLAY  -cn -rw -sb -si -sk -sl 2048 -ls &"
+function "start-very-xterm" {
+	f.exec "/usr/ucb/rsh -n very /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
-function "start-araignee-xterm" {
-	f.exec "/usr/ucb/rsh -n araignee /usr/bin/X11/xterm -display $DISPLAY  -cn -rw -sb -si -sk -sl 2048 -ls &"
+function "start-weird-rlogin" {
+	f.exec "/usr/ucb/rsh -n most /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin weird &"
+}
+
+function "start-kuma-rlogin" {
+	f.exec "/usr/ucb/rsh -n most /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin kuma.web.net &"
+}
+
+function "start-spinne-rlogin" {
+	f.exec "/usr/ucb/rsh -n most /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin spinne.web.net &"
+}
+
+function "start-web-rlogin" {
+	f.exec "/usr/ucb/rsh -n most /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin web.net &"
+}
+
+function "start-whome-rlogin" {
+	f.exec "/usr/ucb/rsh -n most /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin whome.planix.com &"
+}
+
+function "start-woffi-rlogin" {
+	f.exec "/usr/ucb/rsh -n most /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin woffi.planix.com &"
+}
+
+function "start-worm-rlogin" {
+	f.exec "/usr/ucb/rsh -n most /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin worm.planix.com &"
 }
 
 function "start-emacs" {
-	f.exec "/local/gnu/bin/emacs -i &"
-}
-
-function "start-kuma-emacs" {
-	f.exec "/usr/ucb/rsh -n kuma PATH=$PATH DISPLAY=$DISPLAY /local/gnu/bin/emacs -display $DISPLAY -i &"
-}
-
-function "start-spinne-emacs" {
-	f.exec "/usr/ucb/rsh -n spinne PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/emacs -display $DISPLAY -i &"
-}
-
-function "start-araignee-emacs" {
-	f.exec "/usr/ucb/rsh -n araignee PATH=$PATH DISPLAY=$DISPLAY /local/gnu/bin/emacs -display $DISPLAY -i &"
-}
-
-function "start-mosaic" {
-	f.exec "/local/bin/Mosaic &"
-}
-
-function "start-kuma-mosaic" {
-	f.exec "/usr/ucb/rsh -n kuma PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic -display $DISPLAY &"
-}
-
-function "start-araignee-mosaic" {
-	f.exec "/usr/ucb/rsh -n araignee PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic -display $DISPLAY &"
-}
-
-function "start-spinne-mosaic" {
-	f.exec "/usr/ucb/rsh -n spinne PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic -display $DISPLAY &"
-}
-
-function "start-netscape" {
-	f.exec "/local/bin/netscape -geometry =818x875+1+1 &"
+	f.exec "/usr/ucb/rsh -n most env PATH=$PATH DISPLAY=$DISPLAY /local/gnu/bin/emacs -d $DISPLAY -i &"
 }
 
 function "start-weird-netscape" {
-	f.exec "/usr/ucb/rsh -n weird PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
+	f.exec "/usr/ucb/rsh -n weird env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
 }
 
-function "start-kuma-netscape" {
-	f.exec "/usr/ucb/rsh -n kuma PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -geometry =818x875+1+1 -display $DISPLAY &"
-}
-
-function "start-araignee-netscape" {
-	f.exec "/usr/ucb/rsh -n araignee PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -geometry =818x875+1+1 -display $DISPLAY &"
-}
-
-function "start-spinne-netscape" {
-	f.exec "/usr/ucb/rsh -n spinne PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -geometry =818x875+1+1 -display $DISPLAY &"
+function "start-xsol" {
+	f.exec "env LD_LIBRARY_PATH=/usr/openwin/lib:/usr/lib /usr/openwin/demo/xsol -r &"
 }
 
 # And a menus with the usual things
@@ -190,45 +174,53 @@ function "start-spinne-netscape" {
 menu "defops"
 {
 	"Twm"			f.title
+	"Window Operations..."	f.menu "winops"
+	""			f.nop
+	"Applications..."	f.menu "applications"
+	"Refresh"		f.refresh
+	"Restart"		f.restart
+	""			f.nop
+	"Exit..."		f.menu "exit"
+}
+
+menu "winops"
+{
+	"Window Operations"	f.title
 	"Move"			f.move
+	"Resize"		f.resize
+	""			f.nop
 	"Raise"			f.raise
 	"Lower"			f.lower
 	"Circle Up"		f.circleup
 	"Circle Down"		f.circledown
-	"Resize"		f.resize
+	""			f.nop
 	"Zoom..."		f.menu "zooms"
 	""			f.nop
-	"Applications..."	f.menu "applications"
-	""			f.nop
-	"Icon Manager..."	f.menu "iconmgr"
-	""			f.nop
-	"WinDelete"		f.delete
-	"WinRefresh"		f.winrefresh
-	"WinSave"		f.saveyourself
-	"WinIdentify"		f.identify
+	"Refresh"		f.winrefresh
+	"Save"			f.saveyourself
+	"Identify"		f.identify
 	""			f.nop
 	"Iconify"		f.iconify
 	"DeIconify"		f.deiconify
 	""			f.nop
+	"Icon Manager..."	f.menu "iconmgr"
+	""			f.nop
 	"Focus"			f.focus
 	"Unfocus"		f.unfocus
 	""			f.nop
+	"Delete"		f.delete
 	"Kill"			f.destroy
-	""			f.nop
-	"Refresh"		f.refresh
-	"Restart"		f.restart
-	"Exit"			f.quit
 }
 
 menu "zooms"
 {
-	"Zooms"		f.title
-	"Zoom"		f.zoom
-	"Full"		f.fullzoom
-	"Left"		f.leftzoom
-	"Right"		f.rightzoom
-	"Top"		f.topzoom
-	"Bottom"	f.bottomzoom
+	"Window Zooms"		f.title
+	"Top-to-bottom"		f.zoom
+	"Full-Screen"		f.fullzoom
+	"To-the-Left"		f.leftzoom
+	"To-the-Right"		f.rightzoom
+	"To-the-Top"		f.topzoom
+	"To-the-Bottom"		f.bottomzoom
 }
 
 menu "iconmgr"
@@ -250,50 +242,43 @@ menu "iconmgr"
 	"Right"			f.righticonmgr
 }
 
+menu "exit"
+{
+	"Exit TWM"				f.title
+	"Select confirm to end your session."	f.nop
+	""					f.nop
+	"        Confirm...."			f.quit
+}
+
 menu "applications"
 {
-	"Applications"		f.title
-	"Xterm's Everywhere"	f.menu "xterm"
-	"GNU-Emacs Everywhere"	f.menu "emacs"
-	"NCSA Mosaic"		f.menu "mosaic"
-	"NetScape"		f.menu "netscape"
-	""			f.nop
-	"Xsol"			f.exec "LD_LIBRARY_PATH=/usr/openwin/lib:/usr/lib /usr/openwin/demo/xsol -r &"
+	"Applications"			f.title
+	"Xterm's Everywhere..."		f.menu "xterm"
+	"Rlogin's Everywhere..."	f.menu "rlogin"
+	""				f.nop
+	"GNU-Emacs"			f.function "start-emacs"
+	"NetScape"			f.function "start-netscape"
+	"Xsol"				f.function "start-xsol"
 }
 
 menu "xterm"
 {
-	"Xterm's Everywhere"	f.title
-	"Xterm"			f.function "start-xterm"
-#	"@araignee"		f.function "start-araignee-xterm"
-#	"@kuma"			f.function "start-kuma-xterm"
-#	"@spinne"		f.function "start-spinne-xterm"
+	"Xterm's Everywhere"		f.title
+	"Xterm @localhost"		f.function "start-xterm"
+	"Xterm @most"			f.function "start-most-xterm"
+	"Xterm @very"			f.function "start-very-xterm"
 }
 
-menu "emacs"
+menu "rlogin"
 {
-	"GNU Emacs Everywhere"	f.title
-	"GNU-Emacs"		f.function "start-emacs"
-#	"@araignee"		f.function "start-araignee-emacs"
-#	"@kuma"			f.function "start-kuma-emacs"
-#	"@spinne"		f.function "start-spinne-emacs"
-}
-
-menu "mosaic"
-{
-	"NCSA Mosaic Everywhere"	f.title
-	"NCSA Mosaic"			f.function "start-mosaic"
-#	"NCSA Mosaic @araignee"		f.function "start-araignee-mosaic"
-#	"NCSA Mosaic @kuma"		f.function "start-kuma-mosaic"
-#	"NCSA Mosaic @spinne"		f.function "start-spinne-mosaic"
-}
-
-menu "netscape"
-{
-	"NetScape Everywhere"		f.title
-	"NetScape"			f.function "start-netscape"
-	"NetScape @weird"		f.function "start-weird-netscape"
-#	"NetScape @araignee"		f.function "start-araignee-netscape"
-#	"NetScape @kuma"		f.function "start-kuma-netscape"
-#	"NetScape @spinne"		f.function "start-spinne-netscape"
+	"Rlogin's Everywhere"		f.title
+	"Rlogin @weird.com"		f.function "start-weird-rlogin"
+	""				f.nop
+	"Rlogin @kuma.web.net"		f.function "start-kuma-rlogin"
+	"Rlogin @web.net"		f.function "start-web-rlogin"
+	"Rlogin @spinne.web.net"	f.function "start-spinne-rlogin"
+	""				f.nop
+	"Rlogin @whome.planix.com"	f.function "start-whome-rlogin"
+	"Rlogin @woffi.planix.com"	f.function "start-woffi-rlogin"
+	"Rlogin @worm.planix.com"	f.function "start-worm-rlogin"
 }
