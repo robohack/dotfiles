@@ -3,11 +3,11 @@
 #
 #	.xinitrc - X Window System startup file
 #
-#ident	"@(#)HOME:.xinitrc	4.5	94/09/29 11:03:59 (woods)"
+#ident	"@(#)HOME:.xinitrc	4.6	94/11/03 16:24:50 (woods)"
 
 . /etc/profile
 
-PATH=$PATH:$HOME/bin
+PATH=$PATH:/usr/bin/X11:$HOME/bin
 export PATH
 
 argv0="`basename $0`"
