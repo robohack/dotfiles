@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	5.3	94/05/10 12:44:09 (woods)"
+#ident	"@(#)HOME:.profile	5.4	94/06/17 21:45:05 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -10,16 +10,23 @@ elif [ -r $HOME/.shlogout ] ; then
 fi
 
 if [ -z "$UUNAME" ] ; then
-	UUNAME="`uuname -l`" ; export UUNAME
+	if expr "`type uuname`" : '.* is .*/uuname$' >/dev/null 2>&1 ; then
+		UUNAME="`uuname -l`" ; export UUNAME
+	else
+		UUNAME="`hostname`" ; export UUNAME
+	fi
 fi
 
 if [ -z "$DOMAINNAME" ] ; then
 	case "$UUNAME" in
-	scilink )
+	scilink )		# the one I want!
 		DOMAINNAME=".planix.com" ; export DOMAINNAME
 		;;
-	kuma )
+	kuma )			# the *real* one!
 		DOMAINNAME=".web.net" ; export DOMAINNAME
+		;;
+	toile | web )		# 386/ix machines
+		DOMAINNAME=".web.apc.org" ; export DOMAINNAME
 		;;
 	* )
 		if expr "`type domainname`" : '.* is .*/domainname$' >/dev/null 2>&1 ; then
@@ -82,7 +89,7 @@ dirprepend ()
 }
 
 case "$UUNAME" in
-robohack | toile | wombat )
+robohack | araignee | tar | spinne | toile | wombat )
 	;;
 * )
 	PATH="/bin" ; export PATH
@@ -91,14 +98,7 @@ robohack | toile | wombat )
 esac
 
 case "$UUNAME" in
-kuma )
-	APCSRCDIR=/big/web/work/apc ; export APCSRCDIR
-	APCCONFIG=/big/web/work/apc/configure ; export APCCONFIG
-	if [ `expr "$MFLAGS" : ".*$APCCONFIG.*"` -eq 0 ] ; then
-		MFLAGS="$MFLAGS -I $APCCONFIG" ; export MFLAGS
-	fi
-	;;
-araignee | tar )
+tar )
 	APCSRCDIR=/kuma/big/web/work/apc ; export APCSRCDIR
 	APCCONFIG=/kuma/big/web/work/apc/configure ; export APCCONFIG
 	if [ `expr "$MFLAGS" : ".*$APCCONFIG.*"` -eq 0 ] ; then
@@ -151,7 +151,11 @@ if [ -x /usr/bin/sun ] ; then
 	if sun ; then
 		ISSUN=true
 		PATH=`echo $PATH | sed 's/^\/bin://'`
-		dirprepend PATH /usr/5bin
+		if [ "$LOGNAME" != root ] ; then
+			dirprepend PATH /usr/5bin
+		else
+			dirappend PATH /usr/5bin
+		fi
 		dirappend PATH /usr/openwin/bin
 		dirappend MANPATH /usr/openwin/share/man
 	fi
@@ -274,7 +278,7 @@ case "$UUNAME" in
 robohack )
 	: we trust that everything is all set up as it should be....
 	;;
-toile | wombat )
+toile | wombat | araignee | spinne )
 	if [ -r $HOME/.kshedit ] ; then
 		if grep "^set -o vi" $HOME/.kshedit ; then
 			# this horrible hack assumes that vi users
@@ -290,7 +294,7 @@ toile | wombat )
 * )
 	echo "Re-setting terminal preferences...."
 	stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
-	TERM=`tset -r - -m dmd:dmd -m dmd-myx:dmd-myx -m sun:sun -m xterm:xterm -m at386:at386 -m AT386:at386 -m :?$TERM`
+	TERM=`tset -r - -m dmd:dmd -m dmd-myx:dmd-myx -m sun:sun -m xterm:xterm -m vt100:vt100 -m vt102:vt102 -m at386:at386 -m AT386:at386 -m :?$TERM`
 	case $TTY in
 	/dev/tty[p-zP-Z]* | /dev/vt* | /dev/console )
 		echo "Setting up an 8-bit tty environment...."
@@ -325,7 +329,11 @@ if [ ${RANDOM:-0} -ne 0 ] ; then
 	[ -z "$SHELL" -a -x /bin/ksh ] && export SHELL="/bin/ksh"
 	. $HOME/.kshlogin
 else
-	PS1="[$TTYN]<@$UUNAME> $ " ; export PS1
+	if [ "$LOGNAME" = root ] ; then
+		PS1="[$TTYN]<$LOGNAME@$UUNAME> # "
+	else
+		PS1="[$TTYN]<$LOGNAME@$UUNAME> $ "
+	fi
 fi
 
 if $HAVELAYERS && expr "`type ismpx`" : '.* is .*/ismpx$' >/dev/null 2>&1 ; then
