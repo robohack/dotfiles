@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.5	93/11/01 13:50:16 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	1.6	93/11/01 17:23:50 (woods)"
 ;;;
 ;;; per-user start-up functions
 ;;;
@@ -595,6 +595,7 @@ current emacs server process..."
 (if (= init-emacs-type '19)
     (progn
       (global-set-key "\C-x\C-a" 'super-apropos)
+      (global-set-key "\C-x5i" 'iconify-frame)
       (global-set-key "\C-x5T" 'find-tag-other-frame)))
 
 ;; Bindings to make it look like Jove (or old Emacs :-)
@@ -623,6 +624,15 @@ current emacs server process..."
 ;(define-key global-map "\eC-M" 'set-mark-command)
 
 ;; more goodies
+
+;; really only for v19...
+(defun display-buffer-in-frame-or-window (buf)
+  "Try to find buffer BUF in another (visible) frame, otherwise call
+display-buffer for it"
+  (or (get-buffer-window buf t)
+      (display-buffer buf)))
+
+(setq temp-buffer-show-function 'display-buffer-in-frame-or-window)
 
 ;; From: kfogel@occs.cs.oberlin.edu (Karl Fogel)
 ;; Date: Mon, 1 Nov 1993 10:23:04 -0500
