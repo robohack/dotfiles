@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc  19.12    98/05/26 00:48:28 (woods)"
+# ident	"@(#)HOME:.mailrc  19.13    98/05/27 23:23:40 (woods)"
 
 set keep
 set keepsave
@@ -46,7 +46,7 @@ alias smail3-users	"smail3-users@cs.athabascau.ca (Smail-3 Users Mailing List)"
 alias shape-l		"SHAPE-L%DB0TUI11.BITNET@vm.gmd.de (ShapeTools Discussion Mailing List)"
 alias tpc-rp		"tpc-rp@aarnet.edu.au (TPC-Int)"
 alias trn-test		"trn-test@borland.com (TRN Beta Test List)"
-alias vmailer-testers   "vmailer-testers@wzv.win.tue.nl (VMailer Testers List)"
+alias vmailer-testers   "vmailer-testers@porcupine.org (VMailer Testers List)"
 
 #
 #	local mailing list aliases
