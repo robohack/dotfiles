@@ -1,9 +1,9 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.14	93/11/25 17:26:30 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	1.15	93/11/25 18:56:49 (woods)"
 ;;;
-;;; per-user start-up functions
+;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
 
 ; to debug, eval these after "emacs -q":
@@ -70,26 +70,31 @@ directory in the list PATHLIST, otherwise nil."
 ;; ----------
 ;; some default packages we'd like...
 
-(if (/= init-emacs-type '19)
-    (if (elisp-file-in-loadpath-p "display-time")
-	(display-time)))
+(if (or (= init-emacs-type '19)
+	(elisp-file-in-loadpath-p "display-time"))
+    (dont-compile
+      (setq display-time-mail-file "/dev/null") ; it can't check "Status:" headers
+      (setq display-time-day-and-date t)
+      (setq display-time-24hr-format t)
+      (display-time)))
 
-(if (/= init-emacs-type '19)
-    (if (elisp-file-in-loadpath-p "mode-line")
-	(progn
-	  (if (boundp 'file-name-abbreviation-alist)
-	      (setq file-name-abbreviation-alist
-		    (append (list '("^/big/web/work/apc/" . "APC|")
-				  '("^/big/web/work/" . "WEB|")
-				  '("^/big/web/update.d/" . "UPD|")
-				  '((concat "^" (getenv "LOCAL") "/src") . "LSRC|")
-				  '((concat "^" (getenv "LOCAL")) . "LOCAL|")
-				  (cons (concat "^" (expand-file-name "~") "/src/work.d/")
-					"~WRK|")
-				  (cons (concat "^" (expand-file-name "~") "/src/")
-					"~SRC|"))
-			    file-name-abbreviation-alist)))
-	  (require 'mode-line))))
+(if (and (/= init-emacs-type '19)
+	 (elisp-file-in-loadpath-p "mode-line"))
+    (dont-compile
+      (require 'mode-line)
+      (if (boundp 'file-name-abbreviation-alist)
+	  (setq file-name-abbreviation-alist
+		(append (list '("^/big/web/work/apc/" . "APC|")
+			      '("^/big/web/work/" . "WEB|")
+			      '("^/big/web/update.d/" . "UPD|")
+			      '((concat "^" (getenv "LOCAL") "/src") . "LSRC|")
+			      '((concat "^" (getenv "LOCAL")) . "LOCAL|")
+			      (cons (concat "^" (expand-file-name "~") "/src/work.d/")
+				    "~WRK|")
+			      (cons (concat "^" (expand-file-name "~") "/src/")
+				    "~SRC|"))
+			file-name-abbreviation-alist)))
+      (require 'mode-line)))
 
 (if (elisp-file-in-loadpath-p "c-boxes")
     (autoload 'reindent-c-comment "c-boxes" nil t))
@@ -106,13 +111,12 @@ directory in the list PATHLIST, otherwise nil."
 
 ;; ----------
 ;; handling of abbrev files...
-
 (condition-case ()
     (read-abbrev-file nil t)
   (file-error nil))
 
 ;; ----------
-;; If running as root, don't make backup files.  This should be default.
+;; If running as root, don't make backup files.  This should be default!!!
 (cond ((eq (user-uid) 0)
        (setq make-backup-files nil)
        (setq auto-save-default nil)))
@@ -134,12 +138,13 @@ directory in the list PATHLIST, otherwise nil."
 (setq default-tab-width 8)		; a tab is a tab is a tab is a tab....
 (setq delete-auto-save-files t)		; delete auto-save file when saved
 ;(setq enable-recursive-minibuffers t)	; do we really want this?  No, probably not
-(if (= init-emacs-type 18)
-    (setq inhibit-local-variables t)	; confirm modes, etc. (security!)
-  (progn
-    (if (eq window-system 'x)
-	(setq search-highlight t))	; i-search hightlight match
-    (setq enable-local-variables t)))	; (is this the default in v19?)
+(dont-compile
+  (if (= init-emacs-type 18)
+      (setq inhibit-local-variables t)	; confirm modes, etc. (security!)
+    (progn
+      (if (eq window-system 'x)
+	  (setq search-highlight t))	; i-search hightlight match
+      (setq enable-local-variables t)))) ; (is this the default in v19?)
 (setq make-backup-files nil)		; too much clutter
 (setq search-delete-char 8)		; C-h, same as delete-backward-char
 (setq spell-command "spell -b")		; we're British, you know! :-)
@@ -176,8 +181,8 @@ directory in the list PATHLIST, otherwise nil."
       (append '(".out")
 	      completion-ignored-extensions))
 
-(and (fboundp 'setenv)
-     (progn
+(eval-and-compile
+  (and (fboundp 'setenv)
        ;; Set the PATH environment variable from the exec-path so
        ;; that child processes will inherit anything emacs uses.
        (setenv "PATH" 
@@ -420,21 +425,24 @@ If HOOK is void, it is first set to nil."
 ;; ----------
 ;; some special hooks.....
 
-(if (eq window-system 'x)
-    (progn
-      ;; I *USUALLY* EXPECT THE BACKSPACE KEY TO GENERATE AN ASCII BACKSPACE!
-      (define-key function-key-map [backspace] [8])
-      (define-key function-key-map [backspace] [?\C-h])
-      (define-key function-key-map [C-backspace] [?\C-h])
-      (define-key function-key-map [M-backspace] [?\M-\C-h])
-      (defun x-really-exit ()		; for those times we forget
-	"Query user if he really wants to exit since this will destroy the
+(dont-compile
+  (if (elisp-file-in-loadpath-p "server")
+      (progn
+	(require 'server)
+	;; I *USUALLY* EXPECT THE BACKSPACE KEY TO GENERATE AN ASCII BACKSPACE!
+	(define-key function-key-map [backspace] [8])
+	(define-key function-key-map [backspace] [?\C-h])
+	(define-key function-key-map [C-backspace] [?\C-h])
+	(define-key function-key-map [M-backspace] [?\M-\C-h])
+	(defun server-really-exit ()	; for those times we forget
+	  "Query user if he really wants to exit since this will destroy the
 current emacs server process..."
-	(interactive)
-	(if (yes-or-no-p "Are you sure you *really* want to exit? ")
-	    (save-buffers-kill-emacs)))
-      (global-set-key "\C-x\C-c" 'x-really-exit)
-      (server-start)))
+	  (interactive)
+	  (if server-process
+	      (if (yes-or-no-p "Are you sure you *really* want to exit? ")
+		  (save-buffers-kill-emacs))))
+	(global-set-key "\C-x\C-c" 'server-really-exit)
+	(server-start))))
 
 ; (enable-arrow-keys) must be done by this hook, since the .emacs file
 ; is loaded and executed before the terminal code is loaded...
@@ -483,13 +491,15 @@ current emacs server process..."
 	     (setq c-label-offset -8)
 	     (setq c-tab-always-indent nil))))
 
-(add-hook 'cvs-mode-hook
-	  (function
-	   (lambda ()
-	     "Private cvs-mode stuff."
-	     (setq cvs-diff-flags '("-u"))		; List of strings to use as flags to pass to ``diff'' and ``cvs diff''.
-	     (setq cvs-status-flags '("-Q"))		; List of strings to pass to ``cvs status''
-	     (setq cvs-diff-ignore-marks t))))		; Non-nil if cvs-diff and cvs-mode-diff-backup should ignore any marked files. 
+(dont-compile
+  (if (elisp-file-in-loadpath-p "ksh-mode")
+      (add-hook 'cvs-mode-hook
+		(function
+		 (lambda ()
+		   "Private cvs-mode stuff."
+		   (setq cvs-diff-flags '("-u")) ; List of strings to use as flags to pass to ``diff'' and ``cvs diff''.
+		   (setq cvs-status-flags '("-Q")) ; List of strings to pass to ``cvs status''
+		   (setq cvs-diff-ignore-marks t)))))) ; Non-nil if cvs-diff and cvs-mode-diff-backup should ignore any marked files. 
 
 (add-hook 'emacs-lisp-mode-hook
 	  (function
@@ -525,7 +535,8 @@ current emacs server process..."
 	     "Private nroff-mode stuff."
 	     (run-hooks 'text-mode-hook))))
 
-(if (elisp-file-in-loadpath-p "ksh-mode")
+(dont-compile
+  (if (elisp-file-in-loadpath-p "ksh-mode")
       (add-hook 'ksh-mode-hook
 		(function
 		 (lambda ()
@@ -535,7 +546,7 @@ current emacs server process..."
 		   (setq ksh-brace-indent 0)   
 		   (setq ksh-case-item-indent 0)
 		   (setq ksh-case-indent 8)
-		   (setq ksh-match-and-tell t)))))
+		   (setq ksh-match-and-tell t))))))
 
 ;; ----------
 ;; some default key re-binding....
@@ -600,7 +611,7 @@ current emacs server process..."
 (global-set-key "\eS" 'spell-buffer)
 
 (if (= init-emacs-type '19)
-    (progn
+    (dont-compile
       (global-set-key "\C-x\C-a" 'super-apropos)
       (global-set-key "\C-x5i" 'iconify-frame)
       (global-set-key "\C-x5T" 'find-tag-other-frame)))
@@ -608,7 +619,8 @@ current emacs server process..."
 ;; Bindings to make it look like Jove (or old Emacs :-)
 ;; (courtesy Mark Moraes)
 ;(defun prev-window ()
-;  (interactive)(other-window -1)) ; this does not deal with argument
+;  (interactive)
+;  (other-window -1)) ; this does not deal with argument
 ;(define-key global-map "\C-xn" 'other-window)
 ;(define-key global-map "\C-xp" 'prev-window)
 ;(define-key global-map "\C-xq" 'quoted-insert)
@@ -630,16 +642,17 @@ current emacs server process..."
 ;(define-key global-map "\e " 'set-mark-command)
 ;(define-key global-map "\eC-M" 'set-mark-command)
 
+;;-------
 ;; more goodies
 
-;; really only for v19...
-(defun display-buffer-in-frame-or-window (buf)
-  "Try to find buffer BUF in another (visible) frame, otherwise call
+(if (= init-emacs-type '19) 
+      (dont-compile
+	(defun display-buffer-in-frame-or-window (buf)
+	  "Try to find buffer BUF in another (visible) frame, otherwise call
 display-buffer for it"
-  (or (get-buffer-window buf t)
-      (display-buffer buf)))
-
-(setq temp-buffer-show-function 'display-buffer-in-frame-or-window)
+	  (or (get-buffer-window buf t)
+	      (display-buffer buf)))
+	(setq temp-buffer-show-function 'display-buffer-in-frame-or-window)))
 
 ;; From: dsmith@spam.maths.adelaide.edu.au (David Smith)
 ;; Subject: framepop.el: Display temporary buffers in dedicated frame
@@ -647,8 +660,9 @@ display-buffer for it"
 ;; Organization: The University of Adelaide
 ;; Message-Id: <DSMITH.93Oct8184705@spam.maths.adelaide.edu.au>
 ;;
-; let's leave this until frame management is a wee bit more mature
 ;;
+; let's leave this until frame management is a wee bit more mature
+;
 ;(if (elisp-file-in-loadpath-p "framepop")
 ;    (progn
 ;      (
@@ -669,11 +683,12 @@ display-buffer for it"
 ;; Distribution: world
 ;; Message-Id: <CA.93Oct8162822@yangtze.cs.umd.edu>
 ;; 
-(if (elisp-file-in-loadpath-p "compile-frame")
-    (progn
-      (require 'compile-frame)
-      (add-hook 'compilation-frame-selected-hook
-		'(lambda () (raise-frame compilation-frame-id)))))
+(dont-compile
+  (if (elisp-file-in-loadpath-p "compile-frame")
+      (progn
+	(require 'compile-frame)
+	(add-hook 'compilation-frame-selected-hook
+		  '(lambda () (raise-frame compilation-frame-id))))))
 
 ;; From: kfogel@occs.cs.oberlin.edu (Karl Fogel)
 ;; Date: Mon, 1 Nov 1993 10:23:04 -0500
@@ -692,7 +707,7 @@ display-buffer for it"
 ;; have hardly touched my mouse since I started using it :-)
 ;; 
 (if (= init-emacs-type '19) 
-    (progn
+    (dont-compile
       (global-set-key "\C-co" 'keyboard-focus-next-or-previous-frame)
       ;;
       (defun keyboard-focus-next-or-previous-frame (parg)
@@ -722,7 +737,8 @@ feeling, but you'll get used to it."
 ;
 (if (and (= init-emacs-type '19) 
 	 (elisp-file-in-loadpath-p "ispell"))
-    (progn
+    (dont-compile
+      (require 'ispell)
       (define-key global-map "\M-S" 'ispell-buffer)
       (setq plain-TeX-mode-hook
 	    (function
@@ -759,7 +775,7 @@ feeling, but you'll get used to it."
 ;      (add-hook 'initial-calendar-window-hook 'display-time)
 ;      (calendar)))
 (if (= init-emacs-type '19) 
-    (progn
+    (dont-compile
       (require 'advice)
       (defadvice appt-disp-window (around kn-appt-disp-win act)
 	(if (or (= min-to-app 20)
