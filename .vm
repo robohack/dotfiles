@@ -1,17 +1,74 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.25	96/09/25 19:22:29 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.26	96/10/18 01:01:10 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
+
+;;;
+;;; some more enhancements
+;;; borrowed from gnuspost.el
+;;;
+(defvar vm-local-domain-name nil
+  "*Local domain name for mail purposes.")
+
+(if (not (fboundp 'vm-fqdn))
+    (defun vm-fqdn (&optional genericfrom)
+      "Return user's fully qualified domain name.
+If optional argument GENERICFROM is a string, use it as the domain
+name; if it is non-nil, strip of local host name from the domain name.
+If the function `system-name' returns full internet name and the
+domain is undefined, the domain name is got from it."
+      (let ((domain (or (if (stringp genericfrom) genericfrom)
+			(getenv "DOMAINNAME")
+			vm-local-domain-name
+			;; Function `system-name' may return full internet name.
+			;; Suggested by Mike DeCorte <mrd@sun.soe.clarkson.edu>.
+			(if (string-match "\\." (system-name))
+			    (substring (system-name) (match-end 0)))
+			(read-string "Domain name (no host): ")))
+	    (host (or (if (string-match "\\." (system-name))
+			  (substring (system-name) 0 (match-beginning 0)))
+		      (system-name))))
+	(if (string-equal "." (substring domain 0 1))
+	    (setq domain (substring domain 1)))
+	(if (null vm-local-domain-name)
+	    (setq vm-local-domain-name domain))
+	;; Support GENERICFROM as same as standard Bnews system.
+	;; Suggested by ohm@kaba.junet and vixie@decwrl.dec.com.
+	(cond ((null genericfrom)
+	       (concat host "." domain))
+	      (t domain)))))
+
+(if (not (fboundp 'vm-generate-message-id))
+    (defun vm-generate-message-id ()
+      "Generate unique Message-Id value for user."
+      (concat "<" (vm-unique-id) "@" (vm-fqdn) ">")))
+
+(if (not (fboundp 'vm-unique-id))
+    (defun vm-unique-id ()
+      "Generate unique ID from user name and current time."
+      (let ((date (current-time-string))
+	    (name (user-login-name)))
+	(if (string-match "^[^ ]+ \\([^ ]+\\)[ ]+\\([0-9]+\\) \\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\) [0-9][0-9]\\([0-9][0-9]\\)"
+			  date)
+	    (concat (upcase name) "."
+		    (substring date (match-beginning 6) (match-end 6)) ;Year
+		    (substring date (match-beginning 1) (match-end 1)) ;Month
+		    (substring date (match-beginning 2) (match-end 2)) ;Day
+		    (substring date (match-beginning 3) (match-end 3)) ;Hour
+		    (substring date (match-beginning 4) (match-end 4)) ;Minute
+		    (substring date (match-beginning 5) (match-end 5)) ;Second
+		    )
+	  (error "Cannot understand current-time-string: %s." date)))))
 
 ;;;
 ;;;	some stuff for sendmail.el ...
 ;;;
 
 (setq mail-signature t)			; auto-insert ~/.signature
-(setq mail-default-reply-to (concat (user-login-name) "@" (vm-fqdn)
+(setq mail-default-reply-to (concat (user-login-name) "@" (vm-fqdn t)
 				    " (" (user-full-name) ")"))
 (setq mail-header-separator ".")	; as close to nothing as possible
 
@@ -303,6 +360,9 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-forwarded-headers nil
       vm-forwarding-digest-type "rfc934"
       vm-forwarding-subject-format "forwarded message from %F"
+      vm-frame-per-composition nil	;
+      vm-frame-per-edit nil
+      vm-frame-per-folder nil		;
       vm-highlighted-header-regexp nil
 ;;;   vm-highlighted-header-regexp "^From:\\|^Subject:" ; highlight these headers
       vm-honor-page-delimiters nil
