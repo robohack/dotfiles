@@ -1,0 +1,74 @@
+#
+#	.kshlogin - login shell startup for ksh
+#
+#ident	"@(#)HOME:.kshlogin	1.1	93/11/17 19:18:44 (woods)"
+#
+
+set -o ignoreeof	# we only do this for our login shell....
+
+export FPATH=$HOME/lib/ksh
+export FCEDIT="$(whence ed)"
+
+export ENVFILE=$HOME/.kshrc
+
+# the one in the book says....
+#
+#export ENV='${ENVFILE[(_$-=0)+(_=1)-_${-%%*i*}]}'
+#
+# this one seems more correct, and I think was what Korn posted
+# to Usenet once upon a time (it also works with all the
+# versions of ksh I've run across, including ksh-85 and AIX-3.2)
+#
+export ENV='${ENVFILE[(_$-=1)+(_=0)-(_$-!=_${-%%*i*})]}'
+
+export HISTSIZE=2000
+
+if [ -z "$LOGNAME" ] ; then
+	# some systems won't allow this...
+	export LOGNAME=${HOME##*/}
+fi
+
+if [ -z "$PROJECT" ] ; then
+	export PROJECT="SCCS"
+fi
+
+case "$UUNAME" in
+kuma*)
+	export WORKDIR="/big/web/work"
+	;;
+tar*)
+	export WORKDIR="/kuma/big/web/work"
+	;;
+*)
+	export WORKDIR="$LOCAL/work.d"
+	;;
+esac
+
+export PWD=$HOME
+export OLDPWD=$HOME
+
+if [ -z "$MAILPATH" ] ; then
+	if [ -d /var/spool/mail ] ; then
+		MAILPATH="/var/spool/mail/$LOGNAME"
+	elif [ -d /usr/mail ] ; then
+		MAILPATH="/usr/mail/$LOGNAME"
+	elif [ -d /usr/spool/mail ] ; then
+		MAILPATH="/usr/spool/mail/$LOGNAME"
+	fi		
+	if [ -n "$MAIL" ] ; then
+		MAILPATH="$MAIL:$MAILPATH"
+	fi
+fi
+if [ $(expr ":$MAILPATH:" : ".*:~nuucp/.*") -eq 0 ] ; then
+	export MAILPATH="$MAILPATH:~nuucp/$LOGNAME:~nuucp/receive/$LOGNAME"
+fi
+
+export CDPATH=":$HOME:$HOME/src:$HOME/src/lib:$HOME/src/work.d\
+:$HOME/src/work.d/lib:$HOME/lib:$WORKDIR"
+
+dirappend CDPATH /usr/src /usr/src/lib /usr/src/cmd /usr/src/add-on
+dirappend CDPATH /usr/src/gnu /usr/src/games
+dirappend CDPATH /usr/src/local /usr/src/local/lib /usr/src/local/cmd
+dirappend CDPATH $LOCAL/src $LOCAL/src/lib $LOCAL/src/gnu $LOCAL/src/bsd
+dirappend CDPATH /usr/src/ucbcmd /usr/src/ucblib
+dirappend CDPATH $LOCAL $LOCAL/lib /usr/lib /usr/spool / /usr

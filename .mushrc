@@ -1,0 +1,89 @@
+#
+#	.mushrc - private mush initialization
+#
+#ident	"@(#)HOME:.mushrc	1.1	93/11/17 19:20:34 (woods)"
+
+# Set up the display early to allow quick exit in headers-only mode.
+# The hdrs_only flag is true if the command line was: "mush -H".
+if hdrs_only
+	exit	# Quits reading this file
+endif
+
+set autosign=~/.signature
+set autosign2='!web @web @web.apc.org *becker *shields *scott *brian: \
+\--\n\
+						Greg.'
+if iscurses
+	set edit_hdrs
+endif
+
+unset metoo
+
+# I don't like the binding to lpr -- make it more intuitive:
+#
+bind '|' macro "[line-mode]pipe [getline]"
+
+set editor="$EDITOR"
+set folder="$HOME/Mail"
+set history=100
+set pager="$PAGER"
+set print_cmd="lpr"
+set visual="$VISUAL"
+
+if !redirect
+	set record=+.record
+endif
+
+#
+#	friendly aliases
+#
+alias argv	'Dan Heller <island!argv@sun.com>'
+alias bart	'Bart Schaefer <schaefer@ogccse.ogc.edu>'
+alias bev	'Beverly Erlebacher <erlebach@turing.toronto.edu>'
+alias brian	'Brian Onn <brian@ncrcan.toronto.ncr.com>'
+alias brianm	'Brian Moffet <brianm@sco.com>'
+alias bruce	'Bruce Becker <becker!bdb>'
+alias dan	'Dan Tomlinson <compus!dan>'
+alias danh	'Dan Heller <island!argv@sun.com>'
+alias dave	'Dave Mason <mason@tmsoft.uucp>'
+alias davem	'David Moloney <DMoloney@uncamult.bitnet>'
+alias decpro	'"Lou Pilla (M.Editor-DEC.Pro)" <philla@propress.com>'
+alias dennis	'Dennis Breckenridge <dennis@nebulus.uucp>'
+alias dick	'"R. H. Lathwell" <rhl@fastlane.uucp>'
+alias ddj	'Letter To The Editor <tyler@cup.portal.com>'
+alias dumais	'Paul Dumais <dumais@Apple.COM>'
+alias evan	'Evan Leibovitch <evan@telly.on.ca>'
+alias henry	'Henry Spencer <utzoo!henry>'
+alias info-cvs	'CVS-II Discussion List <info-cvs@prep.ai.mit.edu>'
+alias jerqs	'jerq users <eci386!utzoo!clsc.utoronto.ca!jerqs>'
+alias jmm	'John Macdonald <jmm@Elegant.COM>'
+alias jon	'Jonathan Payne <jpayne@sun.com>'
+alias jonp	'Jonathan Palmer <jonp@sco.com>'
+#alias mark	'"Mark T. Dornfeld" <mark@rom.uucp>'
+alias markb	'Mark Bartelt <sysmark@orca.cita.utoronto.ca>'
+#alias markd	'Mark Dapoz <mdapoz@hybrid.uucp>'
+alias mbeast	'Mike East <mbeast@tls.uucp>'
+alias meast	'Mike East <meast@shl.com>'
+alias mush-users 'Mush Users <mush-users-request@garp.mit.edu>'
+alias norman	'Norman Wilson <norman@clsc.utoronto.ca>'
+alias paul	'Paul Dumais <dumais@Apple.COM>'
+alias ped	'Paul Dumais <dumais@Apple.COM>'
+alias peter	'Peter Renzland <peter@renzland.org>'
+alias rayan	'Rayan Zachariassen <rayan@uunet.ca>'
+alias scott	'Scott Campbell <scott@skypod.uucp>'
+alias steve	'Steve Bird <druid!bent!steve>'
+alias taras	'Taras Pryjma <problem!taras>'
+alias tim	'Tim Sorley <tim@compus.ca>'
+alias tom	'Tom Molnar <molnar@gpu.utcs.utoronto.ca>'
+alias tomv	'Tom Vassos <vassos@torvm4.iinus1.ibm.com>'
+alias vassos	'Tom Vassos <vassos@torvm4.iinus1.ibm.com>'
+#alias tony	'Tony Becker <becker@ontmoh>'
+alias tyler	'Tyler Sperry <tyler@cup.portal.com>'
+alias ugcdir	'"UniForum Canada Directors & Assoc. Directors" <board@uniforum.ca>'
+alias unixrev	'Letter To The Editor <editor@beast.uucp>'
+alias ureview	'Letter To The Editor <editor@beast.uucp>'
+alias unixwrld	'Letter To The Editor <letters@uworld.uucp>'
+alias uworld	'Letter To The Editor <letters@uworld.uucp>'
+alias unixtoday	'Letter To The Editor <editor@utoday.uucp>'
+alias utoday	'Letter To The Editor <editor@utoday.uucp>'
+alias uu	'UNIX Unanimous <unix-unanimous@moore.com>'
