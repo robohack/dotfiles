@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	20.8	99/06/13 22:41:35 (woods)"
+#ident	"@(#)HOME:.xinitrc	20.9	99/06/13 22:47:08 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -311,7 +311,7 @@ fi
 exec $WM
 
 # Local Variables:
-# eval: (defun make-buffer-file-executable () (set-file-modes buffer-file-name 493) nil)
+# eval: (defun make-buffer-file-executable () (set-file-modes buffer-file-name 365) nil)
 # eval: (defun save-this-file-and-make-it-executable () (write-region (point-min) (point-max) buffer-file-name nil 't) (set-file-modes buffer-file-name 493) nil)
 # local-write-file-hooks: (save-this-file-and-make-it-executable)
 # local-vc-checkin-hook: (make-buffer-file-executable)
