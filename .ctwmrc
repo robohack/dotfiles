@@ -1,7 +1,7 @@
 #-*-sh-*-
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	22.5	01/12/28 10:55:13 (woods)"
+#ident	"@(#)HOME:.ctwmrc	23.1	02/01/12 14:43:19 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
