@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	3.4	94/05/10 12:36:21 (woods)"
+#ident	"@(#)HOME:.kshrc	3.5	94/06/14 12:54:43 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -108,6 +108,11 @@ fi
 eval "$(id|sed -e 's/^uid=\([0-9]*\)(\(..*\)) gid=[0-9]*(\([^) ]*\)).*$/id=\1 uid=\2 gid=\3/')"
 
 if [ "$id" -eq 0 ] ; then
+	if [ -n "$HISTFILE" ] ; then
+		HISTFILE="/$(basename $HISTFILE)"
+	else
+		HISTFILE="/.sh_history"
+	fi
 	if $ISSUN; then
 		PATH=${PATH#".:"}		# in case /usr/5bin/su hasn't had the patch
 		PATH=${PATH#"/bin:"}		# don't need /bin any more (it's a symlink)
