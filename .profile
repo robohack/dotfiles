@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	23.2	02/03/17 15:36:09 (woods)"
+#ident	"@(#)HOME:.profile	23.3	02/06/21 13:32:10 (woods)"
 
 #
 # Assumptions that may cause breakage:
@@ -444,6 +444,29 @@ else
 		sed '	/^[ 	]*#/d
 			/^[ 	]*$/d
 		' ${1+"$@"}
+	}
+fi
+
+# all machines without 'head' had a shell with functions...
+#
+if expr "`type head`" : '.* is .*/head$' >/dev/null 2>&1 ; then
+	: # have the real thing....
+else
+	head ()
+	{
+		N=10
+		if [ $# -ge 1 ] ; then
+			case "$1" in
+			-[0-9]*)
+				N=`expr x"$1" : '^x-\(.*\)$'`
+				shift
+				;;
+			-*)
+				echo "Usage: head [-N] [[file] ...]" 1>&2
+				return 2
+			esac
+		fi
+		sed ${N}q ${1+$@}
 	}
 fi
 
