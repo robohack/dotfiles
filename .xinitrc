@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident        "@(#)HOME:.xinitrc     6.10     96/03/22 15:40:13 (woods)"
+#ident	"@(#)HOME:.xinitrc	6.11	96/03/25 08:51:08 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -37,7 +37,7 @@ case "$DISPLAY" in
 	;;
 esac
 
-# TODO: think about using `type` ala .profile, but type isn't everywhere
+# TODO:  think about using `type` ala .profile, but type isn't everywhere
 if [ -z "$RSH" ] ; then
 	if [ -x /usr/ucb/rsh ] ; then
 		RSH=/usr/ucb/rsh
@@ -52,6 +52,7 @@ if [ -z "$ONX11SERVER" ] ; then
 	*/most/*)
 		if [ "$XDMHOST" != most.weird.com ] ; then
 			ONX11SERVER="$RSH -n most.weird.com exec"
+			export ONX11SERVER
 			echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
 		fi
 		;;
@@ -78,23 +79,19 @@ fi
 #
 xhost +`hostname` +localhost -
 
-if [ -s $HOME/.xhosts ] ; then
-	HOSTLIST=""
-	while read HOST junk; do
-		case "$HOST" in
+if [ -r $HOME/.xhosts ] ; then
+	while read XHOST junk; do
+		case "$XHOST" in
 		"" | '#'* )
 			;;
 		* )
-			if [ -n "$HOST" ] ; then
-				HOSTLIST="$HOSTLIST +$HOST"
-			fi
+			# NEVER remove the "" from the first clause!!!
+			xhost +$XHOST
 			;;
 		esac
 	done < $HOME/.xhosts
-	if [ -n "$HOSTLIST" ] ; then
-		xhost $HOSTLIST
-	fi
-	unset HOSTLIST
+else
+	echo "$argv0: no $HOME/.xhosts found..."
 fi
 
 # argv0 is .xinitrc if called by xinit or startx
@@ -120,12 +117,13 @@ if [ "$argv0" = .xinitrc ] ; then
 		xsetroot -bitmap /usr/openwin/share/include/X11/bitmaps/escherknot
 	fi
 	xclock -geometry 190x30-4+196 -digital &
-	# ensure they get overlayed in the right order
+	# wait to ensure they get overlayed in the right order
 	sleep 1
 	xclock -geometry 190x190-4+4 &
 	sleep 1
 elif $ONCONSOLE ; then
-	: I/O is already redirected to /dev/console, so we'll see it...
+	# I/O is already redirected to /dev/console, so we will see it...
+	:
 else
 	# starting on an xterm....
 	if [ -r $HOME/bin/xerrors ] ; then
@@ -183,8 +181,6 @@ else                          # think about using xlbiff too...
 		;;
 	esac
 fi
-
-sleep 1
 
 # Ah!  Your Free localhost Window!
 xterm -geometry 80x24-4-195 -sl 500 -sb -sk -si -rw  -ls -T Primary &
