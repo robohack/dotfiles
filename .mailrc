@@ -1,4 +1,4 @@
-#ident	"@(#)HOME:.mailrc  18.6    97/11/20 16:11:36 (woods)"
+#ident	"@(#)HOME:.mailrc  18.7    97/12/17 16:00:53 (woods)"
 #
 #	.mailrc - for mailx and emacs-VM
 #
@@ -16,40 +16,46 @@ set crt=24
 alias aegis-users	"aegis-users@bmr.gov.au (Aegis Users Mailing List)"
 alias bug-cvs		"bug-cvs@prep.ai.mit.edu (CVS-II Bugs Mailing List)"
 alias info-cvs		"info-cvs@prep.ai.mit.edu (CVS-II Discussion Mailing List)"
+alias netbsd-current	"netbsd-current@NetBSD.ORG (NetBSD-current Discussion List)"
 alias mush-users	"mush-users-request@garp.mit.edu (Mush Users)"
+alias port-alpha	"port-alpha@NetBSD.ORG (NetBSD/alpha Discussion List)"
+alias port-sun3		"port-sun3@NetBSD.ORG (NetBSD/sun3 Discussion List)"
+alias smail3-maintainers "smail3-maintainsers@smail.sbay.org (Smail-3 Maintainers Mailing List)"
+alias smail3-wizards	"smail3-wizards@cs.athabascau.ca (Smail-3 Wizards Mailing List)"
+alias smail3-users	"smail3-users@cs.athabascau.ca (Smail-3 Users Mailing List)"
 alias shape-l		"SHAPE-L%DB0TUI11.BITNET@vm.gmd.de (ShapeTools Discussion Mailing List)"
 alias tpc-rp		"tpc-rp@aarnet.edu.au (TPC-Int)"
 alias trn-test		"trn-test@borland.com (TRN Beta Test List)"
 
 #
-#	robohack mailing list aliases
+#	local mailing list aliases
 #
-alias smail-2-beta	"smail-2-beta@robohack.UUCP (Smail-2 Beta Testers)"
-alias wrkshp-94	"usenix-workshop-94@robohack.uucp (UNIX Applications Development Symposium 1994)"
-alias all-wrkshp-94	"all-workshop-94@robohack.uucp (UNIX Applications Development Symposium 1994)"
+alias jet-fuel  "jet-fuel@weird.com (Caffeine is fuel for your mind)"
 
 #
 #	friendly aliases
 #
+alias alex	"alex@corelan.com (Alex von Tiesenhausen)"
 alias andreas	"andreas@planix.com (Andreas Wrede)"
 alias andy	"andy@weird.com (Andy Mills)"
+alias bernie	"becker@proxy.com (Bernard Becker)"
 alias bruce	"bdb@gts.net (Bruce Becker)"
 alias bryan	"bryan@aci.on.ca (Bryan Challenger)"
 alias dan	"dan@compus.ca (Dan Tomlinson)"
 alias dave	"mason@tmsoftware.ca (Dave Mason)"
 alias dennis	"dennis@nebulus.net (Dennis Breckenridge VE6TCP)"
 alias dick	"rhl@the-wire.com (R. H. Lathwell)"
-alias dumais	"dumais@Apple.COM (Paul Dumais)"
+alias dumais	"dumais@mad.scientist.com (Paul E. Dumais)"
 alias ecarroll	"ecarroll@rogers.wave.ca (Eric M. Carroll)"
 alias eric.carroll "eric.carroll@acm.org (Eric M. Carroll)"
 alias evan	"evan@telly.on.ca (Evan Leibovitch)"
 alias henry	"henry@utzoo.cs.utoronto.ca (Henry Spencer)"
 alias jerqs	"jerqs@clsc.utoronto.ca (jerq users)"
-alias jet-fuel  "jet-fuel@weird.com (Caffeine is fuel for your mind)"
 alias jmm	"jmm@Elegant.COM (John Macdonald)"
-alias me	"woods@planix.com (Greg A. Woods)"
+alias me	"woods@weird.com (Greg A. Woods)"
 alias nik	"habern@caledon.org (Nik Habermel)"
 alias norman	"norman@cs.yorku.ca (Norman Wilson)"
+alias paul	"dumais@mad.scientist.com (Paul E. Dumais)"
 alias planix	"planix@planix.com (Those PlanIX Dudes)"
 alias peter	"peter@renzland.org (Peter Renzland)"
 alias rayan	"rayan@uunet.ca (Rayan Zachariassen)"
