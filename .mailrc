@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc  19.14    98/06/21 14:33:14 (woods)"
+# ident	"@(#)HOME:.mailrc  19.15    98/06/24 03:28:35 (woods)"
 
 set keep
 set keepsave
@@ -37,6 +37,7 @@ alias port-sun3		"port-sun3@NetBSD.ORG (NetBSD/sun3 Discussion List)"
 alias tech-install	"tech-install@NetBSD.ORG (NetBSD Install Process Technical Discussion List)"
 alias tech-kern		"tech-kern@NetBSD.ORG (NetBSD Kernel Technical Discussion List)"
 alias tech-net		"tech-net@NetBSD.ORG (NetBSD Networking Technical Discussion List)"
+alias tech-pkg		"tech-pkg@NetBSD.ORG (NetBSD Packages Technical Discussion List)"
 alias tech-ports	"tech-ports@NetBSD.ORG (NetBSD Porting Technical Discussion List)"
 alias tech-security	"tech-security@NetBSD.ORG (NetBSD Security Technical Discussion List)"
 alias tech-toolchain	"tech-toolchain@NetBSD.ORG (NetBSD Toolchain Technical Discussion List)"
