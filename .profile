@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	6.13	94/12/07 13:16:49 (woods)"
+#ident	"@(#)HOME:.profile	6.14	94/12/20 14:00:10 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -419,6 +419,10 @@ if [ ${RANDOM:-0} -ne 0 ] ; then
 		. $HOME/.kshlogin
 	fi
 elif [ `echo ~` = $HOME ] ; then
+	if [ -r $HOME/.ashlogin ] ; then
+		. $HOME/.ashlogin
+	fi
+elif [ -r $HOME/.shlogin ] ; then
 	if [ -r $HOME/.shlogin ] ; then
 		. $HOME/.shlogin
 	fi
