@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.45	96/12/16 10:55:40 (woods)"
+#ident	"@(#)HOME:.twmrc	2.46	97/01/19 12:44:11 (woods)"
 #
 
 AutoRelativeResize
@@ -983,27 +983,32 @@ function "start-local-emacs" {
 
 # note this uses the local path, etc....
 function "start-x11server-emacs" {
-	f.exec "$RSH -n $X11SERVER '. ./.localprofile; PATH='$PATH'; export PATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
+	f.exec "$RSH -n $X11SERVER '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
 }
 
 # note this uses the local path, etc....
 function "start-most-emacs" {
-	f.exec "$RSH -n most.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
+	f.exec "$RSH -n most.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
 }
 
 # note this uses the local path, etc....
 function "start-whats-emacs" {
-	f.exec "$RSH -n whats.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
+	f.exec "$RSH -n whats.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
 }
 
 # note this uses the local path, etc....
 function "start-woffi-emacs" {
-	f.exec "$RSH -n woffi.planix.com '. ./.localprofile; PATH='$PATH'; export PATH; exec '$LOCAL'/bin/emacs -display '$DISPLAY' -i' &"
+	f.exec "$RSH -n woffi.planix.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec '$LOCAL'/bin/emacs -display '$DISPLAY' -i' &"
+}
+
+# note this uses the local path, etc....
+function "start-kuma-emacs" {
+	f.exec "$RSH -n kuma.web.net '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
 }
 
 # note this uses the local path, etc....
 function "start-clapton-emacs" {
-	f.exec "$RSH -n clapton.seachange.com '. ./.localprofile; PATH=/usr/contrib/bin:'$PATH'; export PATH; exec /usr/contrib/bin/emacs -display '$DISPLAY' -i ' &"
+	f.exec "$RSH -n clapton.seachange.com '. ./.localprofile; PATH=/usr/contrib/bin; MAILPATH='$MAILPATH'; export MAILPATH:'$PATH'; export PATH; exec /usr/contrib/bin/emacs -display '$DISPLAY' -i ' &"
 }
 
 
@@ -1431,6 +1436,7 @@ menu "emacs"
 	"@most"				f.function "start-most-emacs"
 	"@whats"			f.function "start-whats-emacs"
 	"@woffi"			f.function "start-woffi-emacs"
+	"@kuma"				f.function "start-kuma-emacs"
 	"@clapton"			f.function "start-clapton-emacs"
 }
 
