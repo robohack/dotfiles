@@ -1,19 +1,36 @@
+#! /bin/ksh
 #
-#	ksh Push/Pop directory package
+#	.kshdir - ksh Push/Pop directory package
 #
-#ident	"@(#)HOME:.kshdir	1.1	93/11/17 19:21:21 (woods)"
+#ident	"@(#)HOME:.kshdir	2.1	94/02/03 19:40:25 (woods)"
 
-# Variables: _dir_stack, _dir_stack_top
+# Internal Variables:
+#	_dir_stack	- array of strings (inverted stack)
+#	_dir_stack_top	- stack pointer
 #
-# Functions: pushd, popd, showd, #sd, sd_init
+# Internal Functions:
+#	_dir_to_tilde
 #
+# External Functions:
+#	pushd, popd, showd, dirs
+
+unset _dir_stack_top _dir_stack
+unset -f pushd popd showd dirs
 
 typeset -i10 _dir_stack_top
+
 _dir_stack[0]=""
 _dir_stack_top=0
 
-function to_tilde
+#
+#
+function _dir_to_tilde
 {
+	if [ $# -ne 1 ]; then
+		echo "kshdir: internal error" >&2
+		echo "Usage: $0 directory" >&2
+		return 2
+	fi
 	case $1 in
 	$HOME)
 		echo "~"
@@ -27,13 +44,15 @@ function to_tilde
 	esac
 }
 
+#
+#
 function popd
 {
-	typeset -i10 pop_size
+	typeset -i10 pop_size pop_pointer
 
 	if [ $# -gt 1 ]; then
 		echo "Usage: $0 [number]" >&2
-		unset pop_size
+		unset pop_size pop_pointer
 		return 2
 	fi
 	if [ $# -eq 1 ]; then
@@ -41,65 +60,81 @@ function popd
 			pop_size=$1
 		else
 			echo "Usage: $0 [number]" >&2
-			unset pop_size
+			unset pop_size pop_pointer
 			return 2
 		fi
 	else
 		pop_size=-1
 	fi
 	if [ $pop_size -lt 0 ]; then
-		((pop_size=-pop_size))
+		((pop_pointer=-pop_size))
 	else
-		((pop_size=_dir_stack_top-pop_size+1))
+		((pop_pointer=_dir_stack_top-pop_size))
 	fi
-	if [ $_dir_stack_top -lt "$pop_size" ]; then
+	if [ $_dir_stack_top -lt "$pop_pointer" ]; then
 		echo "$0: The directory stack does not have $pop_size elements." >&2
+	else
+		((_dir_stack_top=pop_pointer))
 	fi
-	((_dir_stack_top=_dir_stack_top-pop_size))
-	unset pop_size
 	cd ${_dir_stack[$_dir_stack_top]}
+
+	unset pop_size pop_pointer
 }
 
-
+#
+#
 function pushd
 {
 	if [ $# -ne 1 ]; then
-		echo "Usage: $0 [directory]" >&2
+		echo "Usage: $0 directory" >&2
 		return 2
 	fi
-	if [ $# -eq 1 ]; then
-		_dir_stack[_dir_stack_top]=$PWD
-		((_dir_stack_top=_dir_stack_top+1))
-		cd $1
-	else
-		cd ${_dir_stack[_dir_stack_top-1]}
-		_dir_stack[_dir_stack_top-1]=$OLDPWD
-	fi
+	_dir_stack[_dir_stack_top]="$(/bin/pwd)"
+	((_dir_stack_top=_dir_stack_top+1))
+	cd $1
 }
 
+#
+#
 function showd
 {
 	typeset -i10 neg_count count pos_count
 
-	neg_count=0 
+	neg_count=0
 	count=1
 	pos_count=$_dir_stack_top+1
 
-	echo "	 `to_tilde $PWD`"
-	while [ $pos_count -gt 1 ]; do
+	echo "$pos_count $neg_count	$(_dir_to_tilde $(/bin/pwd))"
+	while [ $count -lt $_dir_stack_top+1 ]; do
 		((pos_count=pos_count-1))
 		((neg_count=neg_count-1))
+		echo "$pos_count $neg_count	${_dir_stack[_dir_stack_top-count]}"
 		((count=count+1))
-		echo $pos_count $neg_count ${_dir_stack[_dir_stack_top-count+1]}
 	done
-	echo ""
-	echo "OTHER WAY:"
- 	print -r - "`to_tilde $PWD` ${_dir_stack[@]}"
 
 	unset neg_count count pos_count
 }
 
+# to be compatible with csh (esp. for emacs-19 shell mode)
+#
+function dirs
+{
+	typeset -i10 count
 
+	count=1
+
+	echo "$(_dir_to_tilde $(/bin/pwd))\c"
+	while [ $count -lt $_dir_stack_top+1 ]; do
+		echo " $(_dir_to_tilde ${_dir_stack[_dir_stack_top-count]})\c"
+		((count=count+1))
+	done
+	echo ""
+
+	unset count
+}
+
+# unused (i.e. it's broke)
+#
 ## function sd
 ## {
 ## 	if [ $# -ne 1 ]; then
@@ -129,8 +164,9 @@ function showd
 ## 	cd ${_dir_stack[_dir_stack_top-switch_index]}
 ## 	unset switch_index
 ## }
-## 
-## 
+
+# unused (i.e. it's broke)
+#
 ## function sd_init
 ## {
 ## 	_dir_stack[0]=""
