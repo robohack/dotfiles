@@ -1,7 +1,7 @@
 #-*-m4-*-
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	26.2	03/01/08 02:38:20 (woods)"
+#ident	"@(#)HOME:.ctwmrc	26.3	03/06/09 20:37:21 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -548,7 +548,7 @@ menu "quickies"
 	"WinDelete or Destroy"	f.deleteordestroy
 	"Kill"			f.destroy
 	""			f.separator
-	"Xterm [@CLIENTHOST]"	!"xterm -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
+	"Xterm [@CLIENTHOST]"	!"xterm -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
 	"Xterm @x11server"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
@@ -1283,7 +1283,7 @@ menu "rlogin-weird"
 	"Rlogin @once"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin once.weird.com &"
 	"Rlogin @whats"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin whats.weird.com &"
 	"Rlogin @pretty"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin pretty.weird.com &"
-	"Rlogin @weirdo"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin ns.weird.com &"
+	"Rlogin @weirdo"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin weirdo.weird.com &"
 	"Rlogin @sometimes"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin sometimes.weird.com &"
 	"Rlogin @always"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin always.weird.com &"
 	"Rlogin @starting-out"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin starting-out.weird.com &"
@@ -1300,7 +1300,7 @@ menu "telnet-weird"
 	"telnet @once"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet once.weird.com &"
 	"telnet @whats"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e telnet whats.weird.com &"
 	"telnet @pretty"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e telnet pretty.weird.com &"
-	"telnet @weirdo"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet ns.weird.com &"
+	"telnet @weirdo"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet weirdo.weird.com &"
 	"telnet @sometimes"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e telnet sometimes.weird.com &"
 	"telnet @always"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e telnet always.weird.com &"
 	"telnet @starting-out"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e telnet starting-out.weird.com &"
@@ -1317,7 +1317,7 @@ menu "slogin-weird"
 	"Slogin @once"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin -C once.weird.com &"
 	"Slogin @whats"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C whats.weird.com &"
 	"Slogin @pretty"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C pretty.weird.com &"
-	"Slogin @weirdo"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C ns.weird.com &"
+	"Slogin @weirdo"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C weirdo.weird.com &"
 	"Slogin @sometimes"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C sometimes.weird.com &"
 	"Slogin @always"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C always.weird.com &"
 	"Slogin @starting-out"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C starting-out.weird.com &"
