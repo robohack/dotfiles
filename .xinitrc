@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	20.9	99/06/13 22:47:08 (woods)"
+#ident	"@(#)HOME:.xinitrc	20.10	99/06/25 13:20:54 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -234,11 +234,12 @@ fi
 # TODO:  think about using `type` ala .profile, but type isn't in (a)sh, etc.
 if [ -z "$WM" ] ; then
 	if [ \( -x $X11BIN/ctwm -o -x $HOME/bin/ctwm \) -a $HOME/.ctwmrc ] ; then
+		# NOTE: don't bother with '-v' -- it's too much and slows things!
 		if [ $SCREENDEPTH -eq 1 ] ; then
 			# the welcome screen on monochrome is silly and slow
-			WM="ctwm -k -v -display $DISPLAY -W"
+			WM="ctwm -k -display $DISPLAY -W"
 		else
-			WM="ctwm -k -v -display $DISPLAY"
+			WM="ctwm -k -display $DISPLAY"
 		fi
 	elif [ \( -x $X11BIN/wmaker -o -x $HOME/bin/wmaker \) -a $HOME/GNUstep/Defaults/WindowMaker ] ; then
 		WM=wmaker
