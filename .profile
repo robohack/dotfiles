@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	18.6	97/03/06 14:29:16 (woods)"
+#ident	"@(#)HOME:.profile	18.7	97/03/13 09:18:13 (woods)"
 
 #
 # Assumptions:
@@ -501,6 +501,10 @@ if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 		. $HOME/.stty
 	else
 		stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
+	fi
+	if [ "$EMACS" = t -o "$TERM" = emacs ]; then
+		echo "Turning off echo for an emacs shell...."
+		stty -echo
 	fi
 
 	case "$UUNAME" in
