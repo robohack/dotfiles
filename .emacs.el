@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.16	99/04/18 13:56:34 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.17	99/04/18 13:58:18 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1936,5 +1936,6 @@ current emacs server process..."
 ;;; Message-ID: <NICKEL.93Jan18194816@tempest.cs.tu-berlin.de>
 ;;;
 ;;; Local Variables:
-;;; vc-checkin-hook: (byte-compile-file buffer-file-name)
+;;; eval: (defun byte-compile-this-file () (byte-compile-file buffer-file-name) nil)
+;;; vc-checkin-hook: (byte-compile-this-file)
 ;;; End:
