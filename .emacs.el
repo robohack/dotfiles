@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	6.3	94/01/25 14:19:52 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	6.4	94/02/02 12:31:45 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -23,19 +23,22 @@
 ;; ----------
 ;; get ready to load stuff
 
+(defvar local-gnu-path (cond
+		      ((getenv "GNU")
+		       (getenv "GNU"))
+		      ((getenv "LOCAL")
+		       (concat (getenv "LOCAL") "/gnu"))
+		      (t
+		       "/gnu")))
+
 (setq load-path (cons (expand-file-name "~/lib/elisp") load-path))
 
 (if (= init-emacs-type '19)
     (setq load-path (append load-path
-			    (list (concat
-				   (cond 
-				    ((getenv "GNU")
-				     (getenv "GNU"))
-				    ((getenv "LOCAL")
-				     (concat (getenv "LOCAL") "/gnu"))
-				    (t
-				     "/gnu"))
-				   "/lib/emacs/site-lisp")))))
+			    (list (concat local-gnu-path
+					  "/lib/emacs/site-lisp")
+				  (concat local-gnu-path
+					  "/lib/emacs/site-lisp/hyperbole")))))
 
 ;; emacs-18 doesn't have these...
 (if (= init-emacs-type '18)
@@ -222,6 +225,9 @@ Status: headers for O, or Forward to in mailboxes."
        '(("^.*/tmp/[^/]*\\.ed.*$" . indented-text-mode)) ; mail edit buffer
        '(("^.*/tmp/[^/]*nf.*$" . indented-text-mode)) ; notesfile compose buffer
        auto-mode-alist))
+
+(setq hyperb:init-hook
+      (list (function (lambda () (setq smart-scroll-proportional t)))))
 
 (if (elisp-file-in-loadpath-p "ksh-mode")
     (setq auto-mode-alist
