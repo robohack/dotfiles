@@ -2,7 +2,7 @@
 ;;;	~/.zenirc.el -- stuff for ZenIRC
 ;;;
 
-;;;#ident	"@(#)HOME:.zenirc.el	18.2	97/10/15 02:22:03 (woods)"
+;;;#ident	"@(#)HOME:.zenirc.el	19.1	98/01/11 20:59:04 (woods)"
 
 ;; A good way to use this is to add something like
 ;;(autoload 'zenirc

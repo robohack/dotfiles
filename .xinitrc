@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	18.8	98/01/11 20:50:07 (woods)"
+#ident	"@(#)HOME:.xinitrc	19.1	98/01/11 20:58:26 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #

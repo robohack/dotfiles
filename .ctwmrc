@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	1.15	98/01/11 20:55:55 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.1	98/01/11 20:59:07 (woods)"
 #
 
 # Ideas on how to use more powerful M4 processing on this file:
