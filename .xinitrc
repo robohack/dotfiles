@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	22.2	01/10/20 02:44:48 (woods)"
+#ident	"@(#)HOME:.xinitrc	22.3	01/10/26 21:35:10 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -227,8 +227,7 @@ if [ -z "$ONX11SERVER" ] ; then
 			$RSH -n proven.weird.com /usr/pkg/bin/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-0+275 -shortnames -header 0 -acmd '"/usr/pkg/bin/auplay -audio '$AUDIOSERVER' -v 25 '$HOME'/lib/sounds/newmail"' &
 			$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 			$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-			$RSH -n proven.weird.com $HOME/lib/taglog/taglog -display $DISPLAY -geometry -30+310 &
-			$RSH -n proven.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/local/bin/emacs -display $DISPLAY -geometry 130x76+0+0" &
+			$RSH -n proven.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/local/bin/emacs -display $DISPLAY -geometry 130x64+0+0" &
 			;;
 		*)
 			# not setting this just makes WM run stuff on the
