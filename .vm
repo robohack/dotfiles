@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.15	98/03/31 10:08:41 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.16	98/04/25 22:58:18 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -115,7 +115,10 @@ name; if it is non-nil, strip of local host name from the domain name.
 If the function `system-name' returns full internet name and the
 domain is undefined, the domain name is got from it."
       (let ((domain (or (if (stringp genericfrom) genericfrom)
-			(getenv "DOMAINNAME")
+			(let ((envvalue (getenv "DOMAINNAME")))
+			  (if (string-equal envvalue "")
+			      nil
+			    envvalue))
 			vm-local-domain-name
 			;; Function `system-name' may return full internet name.
 			;; Suggested by Mike DeCorte <mrd@sun.soe.clarkson.edu>.
@@ -301,8 +304,16 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;;;	VM related things
 ;;;
 
+(defvar my-vm-virtual-leftovers-folder "General Delivery"
+  "The name of the virtual folder containing all the messages which are not
+members of other virtual folders.  (It's created after all the others are
+created by my-vm-visit-all-virtual-folders.)
+
+NOTE:  Changes to this variable only take effect when your .vm is reloaded.")
+
 (defun my-vm-quit-all-virtual-folders ()
   "Quit from all of the virtual folders in vm-virtual-folder-alist."
+  (interactive)
   (let ((vfolder vm-virtual-folder-alist))
     (while vfolder
       (save-excursion
@@ -315,13 +326,14 @@ ORGANIZATION.  If not nil, takes precedence over the file
 
 (defun my-vm-visit-all-virtual-folders ()
   "Visit all of the virtual folders in vm-virtual-folder-alist."
+  (interactive)
   (let ((vfolder vm-virtual-folder-alist))
     (while vfolder
       (let ((vfname (car (car vfolder))))
-	(if (not (string-equal vfname "General Delivery"))
+	(if (not (string-equal vfname my-vm-virtual-leftovers-folder))
 	    (vm-visit-virtual-folder vfname))
 	(setq vfolder (cdr vfolder)))))
-  (vm-visit-virtual-folder "General Delivery"))
+  (vm-visit-virtual-folder my-vm-virtual-leftovers-folder))
 
 (defun my-vm-resync-all-virtual-folders ()
   "Revisit all virtual folders to update them."
@@ -336,12 +348,26 @@ vm-virtual-folder-alist."
   (interactive)
   (save-excursion
     (my-vm-quit-all-virtual-folders)
-    (set-buffer "INBOX")
+    (set-buffer (vm-get-file-buffer vm-primary-inbox))
     (vm-get-new-mail)
     (my-vm-visit-all-virtual-folders)))
 
 ;; This overrides the normal binding of 'G' to vm-sort-messages....
 (define-key vm-mode-map "G" 'my-vm-get-new-mail)
+
+(defun my-vm-quit ()
+  "Local version of vm-quit that quits all virtual buffers if quitting
+vm-primary-inbox."
+  (interactive)
+  (vm-select-folder-buffer)
+  (if (eq major-mode 'vm-virtual-mode)
+      (vm-quit)
+    (if (string-equal (buffer-file-name)
+		      (expand-file-name vm-primary-inbox))
+	(my-vm-quit-all-virtual-folders))
+    (vm-quit)))
+
+(define-key vm-mode-map "q" 'my-vm-quit)
 
 (add-hook 'vm-mail-mode-hook
 	  (function (lambda () (local-set-key "\C-ci" 'ispell-message))))
@@ -435,7 +461,7 @@ message/rfc822 attachments."
 ;;;   vm-arrived-messages-hook nil
       vm-auto-center-summary nil
       vm-auto-decode-mime-messages nil
-      vm-auto-displayed-mime-content-types '("text" "multipart")
+      vm-auto-displayed-mime-content-types '("text" "multipart" "message/rfc822")
       vm-auto-folder-case-fold-search t	; so that vm-auto-folder-alist is simpler
       vm-auto-get-new-mail nil		; keep this manual for now
       vm-auto-next-message nil		; when you're at the bottom of the msg, stay there!
@@ -582,9 +608,9 @@ message/rfc822 attachments."
 					   )
       vm-mime-attachment-save-directory nil
       vm-mime-avoid-folding-content-type t
-      vm-mime-base64-decoder-program nil
+      vm-mime-base64-decoder-program "base64-decode" ; let's assume it's installed
       vm-mime-base64-decoder-switches nil
-      vm-mime-base64-encoder-program nil
+      vm-mime-base64-encoder-program "base64-encode" ; let's assume it's installed
       vm-mime-base64-encoder-switches nil
       vm-mime-button-face 'gui-button-face
       vm-mime-charset-font-alist nil
@@ -771,6 +797,8 @@ message/rfc822 attachments."
       vm-window-configuration-file nil		; don't allow saves
       )
 
+;; This is how we pick the default save name.
+;;
 (setq vm-auto-folder-alist '(
 			     ;; To: & Cc: entries here.
 			     ("^\\(to\\|cc\\|resent-to\\|apparently-to\\)"
@@ -791,6 +819,7 @@ message/rfc822 attachments."
 			      ("domain-policy@" . "domain-policy-l")
 			      ("exim-users@" . "exim-users-l")
 			      ("freenrg-l@" . "freenrg-l")
+			      ("gnu-emacs-bug@" . "bug-gnu-emacs-l") ; just merge this
 			      ("\\(hyperbole\\|hyperbole-announce\\)@" . "hyperbole-l")
 			      ("iap@" . "iap-l")
 			      ("info-vm@" . "bug-vm") ; just merge these....
@@ -891,139 +920,135 @@ message/rfc822 attachments."
 			      )
 			     ))
 
-(setq vm-virtual-folder-alist '(("General Delivery"
-				 (("INBOX")
-				  (not (virtual-folder-member))))
-				("automake"
-				 (("INBOX")
-				  (sender-or-recipient "automake@")))
-				("bug-cvs"
-				 (("INBOX")
-				  (or (sender-or-recipient "bug-cvs@")
-				      (sender-or-recipient "info-cvs@"))))
-				("bug-gnu-emacs"
-				 (("INBOX")
-				  (sender-or-recipient "bug-gnu-emacs@")))
-				("bug-vm"
-				 (("INBOX")
-				  (or (sender-or-recipient "bug-vm@")
-				      (sender-or-recipient "info-vm@"))))
-				("exim-users"
-				 (("INBOX")
-				  (sender-or-recipient "exim-users@")))
-				("ipfilter"
-				 (("INBOX")
-				  (sender-or-recipient "ipfilter@")))
-				("nanog"
-				 (("INBOX")
-				  (sender-or-recipient "nanog@")))
-				("prcs-list"
-				 (("INBOX")
-				  (sender-or-recipient "prcs-list@")))
-				("ssh"
-				 (("INBOX")
-				  (sender-or-recipient "ssh@")))
-				("smail3"
-				 (("INBOX")
-				  (sender-or-recipient "smail3")))
-				("vmailer-testers"
-				 (("INBOX")
-				  (sender-or-recipient "vmailer-testers@")))
-				("current-users"
-				 (("INBOX")
-				  (sender-or-recipient "current-users@")))
-				("netbsd-announce"
-				 (("INBOX")
-				  (sender-or-recipient "netbsd-announce@")))
-				("netbsd-bugs"
-				 (("INBOX")
-				  (or (sender-or-recipient "gnats-bugs@gnats.netbsd.org")
-				      (sender-or-recipient "netbsd-bugs@"))))
-				("netbsd-help"
-				 (("INBOX")
-				  (sender-or-recipient "netbsd-help@")))
-				("netbsd-ports"
-				 (("INBOX")
-				  (sender-or-recipient "netbsd-ports@")))
-				("netbsd-users"
-				 (("INBOX")
-				  (sender-or-recipient "netbsd-users@")))
-				("source-changes"
-				 (("INBOX")
-				  (or (sender-or-recipient "source-changes@")
-				      (sender-or-recipient "source@netbsd.org"))))
-				("tech-install"
-				 (("INBOX")
-				  (sender-or-recipient "tech-install@")))
-				("tech-kern"
-				 (("INBOX")
-				  (sender-or-recipient "tech-kern@")))
-				("tech-net"
-				 (("INBOX")
-				  (sender-or-recipient "tech-net@")))
-				("tech-ports"
-				 (("INBOX")
-				  (sender-or-recipient "tech-ports@")))
-				("tech-security"
-				 (("INBOX")
-				  (sender-or-recipient "tech-security@")))
-				("tech-toolchain"
-				 (("INBOX")
-				  (sender-or-recipient "tech-toolchain@")))
-				("tech-userlevel"
-				 (("INBOX")
-				  (sender-or-recipient "tech-userlevel@")))
-				("port-alpha"
-				 (("INBOX")
-				  (sender-or-recipient "port-alpha@")))
-				("port-amiga"
-				 (("INBOX")
-				  (sender-or-recipient "port-amiga@")))
-				("port-arm32"
-				 (("INBOX")
-				  (sender-or-recipient "port-arm32@")))
-				("port-atari"
-				 (("INBOX")
-				  (sender-or-recipient "port-atari@")))
-				("port-hp300"
-				 (("INBOX")
-				  (sender-or-recipient "port-hp300@")))
-				("port-i386"
-				 (("INBOX")
-				  (sender-or-recipient "port-i386@")))
-				("port-m68k"
-				 (("INBOX")
-				  (sender-or-recipient "port-m68k@")))
-				("port-mac68k"
-				 (("INBOX")
-				  (sender-or-recipient "port-mac68k@")))
-				("port-mips"
-				 (("INBOX")
-				  (sender-or-recipient "port-mips@")))
-				("port-mvme68k"
-				 (("INBOX")
-				  (sender-or-recipient "port-mvme68k@")))
-				("port-pc532"
-				 (("INBOX")
-				  (sender-or-recipient "port-pc532@")))
-				("port-pmax"
-				 (("INBOX")
-				  (sender-or-recipient "port-pmax@")))
-				("port-powerpc"
-				 (("INBOX")
-				  (sender-or-recipient "port-powerpc@")))
-				("port-sparc"
-				 (("INBOX")
-				  (sender-or-recipient "port-sparc@")))
-				("port-sun3"
-				 (("INBOX")
-				  (sender-or-recipient "port-sun3@")))
-				("port-vax"
-				 (("INBOX")
-				  (sender-or-recipient "port-vax@")))
-				("port-x68k"
-				 (("INBOX")
-				  (sender-or-recipient "port-x68k@")))))
+;; This is the list of virtual folders created by my-vm-visit-all-virtual-folders
+;;
+;; XXX It would be nice to use vm-primary-inbox in some way instead of "INBOX"
+;; XXX Wouldn't it?
+;;
+(setq vm-virtual-folder-alist
+      (append (list
+	       ;; NOTE: This possibly magic way of building an alist is uses so
+	       ;; we can get a value into a member from a variable -- i.e.
+	       ;; something that needs to be eval'ed at the time the list is
+	       ;; created.
+	       (list (symbol-value 'my-vm-virtual-leftovers-folder)
+		     (list (list "INBOX")
+			   '(not (virtual-folder-member)))))
+	      '(("VM"
+		 (("INBOX")
+		  (or (recipient "bug-vm@")
+		      (recipient "info-vm@"))))
+		("ZZZ-lists"
+		 (("INBOX")
+		  (or (recipient "stk@")
+		      (recipient "ssh@")
+		      (recipient "prcs-list@")
+		      (recipient "shape-l@")
+		      (recipient "tkined@"))))
+		("automake"
+		 (("INBOX")
+		  (recipient "automake@")))
+		("cvs"
+		 (("INBOX")
+		  (or (recipient "bug-cvs@")
+		      (recipient "commit-cvs@cyclic.com")
+		      (recipient "info-cvs@")
+		      (recipient "devel-cvs@"))))
+		("dns-stuff"
+		 (("INBOX")
+		  (or (recipient "domain-policy@")
+		      (recipient "namedroppers@")
+		      (recipient "bind-workers@")
+		      (recipient "bind-users@")
+		      (recipient "comp-protocols-dns-bind@")
+		      (recipient "rs-info@"))))
+		("jet-fuel"
+		 (("INBOX")
+		  (recipient "jet-fuel@")))
+		("lout"
+		 (("INBOX")
+		  (recipient "lout@niif.spb.su")))
+		("gnu-emacs"
+		 (("INBOX")
+		  (or (recipient "bug-gnu-emacs@")
+		      (recipient "gnu-emacs-sources@")
+		      (recipient "info-gnu-emacs@")
+		      (recipient "gnu-emacs-bug@"))))
+		("exim"
+		 (("INBOX")
+		  (or (recipient "exim-users@")
+		      (recipient "exim-announce@"))))
+		("freebsd"
+		 (("INBOX")
+		  (or (recipient "freebsd-announe@")
+		      (recipient "freebsd-bugs@")
+		      (recipient "bugs@freebsd.org")
+		      (recipient "freebsd-stable@")
+		      (recipient "freebsd-security@"))))
+		("ipfilter"
+		 (("INBOX")
+		  (recipient "ipfilter@")))
+		("NANOG"
+		 (("INBOX")
+		  (or (recipient "nanog@")
+		      (recipient "nanog-announce@"))))
+		("netbsd-current-users"
+		 (("INBOX")
+		  (recipient "current-users@")))
+		("netbsd-other"
+		 (("INBOX")
+		  (or (recipient "netbsd-announce@")
+		      (recipient "netbsd-help@")
+		      (recipient "netbsd-ports@")
+		      (recipient "netbsd-users@"))))
+		("netbsd-bugs"
+		 (("INBOX")
+		  (or (recipient "gnats-bugs@gnats.netbsd.org")
+		      (recipient "netbsd-bugs@"))))
+		("netbsd-source-changes"
+		 (("INBOX")
+		  (or (recipient "source-changes@")
+		      (recipient "source@netbsd.org"))))
+		("netbsd-tech"
+		 (("INBOX")
+		  (or (recipient "tech-install@")
+		      (recipient "tech-kern@")
+		      (recipient "tech-net@")
+		      (recipient "tech-ports@")
+		      (recipient "tech-security@")
+		      (recipient "tech-toolchain@")
+		      (recipient "tech-userlevel@"))))
+		("netbsd-port-alpha"
+		 (("INBOX")
+		  (recipient "port-alpha@")))
+		("netbsd-port-arm32"
+		 (("INBOX")
+		  (recipient "port-arm32@")))
+		("netbsd-port-i386"
+		 (("INBOX")
+		  (recipient "port-i386@")))
+		("netbsd-port-pmax"
+		 (("INBOX")
+		  (recipient "port-pmax@")))
+		("netbsd-port-powerpc"
+		 (("INBOX")
+		  (recipient "port-powerpc@")))
+		("netbsd-port-sparc"
+		 (("INBOX")
+		  (recipient "port-sparc@")))
+		("netbsd-port-sun3"
+		 (("INBOX")
+		  (recipient "port-sun3@")))
+		("pcl-cvs"
+		 (("INBOX")
+		  (or (recipient "pcl-cvs-auto-bugs@")
+		      (recipient "pcl-cvs@"))))
+		("smail3"
+		 (("INBOX")
+		  (recipient "smail3")))
+		("vmailer"
+		 (("INBOX")
+		  (recipient "vmailer-testers@"))))))
 ;;;
 ;;;	End Of File
 ;;;
