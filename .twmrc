@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	27.1	03/11/23 19:15:57 (woods)"
+#ident	"@(#)HOME:.twmrc	27.2	04/07/11 16:30:56 (woods)"
 #
 
 AutoRelativeResize
@@ -90,7 +90,7 @@ Color {
 	IconManagerHighlight	"yellow"
 }
 
-IconManagers	{ "XTerm" "=305x100-200+4" 1 }
+IconManagers	{ "XTerm" "=305x100-100+4" 1 }
 
 IconifyByUnmapping {
 	"XTerm"
