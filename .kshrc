@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	20.5	99/02/17 15:14:35 (woods)"
+#ident	"@(#)HOME:.kshrc	20.6	99/03/17 13:40:10 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -561,6 +561,7 @@ alias lr='/bin/ls -CFR'
 alias lra='/bin/ls -CFRa'
 alias lsa='/bin/ls -a'
 alias logout='exit 0'
+alias nosgr='echo '
 alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok'
 alias maillog='$PAGER -e -p ": \[[0-9]*\] remote [A-Z ]*:" +G $MAILLOG'
 alias realias='let LEV=$LEV-1;exec ksh'		# useless?
