@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	4.4	94/11/04 12:35:26 (woods)"
+;;;#ident	"@(#)HOME:.vm	4.5	94/11/15 17:33:27 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -83,68 +83,50 @@ ORGANIZATION.  If not nil, takes precedence over the file
      vm-auto-folder-alist '(
 			    ;; To: & Cc: entries here.
 			    ("^\\(to\\|cc\\|apparently-to\\)"
-			     ("source-changes@NetBSD.ORG" .
-			      (concat vm-folder-directory
-				      "netbsd/source-changes"))
+			     ("source-changes@NetBSD.ORG" . "netbsd/source-changes")
 			     ("\\(current-users@NetBSD.ORG\\|apana-lists-os-netbsd-general@\||source@NetBSD.ORG\\)" .
-			      (concat vm-folder-directory
-				      "netbsd/current-users"))
+			      "netbsd/current-users")
 			     ("\\(tech-[^@%]+\\)[@%]NetBSD.ORG" .
-			      (concat vm-folder-directory
-				      "netbsd/"
+			      (concat "netbsd/"
 				      (buffer-substring (match-beginning 1)
 							(match-end 1))))
-			     ("hyperbole@" .
-			      (concat vm-folder-directory
-				      "hyperbole"))
-			     ("bind@" .
-			      (concat vm-folder-directory
-				      "bind"))
+			     ("hyperbole@" . "hyperbole")
+			     ("bind@" . "bind")
 			     ("\\(bug-[^@%]+\\)[@%]" .
-			      (concat vm-folder-directory
-				      (buffer-substring (match-beginning 1)
+			      (concat (buffer-substring (match-beginning 1)
 							(match-end 1))))
 			     ("\\(gnu-[^@%]+\\)[@%]" .
-			      (concat vm-folder-directory
-				      (buffer-substring (match-beginning 1)
+			      (concat (buffer-substring (match-beginning 1)
 							(match-end 1))))
-			     ("info-vm" .
-			      (concat vm-folder-directory
-				      "bug-vm"))
+			     ("info-vm" . "bug-vm")
 			     ("\\(info-[^@%]+\\)[@%]" .
-			      (concat vm-folder-directory
-				      (buffer-substring (match-beginning 1)
+			      (concat (buffer-substring (match-beginning 1)
 							(match-end 1))))
 			     )
 			    ;; Sender: entries here.
 			    ("sender"
 			     ("owner-\\([^@%]+\\)[@%]NetBSD.ORG" .
-			      (concat vm-folder-directory
-				      "netbsd/"
+			      (concat "netbsd/"
 				      (buffer-substring (match-beginning 1)
 							(match-end 1))))
 			     )
 			    ;; From: entries here.
 			    ("from"
 			     ("gegai@.*\\.io\\.org"
-			      (concat vm-folder-directory
-				      "from/andy"))
+			      "from/andy")
 			     ;; code to make auto-folder default to the user name of the sender.
 			     ;; this should be last in the auto folder alist since it tends to
 			     ;; always match something.
 			     ("<\\([^ \t\n\f@%()<>]+\\)[@%]\\([^ \t\n\f<>()]+\\)>" .
-			      (concat vm-folder-directory
-				      "from/"
+			      (concat "from/"
 				      (buffer-substring (match-beginning 1)
 							(match-end 1))))
 			     ("<\\([^>]+\\)>" . 
-			      (concat vm-folder-directory
-				      "from/"
+			      (concat "from/"
 				      (buffer-substring (match-beginning 1)
 							(match-end 1))))
 			     ("\\([^ \t\n\f@%()<>]+\\)\\([@%]\\([^ \t\n\f<>()]+\\)\\)?" .
-			      (concat vm-folder-directory
-				      "from/"
+			      (concat "from/"
 				      (buffer-substring (match-beginning 1)
 							(match-end 1))))
 			     )
