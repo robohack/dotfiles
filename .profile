@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	18.7	97/03/13 09:18:13 (woods)"
+#ident	"@(#)HOME:.profile	18.8	97/09/16 11:56:23 (woods)"
 
 #
 # Assumptions:
@@ -274,14 +274,16 @@ fi
 # turn this off by default, turn it on by hand?
 mesg n
 
-if [ -r /usr/spool/smail/log/logfile ] ; then
-	MAILLOG="/usr/spool/smail/log/logfile"
+if [ -r /var/log/smail/logfile ] ; then
+	MAILLOG="/var/log/smail/logfile"
 elif [ -r /var/spool/smail/log/logfile ] ; then
 	MAILLOG="/var/spool/smail/log/logfile"
-elif [ -r $LOCAL/lib/smail/logfile ] ; then
-	MAILLOG="$LOCAL/lib/smail/logfile"
-elif [ -r $LOCAL/lib/smail/mail.log ] ; then
-	MAILLOG="$LOCAL/lib/smail/mail.log"
+elif [ -r /usr/spool/smail/log/logfile ] ; then
+	MAILLOG="/usr/spool/smail/log/logfile"
+elif [ -r $LOCAL/var/log/smail/logfile ] ; then
+	MAILLOG="$LOCAL/var/log/smail/logfile"
+elif [ -r $LOCAL/spool/smail/log/logfile ] ; then
+	MAILLOG="$LOCAL/spool/smail/log/logfile"
 fi
 export MAILLOG
 
