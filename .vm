@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.14	98/03/11 00:40:23 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.15	98/03/31 10:08:41 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -223,9 +223,6 @@ to the other end and continue."
 				    " (" (user-full-name) ")"))
 (setq mail-header-separator ".")	; as close to nothing as possible
 
-(add-hook 'vm-mail-mode-hook
-	  (function (lambda () (local-set-key "\C-ci" 'ispell-message))))
-
 ;;(setq mail-archive-file-name "~/Mail/.outgoing") ; for posterity
 ;;
 ;;; From: bhoylma@advtech.USWest.COM (Bruce W. Hoylman)
@@ -303,24 +300,64 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;;;
 ;;;	VM related things
 ;;;
+
+(defun my-vm-quit-all-virtual-folders ()
+  "Quit from all of the virtual folders in vm-virtual-folder-alist."
+  (let ((vfolder vm-virtual-folder-alist))
+    (while vfolder
+      (save-excursion
+	(condition-case error-data
+	    (let ((vm-confirm-quit nil))
+	      (set-buffer (concat "(" (car (car vfolder)) ")"))
+	      (vm-quit))
+	  (error nil))
+	(setq vfolder (cdr vfolder))))))
+
+(defun my-vm-visit-all-virtual-folders ()
+  "Visit all of the virtual folders in vm-virtual-folder-alist."
+  (let ((vfolder vm-virtual-folder-alist))
+    (while vfolder
+      (let ((vfname (car (car vfolder))))
+	(if (not (string-equal vfname "General Delivery"))
+	    (vm-visit-virtual-folder vfname))
+	(setq vfolder (cdr vfolder)))))
+  (vm-visit-virtual-folder "General Delivery"))
+
+(defun my-vm-resync-all-virtual-folders ()
+  "Revisit all virtual folders to update them."
+  (interactive)
+  (save-excursion
+    (my-vm-quit-all-virtual-folders)
+    (my-vm-visit-all-virtual-folders)))
+
+(defun my-vm-get-new-mail ()
+  "Local version of vm-get-new-mail that updates all virtual folders in
+vm-virtual-folder-alist."
+  (interactive)
+  (save-excursion
+    (my-vm-quit-all-virtual-folders)
+    (set-buffer "INBOX")
+    (vm-get-new-mail)
+    (my-vm-visit-all-virtual-folders)))
+
+;; This overrides the normal binding of 'G' to vm-sort-messages....
+(define-key vm-mode-map "G" 'my-vm-get-new-mail)
+
+(add-hook 'vm-mail-mode-hook
+	  (function (lambda () (local-set-key "\C-ci" 'ispell-message))))
+
+(require 'advice)
+(defadvice vm-summarize (after my-vm-summarize activate)
+  "Also call vm-emit-totals-blurb after vm-summarize."
+  (vm-emit-totals-blurb))
+
 (defun my-vm-auto-archive-messages ()
   "Local version of vm-auto-archive-messages that obtains user confirmation."
   (interactive)
-  (if (y-or-n-p "Are you sure you want to archive all messages???")
+  (if (y-or-n-p "Are you really sure you want to archive all messages???")
       (vm-auto-archive-messages)))
 
 (define-key vm-mode-map "A" 'my-vm-auto-archive-messages)
-
-(defun my-vm-quit ()
-  "Local version of vm-quit that obtains user confirmation if the current
-buffer is not not a composition preview buffer" 
-  (interactive)
-  (if (eq (string-match "^composition preview" (buffer-name)) 0)
-      (vm-quit)
-    (if (y-or-n-p "Are you sure you want to quit?")
-	(vm-quit))))
-
-(define-key vm-mode-map "q" 'my-vm-quit)
 
 ;; this is done this way so that it remains compatible with pre-6.x VM
 (defun my-vm-forward-message-using-rfc934 ()
@@ -399,122 +436,6 @@ message/rfc822 attachments."
       vm-auto-center-summary nil
       vm-auto-decode-mime-messages nil
       vm-auto-displayed-mime-content-types '("text" "multipart")
-      vm-auto-folder-alist '(
-			     ;; To: & Cc: entries here.
-			     ("^\\(to\\|cc\\|resent-to\\|apparently-to\\)"
-			      ("8lgm-advisories@8lgm.org" . "8lgm-l")
-			      ("admin-l@io.org" . "planix/io-admin-l")
-			      ("aegis-users@" . "aegis-users-l")
-			      ("auto-net@" . "auto-net-l")
-			      ("automake@" . "automake-l")
-			      ("cssc-users@gnu.org" . "cssc-users-l")
-			      ("best-of-security@cyber.com.au" . "best-of-security-l")
-			      ("bind@" . "bind-l")
-			      ("bind-users@" . "bind-users-l")
-			      ("bind-workers@" . "bind-workers-l")
-			      ("com-priv@.*psi.com" . "com-priv-l")
-			      ("devel-cvs@" . "devel-cvs-l")
-			      ("djb-qmailbeta@" . "djb-qmailbeta-l")
-			      ("djb-qmail@" . "djb-qmail-l")
-			      ("domain-policy@" . "domain-policy-l")
-			      ("exim-users@" . "exim-users-l")
-			      ("freenrg-l@" . "freenrg-l")
-			      ("\\(hyperbole\\|hyperbole-announce\\)@" . "hyperbole-l")
-			      ("iap@" . "iap-l")
-			      ("info-vm@" . "bug-vm") ; just merge these....
-			      ("ipfilter@" . "ipfilter-l")
-			      ("ip-registry@" . "ip-registry-l")
-			      ("isp-telco@" . "isp-telco-l")
-			      ("jet-fuel@" . "jet-fuel-l")
-			      ("lout@" . "lout-l")
-			      ("NAMEDROPPERS@LISTS.INTERNIC.NET" . "namedroppers-l")
-			      ("namedroppers@internic.net" . "namedroppers-l")
-			      ("net-dist@nikhef.nl" . "nikhef.net-dist-l")
-			      ("newdom@iiia.org" . "newdom-l")
-			      ("pcl-cvs@" . "pcl-cvs-l")
-			      ("pcl-cvs-auto-bugs@" . "pcl-cvs-l")
-			      ("prcs-list@" . "prcs-l")
-			      ("qotd@" . "qotd-l")
-			      ("rc@hawkwind.utcs.toronto.edu" . "rc-l")
-			      ("rs-info@" . "rs-info-l")
-			      ("shared-tld@" . "shared-tld-l")
-			      ("smail3-bugs-fwd@" . "smail3-bugs-fwd-l")
-			      ("smail3-devel@" . "smail3-devel-l")
-			      ("smail3-maintainers@" . "smail3-maintainers-l")
-			      ("smail3-users@" . "smail3-users-l")
-			      ("smail3-wizards@" . "smail3-wizards-l")
-			      ("ssh@" . "ssh-l")
-			      ("stk@" . "stk-l")
-			      ("tkined@" . "tkined-l")
-			      ("trn-test@" . "trn-test-l")
-			      ("zmailer@" . "zmailer-l")
-			      ;; various netbsd lists
-			      ("source-changes@NetBSD.ORG" . "netbsd/source-changes")
-			      ("\\(current-users@NetBSD.ORG\\|apana-lists-os-netbsd-general@\\|source@NetBSD.ORG\\)" .
-			       "netbsd/current-users")
-			      ("\\(tech-[^@%]+\\)[@%]NetBSD.ORG" .
-			       (concat "netbsd/"
-				       (buffer-substring (match-beginning 1)
-							 (match-end 1))))
-			      ("\\(netbsd-[^@%]+\\)[@%]" .
-			       (concat "netbsd/"
-				       (buffer-substring (match-beginning 1)
-							 (match-end 1))))
-			      ;; various other <type>-<subj>@ lists....
-			      ("\\(bug-[^@%]+\\)[@%]" .
-			       (concat (buffer-substring (match-beginning 1)
-							 (match-end 1))))
-			      ("\\(gnu-[^@%]+\\)[@%]" .
-			       (concat (buffer-substring (match-beginning 1)
-							 (match-end 1))))
-			      ("\\(info-[^@%]+\\)[@%]" .
-			       (concat (buffer-substring (match-beginning 1)
-							 (match-end 1))))
-			      )
-			     ;; Reply-to: entries here.
-			     ("^reply-to"
-			      ("Suns-at-Home@" . "suns-at-home-l")
-			      )
-			     ;; Sender: entries here.
-			     ("^\\(sender\\|resent-sender\\)"
-			      ("ciac-bulletin@" . "ciac-l")
-			      ("ciac-notes@" . "ciac-l")
-			      ("iap@vma.cc.nd.edu" . "iap-l")
-			      ("owner-admin-l@io.org" . "planix/io-admin-l")
-			      ("owner-devel-cvs@" . "devel-cvs-l")
-			      ("owner-fwtk-users@" . "fwtk-l")
-			      ("owner-namedroppers@internic.net" . "namedroppers-l")
-			      ("owner-net-dist@nikhef.nl" . "nikhef.net-dist-l")
-			      ("owner-pcl-cvs@" . "pcl-cvs-l")
-			      ("owner-rs-info@internic.net" . "rs-info-l")
-			      ("owner-vmailer-testers@wzv.win.tue.nl" . "vmailer-testers-l")
-			      ("owner-\\([^@%]+\\)[@%]NetBSD.ORG" .
-			       (concat "netbsd/"
-				       (buffer-substring (match-beginning 1)
-							 (match-end 1))))
-			      )
-			     ;; From: entries here.
-			     ("^\\(from\\|resent-from\\)"
-			      ("0xdeadbeef@" . "0xdeadbeef-l")
-			      ("gegai@.*io\\.org" . "from/andy")
-			      ("gnats-bugs@netbsd.org" . "netbsd/gnats-bugs")
-			      ;; code to make auto-folder default to the user name of the sender.
-			      ;; this should be last in the auto folder alist since it tends to
-			      ;; always match something.
-			      ("<\\([^ \t\n\f@%()<>]+\\)[@%]\\([^ \t\n\f<>()]+\\)>" .
-			       (concat "from/"
-				       (downcase (buffer-substring (match-beginning 1)
-								   (match-end 1)))))
-			      ("<\\([^>]+\\)>" . 
-			       (concat "from/"
-				       (downcase (buffer-substring (match-beginning 1)
-								   (match-end 1)))))
-			      ("\\([^ \t\n\f@%()<>]+\\)\\([@%]\\([^ \t\n\f<>()]+\\)\\)?" .
-			       (concat "from/"
-				       (downcase (buffer-substring (match-beginning 1)
-								   (match-end 1)))))
-			      )
-			     )
       vm-auto-folder-case-fold-search t	; so that vm-auto-folder-alist is simpler
       vm-auto-get-new-mail nil		; keep this manual for now
       vm-auto-next-message nil		; when you're at the bottom of the msg, stay there!
@@ -522,7 +443,7 @@ message/rfc822 attachments."
       vm-check-folder-types t
       vm-circular-folders nil		; don't wrap around the folder
       vm-confirm-new-folders t		; be careful!
-      vm-confirm-quit 1			; ask about quitting if unsaved changes
+      vm-confirm-quit t			; always ask about quitting
       vm-convert-folder-types t
       vm-crash-box "~/Mail/INBOX.CRASH"	; keep everything in the vm-folder-directory
       vm-crash-box-suffix nil
@@ -540,9 +461,13 @@ message/rfc822 attachments."
 					(quitting
 					 ((((top . 70)
 					    (left . 70)))
-					  (((0 0 80 40)
-					    ((nil message))
-					    ((nil nil nil t))))))
+					  (((-
+					     (0 0 80 10)
+					     (0 10 80 40))
+					    ((nil summary)
+					     (nil message))
+					    ((nil nil nil t)
+					     (nil nil nil nil))))))
 					(reading-message
 					 ((((top . 70)
 					    (left . 70)))
@@ -636,6 +561,8 @@ message/rfc822 attachments."
       vm-mail-header-from (concat (user-login-name) "@" (vm-fqdn)
 				  " (" (user-full-name) ")") ; this is also for
 							     ; resent-from
+      vm-mail-header-insert-date nil	; don't do this!
+      vm-mail-header-insert-message-id nil ; don't do this either!
 ;;;   vm-mail-hook nil
 ;;;   vm-mail-mode-hook nil
       vm-make-crash-box-name nil
@@ -821,7 +748,7 @@ message/rfc822 attachments."
 		       nil
 		       help
 		       )
-      vm-virtual-folder-alist nil
+      vm-virtual-folder-case-fold-search t	; I want everything to match!
       vm-virtual-mirror t
       vm-visible-headers '("Newsgroups:"	; better for forwarded news
 			   "X-[^VFS][^Mat]"	; try to avoid X-VM-*, X-Status, and X-Face
@@ -844,6 +771,259 @@ message/rfc822 attachments."
       vm-window-configuration-file nil		; don't allow saves
       )
 
+(setq vm-auto-folder-alist '(
+			     ;; To: & Cc: entries here.
+			     ("^\\(to\\|cc\\|resent-to\\|apparently-to\\)"
+			      ("8lgm-advisories@8lgm.org" . "8lgm-l")
+			      ("admin-l@io.org" . "planix/io-admin-l")
+			      ("aegis-users@" . "aegis-users-l")
+			      ("auto-net@" . "auto-net-l")
+			      ("automake@" . "automake-l")
+			      ("cssc-users@gnu.org" . "cssc-users-l")
+			      ("best-of-security@cyber.com.au" . "best-of-security-l")
+			      ("bind@" . "bind-l")
+			      ("bind-users@" . "bind-users-l")
+			      ("bind-workers@" . "bind-workers-l")
+			      ("com-priv@.*psi.com" . "com-priv-l")
+			      ("devel-cvs@" . "devel-cvs-l")
+			      ("djb-qmailbeta@" . "djb-qmailbeta-l")
+			      ("djb-qmail@" . "djb-qmail-l")
+			      ("domain-policy@" . "domain-policy-l")
+			      ("exim-users@" . "exim-users-l")
+			      ("freenrg-l@" . "freenrg-l")
+			      ("\\(hyperbole\\|hyperbole-announce\\)@" . "hyperbole-l")
+			      ("iap@" . "iap-l")
+			      ("info-vm@" . "bug-vm") ; just merge these....
+			      ("ipfilter@" . "ipfilter-l")
+			      ("ip-registry@" . "ip-registry-l")
+			      ("isp-telco@" . "isp-telco-l")
+			      ("jet-fuel@" . "jet-fuel-l")
+			      ("lout@" . "lout-l")
+			      ("NAMEDROPPERS@LISTS.INTERNIC.NET" . "namedroppers-l")
+			      ("namedroppers@internic.net" . "namedroppers-l")
+			      ("net-dist@nikhef.nl" . "nikhef.net-dist-l")
+			      ("newdom@iiia.org" . "newdom-l")
+			      ("pcl-cvs@" . "pcl-cvs-l")
+			      ("pcl-cvs-auto-bugs@" . "pcl-cvs-l")
+			      ("prcs-list@" . "prcs-l")
+			      ("qotd@" . "qotd-l")
+			      ("rc@hawkwind.utcs.toronto.edu" . "rc-l")
+			      ("rs-info@" . "rs-info-l")
+			      ("shared-tld@" . "shared-tld-l")
+			      ("smail3-bugs-fwd@" . "smail3-bugs-fwd-l")
+			      ("smail3-devel@" . "smail3-devel-l")
+			      ("smail3-maintainers@" . "smail3-maintainers-l")
+			      ("smail3-users@" . "smail3-users-l")
+			      ("smail3-wizards@" . "smail3-wizards-l")
+			      ("ssh@" . "ssh-l")
+			      ("stk@" . "stk-l")
+			      ("tkined@" . "tkined-l")
+			      ("trn-test@" . "trn-test-l")
+			      ("zmailer@" . "zmailer-l")
+			      ;; various netbsd lists
+			      ("source-changes@netbsd.org" . "netbsd/source-changes")
+			      ("current-users@netbsd.org" . "netbsd/current-users")
+			      ("\\(tech-[^@%]+\\)[@%]netbsd.org" .
+			       (concat "netbsd/"
+				       (buffer-substring (match-beginning 1)
+							 (match-end 1))))
+			      ("\\(netbsd-[^@%]+\\)[@%]" .
+			       (concat "netbsd/"
+				       (buffer-substring (match-beginning 1)
+							 (match-end 1))))
+			      ("\\(port-[^@%]+\\)[@%]" .
+			       (concat "netbsd/"
+				       (buffer-substring (match-beginning 1)
+							 (match-end 1))))
+			      ;; various other <type>-<subj>@ lists....
+			      ("\\(bug-[^@%]+\\)[@%]" .
+			       (concat (buffer-substring (match-beginning 1)
+							 (match-end 1))))
+			      ("\\(gnu-[^@%]+\\)[@%]" .
+			       (concat (buffer-substring (match-beginning 1)
+							 (match-end 1))))
+			      ("\\(info-[^@%]+\\)[@%]" .
+			       (concat (buffer-substring (match-beginning 1)
+							 (match-end 1))))
+			      )
+			     ;; Reply-to: entries here.
+			     ("^reply-to"
+			      ("Suns-at-Home@" . "suns-at-home-l")
+			      )
+			     ;; Sender: entries here.
+			     ("^\\(sender\\|resent-sender\\)"
+			      ("ciac-bulletin@" . "ciac-l")
+			      ("ciac-notes@" . "ciac-l")
+			      ("iap@vma.cc.nd.edu" . "iap-l")
+			      ("owner-admin-l@io.org" . "planix/io-admin-l")
+			      ("owner-devel-cvs@" . "devel-cvs-l")
+			      ("owner-fwtk-users@" . "fwtk-l")
+			      ("owner-namedroppers@internic.net" . "namedroppers-l")
+			      ("owner-net-dist@nikhef.nl" . "nikhef.net-dist-l")
+			      ("owner-pcl-cvs@" . "pcl-cvs-l")
+			      ("owner-rs-info@internic.net" . "rs-info-l")
+			      ("owner-vmailer-testers@wzv.win.tue.nl" . "vmailer-testers-l")
+			      ("owner-\\([^@%]+\\)[@%]netbsd.org" .
+			       (concat "netbsd/"
+				       (buffer-substring (match-beginning 1)
+							 (match-end 1))))
+			      )
+			     ;; From: entries here.
+			     ("^\\(from\\|resent-from\\)"
+			      ("0xdeadbeef@" . "0xdeadbeef-l")
+			      ("gegai@.*io\\.org" . "from/andy")
+			      ("gnats-bugs@netbsd.org" . "netbsd/gnats-bugs")
+			      ;; code to make auto-folder default to the user name of the sender.
+			      ;; this should be last in the auto folder alist since it tends to
+			      ;; always match something.
+			      ("<\\([^ \t\n\f@%()<>]+\\)[@%]\\([^ \t\n\f<>()]+\\)>" .
+			       (concat "from/"
+				       (downcase (buffer-substring (match-beginning 1)
+								   (match-end 1)))))
+			      ("<\\([^>]+\\)>" . 
+			       (concat "from/"
+				       (downcase (buffer-substring (match-beginning 1)
+								   (match-end 1)))))
+			      ("\\([^ \t\n\f@%()<>]+\\)\\([@%]\\([^ \t\n\f<>()]+\\)\\)?" .
+			       (concat "from/"
+				       (downcase (buffer-substring (match-beginning 1)
+								   (match-end 1)))))
+			      )
+			     ))
+
+(setq vm-virtual-folder-alist '(("General Delivery"
+				 (("INBOX")
+				  (not (virtual-folder-member))))
+				("automake"
+				 (("INBOX")
+				  (sender-or-recipient "automake@")))
+				("bug-cvs"
+				 (("INBOX")
+				  (or (sender-or-recipient "bug-cvs@")
+				      (sender-or-recipient "info-cvs@"))))
+				("bug-gnu-emacs"
+				 (("INBOX")
+				  (sender-or-recipient "bug-gnu-emacs@")))
+				("bug-vm"
+				 (("INBOX")
+				  (or (sender-or-recipient "bug-vm@")
+				      (sender-or-recipient "info-vm@"))))
+				("exim-users"
+				 (("INBOX")
+				  (sender-or-recipient "exim-users@")))
+				("ipfilter"
+				 (("INBOX")
+				  (sender-or-recipient "ipfilter@")))
+				("nanog"
+				 (("INBOX")
+				  (sender-or-recipient "nanog@")))
+				("prcs-list"
+				 (("INBOX")
+				  (sender-or-recipient "prcs-list@")))
+				("ssh"
+				 (("INBOX")
+				  (sender-or-recipient "ssh@")))
+				("smail3"
+				 (("INBOX")
+				  (sender-or-recipient "smail3")))
+				("vmailer-testers"
+				 (("INBOX")
+				  (sender-or-recipient "vmailer-testers@")))
+				("current-users"
+				 (("INBOX")
+				  (sender-or-recipient "current-users@")))
+				("netbsd-announce"
+				 (("INBOX")
+				  (sender-or-recipient "netbsd-announce@")))
+				("netbsd-bugs"
+				 (("INBOX")
+				  (or (sender-or-recipient "gnats-bugs@gnats.netbsd.org")
+				      (sender-or-recipient "netbsd-bugs@"))))
+				("netbsd-help"
+				 (("INBOX")
+				  (sender-or-recipient "netbsd-help@")))
+				("netbsd-ports"
+				 (("INBOX")
+				  (sender-or-recipient "netbsd-ports@")))
+				("netbsd-users"
+				 (("INBOX")
+				  (sender-or-recipient "netbsd-users@")))
+				("source-changes"
+				 (("INBOX")
+				  (or (sender-or-recipient "source-changes@")
+				      (sender-or-recipient "source@netbsd.org"))))
+				("tech-install"
+				 (("INBOX")
+				  (sender-or-recipient "tech-install@")))
+				("tech-kern"
+				 (("INBOX")
+				  (sender-or-recipient "tech-kern@")))
+				("tech-net"
+				 (("INBOX")
+				  (sender-or-recipient "tech-net@")))
+				("tech-ports"
+				 (("INBOX")
+				  (sender-or-recipient "tech-ports@")))
+				("tech-security"
+				 (("INBOX")
+				  (sender-or-recipient "tech-security@")))
+				("tech-toolchain"
+				 (("INBOX")
+				  (sender-or-recipient "tech-toolchain@")))
+				("tech-userlevel"
+				 (("INBOX")
+				  (sender-or-recipient "tech-userlevel@")))
+				("port-alpha"
+				 (("INBOX")
+				  (sender-or-recipient "port-alpha@")))
+				("port-amiga"
+				 (("INBOX")
+				  (sender-or-recipient "port-amiga@")))
+				("port-arm32"
+				 (("INBOX")
+				  (sender-or-recipient "port-arm32@")))
+				("port-atari"
+				 (("INBOX")
+				  (sender-or-recipient "port-atari@")))
+				("port-hp300"
+				 (("INBOX")
+				  (sender-or-recipient "port-hp300@")))
+				("port-i386"
+				 (("INBOX")
+				  (sender-or-recipient "port-i386@")))
+				("port-m68k"
+				 (("INBOX")
+				  (sender-or-recipient "port-m68k@")))
+				("port-mac68k"
+				 (("INBOX")
+				  (sender-or-recipient "port-mac68k@")))
+				("port-mips"
+				 (("INBOX")
+				  (sender-or-recipient "port-mips@")))
+				("port-mvme68k"
+				 (("INBOX")
+				  (sender-or-recipient "port-mvme68k@")))
+				("port-pc532"
+				 (("INBOX")
+				  (sender-or-recipient "port-pc532@")))
+				("port-pmax"
+				 (("INBOX")
+				  (sender-or-recipient "port-pmax@")))
+				("port-powerpc"
+				 (("INBOX")
+				  (sender-or-recipient "port-powerpc@")))
+				("port-sparc"
+				 (("INBOX")
+				  (sender-or-recipient "port-sparc@")))
+				("port-sun3"
+				 (("INBOX")
+				  (sender-or-recipient "port-sun3@")))
+				("port-vax"
+				 (("INBOX")
+				  (sender-or-recipient "port-vax@")))
+				("port-x68k"
+				 (("INBOX")
+				  (sender-or-recipient "port-x68k@")))))
 ;;;
 ;;;	End Of File
 ;;;
