@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	26.1	03/01/05 16:26:10 (woods)"
+#ident	"@(#)HOME:.kshsccs	26.2	03/11/23 14:35:10 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -400,7 +400,7 @@ function vlastrel
 #
 #	vnewrel - start a new release
 #
-# Make an archive of yoru source files fisrt, then run this to begin
+# Make an archive of your source files fisrt, then run this to begin
 # the next release...
 #
 # (i.e. roll up the release number on all files in the project)
