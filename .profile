@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	24.1	02/07/04 17:19:31 (woods)"
+#ident	"@(#)HOME:.profile	24.2	02/08/11 21:38:40 (woods)"
 
 #
 # Assumptions that may cause breakage:
@@ -272,6 +272,7 @@ dirappend CDPATH /usr/src/local /usr/src/local/lib /usr/src/local/cmd
 dirappend CDPATH /usr/src/gnu/usr.bin /usr/src/gnu/lib /usr/src/gnu/libexec
 dirappend CDPATH /usr/xsrc/xc/programs
 dirappend CDPATH /usr/pkgsrc
+dirappend CDPATH /usr/ports
 dirappend CDPATH /usr/src/ucbcmd /usr/src/ucblib
 dirappend CDPATH $LOCAL/src $LOCAL/src/lib $LOCAL/src/gnu $LOCAL/src/bsd
 dirappend CDPATH $LOCAL $LOCAL/lib /opt /usr/lib /usr/spool / /usr
