@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	6.4	94/11/03 17:02:51 (woods)"
+#ident	"@(#)HOME:.profile	6.5	94/11/26 14:25:51 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -217,6 +217,7 @@ else
 	PAGER="`type cat`"
 fi
 PAGER="`expr "$PAGER" : '^.*/\([^/]*\)$'`"; export PAGER
+MANPAGER="$PAGER -s"; export MANPAGER
 LESS="-eM" ; export LESS
 
 if expr "`type emacs`" : '.* is .*/emacs$' >/dev/null 2>&1 ; then
