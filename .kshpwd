@@ -1,7 +1,7 @@
 #
 #	.kshpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.kshpwd	2.2	94/11/18 00:18:45 (woods)"
+#ident	"@(#)HOME:.kshpwd	2.3	94/11/18 00:30:14 (woods)"
 
 if [ "$PWD" = "$HOME" ] ; then
 	PWD='~'
@@ -23,6 +23,12 @@ function _cd
 		;;
 	/apc/usr/web/webadmin/*)
 		PWD='~'"${PWD#/apc/usr/web/webadmin/}"
+		;;
+	*/work.d/*)
+		PWD='work.d:'"${PWD#*/work.d/}"
+		;;
+	*/src/*)
+		PWD='src:'"${PWD#*/src/}"
 		;;
 	esac
 	if [ "`ismpx`" = yes ] ; then
