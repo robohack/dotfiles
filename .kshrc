@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	4.4	94/08/04 12:42:55 (woods)"
+#ident	"@(#)HOME:.kshrc	4.5	94/11/30 16:45:46 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -94,14 +94,16 @@ function do_first_time
 	fi
 }
 
-# we need to check this early, as otherwise we won't find ismpx below...
+# we don't need this, I don't think, since it is in .profile....
 #
-if [ -d $LOCAL/dmdlayers/bin -a "$TERM" = "dmd" ] ; then
-	DMD=$LOCAL/dmdlayers ; export DMD
-	TOOLS=$DMD/local ; export TOOLS
-	dirappend PATH $DMD/bin $TOOLS/bin
-	dirprepend MANPATH $DMD/man $TOOLS/man
-fi
+## we need to check this early, as otherwise we won't find ismpx below...
+##
+#if [ -d $LOCAL/dmdlayers/bin -a "$TERM" = "dmd" ] ; then
+#	DMD=$LOCAL/dmdlayers ; export DMD
+#	TOOLS=$DMD/local ; export TOOLS
+#	dirappend PATH $DMD/bin $TOOLS/bin
+#	dirprepend MANPATH $DMD/man $TOOLS/man
+#fi
 
 if type ismpx 2>&1 >/dev/null ; then
 	: might just be running layers
@@ -450,6 +452,9 @@ fi
 
 if [ "$(whence man)" = "/usr/bin/man" -a -x $LOCAL/bin/man ] ; then
 	alias man=$LOCAL/bin/man
+	alias osman='MANPATH=$OMANPATH /usr/bin/man
+else
+	alias osman='MANPATH=$OMANPATH man'
 fi
 
 alias blstrip='sed "/./,/^$/!d"'
