@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	2.2	94/02/03 20:24:36 (woods)"
+#ident	"@(#)HOME:.profile	2.3	94/02/04 15:19:44 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -91,7 +91,7 @@ if [ -z "$LOCAL" ] ; then
 	elif [ -d /usr/local ] ; then
 		LOCAL="/usr/local" ; export LOCAL
 	else
-		echo "$0: WARNING: this system doesn't seem to have a LOCAL root"
+		echo -- "$0: WARNING: this system doesn't seem to have a LOCAL root"
 		LOCAL="/local" ; export LOCAL
 	fi
 fi
@@ -104,7 +104,7 @@ if [ -z "$GNU" ] ; then
 	elif [ -d /usr/local/gnu ] ; then
 		GNU="/usr/local/gnu" ; export GNU
 	else
-		echo "$0: WARNING: this system doesn't seem to have a GNU root"
+		echo -- "$0: WARNING: this system doesn't seem to have a GNU root"
 		GNU="/gnu" ; export GNU
 	fi
 fi
