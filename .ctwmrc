@@ -1,7 +1,7 @@
 #-*-sh-*-
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	22.4	01/12/07 02:11:32 (woods)"
+#ident	"@(#)HOME:.ctwmrc	22.5	01/12/28 10:55:13 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -513,8 +513,8 @@ menu "consoles"
 	CONSOLE_REP(raid-00)
 	CONSOLE_REP(exb210)
 	CONSOLE_REP(hubly)
-	CONSOLE_REP(best-1.4)
-	CONSOLE_REP(caller-id)
+	CONSOLE_REP(best1.44)
+	CONSOLE_REP(callerid)
  undefine(CONSOLE_REP)
 }
 
