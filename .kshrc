@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	26.1	03/01/05 16:26:10 (woods)"
+#ident	"@(#)HOME:.kshrc	26.2	03/09/18 20:50:56 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -334,7 +334,7 @@ if type setban > /dev/null ; then
 		function _emacs
 		{
 			trap "trap 1 2 3 15; setban" 1 2 3 15
-			WBANNER="GNU Emacs @ $UUNAME"
+			WBANNER="GNU Emacs "
 			setban
 			mesg n
 			emacs ${1+"$@"}
@@ -352,7 +352,7 @@ if type setban > /dev/null ; then
 		else
 			trap "trap 1 2 3 15; setban" 1 2 3 15
 		fi
-		WBANNER="CU $*"
+		WBANNER="CU $* "
 		setban
 		mesg n
 		/usr/bin/cu ${1+"$@"}
@@ -369,7 +369,7 @@ if type setban > /dev/null ; then
 		else
 			trap "trap 1 2 3 15; setban" 1 2 3 15
 		fi
-		WBANNER="C-Kermit $*"
+		WBANNER="C-Kermit $* "
 		setban
 		mesg n
 		$LOCAL/bin/ckermit ${1+"$@"}
@@ -383,7 +383,7 @@ if type setban > /dev/null ; then
 		function _rlogin
 		{
 			trap "trap 1 2 3 15; setban" 1 2 3 15
-			WBANNER="rlogin $*"
+			WBANNER="RLOGIN $* "
 			setban
 			mesg n
 			$RLOGIN ${1+"$@"}
@@ -398,7 +398,7 @@ if type setban > /dev/null ; then
 		function _slogin
 		{
 			trap "trap 1 2 3 15; setban" 1 2 3 15
-			WBANNER="slogin $*"
+			WBANNER="SLOGIN $* "
 			setban
 			mesg n
 			$SLOGIN ${1+"$@"}
@@ -413,7 +413,7 @@ if type setban > /dev/null ; then
 		function _console
 		{
 			trap "trap 1 2 3 15; setban" 1 2 3 15
-			WBANNER="console $*"
+			WBANNER="CONSOLE $* "
 			setban
 			mesg n
 			$CONSOLE ${1+"$@"}
@@ -433,7 +433,7 @@ if type setban > /dev/null ; then
 			else
 				trap "trap 1 2 3 15; setban" 1 2 3 15
 			fi
-			WBANNER="telnet $*"
+			WBANNER="TELNET $* "
 			setban
 			mesg n
 			$TELNET ${1+"$@"}
@@ -447,7 +447,7 @@ if type setban > /dev/null ; then
 		function _mushC
 		{
 			trap "trap 1 2 3 15; setban" 1 2 3 15
-			WBANNER="MUSH $*"
+			WBANNER="MUSH $* "
 			setban
 			mesg n
 			mush -C ${1+"$@"}
@@ -461,7 +461,7 @@ if type setban > /dev/null ; then
 		function _irc
 		{
 			trap "trap 1 2 3 15; setban" 1 2 3 15
-			WBANNER="IRC $*"
+			WBANNER="IRC $* "
 			setban
 			mesg n
 			irc ${1+"$@"}
@@ -475,7 +475,7 @@ if type setban > /dev/null ; then
 		function _trn
 		{
 			trap "trap 1 2 3 15; setban" 1 2 3 15
-			WBANNER="TRN $*"
+			WBANNER="TRN $* "
 			setban
 			mesg n
 			trn ${1+"$@"}
@@ -488,7 +488,11 @@ if type setban > /dev/null ; then
 	function _su
 	{
 		trap "trap 1 2 3 15; setban" 1 2 3 15
-		WBANNER="SU $*"
+		showargs=${*-"root"}
+		if [ $showargs = "root" ]; then
+			PWD=/
+		fi
+		WBANNER="SU $showargs "
 		setban
 		mesg n
 		if [ -x /usr/5bin/su ] ; then
@@ -498,6 +502,7 @@ if type setban > /dev/null ; then
 		else
 			/bin/su ${1+"$@"}
 		fi
+		PWD=$(pwd)
 		setban
 	}
 
@@ -631,6 +636,7 @@ if $HAVEMUSH; then
 	alias mhdrs='mush -H -f'
 fi
 
+alias badsenders='fgrep RHSBL: $MAILLOG | sed "s/[<>]/ /g" | awk "{print \$8}" | sort -u'
 # NOTE: never forget this -- it's the most incredible sed script!!!!
 alias blstrip='sed "/./,/^$/!d"'
 # XXX write one to collapse back-slash continued lines too!
