@@ -1,7 +1,7 @@
 #-*-m4-*-
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	26.1	03/01/05 16:26:10 (woods)"
+#ident	"@(#)HOME:.ctwmrc	26.2	03/01/08 02:38:20 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -308,14 +308,14 @@ Cursors {
 # The positioning of the WorkSpace window seems to ignore borders or
 # something -- i.e. it's not the same as an ordinary client.  You need
 # to specify the horizontal position 10 pixels East of where you'd
-# position of client.  Here the -188 matches -198 for xload.
+# position of client.
 #
 # Note also that if you manually resize the WorkSpace window the
 # geometry shown while doing so bears no relation to the actual
 # geometry in pixels, as given here.
 #
 ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [WorkSpaceManagerGeometry	"170x285-330+0" 2],
- [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [WorkSpaceManagerGeometry	"130x235-188+0" 2],
+ [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [WorkSpaceManagerGeometry	"130x235-112+0" 2],
   [WorkSpaceManagerGeometry	"130x235-188+0" 2]
  )]
 )
