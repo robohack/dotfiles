@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.10	96/02/20 21:05:39 (woods)"
+#ident	"@(#)HOME:.twmrc	2.11	96/03/14 16:51:21 (woods)"
 #
 
 AutoRelativeResize
@@ -144,6 +144,10 @@ function "start-always-xterm" {
 	f.exec "$RSH -n always.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
+function "start-pretty-xterm" {
+	f.exec "$RSH -n pretty.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
 function "start-whome-xterm" {
 	f.exec "$RSH -n whome.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
@@ -209,6 +213,10 @@ function "start-sometimes-rlogin" {
 
 function "start-always-rlogin" {
 	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin always.weird.com &"
+}
+
+function "start-pretty-rlogin" {
+	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin pretty.weird.com &"
 }
 
 function "start-totoro-rlogin" {
@@ -347,10 +355,6 @@ function "start-most-ghostview" {
 
 function "start-sometimes-ghostview" {
 	f.exec "$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
-}
-
-function "start-always-ghostview" {
-	f.exec "$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
 }
 
 function "start-always-ghostview" {
@@ -725,6 +729,7 @@ menu "xterm"
 	"Xterm @isit"			f.function "start-isit-xterm"
 	"Xterm @most"			f.function "start-most-xterm"
 	"Xterm @very"			f.function "start-very-xterm"
+	"Xterm @pretty"			f.function "start-pretty-xterm"
 	"Xterm @sometimes"		f.function "start-sometimes-xterm"
 	"Xterm @always"			f.function "start-always-xterm"
 	"    planix.com hosts"		f.nop
@@ -747,6 +752,7 @@ menu "rlogin"
 	"Rlogin's Everywhere"		f.title
 	"Rlogin @most.weird.com"	f.function "start-most-rlogin"
 	"Rlogin @very.weird.com"	f.function "start-very-rlogin"
+	"Rlogin @pretty.weird.com"	f.function "start-pretty-rlogin"
 	"Rlogin @weird.com"		f.function "start-weird-rlogin"
 	"Rlogin @sometimes.weird.com"	f.function "start-sometimes-rlogin"
 	"Rlogin @always.weird.com"	f.function "start-always-rlogin"
