@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.10	99/02/22 15:50:06 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.11	99/02/24 13:14:24 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -394,12 +394,11 @@ scripts (alias)." t)
        '(("[cC][hH][aA][nN][gG][eE][sS][^/\\.]*$" . indented-text-mode))
        '(("[iI][nN][sS][tT][aA][lL][lL][^/\\.]*$" . indented-text-mode))
        '(("[aA][uU][tT][hH][oO][rR][sS][^/\\.]*$" . indented-text-mode))
-       '(("[cC][oO][pP][yY][^/.\\.]*$" . indented-text-mode))
+       '(("[cC][oO][pP][yY][^/\\.]*$" . indented-text-mode))
        '(("[nN][eE][wW][sS]$" . indented-text-mode))
        '(("[tT][oO][dD][oO]$" . indented-text-mode))
-       '(("[tT][hH][aA][nN][kK][^/]*$" . indented-text-mode))
-       '(("[rR][eE][aA][dD][^/chsly]*$" . indented-text-mode))
-       '(("[rR][eE][aA][dD][mM][eE][^/]*$" . indented-text-mode))
+       '(("[tT][hH][aA][nN][kK][^/\\.]*$" . indented-text-mode))
+       '(("[rR][eE][aA][dD][^/]*[mM][eE]$" . indented-text-mode))
        '(("MESSAGE$" . indented-text-mode))
        '(("DESCR$" . indented-text-mode))
        '(("COMMENT$" . indented-text-mode))
@@ -445,7 +444,7 @@ scripts (alias)." t)
 	 (not (elisp-file-in-loadpath-p "sh-script")))
     (setq auto-mode-alist
 	  (append
-	   '(("/[Cc]onfig[^/ch]*$" . ksh-mode))
+	   '(("/[Cc]onfig[^/\\.]*$" . ksh-mode))
 	   '(("[^/]*rc$" . ksh-mode))
 	   '(("^rc\\.[^/]*$" . ksh-mode))
 	   '(("^rc\\.[^/]*/[^/]*$" . ksh-mode))
@@ -459,7 +458,7 @@ scripts (alias)." t)
 (if (elisp-file-in-loadpath-p "sh-script")
       (setq auto-mode-alist
 	    (append
-	     '(("/[Cc]onfig[^/ch]*$" . sh-mode))
+	     '(("/[Cc]onfig[^/\\.]*$" . sh-mode))
 	     '(("[^/]*rc$" . sh-mode))
 	     '(("^rc\\.[^/]*$" . sh-mode))
 	     '(("^rc\\.[^/]*/[^/]*$" . sh-mode))
