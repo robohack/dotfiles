@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	18.14	97/11/20 00:16:01 (woods)"
+#ident	"@(#)HOME:.kshrc	18.15	98/01/05 20:23:41 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -158,31 +158,42 @@ if [ "$id" -eq 0 ] ; then
 				-e 's/^\.://'	\
 				-e 's/:\.://'	\
 				-e 's/:\.$//')
+	# must have X11BIN before openwin if newer X on system....
+	dirappend PATH /usr/lbin /usr/ucb $X11BIN
 	if $ISSUN; then
 		PATH=$(echo $PATH | sed -e 's~^/bin:~~' -e 's~:/etc:~:~')
 		dirprepend PATH /usr/5bin
 		dirappend PATH /usr/openwin/bin
-	elif [ ! -d /usr/sbin ] ; then
-		dirprepend PATH /etc /usr/etc
+	fi
+	if [ ! -d /usr/sbin ] ; then
+		dirprepend PATH /usr/etc
+	fi
+	if [ ! -d /sbin -a ! -d /usr/etc ] ; then
+		dirprepend PATH /etc
 	fi
 	dirprepend PATH /sbin /usr/sbin
-	dirappend PATH /usr/lbin /usr/ucb $X11BIN
 	if [ -n "$LOCAL" ] ; then
-		dirappend PATH $LOCAL/sbin $LOCAL/bin $LOCAL/lib
+		dirappend PATH $LOCAL/sbin $LOCAL/bin
 		if [ ! -d $LOCAL/sbin ] ; then
 			dirappend PATH $LOCAL/etc
 		fi
 	fi
 	if [ -n "$GNU" ] ; then
-		dirappend PATH $GNU/sbin $GNU/bin $GNU/lib
+		dirappend PATH $GNU/sbin $GNU/bin
 		if [ ! -d $GNU/sbin ] ; then
 			dirappend PATH $GNU/etc
 		fi
 	fi
 	if [ -n "$CONTRIB" ] ; then
-		dirappend PATH $CONTRIB/sbin $CONTRIB/bin $CONTRIB/lib
+		dirappend PATH $CONTRIB/sbin $CONTRIB/bin
 		if [ ! -d $CONTRIB/sbin ] ; then
 			dirappend PATH $CONTRIB/etc
+		fi
+	fi
+	if [ -n "$PKG" ] ; then
+		dirappend PATH $PKG/sbin $PKG/bin
+		if [ ! -d $PKG/sbin ] ; then
+			dirappend PATH $PKG/etc
 		fi
 	fi
 	dirappend PATH /usr/lib/uucp /usr/lib
@@ -478,21 +489,7 @@ if [ "$TERM" = xterm ] ; then
 		$RSH -n "$1" "$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls -display $DISPLAY:0 -T rsh:$1" &
 	}
 
-	alias xterm='$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME &'
-
-	function attention
-	{
-		case $# in 
-		2)
-			break
-			;;
-		*)
-			print "Usage: $0 display message";
-			exit 2
-			;;
-		esac
-		xstring -font '-*-*-*-*-*-*-34-*-*-*-*-*-*-*' -geometry 940x40+120+400 -display $1 $2
-	}
+	alias lxterm='$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME &'
 
 	setban
 fi
@@ -547,7 +544,6 @@ alias e='${VISUAL:-$EDITOR}'
 alias ealias='e $ENV'
 alias elc='emacs -batch -q -no-site-file -f batch-byte-compile'
 alias f='finger'
-alias fw='who -HurTbA'
 alias h='fc -l | tail'
 alias j='jobs -l'
 alias l='/bin/ls -CF'
@@ -556,7 +552,6 @@ alias ll='/bin/ls -lis'
 alias lla='/bin/ls -lisa'
 alias llr='/bin/ls -lisR'
 alias llra='/bin/ls -lisaR'
-alias lpq='lpstat -o'
 alias lr='/bin/ls -CFR'
 alias lra='/bin/ls -CFRa'
 alias lsa='/bin/ls -a'
@@ -568,6 +563,10 @@ alias rstty='stty $SANE'
 alias scvs='export CVSROOT="$(cat CVS/Root)"; print "CVSROOT=$CVSROOT"'
 alias wcvs='print $CVSROOT'
 
+# these are only useful on SysV
+#alias fw='who -HurTbA'
+#alias lpq='lpstat -o'
+
 # TODO: find a test so these are usable.
 #alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok rows $LINES cols $COLUMNS'
 #alias rstty='stty $SANE; stty rows ${LINES:-$(tput lines)} cols ${COLUMNS:-$(tput cols)}'
@@ -576,12 +575,14 @@ alias wcvs='print $CVSROOT'
 # (other than [ -d /etc/uucp ])
 alias uuq='uustat -a'
 
+# TODO: should only set this if xtail is available?
 if [ -d /var/spool/uucp ] ; then
 	alias uufollow='xtail /var/spool/uucp/.[AL]*/*'
 else
 	alias uufollow='xtail /usr/spool/uucp/.[AL]*/*'
 fi
 
+# This is silly, but it usually works....
 if [ -x /usr/ucb/rsh -a -x /bin/rsh ] ; then
 	alias rsh=/usr/ucb/rsh
 fi
