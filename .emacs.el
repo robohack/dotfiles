@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.31	96/11/25 16:00:51 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.32	96/11/25 16:04:24 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -267,6 +267,7 @@ scripts (alias)." t)
     (setq cannot-suspend t))		; no jobs support!  ;-)
 
 ;; Format string for PR summary text.
+(defvar gnats::format-string)
 (setq gnats::format-string
       "%5n %-14,14c %,1e%,1p %-12,12r %,6L %,4s %-10*10S %-10*-10R %j\n")
 
