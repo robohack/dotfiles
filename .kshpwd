@@ -1,7 +1,7 @@
 #
 #	.kshpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.kshpwd	25.1	02/11/25 16:09:46 (woods)"
+#ident	"@(#)HOME:.kshpwd	25.2	02/11/26 17:27:31 (woods)"
 
 if [ "$PWD" = "$HOME" ] ; then
 	PWD='~'
@@ -18,8 +18,8 @@ function _cd
 	${HOME})
 		PWD='~'
 		;;
-	`dirname ${HOME}`/*)
-		PWD='~'"${PWD#`dirname $HOME`/}"
+	$(dirname ${HOME})/*)
+		PWD='~'"${PWD#$(dirname $HOME)/}"
 		;;
 	/home/*)
 		PWD='~'"${PWD#/home/}"
@@ -34,7 +34,7 @@ function _cd
 		PWD="${PWD#/}"
 		;;
 	esac
-	if [ "`ismpx`" = yes ] ; then
+	if [ "$(ismpx)" = yes ] ; then
 		eval myxban -l "\"$MYXBAN_L\""
 	fi
 	if type setban > /dev/null ; then
