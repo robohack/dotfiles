@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.11	95/09/25 14:20:49 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.12	95/10/09 16:59:23 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -121,13 +121,16 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("iap@vma.cc.nd.edu" . "iap-l")
 			      ("info-vm@" . "bug-vm") ; just merge these....
 			      ("jet-fuel@" . "jet-fuel-l")
+			      ("lout@" . "lout-l")
 			      ("namedroppers@internic.net" . "namedroppers-l")
 			      ("net-dist@nikhef.nl" . "nikhef.net-dist-l")
+			      ("newdom@" . "newdom-l")
 			      ("qotd@" . "qotd-l")
 			      ("rs-info@internic.net" . "rs-info-l")
 			      ("smail3-maintainers@" . "smail3-maintainers-l")
 			      ("smail3-users@" . "smail3-users-l")
 			      ("smail3-wizards@" . "smail3-wizards-l")
+			      ("stk@" . "stk-l")
 			      ("trn-test@" . "trn-test-l")
 			      ("zmailer@" . "zmailer-l")
 			      ;; various netbsd lists
@@ -154,13 +157,15 @@ ORGANIZATION.  If not nil, takes precedence over the file
 							 (match-end 1))))
 			      )
 			     ;; Reply-to: entries here.
-			     ("reply-to"
+			     ("^reply-to"
 			      ("Suns-at-Home@" . "suns-at-home-l")
 			      )
 			     ;; Sender: entries here.
-			     ("sender"
+			     ("^\\(sender\\|resent-sender\\)"
+			      ("ciac-notes@" . "ciac-l")
 			      ("iap@vma.cc.nd.edu" . "iap-l")
 			      ("owner-admin-l@io.org" . "planix/io-admin-l")
+			      ("owner-devel-cvs@" . "devel-cvs-l")
 			      ("owner-namedroppers@internic.net" . "namedroppers-l")
 			      ("owner-net-dist@nikhef.nl" . "nikhef.net-dist-l")
 			      ("owner-rs-info@internic.net" . "rs-info-l")
@@ -170,7 +175,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 							 (match-end 1))))
 			      )
 			     ;; From: entries here.
-			     ("from"
+			     ("^\\(from\\|resent-from\\)"
 			      ("gegai@.*io\\.org" . "from/andy")
 			      ("gnats-bugs@netbsd.org" . "netbsd/gnats-bugs")
 			      ;; code to make auto-folder default to the user name of the sender.
