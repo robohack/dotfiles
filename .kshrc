@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	18.7	97/01/25 23:52:50 (woods)"
+#ident	"@(#)HOME:.kshrc	18.8	97/01/26 17:19:22 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -407,7 +407,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	if expr "`type trn`" : '.* is .*/trn$' >/dev/null 2>&1 ; then
 		unalias trn
 		alias trn=_trn
-		function _tr
+		function _trn
 		{
 			trap "trap 1 2 3 15; setban" 1 2 3 15
 			WBANNER="TRN $*"
