@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.18	96/01/19 08:44:33 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.19	96/03/10 11:17:49 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -118,6 +118,8 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("bind-workers@" . "bind-workers-l")
 			      ("com-priv@.*psi.com" . "com-priv-l")
 			      ("devel-cvs@" . "devel-cvs-l")
+			      ("djb-qmailbeta@" . "djb-qmailbeta-l")
+			      ("exim-users@" . "exim-users-l")
 			      ("\\(hyperbole\\|hyperbole-announce\\)@" . "hyperbole-l")
 			      ("iap@vma.cc.nd.edu" . "iap-l")
 			      ("info-vm@" . "bug-vm") ; just merge these....
@@ -130,6 +132,8 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("pcl-cvs@" . "pcl-cvs-l")
 			      ("qotd@" . "qotd-l")
 			      ("rs-info@internic.net" . "rs-info-l")
+			      ("smail3-bugs-fwd@" . "smail3-bugs-fwd-l")
+			      ("smail3-devel@" . "smail3-devel-l")
 			      ("smail3-maintainers@" . "smail3-maintainers-l")
 			      ("smail3-users@" . "smail3-users-l")
 			      ("smail3-wizards@" . "smail3-wizards-l")
