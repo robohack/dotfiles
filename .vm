@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	8.2	95/05/16 23:32:03 (woods)"
+;;;#ident	"@(#)HOME:.vm	8.3	95/05/16 23:33:43 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -100,6 +100,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 				       (buffer-substring (match-beginning 1)
 							 (match-end 1))))
 			      ("\\(hyperbole\\|hyperbole-announce\\)@" . "hyperbole")
+			      ("auto-net@" . "auto-net-l")
 			      ("bind@" . "bind")
 			      ("bind-workers@" . "bind-workers")
 			      ("\\(bug-[^@%]+\\)[@%]" .
