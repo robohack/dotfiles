@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	5.2	95/01/26 11:14:51 (woods)"
+#ident	"@(#)HOME:.kshrc	5.3	95/01/27 13:04:12 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -535,6 +535,23 @@ fi
 #	more functions
 #
 
+case "$UUNAME" in
+tar | kuma | sunweb )
+	if [ -z "$APCSRCDIR" ] ; then
+		APCSRCDIR=/apcsoft/work.d/$LOGNAME/apc ; export APCSRCDIR
+	fi
+	if [ -z "$APCCONFIG" ] ; then
+		APCCONFIG=$APCSRCDIR/configure ; export APCCONFIG
+	fi
+	apcmake ()
+	{
+		gmake -I $APCCONFIG APCSRCDIR=$APCSRCDIR APCCONFIG=$APCCONFIG APCINCDIR=$APCSRCDIR/include APCLIBDIR=$APCSRCDIR/lib ${1+"$@"}
+	}
+	;;
+web )
+	APCCONFIG=/etc/apc ; export APCCONFIG
+	;;
+esac
 
 function errno
 {
