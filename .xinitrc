@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	19.1	98/01/11 20:58:26 (woods)"
+#ident	"@(#)HOME:.xinitrc	19.2	98/01/30 01:30:31 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -49,6 +49,9 @@ case "$DISPLAY" in
 		ONCONSOLE=true; export ONCONSOLE
 		echo "$argv0: redirecting stdout and stderr to /dev/console."
 		exec 1>/dev/console 2>&1
+	else
+		echo "$argv0: WARNING: display was $DISPLAY but /dev/console not ours!"
+		ls -l /dev/console
 	fi
 	DISPLAY="${XDMHOST:-${HOSTNAME}${DOMAINNAME}}:0.0"
 	export DISPLAY
@@ -77,7 +80,7 @@ if [ -z "$ONX11SERVER" ] ; then
 	#
 	if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
 		case "$XDMHOST" in
-		*weird.com)
+		very.weird.com)
 			ONX11SERVER="$RSH -n most.weird.com exec"
 			export ONX11SERVER
 			echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
@@ -86,7 +89,7 @@ if [ -z "$ONX11SERVER" ] ; then
 			# not setting this just makes WM run stuff on the
 			# current login host....
 			unset ONX11SERVER
-			echo "$argv0: have unset ONX11SERVER"
+			echo "$argv0: have unset ONX11SERVER, XDMHOST is $XDMHOST"
 			;;
 		esac
 	fi
@@ -121,9 +124,9 @@ case "$VENDORSTR" in
 "Network Computing Devices"*)
 	if [ -r $HOME/.Xmodmap-ncd-108 ] ; then
 		# Unfortunately there is no real way to tell what type of keyboard
-		# is attached....
-		case "$UUNAME" in
-		most|very|almost|pretty|sometimes|always)
+		# is attached and no way to revert unknown earlier changes.
+		case "$XDMHOST" in
+		*weird.com)
 			# may have been done by xdm setup script....
 			;;
 		*)
@@ -136,8 +139,8 @@ case "$VENDORSTR" in
 	if [ -r $HOME/.Xmodmap ] ; then
 		# Unfortunately there is no real way to tell what type of keyboard
 		# is attached.... this is primarily to fix dumb PC(-like) keyboards
-		case "$UUNAME" in
-		most|very|almost|pretty|sometimes|always)
+		case "$XDMHOST" in
+		*weird.com)
 			# may have been done by xdm setup script....
 			;;
 		*)
