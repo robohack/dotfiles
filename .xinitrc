@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	26.1	03/01/05 16:26:11 (woods)"
+#ident	"@(#)HOME:.xinitrc	26.2	03/11/23 14:31:49 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -14,6 +14,9 @@ echo "$argv0: initial PATH='$PATH'"
 XODISPLAY=$DISPLAY
 echo "$argv0: starting up with DISPLAY='$DISPLAY'"
 
+# note we redirect input from /dev/null while sourcing in hopes of
+# showing these scripts that they are not attached to a TTY.
+#
 if [ -r /etc/profile ] ; then
 	. /etc/profile < /dev/null
 else
@@ -142,27 +145,25 @@ case "$VENDORSTR" in
 		# Unfortunately there is no real way to tell what type of keyboard
 		# is attached and no way to revert unknown earlier changes.
 		case "$XDMHOST" in
-		*weird.com)
-			# may have been done by xdm setup script....
+		proven.weird.com|starting-out.weird.com)
+			# should have been done by xdm setup script....
+			echo "$argv0: NOT setting NCD keyboard map on $XDMHOST!"
 			;;
 		*)
+			echo "$argv0: setting NCD keyboard map from $HOME/.Xmodmap-ncd-108"
 			xmodmap $HOME/.Xmodmap-ncd-108
 			;;
 		esac
+	else
+			echo "$argv0: $HOME/.Xmodmap-ncd-108 not found!"
 	fi
 	;;
 *)
 	if [ -r $HOME/.Xmodmap ] ; then
-		# Unfortunately there is no real way to tell what type of keyboard
-		# is attached.... this is primarily to fix dumb PC(-like) keyboards
-		case "$XDMHOST" in
-		*weird.com)
-			# should have been done by xdm setup script....
-			;;
-		*)
-			xmodmap $HOME/.Xmodmap	# Load user's keymap
-			;;
-		esac
+		echo "$argv0: setting default keyboard map from $HOME/.Xmodmap"
+		xmodmap $HOME/.Xmodmap	# Load user's default keymap
+	else
+		echo "$argv0: $HOME/.Xmodmap not found!"
 	fi
 	;;
 
@@ -207,14 +208,14 @@ if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
 		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x50-200+58 -hl grey90 &
 		;;
 	very.weird.com)
-		X11SERVER=${X11SERVER:-"sometimes.weird.com"}
+		X11SERVER=${X11SERVER:-"most.weird.com"}
 		ONX11SERVER="$RSH -n $X11SERVER exec"
 		export X11SERVER ONX11SERVER
 		echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
 		# now start server programs we like for this scenario
 		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x50-200+58 -hl grey90 &
 		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+###		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 		;;
 	*)
 		# not setting ONX11SERVER just makes the WM run clients on
@@ -276,20 +277,19 @@ fi
 
 # argv0 is .xinitrc if called by xinit or startx
 #
-if [ "$argv0" = .xinitrc ] ; then
+if [ "$argv0" = ".xinitrc" ] ; then
 	xconsole -geometry 500x130-0-0 -notify -verbose &
 	# wait a wee bit in hopes xconsole gets running to display any errors....
 	sleep 1
-	xload -geometry 120x50-200+0 -hl grey90 &
 	case $DISPLAY in
 	very.weird.com:*)
-		X11SERVER=${X11SERVER:-"sometimes.weird.com"}
+		X11SERVER=${X11SERVER:-"most.weird.com"}
 		ONX11SERVER="$RSH -n $X11SERVER exec"
 		export X11SERVER ONX11SERVER
 		echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
 		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x50-200+58 -hl grey90 &
 		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 		# for the "Main" workspace...
 		xterm -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
 		;;
@@ -311,12 +311,6 @@ if [ "$argv0" = .xinitrc ] ; then
 		xsetroot -bitmap /usr/openwin/share/include/X11/bitmaps/escherknot
 	else
 		echo "$argv0: no background set"
-	fi
-	xclock -geometry 190x30-0+196 -digital &
-	if $HAVESWISSWATCH; then
-		swisswatch -name swissclock -geometry 190x190-0+0 &
-	else
-		xclock -geometry 190x190-0+0 &
 	fi
 elif $ONCONSOLE ; then
 	#
@@ -356,27 +350,24 @@ very.weird.com:*)
 	$RSH -n proven.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x50-200+116 -hl grey90 &
 	$RSH -n starting-out.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x50-200+174 -hl grey90 &
 	$RSH -n most.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x50-200+232 -hl grey90 &
-	# mailbox monitors....
-#	$RSH -n mail.weird.com $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/usr/X11/bin/auplay -audio '$AUDIOSERVER' -v 25 '$HOME'/lib/sounds/newmail"' &
-	$RSH -n mail.weird.com $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/usr/X11/bin/auplay -audio tcp/xtremely.weird.com:8000 -v 25 '$HOME'/lib/sounds/newmail"' &
-	# All the small lower-right command terminals (starting with our own first one)
-	xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+##	# mailbox monitors....
+###	$RSH -n mail.weird.com $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/usr/X11/bin/auplay -audio '$AUDIOSERVER' -v 25 '$HOME'/lib/sounds/newmail"' &
+###	$RSH -n mail.weird.com $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/usr/X11/bin/auplay -audio tcp/xtremely.weird.com:8000 -v 25 '$HOME'/lib/sounds/newmail"' &
+	# Additional BIG windows for the "Main" workspace
 	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
-	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n becoming.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n becoming.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n sometimes.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n sometimes.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n starting-out.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n starting-out.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n most.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n most.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	# All the small lower-right command terminals (starting with our own first one)
+	xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n starting-out.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n starting-out.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n becoming.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n sometimes.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	# oddly using 130x64 turns into 163x55 with the font change!
 	# this one's supposed to go in virtualscreen "Mail"
-#	$RSH -n proven.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/local/bin/emacs -display $DISPLAY -geometry 130x64+0+0" &
+###	$RSH -n proven.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/local/bin/emacs -display $DISPLAY -geometry 130x75+0+0" &
 	# this one's supposed to go in virtualscreen "Coding"
-#	$RSH -n proven.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/local/bin/emacs -i -display $DISPLAY -geometry 130x64+0+0" &
+###	$RSH -n proven.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/local/bin/emacs -i -display $DISPLAY -geometry 130x75+0+0" &
 	;;
 
 xtremely.weird.com:*)
@@ -397,28 +388,27 @@ xtremely.weird.com:*)
 	else
 		xclock -geometry 190x190-0+0 &
 	fi
-	xterm -display $DISPLAY -geometry 80x41-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-#	$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/pkg/bin/mozilla -display $DISPLAY -geometry 935x990+0+0 &
-#	$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/pkg/bin/galeon --disable-sound -display $DISPLAY -geometry 935x990+0+0 &
+	xterm -display $DISPLAY -geometry 80x42-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+###	$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/pkg/bin/MozillaFirebird -install -display $DISPLAY -geometry 935x990+0+0 &
 
 	# first column....
 	xterm -display $DISPLAY -geometry 88x24+0+0   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn07 -T "Console-07 [isit.weird.com]" -e console -S isit &
 	xterm -display $DISPLAY -geometry 88x24+0+205 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn06 -T "Console-06 [proven.weird.com]" -e console -S proven &
-	xterm -display $DISPLAY -geometry 88x24+0+410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn08 -T "Console-08 [becoming.weird.com]" -e console -S becoming &
+	xterm -display $DISPLAY -geometry 88x24+0+420 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn08 -T "Console-08 [becoming.weird.com]" -e console -S becoming &
 	xterm -display $DISPLAY -geometry 88x24+0+615 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n oCn1 -T "oCons-1 [DEChub 900MS] (hubly)" -e console -S hubly &
 	xterm -display $DISPLAY -geometry 88x24+0+820 -fn 5x7 -cn -rw -sb -si -sk -sl 100  -ls -ziconbeep 1 -n oCn1 -T "Console-01 [Exabyte-210 library]" -e console -S exb210 &
 
 	# second column....
 	xterm -display $DISPLAY -geometry 88x24+475+0   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn10 -T "Console-10 [most.weird.com]" -e console -S most &
 	xterm -display $DISPLAY -geometry 88x24+475+205 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn03 -T "Console-03 [sometimes.weird.com]" -e console -S sometimes &
-	xterm -display $DISPLAY -geometry 88x24+475+410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn09 -T "Console-09 [always.weird.com]" -e console -S always &
+	xterm -display $DISPLAY -geometry 88x24+475+420 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn09 -T "Console-09 [always.weird.com]" -e console -S building &
 	xterm -display $DISPLAY -geometry 88x24+475+615 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn11 -T "Console-11 [starting-out.weird.com]" -e console -S starting-out &
 	xterm -display $DISPLAY -geometry 88x24+475+820 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n cid -T "very:/dev/ttyb [Caller ID Box]" -e console -S callerid &
 
 	# right side...
-	xterm -display $DISPLAY -geometry 80x24-0-410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn02 -T "Console-02 [BEST-1.4-UPS]" -e console -S best-1.4 &
-	xterm -display $DISPLAY -geometry 80x24-0-410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn13 -T "Console-13 [BEST-3.1-UPS-0]" -e console -S best-3.1-0 &
-	xterm -display $DISPLAY -geometry 80x24-0-410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn14 -T "Console-14 [BEST-3.1-UPS-1]" -e console -S best-3.1-1 &
+	xterm -display $DISPLAY -geometry 80x24-0-420 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn02 -T "Console-02 [BEST-1.4-UPS]" -e console -S best-1.4 &
+	xterm -display $DISPLAY -geometry 80x24-0-420 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn13 -T "Console-13 [BEST-3.1-UPS-0]" -e console -S best-3.1-0 &
+	xterm -display $DISPLAY -geometry 80x24-0-420 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn14 -T "Console-14 [BEST-3.1-UPS-1]" -e console -S best-3.1-1 &
 	xterm -display $DISPLAY -geometry 80x24-0-205 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Cn04 -T "Console-04 [RAID-00 /work]" -e console -S raid-00 &
 	xterm -display $DISPLAY -geometry 80x24-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Cn05 -T "Console-05 [RAID-01 /cvs]" -e console -S raid-01 &
 
@@ -448,7 +438,7 @@ worm.planix.com:*)
 		xclock -geometry 190x190-0+0 &
 	fi
 	xterm -display $DISPLAY -geometry 101x66+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	xterm -display $DISPLAY -geometry 80x41-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	xterm -display $DISPLAY -geometry 80x42-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	mozilla -display $DISPLAY -SelectProfile &
 	;;
 *)
