@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	9.3	95/08/11 00:21:44 (woods)"
+#ident	"@(#)HOME:.profile	9.4	95/08/25 00:17:24 (woods)"
 
 #
 # Assumptions:
@@ -268,7 +268,7 @@ else
 	echo=echo
 	(echo "hi there\c" ; echo " ") >$HOME/echotmp
 	# Configure checks to make sure grep returns a status...
-	if grep c echotmp >/dev/null 2>&1 ; then
+	if grep c $HOME/echotmp >/dev/null 2>&1 ; then
 		nl=''
 		n='-n'
 		c=''
