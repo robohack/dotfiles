@@ -1,0 +1,72 @@
+#
+#	.bashlogin - login shell startup for bash
+#
+#ident	"@(#)HOME:.bashlogin	18.1	97/01/20 11:33:41 (woods)"
+
+set -o ignoreeof	# we only do this for our login shell....
+
+export ENV=$HOME/.bashrc
+if [ -r $ENV ] ; then
+	. $ENV
+fi
+
+export FCEDIT=$(type -path ed)
+export HISTSIZE=2000
+if [ "$TTY" = "not a tty" ] ; then
+	echo "Trying to fix TTY..."
+	TTY=$(tty)
+	TTYN=$(basename $TTY)
+	setban
+fi
+
+if [ -z "$LOGNAME" ] ; then
+	# some systems won't allow this...
+	export LOGNAME=${HOME##*/}
+fi
+
+if [ -z "$PROJECT" ] ; then
+	export PROJECT="SCCS"
+fi
+
+case "$UUNAME" in
+kuma*)
+	export WORKDIR="/apcsoft/work.d/$LOGNAME"
+	;;
+tar*)
+	export WORKDIR="/kuma/apcsoft/work.d/$LOGNAME"
+	;;
+*)
+	if [ -d $LOCAL/work.d ] ; then
+		export WORKDIR="$LOCAL/work.d"
+	elif [ -d $HOME/src/work.d ] ; then
+		export WORKDIR="$HOME/src/work.d"
+	else
+		export WORKDIR="$HOME/work.d"
+	fi
+	;;
+esac
+
+export PWD=$HOME
+export OLDPWD=$HOME
+
+if [ -z "$MAILPATH" ] ; then
+	if [ -d /var/spool/mail ] ; then
+		export MAILPATH="/var/spool/mail/$LOGNAME"
+	elif [ -d /var/mail ] ; then
+		export MAILPATH="/usr/mail/$LOGNAME"
+	elif [ -d /var/mail ] ; then
+		export MAILPATH="/usr/mail/$LOGNAME"
+	elif [ -d /usr/spool/mail ] ; then
+		export MAILPATH="/usr/spool/mail/$LOGNAME"
+	fi		
+fi
+
+export CDPATH=":$HOME:$HOME/src:$HOME/src/lib:$HOME/src/work.d\
+:$HOME/src/work.d/lib:$HOME/lib:$WORKDIR"
+
+dirappend CDPATH /usr/src /usr/src/lib /usr/src/cmd /usr/src/add-on
+dirappend CDPATH /usr/src/gnu /usr/src/games
+dirappend CDPATH /usr/src/local /usr/src/local/lib /usr/src/local/cmd
+dirappend CDPATH $LOCAL/src $LOCAL/src/lib $LOCAL/src/gnu $LOCAL/src/bsd
+dirappend CDPATH /usr/src/ucbcmd /usr/src/ucblib
+dirappend CDPATH $LOCAL $LOCAL/lib /usr/lib /usr/spool / /usr
