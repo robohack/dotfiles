@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	9.2	95/07/01 16:38:04 (woods)"
+#ident	"@(#)HOME:.profile	9.3	95/08/11 00:21:44 (woods)"
 
 #
 # Assumptions:
@@ -46,6 +46,15 @@ if [ -z "$UUNAME" ] ; then
 	export UUNAME
 fi
 
+if [ -z "$HOSTNAME" ] ; then
+	if expr "`type hostname`" : '.* is .*/hostname$' >/dev/null 2>&1 ; then
+		HOSTNAME=`hostname`
+	else
+		HOSTNAME=$UUNAME
+	fi 
+	export HOSTNAME
+fi
+
 if [ -z "$DOMAINNAME" ] ; then
 	case "$UUNAME" in
 	toile | oldweb )		# 386/ix machines
@@ -75,7 +84,7 @@ if [ -z "$TTY" ] ; then
 	TTY="`tty`" ; export TTY
 fi
 if [ -z "$TTYN" ] ; then
-	TTYN="`basename $TTY`" ; export TTYN
+	TTYN="`basename "$TTY"`" ; export TTYN
 fi
 
 dirappend ()
