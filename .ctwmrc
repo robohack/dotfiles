@@ -1,7 +1,8 @@
-#-*-m4-*-
+# -*-m4-*-
+#
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	26.5	03/07/25 18:20:58 (woods)"
+#ident	"@(#)HOME:.ctwmrc	26.6	03/11/23 14:34:24 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -21,6 +22,7 @@
 # MAILPATH	- location of system mail spool file *OR* POP config for VM
 # AUDIOPLAYER	- program to invoke to play a sound file (eg. "auplay")
 #
+# (Note the line number given in error messages is short by 38 [with ctwm-3.6]!)
 
 changequote([, ])
 
@@ -40,7 +42,9 @@ ifelse(HOSTNAME, most.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
     [ifelse(HOSTNAME, becoming.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
      [ifelse(HOSTNAME, whats.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
       [ifelse(HOSTNAME, sometimes.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
-       [define(OPT_ZICONBEEP, [])]
+       [ifelse(HOSTNAME, building.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
+        [define(OPT_ZICONBEEP, [])]
+       )]
       )]
      )]
     )]
@@ -49,10 +53,12 @@ ifelse(HOSTNAME, most.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
  )]
 )
 
+# Boolean flags
+#
 # keep these sorted as if the 'No' was stripped
 #
-AutoFocusToTransients
-#AutoOccupy		# Maybe not a good idea....
+AutoFocusToTransients	# there are some good things, and some bad things, about this...
+#AutoOccupy		# Definitely not a good idea....
 AutoRelativeResize
 AutoRaiseIcons
 # NOTE: should use either PLANES or BITS_PER_RGB to do this right
@@ -61,7 +67,7 @@ BorderResizeCursors
 CenterFeedbackWindow
 ClientBorderWidth
 DecorateTransients
-DontMoveOff
+DontMoveOff		# unfortunately also forces clients to resize
 DontPaintRootWindow
 #NoCaseSensitive	# only affects iconmanager?
 NoGrabServer
@@ -69,7 +75,7 @@ NoMenuShadows
 NoRaiseOnMove
 NoRaiseOnResize
 NoShowOccupyAll
-PackNewWindows		# wonder if this is good or not.....
+PackNewWindows
 RestartPreviousState
 ReallyMoveInWorkspaceManager
 #ReverseCurrentWorkspace
@@ -77,7 +83,7 @@ ShowWorkSpaceManager
 # spello?
 SchrinkIconTitles
 ShortAllWindowsMenus
-#SortIconManager	# wonder if this is worthwhile....
+SortIconManager
 StayUpMenus
 StartInMapState
 SunkFocusWindowTitle
@@ -88,8 +94,11 @@ UseThreeDMenus
 UseThreeDTitles
 #UseThreeDWMap		# this is way too wastefull....
 
+# variables with simple values
+#
 BorderShadowDepth		2	# should allow more on >8-bit displays
 BorderWidth			2	# has no effect when UseThreeDBorders is on
+ConstrainedMoveTime		600	# 400 seems a tad too quick for a double-click
 FramePadding			0
 IconBorderWidth			3
 IconManagerShadowDepth		3
@@ -110,11 +119,18 @@ XMoveGrid			1
 YMoveGrid			1
 Zoom				12
 
-TitleFont	"-*-courier-bold-o-normal-*-*-100-100-100-*-*-*-*"
-ResizeFont	"-*-courier-bold-r-normal-*-*-180-100-100-*-*-*-*"
-MenuFont	"-*-clean-bold-r-normal-*-*-90-100-100-*-*-*-*"
-IconFont	"-*-courier-bold-o-normal-*-*-80-100-100-*-*-*-*"
-IconManagerFont	"-*-helvetica-bold-r-normal-*-*-80-100-100-*-*-*-*"
+# resolutions are in pixels per metre, for some stupid reason....
+#
+ifelse(eval(X_RESOLUTION >= 3000 && Y_RESOLUTION >= 3000), 1,
+  [define(FT_RES, [100])],
+ [define(FT_RES, [75])]
+)
+
+TitleFont	"-*-helvetica-bold-r-*-*-*-100-FT_RES-FT_RES-*-*-iso8859-1"
+IconFont	"-*-helvetica-bold-r-*-*-*-90-FT_RES-FT_RES-*-*-iso8859-1"
+IconManagerFont	"-*-helvetica-medium-r-*-*-*-90-FT_RES-FT_RES-*-*-iso8859-1"
+MenuFont	"-*-helvetica-medium-r-*-*-*-90-FT_RES-FT_RES-*-*-iso8859-1"
+ResizeFont	"-*-courier-bold-r-*-*-*-240-FT_RES-FT_RES-*-*-iso8859-1"
 
 # Define some useful functions for motion-based actions.
 # DefaultFunction must come after fonts....
@@ -305,18 +321,22 @@ Cursors {
 	Destroy		"pirate"
 }
 
+# XXX in theory we could/should use TWM_TYPE to protect all the
+# WorkSpaces related stuff so that it's only seen if the value is
+# "ctwm" -- then we could maybe still use this same file with twm.
+
 # The positioning of the WorkSpace window seems to ignore borders or
 # something -- i.e. it's not the same as an ordinary client.  You need
 # to specify the horizontal position 10 pixels East of where you'd
-# position of client.
+# position a client.
 #
 # Note also that if you manually resize the WorkSpace window the
 # geometry shown while doing so bears no relation to the actual
 # geometry in pixels, as given here.
 #
 ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [WorkSpaceManagerGeometry	"170x285-330+0" 2],
- [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [WorkSpaceManagerGeometry	"115x235-202+0" 2],
-  [WorkSpaceManagerGeometry	"130x235-188+0" 2]
+ [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [WorkSpaceManagerGeometry	"115x235-112+0" 2],
+  [WorkSpaceManagerGeometry	"130x235-112+0" 2]
  )]
 )
 
@@ -508,13 +528,11 @@ ifdef([XPM],
 "Down"	= meta		: root		: f.downworkspace
 "Up"	= meta		: root		: f.upworkspace
 
-# Hmmm... these don't seem to work in 3.5.2 for some reason.... (syntax error)
-#"Left"	=		: frame|title	: f.jumpleft 2
-#"Right" =		: frame|title	: f.jumpright 2
-#"Down"	=		: frame|title	: f.jumpdown 2
-#"Up"	=		: frame|title	: f.jumpup 2
-
 # Hmmm... these seem to be delivered to the app regardless....
+#"Left"	=		: frame|title	: f.jumpleft "2"
+#"Right" =		: frame|title	: f.jumpright "2"
+#"Down"	=		: frame|title	: f.jumpdown "2"
+#"Up"	=		: frame|title	: f.jumpup "2"
 #"Left"	= meta		: frame|title	: f.pack "left"
 #"Right" = meta		: frame|title	: f.pack "right"
 #"Up"	= meta		: frame|title	: f.pack "top"
@@ -532,9 +550,9 @@ menu "quickies"
 {
 	"Short Cuts"		f.title
 	"Pin"			f.pin
-	"Move"			f.move
-	"MovePack"		f.movepack
+	"Move & Pack"		f.movepack
 	"Move & Push"		f.movepush
+	"Move"			f.move
 	"Resize"		f.resize
 	"Lower"			f.lower
 	"Raise"			f.raise
@@ -548,28 +566,34 @@ menu "quickies"
 	"WinDelete or Destroy"	f.deleteordestroy
 	"Kill"			f.destroy
 	""			f.separator
-	"Xterm [@CLIENTHOST]"	!"xterm -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
-	"Xterm @x11server"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
+	"Xterm [@CLIENTHOST]"	!"xterm -geometry 80x42 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
+	"Xterm @x11server"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
-	"Xterm @most"		!"$RSH -n most.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-  ])
-  ifelse(HOSTNAME, becoming.weird.com, [], [
-	"Xterm @becoming"	!"$RSH -n becoming.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @most"		!"$RSH -n most.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
   ifelse(HOSTNAME, proven.weird.com, [], [
-	"Xterm @proven"		!"$RSH -n proven.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @proven"		!"$RSH -n proven.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+  ])
+  ifelse(HOSTNAME, building.weird.com, [], [
+	"Xterm @building"	!"$RSH -n building.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
   ifelse(HOSTNAME, sometimes.weird.com, [], [
-	"Xterm @sometimes"	!"$RSH -n sometimes.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @sometimes"	!"$RSH -n sometimes.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
   ifelse(HOSTNAME, starting-out.weird.com, [], [
-	"Xterm @starting-out"	!"$RSH -n starting-out.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @starting-out"	!"$RSH -n starting-out.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+  ])
+  ifelse(HOSTNAME, becoming.weird.com, [], [
+	"Xterm @becoming"	!"$RSH -n becoming.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+  ])
+  ifelse(HOSTNAME, almost.weird.com, [], [
+	"Xterm @almost"		!"$RSH -n almost.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
   ifelse(HOSTNAME, whats.weird.com, [], [
-	"Xterm @whats"		!"$RSH -n whats.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @whats"		!"$RSH -n whats.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
-	"Rlogin @isit"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin isit.weird.com &"
+	"Rlogin @isit"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42 -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin isit.weird.com &"
 	""			f.separator
 	"Console Server"	f.menu "consoles"
 	""			f.separator
@@ -596,10 +620,12 @@ menu "consoles"
   ])
 	CONSOLE_REP(most)
 	CONSOLE_REP(proven)
-	CONSOLE_REP(sometimes)
+	CONSOLE_REP(building)
 	CONSOLE_REP(starting-out)
+	CONSOLE_REP(sometimes)
 	CONSOLE_REP(becoming)
 	CONSOLE_REP(isit)
+	CONSOLE_REP(almost)
 	CONSOLE_REP(always)
 	CONSOLE_REP(raid-00)
 	CONSOLE_REP(raid-01)
@@ -696,6 +722,7 @@ menu "winops"
 	"Save"			f.saveyourself
 	"Identify"		f.identify
 	""			f.separator
+	"Squeeze (toggle)"	f.squeeze
 	"Iconify"		f.iconify
 	"DeIconify"		f.deiconify
 	""			f.separator
@@ -1194,8 +1221,11 @@ menu "xterm"
   ifelse(HOSTNAME, proven.weird.com, [], [
 	"Xterm @proven"	!"$RSH -n proven.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
+  ifelse(HOSTNAME, building.weird.com, [], [
+	"Xterm @building" !"$RSH -n building.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+  ])
   ifelse(HOSTNAME, becoming.weird.com, [], [
-	"Xterm @proven"	!"$RSH -n becoming.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @becoming" !"$RSH -n becoming.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
   ifelse(HOSTNAME, very.weird.com, [], [
 	"Xterm @very"	!"$RSH -n very.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
@@ -1276,6 +1306,7 @@ menu "rlogin-weird"
 	"Rlogin's At Weird.com"	f.title
 	"Rlogin @most"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin most.weird.com &"
 	"Rlogin @proven"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin proven.weird.com &"
+	"Rlogin @building"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin building.weird.com &"
 	"Rlogin @becoming"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin becoming.weird.com &"
 	"Rlogin @very"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin very.weird.com &"
 	"Rlogin @isit"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin isit.weird.com &"
@@ -1294,6 +1325,7 @@ menu "telnet-weird"
 	"Telnet's At Weird.com"	f.title
 	"telnet @most"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet most.weird.com &"
 	"telnet @proven"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet proven.weird.com &"
+	"telnet @building"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet building.weird.com &"
 	"telnet @becoming"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet becoming.weird.com &"
 	"telnet @very"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e telnet very.weird.com &"
 	"telnet @almost"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet almost.weird.com &"
@@ -1311,6 +1343,7 @@ menu "slogin-weird"
 	"Slogin's At Weird.com" f.title
 	"Slogin @most"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C most.weird.com &"
 	"Slogin @proven"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C proven.weird.com &"
+	"Slogin @building"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C building.weird.com &"
 	"Slogin @becoming"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C becoming.weird.com &"
 	"Slogin @very"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C very.weird.com &"
 	"Slogin @almost"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin -C almost.weird.com &"
