@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	9.12	95/11/30 16:36:10 (woods)"
+#ident	"@(#)HOME:.profile	9.13	95/12/05 21:56:22 (woods)"
 
 #
 # Assumptions:
@@ -175,6 +175,8 @@ fi
 # TODO: explore more options for this....  (xmkmf?)
 # TODO: what if there's more than one?
 #
+# don't worry about openwin -- it's handled in the ISSUN case below
+#
 if [ -z "$X11PATH" ] ; then
 	if [ -d /local/X11R? ] ; then
 		X11PATH="`echo /local/X11R?`"
@@ -215,10 +217,6 @@ if [ ! -d $LOCAL/share/man ] ; then
 	dirappend MANPATH $LOCAL/man
 fi
 dirprepend MANPATH $LOCAL/share/man $GNU/man $CONTRIB/man $X11PATH/man
-#
-# TODO: We also need to strip $LOCAL/man if it's a symlink -> $LOCAL/share/man
-# TODO: but we can't depend on 'test -h' being available or working....
-#
 case "$UUNAME" in
 web | robohack )
 	dirprepend MANPATH $LOCAL/man
