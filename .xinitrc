@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	18.7	97/11/20 00:13:03 (woods)"
+#ident	"@(#)HOME:.xinitrc	18.8	98/01/11 20:50:07 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -82,14 +82,9 @@ if [ -z "$ONX11SERVER" ] ; then
 			export ONX11SERVER
 			echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
 			;;
-		*planix.com)
-			ONX11SERVER="$RSH -n woffi.weird.com exec"
-			export ONX11SERVER
-			echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
-			;;
 		*)
-			# not setting this just makes twm run stuff on the
-			# current login/display host....
+			# not setting this just makes WM run stuff on the
+			# current login host....
 			unset ONX11SERVER
 			echo "$argv0: have unset ONX11SERVER"
 			;;
@@ -99,7 +94,9 @@ fi
 
 # TODO:  think about using `type` ala .profile, but type isn't everywhere
 if [ -z "$WM" ] ; then
-	if [ -x $X11BIN/xsession -a -r $HOME/.X11Startup ] ; then
+	if [ -x $X11BIN/xsm -a -r $HOME/.xsmstartup ] ; then
+		WM=xsm
+	elif [ -x $X11BIN/xsession -a -r $HOME/.X11Startup ] ; then
 		WM=xsession	# TODO: '$ONX11SERVER xsession -remote'?
 	elif [ \( -x $X11BIN/ctwm -o -x $HOME/bin/ctwm \) -a -r $HOME/.ctwmrc ] ; then
 		WM=ctwm
@@ -127,7 +124,7 @@ case "$VENDORSTR" in
 		# is attached....
 		case "$UUNAME" in
 		most|very|almost|pretty|sometimes|always)
-			# may be done by xdm setup script....
+			# may have been done by xdm setup script....
 			;;
 		*)
 			xmodmap $HOME/.Xmodmap-ncd-108
@@ -141,6 +138,7 @@ case "$VENDORSTR" in
 		# is attached.... this is primarily to fix dumb PC(-like) keyboards
 		case "$UUNAME" in
 		most|very|almost|pretty|sometimes|always)
+			# may have been done by xdm setup script....
 			;;
 		*)
 			xmodmap $HOME/.Xmodmap	# Load user's keymap
@@ -240,48 +238,18 @@ else
 	fi
 fi
 
-if [ -x $X11BIN/xmailwatcher ] ; then
-	# TODO:  this is still a silly way to do things....
-	case "$HOME" in
-	*/kuma/*)
-		xmailwatcher -geometry 300x100-0+240 -iconic -icongeometry -0+240 -iconic -mailbox $MAILPATH &
-		# WARNING: assumes MAILPATH is same on server....
-		$RSH -n kuma.web.net exec $X11BIN/xmailwatcher -display $DISPLAY -geometry 300x100-0+300 -iconic -icongeometry -0+300 -iconic -mailbox $MAILPATH &
-		;;
-	*/most/*)
-		# WARNING: assumes MAILPATH is same on server....
-		$RSH -n most.weird.com exec $X11BIN/xmailwatcher -display $DISPLAY -geometry 300x100-0+240 -iconic -icongeometry -0+240 -iconic -mailbox $MAILPATH &
-		;;
-	*)
-		xmailwatcher -display $DISPLAY -geometry 300x100-0+240 -iconic -icongeometry -0+240 -iconic &
-		;;
-	esac
-elif [ -x $X11BIN/xbuffy ] ; then
-	# TODO:  and this is only slightly better
-	case "$DOMAINNAME" in
-	*seachange.com)
-		$RSH -n clapton.seachange.com /usr/local/bin/xbuffy -display $DISPLAY -geometry 90x30-0+260 -mail /var/mail/woods -shortnames -header 5 &
-		;;
-	*weird.com)
-		$RSH -n most.weird.com $X11BIN/xbuffy -display $DISPLAY -geometry 90x30-0+260 -shortnames -header 5 -mail $MAILPATH &
-		;;
-	*)
-		xbuffy -display $DISPLAY -geometry 90x30-0+260 -shortnames -header 5 &
-		;;
-	esac
+if [ -x $X11BIN/xbuffy ] ; then
+	if [ -z "$ONX11SERVER" ] ; then
+		xbuffy -geometry 100x25-0+250 -shortnames -header 0 -acmd '/opt/games/bin/auplay $HOME/sounds/newmail' &
+	else
+		$ONX11SERVER $X11BIN/xbuffy -display $DISPLAY -mail $MAILPATH -geometry 100x25-0+250 -shortnames -header 0 -acmd "'/opt/games/bin/auplay -audio $AUDIOSERVER $HOME/sounds/newmail'" &
+	fi
 else
-	# TODO:  as above, this is still a silly way to do things....
-	case "$HOME" in
-	*/most/*)
-		$RSH -n most.weird.com exec $X11BIN/xbiff -display $DISPLAY -geometry 48x48-0+0 -title Most-biff &
-		;;
-	*/kuma/*)
-		$RSH -n kuma.web.net exec $X11BIN/xbiff -display $DISPLAY -geometry 48x48-0+0 -title Kuma-biff &
-		;;
-	*)
+	if [ -z "$ONX11SERVER" ] ; then
 		xbiff -geometry 48x48-0+0 -bw 0 &
-		;;
-	esac
+	else
+		$ONX11SERVER $X11BIN/xbiff -display $DISPLAY -geometry 48x48-0+0 -title Main-biff &
+	fi
 fi
 
 # when the window manager exits so shall we...
