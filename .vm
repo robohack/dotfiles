@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.1	98/01/11 20:58:35 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.2	98/02/01 22:48:49 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -22,7 +22,8 @@
 ;; Author: Ray Moody <moody@cray.com>
 ;; Version: $Id: rmime.el,v 1.2 1996/05/30 02:24:58 moody Exp $
 ;; NOTE: elisp-file-in-loadpath-p comes from my .emacs.el
-(if (elisp-file-in-loadpath-p "rmime")
+(if (and (elisp-file-in-loadpath-p "rmime")
+	 (< (string-to-number (vm-version)) 6.0))
     (progn
       ;; automatic rmime-mode for all messages...
       ;;(setq vm-preview-lines t)
