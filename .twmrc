@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	18.13	97/05/11 00:11:46 (woods)"
+#ident	"@(#)HOME:.twmrc	18.14	97/06/10 00:12:34 (woods)"
 #
 
 AutoRelativeResize
@@ -157,6 +157,10 @@ Button3 = : iconmgr : f.lower
 #
 function "start-local-xterm" {
 	f.exec "$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls &"
+}
+
+function "start-x11server-xterm" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
 }
 
 function "start-isit-xterm" {
@@ -1222,6 +1226,7 @@ menu "quickies"
 	"Kill"			f.menu "kill"
 	""			f.nop
 	"Xterm"			f.function "start-local-xterm"
+	"Xterm @x11server"	f.function "start-x11server-xterm"
 	"Xtalk"			!"xtalk &"
 	""			f.nop
 	"Screen Refresh"	f.refresh
@@ -1602,6 +1607,7 @@ menu "xterm"
 {
 	"Xterm's Everywhere"		f.title
 	"Xterm @localhost"		f.function "start-local-xterm"
+	"Xterm @x11server"		f.function "start-x11server-xterm"
 	"weird.com hosts..."		f.menu "weird-xterms"
 	"planix.com hosts..."		f.menu "planix-xterms"
 	"ipass.com hosts..."		f.menu "ipass-xterms"
