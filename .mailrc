@@ -1,0 +1,101 @@
+#ident	"@(#)HOME:.mailrc  1.1    96/01/15 08:57:46 (woods)"
+#
+#	.mailrc - for mailx and emacs-VM
+#
+
+set keep
+set keepsave
+set askcc
+set ask
+set hold
+set crt=24
+
+#
+# mailing lists
+#
+alias aegis-users	'aegis-users@bmr.gov.au (Aegis Users Mailing List)'
+alias aegis-users-request 'aegis-users-request@bmr.gov.au (aegis-users admin), majordomo@bmr.gov.au (silly perl program)'
+alias bug-cvs		'bug-cvs@prep.ai.mit.edu (CVS-II Bugs Mailing List)'
+alias bug-cvs-request	'bug-cvs-request@prep.ai.mit.edu (bug-cvs admin)'
+alias info-cvs		'info-cvs@prep.ai.mit.edu (CVS-II Discussion Mailing List)'
+alias info-cvs-request	'info-cvs-request@prep.ai.mit.edu (info-cvs admin)'
+alias mush-users	'mush-users-request@garp.mit.edu (Mush Users)'
+alias shape-l		'SHAPE-L%DB0TUI11.BITNET@vm.gmd.de (ShapeTools Discussion Mailing List)'
+alias shape-l-request	'LISTSERV%DB0TUI11.BITNET@vm.gmd.de (ListEARN List Processor [1.3])'
+alias tpc-rp		'tpc-rp@aarnet.edu.au (TPC-Int)'
+alias tpc-rp-request	'tpc-rp-request@aarnet.edu.au (tpc-rp admin)'
+alias trn-test		'trn-test@borland.com (TRN Beta Test List)'
+alias trn-test-request	'trn-test-request@borland.com (trn-test admin)'
+alias uu		'unix-unanimous@moore.com (UNIX Unanimous)'
+alias usrgroup-list	'unix-unanimous@moore.com (UNIX Unanimous)'
+alias unix-unanimous	'unix-unanimous@moore.com (UNIX Unanimous)'
+alias uu-request	'unix-unanimous-request@moore.com (UNIX Unanimous List Admin)'
+alias unix-unanimous-request 'unix-unanimous-request@moore.com (UNIX Unanimous List Admin)'
+
+#
+#	robohack mailing list aliases
+#
+alias smail-2-beta	'(Smail-2 Beta Testers) smail-2-beta@robohack.UUCP'
+alias wrkshp-94	'(UNIX Applications Development Symposium 1994) usenix-workshop-94@robohack.uucp'
+alias all-wrkshp-94	'(UNIX Applications Development Symposium 1994) all-workshop-94@robohack.uucp'
+
+#
+#	friendly aliases
+#
+alias argv	'(Dan Heller) island!argv@sun.com'
+alias bart	'(Bart Schaefer) schaefer@ogccse.ogc.edu'
+alias bduncan	'(Bill Duncan VE3IED) bduncan@ve3ied.uucp'
+alias bev	'(Beverly Erlebacher) erlebach@turing.toronto.edu'
+alias bill	'(Bill Duncan VE3IED) bduncan@ve3ied.uucp'
+alias brian	'(Brian Onn) brian@ncrcan.toronto.ncr.com'
+alias brianm	'(Brian Moffet) brianm@sco.com'
+alias bruce	'(Bruce Becker) bdb@becker.gts.org'
+alias dan	'(Dan Tomlinson) dan@compus.ca'
+alias danh	'(Dan Heller) island!argv'
+alias dave	'(Dave Mason) mason@tmsoftware.ca'
+alias davem	'(David Moloney) DMoloney@uncamult.bitnet'
+alias decpro	'("Lou Pilla (M.Editor-DEC.Pro)") philla@propress.com'
+alias dennis	'(Dennis Breckenridge VE6TCP) dennis@nebulus.ampr.ab.ca'
+alias dick	'("R. H. Lathwell") rhl@fastlane.UUCP'
+alias ddj	'(Letter To The Editor) tyler@cup.portal.com'
+alias dumais	'(Paul Dumais) dumais@Apple.COM'
+alias evan	'(Evan Leibovitch) evan@telly.on.ca'
+alias henry	'(Henry Spencer) henry@utzoo.cs.utoronto.ca'
+alias jerqs	'(jerq users) jerqs@clsc.utoronto.ca'
+alias jmm	'(John Macdonald) jmm@Elegant.COM'
+alias jon	'(Jonathan Payne) jpayne@sun.com'
+alias jonp	'(Jonathan Palmer) jonp@sco.com'
+alias mark	'("Mark T. Dornfeld") mark@cyantic.com'
+alias markb	'(Mark Bartelt) sysmark@orca.cita.utoronto.ca'
+alias markm	'(Mark Moraes) moraes@csri.toronto.edu'
+alias mbeast	'(Mike East) mbeast@tls.uucp'
+alias mush-users '(Mush Users) mush-users-request@garp.mit.edu'
+alias nigel	'(Nigel Johnson ex VE3ID) 73337.111@compuserve.com'
+alias norman	'(Norman Wilson) norman@clsc.utoronto.ca'
+alias ost	'(Open Systems Today) editor@ost.com'
+alias paul	'(Paul Dumais) dumais@Apple.COM'
+alias ped	'(Paul Dumais) dumais@Apple.COM'
+alias planix	'(Those PlanIX Dudes) planix@planix.com'
+alias peter	'(Peter Renzland) peter@renzland.org'
+alias rayan	'(Rayan Zachariassen) rayan@uunet.ca'
+alias scott	'(Scott Campbell) scott@skypod.uucp'
+alias steve	'(Steve Bird) compus!bent!steve'
+alias taras	'(Taras Pryjma) problem!taras'
+alias tim	'(Tim Sorley) compus!tim'
+alias tom	'(Tom Molnar) molnar@gpu.utcs.utoronto.ca'
+alias tomv	'(Tom Vassos) vassos@torvm4.iinus1.ibm.com'
+alias vassos	'(Tom Vassos) vassos@torvm4.iinus1.ibm.com'
+alias tyler	'(Tyler Sperry) tyler@cup.portal.com'
+alias ufmcan	'("UniForum Canada Directors & Assoc. Directors") board@uniforum.ca'
+alias ugcdir	'("UniForum Canada Directors & Assoc. Directors") board@uniforum.ca'
+alias unixrev	'(Letter To The Editor) editor@beast.uucp'
+alias unixwrld	'(Letter To The Editor) letters@uworld.com'
+alias ureview	'(Letter To The Editor) editor@beast.uucp'
+alias usenix	'(The Usenix Association) office@usenix.org'
+alias uworld	'(Letter To The Editor) letters@uworld.com'
+alias unixtoday	'(Letter To The Editor) editor@utoday.com'
+alias utoday	'(Letter To The Editor) editor@utoday.com'
+
+# Local Variables:
+# local-write-file-hooks: (list (lambda () (setq mail-aliases t) nil))
+# End:
