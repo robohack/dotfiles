@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	18.5	97/10/16 15:01:22 (woods)"
+#ident	"@(#)HOME:.xinitrc	18.6	97/11/16 17:42:50 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -101,8 +101,8 @@ fi
 if [ -z "$WM" ] ; then
 	if [ -x $X11BIN/xsession -a -r $HOME/.X11Startup ] ; then
 		WM=xsession	# TODO: '$ONX11SERVER xsession -remote'?
-	elif [ -x $X11BIN/fvwm -a -r $HOME/.fvwmrc ] ; then
-		WM=fvwm
+	elif [ -x $X11BIN/ctwm -a -r $HOME/.ctwmrc ] ; then
+		WM=ctwm
 	else
 		WM=twm					# assumptions....
 	fi
