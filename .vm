@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	4.7	94/11/23 10:10:11 (woods)"
+;;;#ident	"@(#)HOME:.vm	4.8	94/11/23 13:18:05 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -74,175 +74,253 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;;;	VM related things
 ;;;
 
-;; commented lines indicate changed values....  (from v5.62)
+;; commented lines indicate changed values....  (from v5.72)
 ;;
-(setq
-     vm-arrived-message-hook nil
-;;;  vm-auto-center-summary 1		; only if not the only existing window
-     vm-auto-center-summary nil
-     vm-auto-folder-alist '(
-			    ;; To: & Cc: entries here.
-			    ("^\\(to\\|cc\\|apparently-to\\)"
-			     ("source-changes@NetBSD.ORG" . "netbsd/source-changes")
-			     ("\\(current-users@NetBSD.ORG\\|apana-lists-os-netbsd-general@\\|source@NetBSD.ORG\\)" .
-			      "netbsd/current-users")
-			     ("\\(tech-[^@%]+\\)[@%]NetBSD.ORG" .
-			      (concat "netbsd/"
-				      (buffer-substring (match-beginning 1)
-							(match-end 1))))
-			     ("hyperbole@" . "hyperbole")
-			     ("bind@" . "bind")
-			     ("\\(bug-[^@%]+\\)[@%]" .
-			      (concat (buffer-substring (match-beginning 1)
-							(match-end 1))))
-			     ("\\(gnu-[^@%]+\\)[@%]" .
-			      (concat (buffer-substring (match-beginning 1)
-							(match-end 1))))
-			     ("info-vm" . "bug-vm")
-			     ("\\(info-[^@%]+\\)[@%]" .
-			      (concat (buffer-substring (match-beginning 1)
-							(match-end 1))))
+(setq vm-arrived-message-hook nil
+      vm-auto-center-summary nil
+      vm-auto-folder-alist '(
+			     ;; To: & Cc: entries here.
+			     ("^\\(to\\|cc\\|apparently-to\\)"
+			      ("source-changes@NetBSD.ORG" . "netbsd/source-changes")
+			      ("\\(current-users@NetBSD.ORG\\|apana-lists-os-netbsd-general@\\|source@NetBSD.ORG\\)" .
+			       "netbsd/current-users")
+			      ("\\(tech-[^@%]+\\)[@%]NetBSD.ORG" .
+			       (concat "netbsd/"
+				       (buffer-substring (match-beginning 1)
+							 (match-end 1))))
+			      ("hyperbole@" . "hyperbole")
+			      ("bind@" . "bind")
+			      ("\\(bug-[^@%]+\\)[@%]" .
+			       (concat (buffer-substring (match-beginning 1)
+							 (match-end 1))))
+			      ("\\(gnu-[^@%]+\\)[@%]" .
+			       (concat (buffer-substring (match-beginning 1)
+							 (match-end 1))))
+			      ("info-vm" . "bug-vm")
+			      ("\\(info-[^@%]+\\)[@%]" .
+			       (concat (buffer-substring (match-beginning 1)
+							 (match-end 1))))
+			      )
+			     ;; Sender: entries here.
+			     ("sender"
+			      ("owner-\\([^@%]+\\)[@%]NetBSD.ORG" .
+			       (concat "netbsd/"
+				       (buffer-substring (match-beginning 1)
+							 (match-end 1))))
+			      )
+			     ;; From: entries here.
+			     ("from"
+			      ("gegai@.*\\.io\\.org"
+			       "from/andy")
+			      ;; code to make auto-folder default to the user name of the sender.
+			      ;; this should be last in the auto folder alist since it tends to
+			      ;; always match something.
+			      ;; even though I don't really like it, since 'A'
+			      ;; archive's everthing now...  yuck!
+			      ("<\\([^ \t\n\f@%()<>]+\\)[@%]\\([^ \t\n\f<>()]+\\)>" .
+			       (concat "from/"
+				       (buffer-substring (match-beginning 1)
+							 (match-end 1))))
+			      ("<\\([^>]+\\)>" . 
+			       (concat "from/"
+				       (buffer-substring (match-beginning 1)
+							 (match-end 1))))
+			      ("\\([^ \t\n\f@%()<>]+\\)\\([@%]\\([^ \t\n\f<>()]+\\)\\)?" .
+			       (concat "from/"
+				       (buffer-substring (match-beginning 1)
+							 (match-end 1))))
+			      )
 			     )
-			    ;; Sender: entries here.
-			    ("sender"
-			     ("owner-\\([^@%]+\\)[@%]NetBSD.ORG" .
-			      (concat "netbsd/"
-				      (buffer-substring (match-beginning 1)
-							(match-end 1))))
-			     )
-			    ;; From: entries here.
-			    ("from"
-			     ("gegai@.*\\.io\\.org"
-			      "from/andy")
-			     ;; code to make auto-folder default to the user name of the sender.
-			     ;; this should be last in the auto folder alist since it tends to
-			     ;; always match something.
-			     ;; even though I don't really like it, since 'A'
-			     ;; archive's everthing now...  yuck!
-			     ("<\\([^ \t\n\f@%()<>]+\\)[@%]\\([^ \t\n\f<>()]+\\)>" .
-			      (concat "from/"
-				      (buffer-substring (match-beginning 1)
-							(match-end 1))))
-			     ("<\\([^>]+\\)>" . 
-			      (concat "from/"
-				      (buffer-substring (match-beginning 1)
-							(match-end 1))))
-			     ("\\([^ \t\n\f@%()<>]+\\)\\([@%]\\([^ \t\n\f<>()]+\\)\\)?" .
-			      (concat "from/"
-				      (buffer-substring (match-beginning 1)
-							(match-end 1))))
-			     )
-			    )
-     vm-auto-folder-case-fold-search t	; hmmm....  I don't like this, but....
-     vm-auto-get-new-mail t		; don't go to next msg unless I say so!
-     vm-auto-next-message nil
-     vm-berkeley-mail-compatibility t	; read & write Status: headers
-     vm-check-folder-types t
-     vm-circular-folders nil		; I don't like it wrapping to the top
-     vm-confirm-new-folders t		; force confirmation when interactive
-     vm-confirm-quit 1			; ask if there are unsaved changes or
-					; messages will be lost
-     vm-convert-folder-types t		; go for it!
-     vm-crash-box "~/Mail/INBOX.CRASH"	; matching pathname for INBOX
-     vm-default-folder-type 'From_
-     vm-delete-after-archiving nil
-     vm-delete-after-bursting nil
-     vm-delete-after-saving nil
-     vm-delete-empty-folders t
-     vm-digest-burst-type "rfc934"
-     vm-digest-identifier-header-format "X-Digest: %s\n"
-     vm-digest-center-preamble t
-     vm-digest-preamble-format "\"%s\" (%F)"
-     vm-digest-send-type "rfc934"
-     vm-edit-message-hook nil
-     vm-edit-message-mode 'indented-text-mode ; this is slightly better than text-mode
-     vm-flush-interval t
-     vm-folder-directory "~/Mail/"	; the usual place
-;;;  vm-folder-read-only nil
-     vm-follow-summary-cursor t		; operate on current pointed to message
-     vm-forward-message-hook nil
-     vm-forwarded-headers nil
-     vm-forwarding-digest-type "rfc934"
-     vm-forwarding-subject-format "forwarded message from %F"
-;;;  vm-highlighted-header-regexp "^From:\\|^Subject:" ; highlight these headers
-     vm-honor-page-delimiters t		; honour page marks in message
-     vm-in-reply-to-format "%F's message\n	of \"%w, %m %d, %y %h %z\"\n	regarding \"%s\"\n	id %i" ; this is the way I like it
-     vm-included-text-attribution-format "[ On %w, %m %d, %y at %h (%z), %F wrote: ]\n> Subject: %s\n>\n" ; this is the way I like it
-     vm-included-text-discard-header-regexp nil
-     vm-included-text-headers nil
-     vm-included-text-prefix "> "	; k.i.s.s.
-     vm-inhibit-startup-message t	; don't bother me with legalese!
-;;;  vm-init-file "~/.vm"		; that's us!
-     vm-invisible-header-regexp nil
-     vm-jump-to-new-messages t
-     vm-jump-to-unread-messages t
-     vm-keep-crash-boxes "~/tmp/"	; crash inbox saviour
-     vm-keep-sent-messages 1
-     vm-mail-header-from (concat (user-login-name) "@" (vm-fqdn)
-				 " (" (user-full-name) ")") ; this is also for
-							    ; resent-from
-     vm-mail-hook nil
-     vm-mail-mode-hook nil
-     vm-mode-hook nil
-     vm-move-after-deleting t		; keep on rolling
-     vm-move-after-undeleting t		; keep on rolling
-     vm-move-messages-physically nil
-     vm-movemail-program "movemail"
-     vm-mutable-frames nil
-     vm-mutable-windows t		; allow resizing of windows
-     vm-pop-md5-program "md5"
-     vm-preview-lines 4			; allow 4 lines of the body to show
-     vm-preview-read-messages nil	; only preview unread messages
-     vm-primary-inbox "~/Mail/INBOX"	; primary inbox
-     vm-quit-hook nil
-     vm-recognize-pop-maildrops "^[^:]+:[^:]+:[^:]+:[^:]+:[^:]+"
-     vm-reply-hook nil
-     vm-reply-ignored-addresses nil
-     vm-reply-ignored-reply-tos nil
-     vm-reply-subject-prefix "Re: "	; do the right thing!
-     vm-resend-bounced-discard-header-regexp nil
-     vm-resend-bounced-headers '("Resent-" "From:" "To:" "Cc:" "Subject:"
-				 "Newsgroups:" "In-Reply-To:" "References:"
-				 "Keywords:" "X-") ; we can't allow "Sender:"
-     vm-resend-bounced-message-hook nil
-     vm-resend-discard-header-regexp "\\(\\(X400-\\)?Received:\\|Resent-\\)"
-     vm-resend-headers nil
-     vm-resend-message-hook nil
-     vm-retrieved-spooled-mail-hook nil
-     vm-rfc1153-digest-discard-header-regexp "\\(X400-\\)?Received:"
-     vm-rfc1153-digest-headers '("Resent-" "Date:" "From:" "Sender:" "To:" "Cc:" "Subject:" "Message-ID:" "Keywords:")
-     vm-rfc934-digest-discard-header-regexp nil
-     vm-rfc934-digest-headers '("Resent-" "From:" "Sender:" "To:" "Cc:" "Subject:" "Date:" "Message-ID:" "Keywords:")
-     vm-search-using-regexps nil
-     vm-select-message-hook nil
-     vm-select-new-message-hook nil
-     vm-select-unread-message-hook nil
-     vm-send-digest-hook nil
-     vm-skip-deleted-messages t
-     vm-skip-read-messages nil
-     vm-startup-with-summary 1		; pop up summary window right away
-     vm-strip-reply-headers nil
-     vm-summary-format "%3n%*%A %-18.18F %4y/%02M/%02d-%H %4l/%-5c %I\"%s\"\n"
+      vm-auto-folder-case-fold-search t	; so that vm-auto-folder-alist is simpler
+      vm-auto-get-new-mail nil		; keep this manual for now
+      vm-auto-next-message nil		; when you're at the bottom of the msg, stay there!
+      vm-berkeley-mail-compatibility t
+      vm-check-folder-types t
+      vm-circular-folders nil		; don't wrap around the folder
+      vm-confirm-new-folders t		; be careful!
+      vm-confirm-quit 1			; ask about quitting if unsaved changes
+      vm-convert-folder-types t		; go for it!
+      vm-crash-box "~/Mail/INBOX.CRASH"	; keep everything in the vm-folder-directory
+      vm-default-folder-type 'From_
+      vm-delete-after-archiving nil
+      vm-delete-after-bursting t	; why not?
+      vm-delete-after-saving nil
+      vm-delete-empty-folders t
+      vm-digest-burst-type "rfc934"
+      vm-digest-identifier-header-format "X-Digest: %s\n"
+      vm-digest-center-preamble t
+      vm-digest-preamble-format "\"%s\" (%F)"
+      vm-digest-send-type "rfc934"
+      vm-edit-message-hook nil
+      vm-edit-message-mode 'indented-text-mode ; slightly better than text-mode
+      vm-flush-interval t
+      vm-folder-directory "~/Mail/"	; the usual place
+;;;   vm-folder-read-only nil
+      vm-follow-summary-cursor t	; operate on the currently pointed to message
+      vm-forward-message-hook nil
+      vm-forwarded-headers nil
+      vm-forwarding-digest-type "rfc934"
+      vm-forwarding-subject-format "forwarded message from %F"
+      vm-highlighted-header-regexp nil
+;;;   vm-highlighted-header-regexp "^From:\\|^Subject:" ; highlight these headers
+      vm-honor-page-delimiters nil
+      vm-in-reply-to-format "%F's message\n	of \"%w, %m %d, %y %h %z\"\n	regarding \"%s\"\n	id %i"
+					; just the way I like it!
+      vm-included-text-attribution-format "[ On %w, %m %d, %y at %h (%z), %F wrote: ]\n> Subject: %s\n>\n"
+					; just the way I like it!
+      vm-included-text-discard-header-regexp nil
+      vm-included-text-headers nil
+      vm-included-text-prefix "> "	; k.i.s.s. (and standard!)
+      vm-inhibit-startup-message t	; don't bother me with legalese
+;;;   vm-init-file "~/.vm"
+      vm-invisible-header-regexp nil
+      vm-jump-to-new-messages t
+      vm-jump-to-unread-messages t
+      vm-keep-crash-boxes "~/tmp/"	; crash inbox saviour
+      vm-keep-sent-messages 1
+      vm-mail-header-from (concat (user-login-name) "@" (vm-fqdn)
+				  " (" (user-full-name) ")") ; this is also for
+							     ; resent-from
+      vm-mail-hook nil
+      vm-mail-mode-hook nil
+      vm-mode-hook nil
+      vm-mode-hooks nil
+      vm-move-after-deleting t		; keep on rolling
+      vm-move-after-undeleting t	; keep on rolling
+      vm-move-messages-physically nil
+      vm-movemail-program "movemail"
+      vm-mutable-frames nil
+      vm-mutable-windows t
+      vm-pop-md5-program "md5"
+      vm-preview-lines 4		; allow 4 lines of the body to show
+      vm-preview-read-messages nil
+      vm-primary-inbox "~/Mail/INBOX"	; keep everything in vm-folder-directory
+      vm-quit-hook nil
+      vm-recognize-pop-maildrops "^[^:]+:[^:]+:[^:]+:[^:]+:[^:]+"
+      vm-reply-hook nil
+      vm-reply-ignored-addresses (concat (user-login-name) "@" (vm-fqdn))
+					; just me!
+      vm-reply-ignored-reply-tos nil
+      vm-reply-subject-prefix "Re: "	; please do the standard thing!
+      vm-resend-bounced-discard-header-regexp nil
+      vm-resend-bounced-headers '("Resent-"
+				  "From:"
+				  "To:"
+				  "Cc:"
+				  "Subject:"
+				  "Newsgroups:"
+				  "In-Reply-To:"
+				  "References:"
+				  "Keywords:"
+				  "X-"
+				  )
+      vm-resend-bounced-message-hook nil
+      vm-resend-discard-header-regexp "\\(\\(X400-\\)?Received:\\|Resent-\\)"
+      vm-resend-headers nil
+      vm-resend-message-hook nil
+      vm-retrieved-spooled-mail-hook nil
+      vm-rfc1153-digest-discard-header-regexp "\\(X400-\\)?Received:"
+      vm-rfc1153-digest-headers '("Resent-"
+				  "Date:"
+				  "From:"
+				  "Sender:"
+				  "To:"
+				  "Cc:"
+				  "Subject:"
+				  "Message-ID:"
+				  "Keywords:"
+				  )
+      vm-rfc934-digest-discard-header-regexp nil
+      vm-rfc934-digest-headers '("Resent-"
+				 "From:"
+				 "Sender:"
+				 "To:"
+				 "Cc:"
+				 "Subject:"
+				 "Date:"
+				 "Message-ID:"
+				 "Keywords:"
+				 )
+      vm-search-using-regexps nil
+      vm-select-message-hook nil
+      vm-select-new-message-hook nil
+      vm-select-unread-message-hook nil
+      vm-send-digest-hook nil
+      vm-skip-deleted-messages nil	; try it this way for a while....
+      vm-skip-read-messages nil
+      vm-startup-with-summary 1		; pop up summary window right away
+      vm-strip-reply-headers nil
+      vm-summary-format "%3n%*%A %-18.18F %4y/%02M/%02d-%H %4l/%-5c %I\"%s\"\n"
 					; ah, that's better! (except %02d
 					; doesn't put leading zeros out)
-     vm-summary-highlight-face nil
-     vm-summary-mode-hook nil
-     vm-summary-mode-hooks nil
-     vm-summary-redo-hook nil
-     vm-summary-show-threads nil
-     vm-summary-subject-no-newlines t
-     vm-summary-thread-indent-level 2
-     vm-summary-uninteresting-senders (concat (user-login-name) "\\(@.*\\."
-					      vm-local-domain-name "\\)?")
-     vm-summary-uninteresting-senders-arrow "To: "
-     vm-tale-is-an-idiot nil
-     vm-unforwarded-header-regexp "only-drop-this-header"
-     vm-virtual-folder-alist nil
-     vm-virtual-mirror t
-     vm-visible-headers '("Resent-" "From:" "Sender:" "To:" "Apparently-To:" "Cc:" "Subject:" "Date:")
-     vm-visit-folder-hook nil
-     vm-visit-when-saving 0
-     )
+      vm-summary-highlight-face nil
+      vm-summary-mode-hook nil
+      vm-summary-mode-hooks nil
+      vm-summary-redo-hook nil
+      vm-summary-show-threads nil
+      vm-summary-subject-no-newlines t
+      vm-summary-thread-indent-level 2
+      vm-summary-uninteresting-senders (concat (user-login-name) "\\(@.*\\."
+					       vm-local-domain-name "\\)?")
+					; just me!
+      vm-summary-uninteresting-senders-arrow "To: "
+      vm-tale-is-an-idiot t		; sounds good to me!
+      vm-unforwarded-header-regexp "only-drop-this-header"
+      vm-virtual-folder-alist nil
+      vm-virtual-mirror t
+      vm-visible-headers '("Resent-"
+			   "From:"
+			   "Sender:"
+			   "To:"
+			   "Apparently-To:"
+			   "Cc:"
+			   "Subject:"
+			   "Date:"
+			   )
+      vm-visit-folder-hook nil
+      vm-visit-when-saving nil		; try it this way for a while
+      vm-window-configuration-file "~/.vm.windows"
+      vm-window-configurations '((startup ((((top . 70) (left . 70)))
+					   (((- (0 0 80 10) (0 10 80 40))
+					     ((nil summary) (nil message))
+					     ((nil nil nil t)
+					      (nil nil nil nil))))))
+				 (quitting ((((top . 70) (left . 70)))
+					    (((0 0 80 40) ((nil message))
+					      ((nil nil nil t))))))
+				 (reading-message ((((top . 70) (left . 70)))
+						   (((- (0 0 80 10)
+							(0 10 80 40))
+						     ((nil summary)
+						      (nil message))
+						     ((nil nil nil t)
+						      (nil nil nil nil))))))
+				 (composing-message ((((top . 70) (left . 70)))
+						     (((- (0 0 80 10)
+							  (0 10 80 40))
+						       ((nil summary)
+							(nil composition))
+						       ((nil nil nil nil)
+							(nil nil nil t))))))
+				 (editing-message ((((top . 70) (left . 70)))
+						   (((- (0 0 80 10)
+							(0 10 80 40))
+						     ((nil summary)
+						      (nil edit))
+						     ((nil nil nil nil)
+						      (nil nil nil t))))))
+				 (vm-summarize ((((top . 70) (left . 70)))
+						(((- (0 0 80 10)
+						     (0 10 80 40))
+						  ((nil summary)
+						   (nil message))
+						  ((nil nil nil t)
+						   (nil nil nil nil))))))
+				 )
+      pop-up-windows t
+      pop-up-frames nil
+      next-screen-context-lines 2
+      )
 
 ;;;
 ;;;	End Of File
