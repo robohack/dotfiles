@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	21.3	00/03/20 14:15:24 (woods)"
+#ident	"@(#)HOME:.kshrc	21.4	00/03/20 14:16:35 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -214,7 +214,7 @@ if [ "$id" -eq 0 ] ; then
 	if [ "$EDITOR" = "emacsclient" ] ; then
 		export EDITOR="emacs -nw"
 	fi
-	alias krcmd="kill -9 \$(ps -ax | awk '\$5 == \"rcmd\" {print \$1}')"
+	alias krcmd="kill -9 \$(ps -axc | awk '\$5 == \"rcmd\" {print \$1}')"
 elif [ "$uid" != "$LOGNAME" ] ; then
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		MYXBAN_R='$uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN'
@@ -224,7 +224,7 @@ elif [ "$uid" != "$LOGNAME" ] ; then
 	else
 		PS1='$TTYN:$uid($LOGNAME)@$UUNAME)[$LEV.!] ${PWD#$HOME} $ '
 	fi
-	alias krcmd="kill -9 \$(ps -x | awk '\$5 == \"rcmd\" {print \$1}')"
+	alias krcmd="kill -9 \$(ps -xc | awk '\$5 == \"rcmd\" {print \$1}')"
 else
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		MYXBAN_R='$LOGNAME{$gid}@$UUNAME[$LEV]:$TTYN'
@@ -234,7 +234,7 @@ else
 	else
 		PS1='$TTYN:$LOGNAME@$UUNAME[$LEV.!] ${PWD#$HOME} $ '
 	fi
-	alias krcmd="kill -9 \$(ps -x | awk '\$5 == \"rcmd\" {print \$1}')"
+	alias krcmd="kill -9 \$(ps -xc | awk '\$5 == \"rcmd\" {print \$1}')"
 fi
 
 if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
