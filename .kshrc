@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	18.6	97/01/25 18:09:10 (woods)"
+#ident	"@(#)HOME:.kshrc	18.7	97/01/25 23:52:50 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -282,7 +282,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			setban
 			REMESG=`mesg | sed 's/is/mesg/'`
 			mesg n
-			emacs "$@"
+			emacs ${1+"$@"}
 			setban
 			$REMESG
 			unset REMESG
@@ -303,7 +303,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		setban
 		REMESG=`mesg | sed 's/is/mesg/'`
 		mesg n
-		/usr/bin/cu "$@"
+		/usr/bin/cu ${1+"$@"}
 		setban
 		$REMESG
 		unset REMESG
@@ -323,7 +323,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		setban
 		REMESG=`mesg | sed 's/is/mesg/'`
 		mesg n
-		$LOCAL/bin/ckermit "$@"
+		$LOCAL/bin/ckermit ${1+"$@"}
 		setban
 		$REMESG
 		unset REMESG
@@ -340,7 +340,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			setban
 			REMESG=`mesg | sed 's/is/mesg/'`
 			mesg n
-			$RLOGIN "$@"
+			$RLOGIN ${1+"$@"}
 			setban
 			$REMESG
 			unset REMESG
@@ -363,7 +363,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			setban
 			REMESG=`mesg | sed 's/is/mesg/'`
 			mesg n
-			$TELNET "$@"
+			$TELNET ${1+"$@"}
 			setban
 			$REMESG
 			unset REMESG
@@ -380,7 +380,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			setban
 			REMESG=`mesg | sed 's/is/mesg/'`
 			mesg n
-			mush -C "$@"
+			mush -C ${1+"$@"}
 			setban
 			$REMESG
 			unset REMESG
@@ -397,7 +397,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			setban
 			REMESG=`mesg | sed 's/is/mesg/'`
 			mesg n
-			irc "$@"
+			irc ${1+"$@"}
 			setban
 			$REMESG
 			unset REMESG
@@ -414,7 +414,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			setban
 			REMESG=`mesg | sed 's/is/mesg/'`
 			mesg n
-			trn "$@"
+			trn ${1+"$@"}
 			setban
 			$REMESG
 			unset REMESG
@@ -431,11 +431,11 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		REMESG=`mesg | sed 's/is/mesg/'`
 		mesg n
 		if [ -x /usr/5bin/su ] ; then
-			/usr/5bin/su "$@"
+			/usr/5bin/su ${1+"$@"}
 		elif [ -x /usr/bin/su ] ; then
-			/usr/bin/su "$@"
+			/usr/bin/su ${1+"$@"}
 		else
-			/bin/su "$@"
+			/bin/su ${1+"$@"}
 		fi
 		setban
 		$REMESG
