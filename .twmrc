@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.24	96/09/04 00:49:12 (woods)"
+#ident	"@(#)HOME:.twmrc	2.25	96/09/07 20:28:36 (woods)"
 #
 
 AutoRelativeResize
@@ -171,6 +171,34 @@ function "start-box1-r-xterm" {
 	f.exec "$RSH -n box1-r.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
+function "start-clapton-xterm" {
+	f.exec "$RSH -n clapton.seachange.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
+function "start-tugboat-xterm" {
+	f.exec "$RSH -n tugboat.seachange.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
+function "start-sparky-xterm" {
+	f.exec "$RSH -n sparky.seachange.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
+function "start-hamlet-xterm" {
+	f.exec "$RSH -n hamlet.seachange.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
+function "start-bsdibox-xterm" {
+	f.exec "$RSH -n bsdibox.seachange.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
+function "start-bsdibox-xterm" {
+	f.exec "$RSH -n bsdibox.seachange.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
+function "start-rock-xterm" {
+	f.exec "$RSH -n rock.seachange.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
 function "start-quicksilver-xterm" {
 	f.exec "$RSH -n quicksilver.infoshare.net exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
@@ -328,6 +356,61 @@ function "start-box1-slogin" {
 function "start-box1-r-slogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin box1-r.planix.com &"
 }
+
+
+#	for rlogin-ipass menu
+#
+function "start-clapton-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin clapton.seachange.com &"
+}
+
+function "start-tugboat-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin tugboat.seachange.com &"
+}
+
+function "start-sparky-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin sparky.seachange.com &"
+}
+
+function "start-hamlet-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin hamlet.seachange.com &"
+}
+
+function "start-bsdibox-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin bsdibox.seachange.com &"
+}
+
+function "start-rock-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin rock.seachange.com &"
+}
+
+
+#	for slogin-ipass menu
+#
+function "start-clapton-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin clapton.seachange.com &"
+}
+
+function "start-tugboat-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin tugboat.seachange.com &"
+}
+
+function "start-sparky-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin sparky.seachange.com &"
+}
+
+function "start-hamlet-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin hamlet.seachange.com &"
+}
+
+function "start-bsdibox-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin bsdibox.seachange.com &"
+}
+
+function "start-rock-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin rock.seachange.com &"
+}
+
 
 #	for rlogin-infoshare menu
 #
@@ -508,7 +591,7 @@ function "start-most-xv" {
 #	for ghostviews menu
 #
 function "start-local-ghostview" {
-	f.exec "$GNU/bin/ghostview -d $DISPLAY &"
+	f.exec "$X11BIN/ghostview -d $DISPLAY &"
 }
 
 function "start-most-ghostview" {
@@ -527,11 +610,15 @@ function "start-kuma-ghostview" {
 	f.exec "$RSH -n kuma.web.net exec env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
 }
 
+function "start-clapton-ghostview" {
+	f.exec "$RSH -n clapton.seachange.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/contrib/bin/ghostview &"
+}
+
 
 #	for WWW menu
 #
 function "start-local-mosaic" {
-	f.exec "$LOCAL/Mosaic &"
+	f.exec "$LOCAL/bin/Mosaic &"
 }
 
 function "start-sometimes-mosaic" {
@@ -559,7 +646,7 @@ function "start-kuma-mosaic" {
 }
 
 function "start-local-netscape" {
-	f.exec "$LOCAL/netscape -display $DISPLAY &"
+	f.exec "$LOCAL/bin/netscape -display $DISPLAY &"
 }
 
 function "start-netserver-netscape" {
@@ -587,7 +674,7 @@ function "start-woffi-netscape" {
 }
 
 function "start-local-netscape-gold" {
-	f.exec "$LOCAL/netscape-gold -display $DISPLAY &"
+	f.exec "$LOCAL/bin/netscape-gold -display $DISPLAY &"
 }
 
 function "start-netserver-netscape-gold" {
@@ -706,7 +793,6 @@ menu "preferences"
 	"Preferences"		f.title
 	"Viewres"		!"viewres &"
 	"Editres"		!"editres &"
-	"Colour Map Ctl"	f.menu "cmap"
 	"Query"			!"xset q"
 	"Auto Repeat On"	!"xset r on"
 	"Auto Repeat Off"	!"xset r off"
@@ -726,6 +812,7 @@ menu "preferences"
 	"Prefer 100dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/100dpi/,/usr/lib/X11/fonts/75dpi/"
 ##	"Video Inverse"		!"xset p 1 0"
 ##	"Video Normal"		!"xset p 0 1"
+	"Colour Map Ctl..."	f.menu "cmap"
 	"Screen Saver..."	f.menu "screensaver"
 	"Keyboard LEDs..."	f.menu "leds"
 }
@@ -881,6 +968,7 @@ menu "ghostviews"
 	"@sometimes"			f.function "start-sometimes-ghostview"
 	"@always"			f.function "start-always-ghostview"
 	"@kuma"				f.function "start-kuma-ghostview"
+	"@clapton"			f.function "start-clapton-ghostview"
 }
 
 menu "www"
@@ -939,23 +1027,55 @@ menu "xterm"
 {
 	"Xterm's Everywhere"		f.title
 	"Xterm @localhost"		f.function "start-local-xterm"
-	"    weird.com hosts"		f.nop
+	"weird.com hosts..."		f.menu "weird-xterms"
+	"planix.com hosts..."		f.menu "planix-xterms"
+	"ipass.com hosts..."		f.menu "ipass-xterms"
+	"infoshare.net hosts..."	f.menu "infoshare-xterms"
+	"web.net hosts..."		f.menu "web-xterms"
+}
+
+menu "weird-xterms"
+{
+	"weird.com hosts"		f.title
 	"Xterm @isit"			f.function "start-isit-xterm"
 	"Xterm @most"			f.function "start-most-xterm"
 	"Xterm @very"			f.function "start-very-xterm"
 	"Xterm @pretty"			f.function "start-pretty-xterm"
 	"Xterm @sometimes"		f.function "start-sometimes-xterm"
 	"Xterm @always"			f.function "start-always-xterm"
-	"    planix.com hosts"		f.nop
+}
+
+menu "planix-xterms"
+{
+	"planix.com hosts"		f.title
 	"Xterm @whome"			f.function "start-whome-xterm"
 	"Xterm @woffi"			f.function "start-woffi-xterm"
 	"Xterm @wind"			f.function "start-wind-xterm"
 	"Xterm @weight"			f.function "start-weight-xterm"
 	"Xterm @box1"			f.function "start-box1-xterm"
 	"Xterm @box1-r"			f.function "start-box1-r-xterm"
-	"    infoshare.net hosts"	f.nop
+}
+
+menu "ipass-xterms"
+{
+	"ipass.com hosts"		f.title
+	"Xterm @clapton"		f.function "start-clapton-xterm"
+	"Xterm @tugboat"		f.function "start-tugboat-xterm"
+	"Xterm @sparky"			f.function "start-sparky-xterm"
+	"Xterm @hamlet"			f.function "start-hamlet-xterm"
+	"Xterm @bsdibox"		f.function "start-bsdibox-xterm"
+	"Xterm @rock"			f.function "start-rock-xterm"
+}
+
+menu "infoshare-xterms"
+{
+	"infoshare.net hosts"		f.title
 	"Xterm @quicksilver"		f.function "start-quicksilver-xterm"
-	"    web.net hosts"		f.nop
+}
+
+menu "web-xterms"
+{
+	"web.net hosts"			f.title
 	"Xterm @araignee"		f.function "start-araignee-xterm"
 	"Xterm @jala"			f.function "start-jala-xterm"
 	"Xterm @kuma"			f.function "start-kuma-xterm"
@@ -971,6 +1091,7 @@ menu "rlogin"
 	"Rlogin's at Weird.com..."	f.menu "rlogin-weird"
 	"Rlogin's at Cyclic.com..."	f.menu "rlogin-cyclic"
 	"Rlogin's at Planix.com..."	f.menu "rlogin-planix"
+	"Rlogin's at Ipass.com..."	f.menu "rlogin-ipass"
 	"Rlogin's at HmPg.com..."	f.menu "rlogin-hmpg"
 	"Rlogin's at Infoshare.net..."	f.menu "rlogin-infoshare"
 	"Rlogin's at ACI.on.ca..."	f.menu "rlogin-aci"
@@ -992,6 +1113,7 @@ menu "slogin"
 	"Slogin's Everywhere"		f.title
 	"Slogin's at Weird.com..."	f.menu "slogin-weird"
 	"Slogin's at Planix.com..."	f.menu "slogin-planix"
+	"Slogin's at Ipass.com..."	f.menu "slogin-ipass"
 	"Slogin's at HmPg.com..."	f.menu "slogin-hmpg"
 }
 
@@ -1047,6 +1169,28 @@ menu "slogin-planix"
 	"Slogin @worm.planix.com"	f.function "start-worm-slogin"
 	"Slogin @box1.planix.com"	f.function "start-box1-slogin"
 	"Slogin @box1-r.planix.com"	f.function "start-box1-r-slogin"
+}
+
+menu "rlogin-ipass"
+{
+	"Rlogin's At Ipass.com"		f.title
+	"Rlogin @clapton"		f.function "start-clapton-rlogin"
+	"Rlogin @tugboat"		f.function "start-tugboat-rlogin"
+	"Rlogin @sparky"		f.function "start-sparky-rlogin"
+	"Rlogin @hamlet"		f.function "start-hamlet-rlogin"
+	"Rlogin @bsdibox"		f.function "start-bsdibox-rlogin"
+	"Rlogin @rock"			f.function "start-rock-rlogin"
+}
+
+menu "slogin-ipass"
+{
+	"Slogin's At Ipass.com"		f.title
+	"Slogin @clapton"		f.function "start-clapton-slogin"
+	"Slogin @tugboat"		f.function "start-tugboat-slogin"
+	"Slogin @sparky"		f.function "start-sparky-slogin"
+	"Slogin @hamlet"		f.function "start-hamlet-slogin"
+	"Slogin @bsdibox"		f.function "start-bsdibox-slogin"
+	"Slogin @rock"			f.function "start-rock-slogin"
 }
 
 menu "rlogin-hmpg"
