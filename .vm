@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.4	95/07/12 15:50:04 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.5	95/07/24 09:25:13 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -307,7 +307,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;;;   vm-send-digest-hook nil
       vm-skip-deleted-messages nil	; try it this way for a while....
       vm-skip-read-messages nil
-      vm-startup-with-summary 1		; pop up summary window right away
+      vm-startup-with-summary 0		; pop up summary window right away
       vm-strip-reply-headers nil
       vm-summary-format "%3n%*%A %-18.18F %4y/%02M/%02d-%H %4l/%-5c %I\"%s\"\n"
 					; ah, that's better! (except %02d
