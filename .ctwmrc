@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	1.4	97/11/23 16:53:52 (woods)"
+#ident	"@(#)HOME:.ctwmrc	1.5	97/12/01 02:17:35 (woods)"
 #
 
 AutoRelativeResize
@@ -38,16 +38,20 @@ UseThreeDTitles
 #UseThreeDWMap
 
 BorderShadowDepth		2
-BorderWidth			2
+#BorderWidth			2	# has no effect when UseThreeDBorders is on
 FramePadding			0
-IconBorderWidth			2
-IconManagerShadowDepth		2
-#MaxIconTitleWidth		50
-MenuShadowDepth			2
-MoveDelta			4
-OpaqueMoveThreshold		50
-OpaqueResizeThreshold		50
+IconBorderWidth			3
+IconManagerShadowDepth		3
+MenuShadowDepth			3
+MoveDelta			3
+OpaqueMoveThreshold		20
+#OpaqueResizeThreshold		80	# turned off above
+TitleButtonShadowDepth		3
+TitleShadowDepth		3
 UsePPosition			"on"
+WMgrButtonShadowDepth		3
+XMoveGrid			1
+YMoveGrid			1
 Zoom				12
 
 TitleFont	"-*-courier-bold-o-normal-*-*-100-100-100-*-*-*-*"
@@ -59,7 +63,8 @@ IconManagerFont	"-*-helvetica-bold-r-normal-*-*-80-100-100-*-*-*-*"
 # DefaultFunction must come after fonts....
 DefaultFunction f.beep
 
-WorkSpaceManagerGeometry        "160x285-340+0" 2
+WorkSpaceManagerGeometry	"120x150-200+140" 2
+#WorkSpaceManagerGeometry	"160x285-340+0" 2
 
 WorkSpaces {
 	"Main"
@@ -157,7 +162,7 @@ IconManagerDontShow {
 	"swissclock"
 	"WorkSpaceManager"
 	"xbiff"
-	"xbuffy"
+	"XBuffy"
 	"xclock"
 	"xcpustate"
 	"xeyes"
@@ -181,7 +186,9 @@ Icons {
 	"xcmap"		"plaid"
 	"XConsole"	"terminal"
 	"xedit"		"xpm:xedit.xpm"
+	"xftp"		"xpm:xftp.xpm"
 	"xpostit"	"xpm:postit.xpm"
+	"XSm"		"xpm:xgrab.xpm"
 	"xterm"		"xpm:term.xpm"
 }
 
@@ -205,7 +212,7 @@ OccupyAll {
 	"swissclock"
 	"WorkSpaceManager"
 	"xbiff"
-	"xbuffy"
+	"xbuffy"		# only the main box window
 	"xclock"
 	"xconsole"
 	"xcpustate"
@@ -215,6 +222,7 @@ OccupyAll {
 	"xmailwatcher"
 	"xnetload"
 	"xosview"
+	"xsm"
 	"XSysStats"
 }
 
@@ -224,7 +232,7 @@ NoTitle {
 	"swissclock"
 	"WorkSpaceManager"
 	"xbiff"
-	"xbuffy"
+	"xbuffy"		# only the main box window
 	"xclock"
 	"xcpustate"
 	"xeyes"
@@ -254,12 +262,15 @@ ChangeWorkspaceFunction		!"auplay HOME/sounds/wschange &"
 IconifyFunction			!"auplay HOME/sounds/iconify &"
 DeIconifyFunction		!"auplay HOME/sounds/deiconify &"
 
-Function "move-or-lower" { f.move f.deltastop f.lower }
-Function "move-or-raise" { f.move f.deltastop f.raise }
-Function "move-or-iconify" { f.move f.deltastop f.iconify }
-Function "resize-or-raise" { f.raise f.deltastop f.resize }
-Function "resize-or-lower" { f.lower f.deltastop f.resize }
-#Function "restore-colormap" { f.colormap "default" f.lower }
+Function "forcemove-or-lower"	{ f.forcemove f.deltastop f.lower }
+Function "forcemove-or-raise"	{ f.forcemove f.deltastop f.raise }
+Function "forcemove-or-iconify"	{ f.forcemove f.deltastop f.iconify }
+Function "move-or-lower"	{ f.move f.deltastop f.lower }
+Function "move-or-raise"	{ f.move f.deltastop f.raise }
+Function "move-or-iconify"	{ f.move f.deltastop f.iconify }
+Function "resize-or-raise"	{ f.raise f.deltastop f.resize }
+Function "resize-or-lower"	{ f.lower f.deltastop f.resize }
+#Function "restore-colormap"	{ f.colormap "default" f.lower }
 
 # Set some useful bindings.  Sort of uwm-ish, sort of simple-button-ish
 #
@@ -267,32 +278,49 @@ Button1 = : root : f.menu "quickies"
 Button2 = : root : f.menu "TwmWindows"
 Button3 = : root : f.menu "defops"
 
-Button1 = meta : window|icon : f.function "move-or-raise"
-Button2 = meta : window|icon : f.function "move-or-iconify"
-Button3 = meta : window|icon : f.function "move-or-lower"
+Button1 = meta : window|icon : f.function "forcemove-or-raise"
+Button2 = meta : window|icon : f.function "forcemove-or-iconify"
+Button3 = meta : window|icon : f.function "forcemove-or-lower"
 
-Button1 = : title : f.function "move-or-raise"
-Button2 = : title : f.raiselower
-Button3 = : title : f.function "move-or-lower"
+Button1 =      : title	: f.function "move-or-raise"
+Button2 =      : title	: f.raiselower
+Button3 =      : title	: f.function "move-or-lower"
 
-Button1 = : icon : f.function "move-or-iconify"
-Button2 = : icon : f.iconify
-Button3 = : icon : f.lower
+Button1 = meta : title	: f.function "forcemove-or-raise"
+Button2 = meta : title	: f.raiselower
+Button3 = meta : title	: f.function "forcemove-or-lower"
 
-Button1 = : iconmgr : f.iconify
-Button2 = : iconmgr : f.raise
-Button3 = : iconmgr : f.lower
+Button1 =      : frame	: f.function "resize-or-raise"
+Button2 =      : frame	: f.function "move-or-raise"
+Button3 =      : frame	: f.function "resize-or-lower"
 
-Button1 = : frame       : f.function "resize-or-raise"
-Button2 = : frame       : f.function "move-or-raise"
-Button3 = : frame       : f.function "resize-or-lower"
+Button1 = meta : frame	: f.function "resize-or-raise"
+Button2 = meta : frame	: f.function "forcemove-or-raise"
+Button3 = meta : frame	: f.function "resize-or-lower"
+
+Button1 =      : icon	: f.function "move-or-iconify"
+Button2 =      : icon	: f.iconify
+Button3 =      : icon	: f.lower
+
+Button1 = meta : icon	: f.function "forcemove-or-iconify"
+Button2 = meta : icon	: f.iconify
+Button3 = meta : icon	: f.lower
+
+Button1 =      : iconmgr : f.iconify
+Button2 =      : iconmgr : f.raise
+Button3 =      : iconmgr : f.lower
 
 LeftTitleButton ":xpm:bar" = f.menu "winops"
 #RightTitleButton  ":xpm:dot" = f.iconify
 #RightTitleButton "%xpm:resize" = f.resize
 
-"F11"      =    : root		: f.nextworkspace
-"F12"      =    : root		: f.prevworkspace
+"F11"	=      : root	: f.nextworkspace
+"F12"	=      : root	: f.prevworkspace
+
+"Left"	= meta : root	: f.leftworkspace
+"Right"	= meta : root	: f.rightworkspace
+"Down"	= meta : root	: f.downworkspace
+"Up"	= meta : root	: f.upworkspace
 
 #
 #	And the menus, with all of the usual things...
@@ -305,24 +333,25 @@ menu "quickies"
 	"Lower"			f.lower
 	"Raise"			f.raise
 	"Iconify"		f.iconify
+	"Identify"		f.identify
 	"Occupy ..."		f.occupy
 	"Occupy All"		f.occupyall
 	"Vanish"		f.vanish
-	""			f.nop
+	""			f.separator
 	"WinDelete"		f.delete
 	"WinDelete or Destroy"	f.deleteordestroy
 	"Kill"			f.menu "kill"
-	""			f.nop
+	""			f.separator
 	"Xterm"			!"$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls &"
 	"Xterm @x11server"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
-	""			f.nop
+	""			f.separator
 	"Toggle workspace"	f.togglestate
 	"Screen Refresh"	f.refresh
 	"Window Refresh"	f.winrefresh
 	"Save"			f.saveyourself
-	""			f.nop
+	""			f.separator
 	"Xlock"			!"xlock -mode flame &"
-	""			f.nop
+	""			f.separator
 	"Exit..."		f.menu "exit"
 }
 
@@ -331,10 +360,10 @@ menu "defops"
 	"Twm"			f.title
 	"Window Operations..."	f.menu "winops"
 	"Window Manager..."	f.menu "wmops"
-	""			f.nop
+	""			f.separator
 	"Applications..."	f.menu "applications"
 	"Preferences..."	f.menu "preferences"
-	""			f.nop
+	""			f.separator
 	"Exit..."		f.menu "exit"
 }
 
@@ -343,28 +372,28 @@ menu "winops"
 	"Window Operations"	f.title
 	"Move"			f.move
 	"Resize"		f.resize
-	""			f.nop
+	""			f.separator
 	"Raise"			f.raise
 	"Lower"			f.lower
 	"Circle Up"		f.circleup
 	"Circle Down"		f.circledown
-	""			f.nop
+	""			f.separator
 	"Occupy ..."		f.occupy
 	"Occupy All"		f.occupyall
 	"Vanish"		f.vanish
-	""			f.nop
+	""			f.separator
 	"Zoom..."		f.menu "zooms"
-	""			f.nop
+	""			f.separator
 	"Refresh"		f.winrefresh
 	"Save"			f.saveyourself
 	"Identify"		f.identify
-	""			f.nop
+	""			f.separator
 	"Iconify"		f.iconify
 	"DeIconify"		f.deiconify
-	""			f.nop
+	""			f.separator
 	"Focus"			f.focus
 	"Unfocus"		f.unfocus
-	""			f.nop
+	""			f.separator
 	"Delete"		f.delete
 	"Delete Or Destroy"	f.deleteordestroy
 	"Kill"			f.destroy
@@ -375,16 +404,16 @@ menu "wmops"
 	"Window Manager"	f.title
 	"Icon Manager..."	f.menu "iconmgr"
 	"Window Summary..."	f.menu "TwmWindows"
-	""			f.nop
+	""			f.separator
 	"Toggle workspace"	f.togglestate
 	"ShowWorkspaceManager"	f.showWorkspaceMgr
 	"HideWorkspaceManager"	f.hideWorkspaceMgr
 	"Adopt Window"		f.adoptwindow
-	""			f.nop
+	""			f.separator
 	"Refresh"		f.refresh
-	""			f.nop
+	""			f.separator
 	"Restart"		f.restart
-	""			f.nop
+	""			f.separator
 	"Version"		f.version
 }
 
@@ -405,15 +434,15 @@ menu "iconmgr"
 	"Show Iconmgr"		f.showiconmgr
 	"Hide Iconmgr"		f.hideiconmgr
 	"Sort"			f.sorticonmgr
-	""			f.nop
+	""			f.separator
 	"Next"			f.nexticonmgr
 	"Previous"		f.previconmgr
-	""			f.nop
+	""			f.separator
 	"Up"			f.upiconmgr
 	"Down"			f.downiconmgr
 	"Forward"		f.forwiconmgr
 	"Back"			f.backiconmgr
-	""			f.nop
+	""			f.separator
 	"Left"			f.lefticonmgr
 	"Right"			f.righticonmgr
 }
@@ -424,6 +453,7 @@ menu "preferences"
 	"Preferences"		f.title
 	"Viewres"		!"viewres &"
 	"Editres"		!"editres &"
+	"xprop"			!"xprop &"
 	"Query"			!"xset q"
 	"Xkeycaps"		!"xkeycaps &"
 	"Auto Repeat On"	!"xset r on"
@@ -453,7 +483,7 @@ menu "cmap"
 {
 	"Colour Map Control"	f.title
 	"View Default Map"	!"xcmap &"
-	""			f.nop
+	""			f.separator
 	"Set All"		!"xstdcmap -all -verbose &"
 	"Set Best"		!"xstdcmap -best -verbose &"
 	"Set Default"		!"xstdcmap -default -verbose &"
@@ -461,7 +491,7 @@ menu "cmap"
 	"Set Red"		!"xstdcmap -red -verbose &"
 	"Set Green"		!"xstdcmap -green -verbose &"
 	"Set Blue"		!"xstdcmap -blue -verbose &"
-	""			f.nop
+	""			f.separator
 	"Delete default"	!"xstdcmap -delete default -verbose &"	
 	"Delete best"		!"xstdcmap -delete best -verbose &"	
 	"Delete grey"		!"xstdcmap -delete gray -verbose &"	
@@ -478,7 +508,7 @@ menu "screensaver"
 	"Disable"		!"xset s off"
 	"Use Video Blanking"	!"xset s blank"
 	"Use Background Pattern" !"xset s noblank"
-	""			f.nop
+	""			f.separator
 	"Set Defaults"		!"xset s default"
 }
 
@@ -517,7 +547,7 @@ menu "kill"
 
 menu "exit"
 {
-	"Exit TWM"				f.title
+	"Exit CTWM"				f.title
 	"        Confirm...."			f.quit
 }
 
@@ -548,7 +578,7 @@ menu "audios"
 	"aupanel"			!"aupanel &"
 	"auphone"			!"auphone &"
 	"auwave"			!"auwave &"
-	""				f.nop
+	""				f.separator
 	"xcdplayer"			!"xcdplayer &"
 	"xmcd"				!"xmcd &"
 }
@@ -558,11 +588,24 @@ menu "miscapps"
 	"Miscellaneous Applications"	f.title
 	"xhelp"				!"xhelp &"
 	"xpaint"			!"xpaint &"
+	"xfig"				!"xfig &"
+	"tgif"				!"tgif &"
+	"xbmbrowser"			!"xbmbrowser &"
+	"xvgr"				!"xvgr &"
+	"xplan"				!"xplan &"
+	"xpdf"				!"xpdf &"
 	"xshell"			!"xshell &"
+	"axe"				!"axe &"
 	"xedit"				!"xedit &"
+	"timekeeper"			!"timekeeper &"
+	"xpostit"			!"xpostit &"
+	"pan"				!"pan &"
+	"xvtdl"				!"xvtdl &"
 	"xmail"				!"xmail &"
+	"xvnews"			!"xvnews &"
 	"xmh"				!"xmh &"
 	"xman"				!"xman &"
+	"xftp"				!"xftp &"
 	"xtalk"				!"xtalk &"
 	"xcalc"				!"xcalc &"
 	"xcalendar"			!"xcalendar &"
@@ -572,7 +615,11 @@ menu "miscapps"
 	"xdpr"				!"xdpr -device ps &"
 	"xmag"				!"xmag &"
 	"xditview"			!"xditview &"
+	"xcol"				!"xcol &"
+	"xcolor"			!"xcolor &"
+	"xcolsel"			!"xcolsel &"
 	"xfontsel"			!"xfontsel &"
+	"xfd"				!"xfd &"
 	"xcmap"				!"xcmap &"
 	"xkeycaps"			!"xkeycaps &"
 }
@@ -604,26 +651,23 @@ menu "monitors"
 	"xclock"		!"xclock -geometry 190x190-0+0 &"
 	"xclock -digital"	!"xclock -geometry 190x30-0+192 -digital &"
 	"swissclock"		!"swisswatch -name swissclock -geometry 190x190-0+0 &"
-	""			f.nop
+	""			f.separator
 	"xbiff"			!"xbiff -rv -bw 0 &"
 	"xbiff @x11server"	!"$ONX11SERVER $X11BIN/xbiff -rv -bw 0 -display $DISPLAY &"
 	"xlbiff"		!"xlbiff &"
-	"xbuffy"		!"xbuffy -geometry 90x30-0+260 -shortnames -header 5 &"
-	"xbuffy @x11server"	!"$ONX11SERVER $X11BIN/xbuffy -mail $MAILPATH -display $DISPLAY -geometry 90x30-0+260 -shortnames -header 5 &"
-	"xbuffy @clapton"	!"$RSH -n clapton.seachange.com /usr/local/bin/xbuffy -display $DISPLAY -geometry 90x30-0+260 -mail /var/mail/woods -shortnames -header 5 &"
-	"xmailwatcher"		!"xmailwatcher -geometry 300x100-0+240 -iconic -icongeometry -0+240 -iconic -mailbox $MAILPATH &"
-	"xmailwatcher @x11server" !"$ONX11SERVER $X11BIN/xmailwatcher -display $DISPLAY -geometry 300x100-0+240 -iconic -icongeometry -0+240 -iconic -mailbox $MAILPATH &"
-	""			f.nop
-	"xload"			!"xload -geometry 120x137-205+0 -hl grey90 &"
-	"xload @x11server"	!"$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x137-205+150 -hl grey90 &"
-	"xosview"		!"xosview -geometry 120x137-205+0 &"
+	"xbuffy"		!"xbuffy -geometry 100x25-0+250 -shortnames -header 5 -acmd '/opt/games/bin/auplay /local/audio/newmail1.au' &"
+	"xbuffy @x11server"	!"$ONX11SERVER $X11BIN/xbuffy -mail $MAILPATH -display $DISPLAY -geometry 100x25-0+250 -shortnames -header 5 -acmd '/opt/games/bin/auplay /local/audio/newmail1.au' &"
+	""			f.separator
+	"xload"			!"xload -geometry 120x130-200+0 -hl grey90 &"
+	"xload @x11server"	!"$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x130-200+148 -hl grey90 &"
+	"xosview"		!"xosview -geometry 120x137-200+0 &"
 	"xosview @x11server"	!"$ONX11SERVER $X11BIN/xosview -display $DISPLAY -hl grey90 &"
 	"xcpustate"		!"xcpustate -geometry 190x20-0+230 -shorten 1 -wait -cpu -disk &"
 	"xcpustate @x11server"	!"$ONX11SERVER $X11BIN/xcpustate -display $DISPLAY -geometry 190x20-0+230 -shorten 1 -wait -cpu -disk &"
-	""			f.nop
+	""			f.separator
 	"xnetload localhost"	!"xnetload -hl grey90 -scale 0 -label 'local netload' localhost &"
 	"xnetload @xdmhost"	!"xnetload -hl grey90 -scale 0 -label ${XDMHOST}-net $XDMHOST &"
-	""			f.nop
+	""			f.separator
 	"tkined"		!"tkined &"
 	"tkined in /local/monitor" !"cd $LOCAL/monitor ; tkined &"
 }
@@ -671,7 +715,9 @@ menu "www"
 	"WWW Browsers Everywhere!"	f.title
 	"Mosaic..."			f.menu "www-mosaic"
 	"Mosaic Monochrome..."		f.menu "www-mosaic-mono"
-	""				f.nop
+	""				f.separator
+	"Chimera..."			f.menu "www-chimera"
+	""				f.separator
 	"Netscape..."			f.menu "www-netscape"
 	"Netscape -ncol 96..."		f.menu "www-netscape-96"
 	"Netscape -install cmap..."	f.menu "www-netscape-cmap"
@@ -679,10 +725,10 @@ menu "www"
 
 menu "www-mosaic"
 {
-	"Mosaic WWW Browsers Everywhere!"	f.title
-	"@localhost"	!"$LOCAL/bin/Mosaic &"
-	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
-	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY XKEYSYMDB=/usr/lib/X11/XKeysymDB XNLSPATH=/usr/lib/X11/nls /local/bin/Mosaic &"
+	"Mosaic Everywhere!"	f.title
+	"@localhost"	!"Mosaic &"
+	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/Mosaic &"
+	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY XKEYSYMDB=/usr/lib/X11/XKeysymDB XNLSPATH=/usr/lib/X11/nls $X11BIN/Mosaic &"
 	"@sometimes"	!"$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
 	"@always"	!"$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
 	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/Mosaic &"
@@ -690,15 +736,23 @@ menu "www-mosaic"
 
 menu "www-mosaic-mono"
 {
-	"Mosaic Monochrome WWW Browsers Everywhere!"	f.title
+	"Mosaic Monochrome Everywhere!"	f.title
 	"@localhost"	!"$LOCAL/bin/Mosaic -mono &"
-	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic -mono &"
-	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY XKEYSYMDB=/usr/lib/X11/XKeysymDB XNLSPATH=/usr/lib/X11/nls /local/bin/Mosaic -mono &"
+	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/Mosaic -mono &"
+	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY XKEYSYMDB=/usr/lib/X11/XKeysymDB XNLSPATH=/usr/lib/X11/nls $X11BIN/Mosaic -mono &"
+}
+
+menu "www-chimera"
+{
+	"Chimera Everywhere!"	f.title
+	"@localhost"	!"chimera &"
+	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/chimera &"
+	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY XKEYSYMDB=/usr/lib/X11/XKeysymDB XNLSPATH=/usr/lib/X11/nls $X11BIN/chimera &"
 }
 
 menu "www-netscape"
 {
-	"Netscape WWW Browsers Everywhere!"	f.title
+	"Netscape Everywhere!"	f.title
 	"@localhost"	!"$LOCAL/bin/netscape -display $DISPLAY &"
 	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
 	"@weirdo"	!"$RSH -n ns.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
@@ -709,7 +763,7 @@ menu "www-netscape"
 
 menu "www-netscape-96"
 {
-	"Netscape WWW Browsers for 8-bit displays."	f.title
+	"Netscape for 8-bit displays."	f.title
 	"@localhost"	!"$LOCAL/bin/netscape -ncol 96 -display $DISPLAY &"
 	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -ncol 96 -display $DISPLAY &"
 	"@weirdo"	!"$RSH -n ns.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -ncol 96 -display $DISPLAY &"
@@ -720,7 +774,7 @@ menu "www-netscape-96"
 
 menu "www-netscape-cmap"
 {
-	"Netscape WWW Browsers with their own colour map."	f.title
+	"Netscape own colour map."	f.title
 	"@localhost"	!"$LOCAL/bin/netscape -install -display $DISPLAY &"
 	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -install -display $DISPLAY &"
 	"@weirdo"	!"$RSH -n ns.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
@@ -743,7 +797,7 @@ menu "games"
 	"vine"			!"vine -e &"
 	"vine -w"		!"vine -w &"
 	"xminesweep"		!"xminesweep &"
-	""			f.nop
+	""			f.separator
 	"Xeyes"			!"xeyes &"
 	"Xgc"			!"xgc &"
 	"Xgas"			!"xgas &"
