@@ -2,7 +2,7 @@
 ;;;	~/.zenirc.el -- stuff for ZenIRC
 ;;;
 
-;;;#ident	"@(#)HOME:.zenirc.el	20.4	99/07/22 18:52:57 (woods)"
+;;;#ident	"@(#)HOME:.zenirc.el	21.1	99/11/18 13:13:04 (woods)"
 
 ;; A good way to use this is to add something like to .emacs(.el)
 ;;(autoload 'zenirc (expand-file-name "~/.zenirc") "Major mode to waste time" t nil)
