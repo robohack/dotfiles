@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	21.4	00/01/15 16:25:57 (woods)"
+;;;#ident	"@(#)HOME:.vm	21.5	00/03/20 11:18:27 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -39,7 +39,8 @@
 (add-hook 'mail-setup-hook 'mail-insert-x-face)
 
 ;;; mailcrypt --- a simple interface to message encryption with PGP.
-(if (elisp-file-in-loadpath-p "mailcrypt")
+(if (and (fboundp 'elisp-file-in-loadpath-p)
+	 (elisp-file-in-loadpath-p "mailcrypt"))
     (progn
       (add-hook 'vm-mode-hook 'mc-install-read-mode)
       (add-hook 'vm-summary-mode-hook 'mc-install-read-mode)
