@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	20.4	99/01/20 11:04:01 (woods)"
+#ident	"@(#)HOME:.ctwmrc	20.5	99/01/27 18:55:09 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -36,18 +36,19 @@ ifelse(eval(index(HOSTNAME, leitch.com) >= 0), 1, [define(AT_LEITCH, [@leitch.co
 #
 # There should be a better way to try things at M4 runtime.....
 #
-ifdef([AT_WEIRD], [
-	define(OPT_ZICONBEEP, [])
-])
-ifdef([AT_PLANIX], [
-	define(OPT_ZICONBEEP, [])
-])
-ifdef([AT_LEITCH], [
-	define(OPT_ZICONBEEP, [])
-])
-ifdef([AT_ACI], [
-	define(OPT_ZICONBEEP, [])
-])
+ifelse(HOSTNAME, most.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
+ [ifelse(HOSTNAME, almost.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
+  [ifelse(HOSTNAME, very.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
+   [ifelse(HOSTNAME, proven.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
+    [ifelse(HOSTNAME, becoming.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
+     [ifelse(HOSTNAME, whats.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
+      [define(OPT_ZICONBEEP, [])]
+     )]
+    )]
+   )]
+  )]
+ )]
+)
 
 AutoRelativeResize
 AutoRaiseIcons
