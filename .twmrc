@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.41	96/12/09 16:56:08 (woods)"
+#ident	"@(#)HOME:.twmrc	2.42	96/12/11 12:01:25 (woods)"
 #
 
 AutoRelativeResize
@@ -893,6 +893,10 @@ function "start-local-ghostview" {
 	f.exec "$X11BIN/ghostview -d $DISPLAY &"
 }
 
+function "start-x11server-ghostview" {
+	f.exec "$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
+}
+
 function "start-most-ghostview" {
 	f.exec "$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
 }
@@ -920,12 +924,16 @@ function "start-local-mosaic" {
 	f.exec "$LOCAL/bin/Mosaic &"
 }
 
-function "start-pretty-mosaic" {
-	f.exec "$RSH -n pretty.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
+function "start-x11server-mosaic" {
+	f.exec "$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
 }
 
 function "start-most-mosaic" {
-	f.exec "$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/bin/X11/Mosaic &"
+	f.exec "$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
+}
+
+function "start-pretty-mosaic" {
+	f.exec "$RSH -n pretty.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
 }
 
 function "start-sometimes-mosaic" {
@@ -1334,6 +1342,7 @@ menu "ghostviews"
 {
 	"GhostView"			f.title
 	"@localhost"			f.function "start-local-ghostview"
+	"@x11server"			f.function "start-x11server-ghostview"
 	"@most"				f.function "start-most-ghostview"
 	"@sometimes"			f.function "start-sometimes-ghostview"
 	"@always"			f.function "start-always-ghostview"
@@ -1346,8 +1355,9 @@ menu "www"
 	"WWW Browsers Everywhere!"	f.title
 	"  Mosaic:"			f.nop
 	"@localhost"			f.function "start-local-mosaic"
-	"@pretty"			f.function "start-pretty-mosaic"
+	"@x11server"			f.function "start-x11server-mosaic"
 	"@most"				f.function "start-most-mosaic"
+	"@pretty"			f.function "start-pretty-mosaic"
 	"@sometimes"			f.function "start-sometimes-mosaic"
 	"@always"			f.function "start-always-mosaic"
 	"@weirdo"			f.function "start-weirdo-mosaic"
