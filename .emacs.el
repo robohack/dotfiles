@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.12	95/11/16 15:52:18 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.13	95/11/19 14:27:52 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -682,6 +682,28 @@ suffixes `.elc' or `.el' to the specified name FILE."
           pathified-name
           (signal 'file-error (list "Cannot find load file"
                                     filename))))))
+
+;;; Message-Id: <m0tGNOF-0003dDC@fly.CNUCE.CNR.IT>
+;;; Organization: CNUCE-CNR, Via S.Maria 36, Pisa - Italy +39-50-593211
+;;; Content-Transfer-Encoding: 7BIT
+;;; From: Francesco Potorti` <pot@cnuce.cnr.it>
+;;; Subject: negative argument for indent-for-comment
+;;; Date: Fri, 17 Nov 1995 10:47 +0100 (MET)
+;;;
+;;; indent-for-comment ignores a negative prefix argument, and
+;;; kill-comment is not bound to anything by default, so it seems natural
+;;; to call kill-comment with M-- M-;.
+;;
+;;; I have been using this in my .emacs for a long time.  Why not make it
+;;; part of the distribution?
+;;
+;; Redefine indent-for-comment to kill the comment with negative
+;; prefix
+(defadvice indent-for-comment (around kill-comment activate)
+  "Kill the comment with negative prefix."
+  (if (eq current-prefix-arg '-)
+      (kill-comment nil)
+    ad-do-it))
 
 ;;;; ----------
 ;;;; some special hooks.....
