@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.17	93/11/26 12:08:26 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	1.18	93/11/29 16:29:19 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -786,6 +786,8 @@ feeling, but you'll get used to it."
 		(and (<= min-to-app 6) (= (mod min-to-app 2) 0)))
 	    ad-do-it))
       (eval-after-load "appt" '(ad-activate 'appt-disp-window))
+      (setq calendar-latitude 43.75)
+      (setq calendar-longitude -79.45)
       (defun my-calendar-start ()
 	(interactive)
 	(setq 
@@ -794,7 +796,7 @@ feeling, but you'll get used to it."
 	 mark-diary-entries-in-calendar t
 	 mark-holidays-in-calendar t
 	 diary-display-hook (list 'appt-make-list 'fancy-diary-display)
-	 appt-display-duration 14	; seconds to display appointment message
+	 appt-display-duration 60	; seconds to display appointment message
 	 appt-issue-message t)
 	(autoload 'appt-make-list "appt.el" nil t)
 	(add-hook 'initial-calendar-window-hook 'display-time)
