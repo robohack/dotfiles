@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	18.2	97/03/10 10:03:17 (woods)"
+;;;#ident	"@(#)HOME:.vm	18.3	97/03/14 17:57:39 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -235,6 +235,37 @@ ORGANIZATION.  If not nil, takes precedence over the file
 	  '(lambda ()
 	     (local-set-key "\C-c\C-s" 'citation-kill-sig)
 	     (local-set-key "\C-c\C-d" 'citation-kill-double)))
+
+;;; Message-ID: <x4rahia5hd.fsf@scooter.WPI.EDU>
+;;; From: Gregory Neil Shapiro <gshapiro@WPI.EDU>
+;;; Organization: Worcester Polytechnic Institute, Worcester, MA 01609-2280
+;;; To: info-vm@uunet.uu.net
+;;; Date: 14 Mar 1997 09:54:54 -0500
+;;; Subject: Re: mail-send-cr
+;;;
+;;; Here is an improved version of your mail-send-cr function which doesn't
+;;; require mail-hist and doesn't require Subject: to be the last header before
+;;; the mail-header-separator.
+
+(define-key vm-mail-mode-map "\C-m" 'gns-mail-cr)
+
+(defun gns-mail-cr ()
+  "Make return in the headers go to the next header instead of inserting a CR."
+  (interactive)
+  (let ((current (point))
+	eoh)
+    (save-excursion
+      (setq eoh (search-forward mail-header-separator nil t)))
+    (if (and eoh (< current eoh))
+	(progn
+	  (if mail-abbrevs
+	      (expand-abbrev))
+	  (forward-line)
+	  (if (looking-at mail-header-separator)
+	      (forward-line)
+	    (end-of-line)))
+      (newline))))
+
 
 ;; commented lines indicate changed values....  (from v5.72)
 ;;
