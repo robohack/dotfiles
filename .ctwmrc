@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.5	98/02/01 02:41:38 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.6	98/02/01 20:35:05 (woods)"
 #
 
 changequote([, ])
@@ -361,10 +361,7 @@ menu "quickies"
 	"Kill"			f.menu "kill"
 	""			f.separator
 	"Xterm @CLIENTHOST"	!"$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls &"
- ifdef([AT_WEIRD],
-  ifelse(HOSTNAME, very.weird.com,
-	["Xterm @most"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"]
-	[]), [])
+	"Xterm @x11server"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
 	""			f.separator
 	"Toggle workspace"	f.togglestate
 	"Screen Refresh"	f.refresh
@@ -693,12 +690,16 @@ menu "monitors"
 	"swissclock"		!"swisswatch -name swissclock -geometry 190x190-0+0 &"
 	""			f.separator
 	"xbiff"			!"xbiff -rv -bw 0 &"
-	"xbiff @x11server"	!"$ONX11SERVER $X11BIN/xbiff -rv -bw 0 -display $DISPLAY &"
 	"xlbiff"		!"xlbiff &"
-	"xbuffy"		!"xbuffy -geometry 100x25-0+250 -shortnames -header 0 -acmd 'auplay -audio $AUDIOSERVER HOME/sounds/newmail' &"
-	"xbuffy @x11server"	!"$ONX11SERVER $X11BIN/xbuffy -mail $MAILPATH -display $DISPLAY -geometry 100x25-0+250 -shortnames -header 0 ifdef([AT_WEIRD], [-acmd '\"/opt/games/bin/auplay -audio '$AUDIOSERVER' HOME/sounds/newmail\"'], []) &"
- ifdef([AT_WEIRD],
-	["xbuffy @most"		!"$RSH -n most.weird.com $X11BIN/xbuffy -mail /var/spool/mail/$LOGNAME -display $DISPLAY -geometry 100x25-0+250 -shortnames -header 0 -acmd '\"/opt/games/bin/auplay -audio '$AUDIOSERVER' /local/audio/newmail1.au\"' &"])
+	"xbuffy"		!"xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd \"$AUDIOPLAYER HOME/sounds/newmail\" &"
+
+    ifdef([AT_WEIRD],
+    [	"xbuffy @most w/-acmd"	!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/spool/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"/opt/games/bin/auplay -audio '$AUDIOSERVER' /local/audio/newmail1.au\"' &"
+	"xbuffy @most"		!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/spool/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &"
+    ])
+    ifdef([AT_LEITCH],
+    [	"xbuffy @bitter"	!"$RSH -n bitter.leitch.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &"
+    ])
 	""			f.separator
 	"xload"			!"xload -geometry 120x130-200+0 -hl grey90 &"
 	"xload @x11server"	!"$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x130-200+148 -hl grey90 &"
@@ -737,7 +738,7 @@ menu "backgrounds"
 	["xearth on mono"	!"xearth -mono -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"])
 	"xphoon"		!"xphoon -t 10 &"
 	"xsetroot eschernknot"	!"xsetroot -bitmap $X11PATH/[include]/X11/bitmaps/escherknot"
-	"xsetroot xsnow"	!"xsetroot -bitmap $X11PATH/[include]/X11/bitmaps/snow"
+	"xsetroot xsnow"	!"xsetroot -bitmap $X11PATH/[include]/X11/bitmaps/xsnow"
 }
 
 menu "ghostviews"
@@ -829,7 +830,10 @@ menu "www-netscape-cmap"
 	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
 }
 
-ifdef([AT_WEIRD],
+ifelse([HOSTNAME], most.weird.com,
+	[define(OPT_GAMES_PATH_, [/opt/games/bin/])],
+	[define(OPT_GAMES_PATH_, [])],
+[HOSTNAME], very.weird.com,
 	[define(OPT_GAMES_PATH_, [/opt/games/bin/])],
 	[define(OPT_GAMES_PATH_, [])])
 
