@@ -1,11 +1,18 @@
 #
 #	.kshlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.kshlogin	24.1	02/07/04 17:19:31 (woods)"
+#ident	"@(#)HOME:.kshlogin	24.2	02/11/25 15:16:48 (woods)"
 
 set -o ignoreeof	# we only do this for our login shell....
 
 export FPATH=$HOME/lib/ksh
+
+# this may be a good idea (from Frederick Bruckman <fredb@immanent.net>)
+#
+#for func in $(ls "$FPATH"); do
+#	autoload $func
+#done
+
 export FCEDIT="$(whence ed)"
 
 export ENVFILE=$HOME/.kshrc
@@ -23,6 +30,9 @@ if [ -n "$ENVFILE" -a -r "$ENVFILE" ] ; then
 fi
 
 export HISTSIZE=2000
+
+# if we wanted persistent history, we may only want it for login shells....
+#HISTFILE=$HOME/.ksh_history
 
 if [ -z "$LOGNAME" ] ; then
 	# some systems won't allow this...
