@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.4	93/11/01 13:32:34 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	1.5	93/11/01 13:50:16 (woods)"
 ;;;
 ;;; per-user start-up functions
 ;;;
@@ -113,6 +113,7 @@ directory in the list PATHLIST, otherwise nil."
 (setq ask-about-buffer-names t)		;
 (setq backup-by-copying t)		;
 (setq completion-auto-exit t)		; have completing-reads exit when unique
+(setq compilation-window-height 10)	; default height for a compile window
 (setq default-tab-width 8)		; a tab is a tab is a tab is a tab....
 (setq delete-auto-save-files t)		; delete auto-save file when saved
 ;(setq enable-recursive-minibuffers t)	; do we really want this?  No, probably not
