@@ -1,2 +1,3 @@
-update	-d -P
 export	-kv
+tag	-c
+update	-d -P
