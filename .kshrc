@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	4.6	94/12/03 20:37:27 (woods)"
+#ident	"@(#)HOME:.kshrc	4.7	94/12/12 11:45:58 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -426,6 +426,20 @@ if [ "$TERM" = "xterm" ] ; then
 
 #	alias xterm='/usr/bin/X11/xterm -cn -rw -sb -si -sk -sl 1024 -ut -fn 9x15 -fb 9x15bold -ls'
 	alias xterm='/usr/bin/X11/xterm -cn -rw -sb -si -sk -sl 1024 -ut -ls'
+
+	function attention
+	{
+		case $# in 
+		2)
+			break
+			;;
+		*)
+			echo "Usage: $0 display message";
+			exit 2
+			;;
+		esac
+		xstring -font '-*-*-*-*-*-*-34-*-*-*-*-*-*-*' -geometry 940x40+120+400 -display $1 $2
+	}
 
 	setban
 fi
