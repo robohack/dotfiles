@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	6.11	94/12/03 20:42:54 (woods)"
+#ident	"@(#)HOME:.profile	6.12	94/12/03 20:52:49 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -498,7 +498,7 @@ if $HAVELAYERS && [ "$TERM" = "dmd" -a "`ismpx`" != "yes" ] ; then
 fi
 
 if [ -s $HOME/.shell ] ; then
-	exec $SHELL
+	exec `mktable $HOME/.shell`
 fi
 
 # End Of File
