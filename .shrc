@@ -1,7 +1,7 @@
 #
 #	.shrc - per-shell startup stuff for /bin/sh
 #
-#ident	"@(#)HOME:.shrc	3.5	96/02/13 15:35:11 (woods)"
+#ident	"@(#)HOME:.shrc	3.6	96/03/10 10:57:54 (woods)"
 
 PATH="$PATH"
 export PATH
@@ -189,6 +189,14 @@ e ()
 {
 	${VISUAL:-$EDITOR} $*
 }
+ealias ()
+{
+	e $ENV
+}
+elisp ()
+{
+	emacs -batch -n -q -f batch-byte-compile
+}
 l ()
 {
 	/bin/ls -CF $*
@@ -236,4 +244,8 @@ maillog ()
 rstty ()
 {
 	stty $SANE
+}
+wcvs ()
+{
+	print $CVSROOT
 }
