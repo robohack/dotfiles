@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.21	96/05/28 16:32:58 (woods)"
+#ident	"@(#)HOME:.twmrc	2.22	96/05/31 20:44:38 (woods)"
 #
 
 AutoRelativeResize
@@ -557,6 +557,34 @@ function "start-always-netscape" {
 
 function "start-woffi-netscape" {
 	f.exec "$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
+}
+
+function "start-local-netscape-gold" {
+	f.exec "$LOCAL/netscape-gold -display $DISPLAY &"
+}
+
+function "start-netserver-netscape-gold" {
+	f.exec "$RSH -n netserver.web.net exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape-gold -display $DISPLAY &"
+}
+
+function "start-spinne-netscape-gold" {
+	f.exec "$RSH -n spinne.web.net exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape-gold -display $DISPLAY &"
+}
+
+function "start-weirdo-netscape-gold" {
+	f.exec "$RSH -n ns.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape-gold -display $DISPLAY &"
+}
+
+function "start-sometimes-netscape-gold" {
+	f.exec "$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape-gold -display $DISPLAY &"
+}
+
+function "start-always-netscape-gold" {
+	f.exec "$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape-gold -display $DISPLAY &"
+}
+
+function "start-woffi-netscape-gold" {
+	f.exec "$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape-gold -display $DISPLAY &"
 }
 
 #
