@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	23.1	02/01/12 14:43:20 (woods)"
+#ident	"@(#)HOME:.xinitrc	23.2	02/03/17 15:21:51 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -33,7 +33,7 @@ unset XOPATH
 if [ $argv0 = ".xsession" -a -z "$XDMHOST" ] ; then
 	# assume HOSTNAME & DOMAINNAME are set by profile(s)
 	XDMHOST="${HOSTNAME}${DOMAINNAME}"
-	export XDMHOST					# used by .twmrc
+	export XDMHOST					# also used by .twmrc
 	echo "$argv0: have set XDMHOST='$XDMHOST'"
 fi
 
@@ -45,6 +45,7 @@ case "$DISPLAY" in
 		ONCONSOLE=true; export ONCONSOLE
 		echo "$argv0: redirecting stdout and stderr to /dev/console."
 		exec 1>/dev/console 2>&1
+		echo "$argv0: redirected stdout and stderr to /dev/console."
 	else
 		echo "$argv0: WARNING: display was $DISPLAY but /dev/console not writable by $USER!"
 		ls -l /dev/console
@@ -190,53 +191,38 @@ if [ -r $HOME/.xhosts ] ; then
 	done < $HOME/.xhosts
 fi
 
-if [ -z "$ONX11SERVER" ] ; then
-	# If you're running on a diskless workstation that runs xdm itself
-	# then you probably have a server that's more powerful and on which
-	# you'd rather run the majority of your X applications.  Normally
-	# this will be the same server your home directory resides on....
-	#
-	if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
-		case "$XDMHOST" in
-		some.diskless.workstation)
-			X11SERVER="some.more.powerful.host"
-			ONX11SERVER="$RSH -n $X11SERVER exec"
-			export X11SERVER ONX11SERVER
-			echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
-			# now start special programs we like for this scenario
-			$ONX11SERVER $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &
-			;;
-		almost.weird.com)
-			X11SERVER="most.weird.com"
-			ONX11SERVER="$RSH -n $X11SERVER exec"
-			export X11SERVER ONX11SERVER
-			echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
-			# now start special programs we like for this scenario
-			$ONX11SERVER $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &
-			;;
-		very.weird.com)
-			X11SERVER="most.weird.com"
-			ONX11SERVER="$RSH -n $X11SERVER exec"
-			export X11SERVER ONX11SERVER
-			echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
-			# this is a large, hi-res, display with an optical mouse....
-			xset m 9 5
-			# now start special programs we like for this scenario
-			$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x64-200+72 -hl grey90 &
-			$ONX11SERVER $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/usr/X11/bin/auplay -audio '$AUDIOSERVER' -v 25 '$HOME'/lib/sounds/newmail"' &
-			$RSH -n proven.weird.com /usr/pkg/bin/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-0+275 -shortnames -header 0 -acmd '"/usr/pkg/bin/auplay -audio '$AUDIOSERVER' -v 25 '$HOME'/lib/sounds/newmail"' &
-			$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-			$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-			$RSH -n proven.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/local/bin/emacs -display $DISPLAY -geometry 130x64+0+0" &
-			;;
-		*)
-			# not setting this just makes WM run stuff on the
-			# current login host....
-			unset X11SERVER ONX11SERVER
-			echo "$argv0: have unset X11SERVER and ONX11SERVER; XDMHOST is $XDMHOST"
-			;;
-		esac
-	fi
+# If you're running on a diskless workstation that runs xdm itself
+# then you probably have a server that's more powerful and on which
+# you'd rather run the majority of your X applications.  Normally
+# this will be the same server your home directory resides on....
+#
+if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
+	case "$XDMHOST" in
+	almost.weird.com)
+		X11SERVER=${X11SERVER:-"most.weird.com"}
+		ONX11SERVER="$RSH -n $X11SERVER exec"
+		export X11SERVER ONX11SERVER
+		echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
+		# now start server programs we like for this scenario
+		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x64-200+72 -hl grey90 &
+		;;
+	very.weird.com)
+		X11SERVER=${X11SERVER:-"sometimes.weird.com"}
+		ONX11SERVER="$RSH -n $X11SERVER exec"
+		export X11SERVER ONX11SERVER
+		echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
+		# now start server programs we like for this scenario
+		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x64-200+72 -hl grey90 &
+		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+		;;
+	*)
+		# not setting ONX11SERVER just makes the WM run clients on
+		# the current login host....
+		unset X11SERVER ONX11SERVER
+		echo "$argv0: have unset X11SERVER and ONX11SERVER; XDMHOST is $XDMHOST"
+		;;
+	esac
 fi
 
 # TODO:  think about using `type` ala .profile, but type isn't in (a)sh, etc.
@@ -265,25 +251,52 @@ if [ -z "$WM" ] ; then
 	elif [ -x $X11BIN/fvwm -o -x $HOME/bin/fvwm ] ; then
 		WM=fvwm
 	else
+		echo "$argv0: assuming 'twm' is available..."
 		WM=twm					# silly assumption?
 	fi
 	export WM
 fi
 
+HAVESWISSWATCH=false ; export HAVESWISSWATCH
+if expr "`type swisswatch`" : '.* is .*/swisswatch$' >/dev/null 2>&1 ; then
+	HAVESWISSWATCH=true
+fi
+HAVEXEARTH=false ; export HAVEXEARTH
+if expr "`type xearth`" : '.* is .*/xearth$' >/dev/null 2>&1 ; then
+	HAVEXEARTH=true
+fi
+HAVEXPHOON=false ; export HAVEXPHOON
+if expr "`type xphoon`" : '.* is .*/xphoon$' >/dev/null 2>&1 ; then
+	HAVEXPHOON=true
+fi
+HAVEXBUFFY=false ; export HAVEXBUFFY
+if expr "`type xbuffy`" : '.* is .*/xbuffy$' >/dev/null 2>&1 ; then
+	HAVEXBUFFY=true
+fi
+
 # argv0 is .xinitrc if called by xinit or startx
 #
 if [ "$argv0" = .xinitrc ] ; then
-	xconsole -geometry 500x160-0-0 -notify -verbose &
-	# wait to ensure xconsole is running to display errors....
+	xconsole -geometry 500x130-0-0 -notify -verbose &
+	# wait a wee bit in hopes xconsole gets running to display any errors....
 	sleep 1
-	if [ -x $X11BIN/xearth ] ; then
+	xload -geometry 120x64-200+0 -hl grey90 &
+	case $DISPLAY in
+	very.weird.com:*)
+		$RSH -n sometimes.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x64-200+72 -hl grey90 &
+		$RSH -n most.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+		# for the "Main" workspace...
+		xterm -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
+		;;
+	esac
+	if $HAVEXEARTH ; then
 		XEGAMMA=""
 		if [ $SCREENDEPTH -ne 1 ] ; then
 			XEGAMMA="-gamma 1.6 -night 15"	# for Sun3 CG2
 		fi
 		xearth $XEGAMMA -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
 		unset XEGAMMA
-	elif [ -x $X11BIN/xphoon ] ; then
+	elif $HAVEXPHOON ; then
 		xphoon -t 10 &
 	elif [ -r $X11PATH/include/X11/bitmaps/escherknot ] ; then
 		xsetroot -bitmap $X11PATH/include/X11/bitmaps/escherknot
@@ -291,32 +304,33 @@ if [ "$argv0" = .xinitrc ] ; then
 		xsetroot -bitmap /usr/include/X11/bitmaps/escherknot
 	elif [ -r /usr/openwin/share/include/X11/bitmaps/escherknot ] ; then
 		xsetroot -bitmap /usr/openwin/share/include/X11/bitmaps/escherknot
+	else
+		echo "$argv0: no background set"
 	fi
 	xclock -geometry 190x30-0+196 -digital &
-	# wait to ensure they get overlayed in the right order
-	sleep 1
-	xclock -geometry 190x190-0+0 &
-	sleep 1
+	if $HAVESWISSWATCH; then
+		swisswatch -name swissclock -geometry 190x190-0+0 &
+	else
+		xclock -geometry 190x190-0+0 &
+	fi
 elif $ONCONSOLE ; then
 	#
-	#	I/O is already redirected to /dev/console, so we will see it...
+	#	I/O is already redirected to /dev/console above, so we will see it...
 	#
 	:
 else
 	#
-	#	we're probably logging in on an independent xterm....
+	#	we're probably signing in on an independent xterm....
 	#
 	if [ -r $HOME/.xsession-errors-$DISPLAY ] ; then
-		xconsole -geometry 500x160-0-0 -notify -verbose -file $HOME/.xsession-errors-$DISPLAY &
-		# xterm -geometry 60x12-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 500 -ut -T "Xsession Messages for '$DISPLAY'" -e sh -c "mesg n; exec tail -200f $HOME/.xsession-errors-$DISPLAY" &
+		xconsole -geometry 500x130-0-0 -notify -verbose -file $HOME/.xsession-errors-$DISPLAY &
 	else
 		echo "$argv0: didn't find .xsession-errors-$DISPLAY"
-		xconsole -geometry 500x160-0-0 -notify -verbose -file $HOME/.xsession-errors &
-		# xterm -geometry 60x12-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 500 -ut -T "Xsession Messages" -e sh -c "mesg n; exec tail -200f $HOME/.xsession-errors" &
+		xconsole -geometry 500x130-0-0 -notify -verbose -file $HOME/.xsession-errors &
 	fi
 fi
 
-if [ -x $X11BIN/xbuffy ] ; then
+if $HAVEXBUFFY ; then
 	if [ -n "$AUDIOPLAYER" -a -r $HOME/lib/sounds/newmail ] ; then
 		xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd "$AUDIOPLAYER $HOME/lib/sounds/newmail" &
 	else
@@ -329,28 +343,52 @@ fi
 case $DISPLAY in
 
 very.weird.com:*)
+	# this is a large, hi-res, display with an optical mouse....
+	xset m 10 5
 	$RSH -n proven.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x64-200+144 -hl grey90 &
 	$RSH -n starting-out.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x64-200+216 -hl grey90 &
-	xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n becoming.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n becoming.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n sometimes.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+#	$RSH -n mail.weird.com $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/usr/X11/bin/auplay -audio '$AUDIOSERVER' -v 25 '$HOME'/lib/sounds/newmail"' &
+	$RSH -n mail.weird.com $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/usr/X11/bin/auplay -audio tcp/xtremely.weird.com:8000 -v 25 '$HOME'/lib/sounds/newmail"' &
+	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
+	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n becoming.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n becoming.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n sometimes.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n sometimes.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n starting-out.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n starting-out.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	# oddly using 130x64 turns into 163x55 with the font change!
+	# this one's supposed to go in virtualscreen "Mail"
+#	$RSH -n proven.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/local/bin/emacs -display $DISPLAY -geometry 130x64+0+0" &
+	# this one's supposed to go in virtualscreen "Coding"
+#	$RSH -n proven.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/local/bin/emacs -i -display $DISPLAY -geometry 130x64+0+0" &
 	;;
 
 xtremely.weird.com:*)
-	xearth -gamma 1.3 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
+	if $HAVEXEARTH ; then
+		xearth -gamma 1.3 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
+	elif $HAVEXPHOON ; then
+		xphoon -t 10 &
+	elif [ -r $X11PATH/include/X11/bitmaps/escherknot ] ; then
+		xsetroot -bitmap $X11PATH/include/X11/bitmaps/escherknot
+	elif [ -r /usr/include/X11/bitmaps/escherknot ] ; then
+		xsetroot -bitmap /usr/include/X11/bitmaps/escherknot
+	elif [ -r /usr/openwin/share/include/X11/bitmaps/escherknot ] ; then
+		xsetroot -bitmap /usr/openwin/share/include/X11/bitmaps/escherknot
+	else
+		echo "$argv0: no background set"
+	fi
 	xload -geometry 190x60-0+233 -hl red &
 	xclock -geometry 190x30-0+196 -digital &
 	$RSH -n proven.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x60-200+233 -hl red &
-	if [ -x /usr/bin/X11/swisswatch ] ; then
+	if $HAVESWISSWATCH; then
 		swisswatch -name swissclock -geometry 190x190-0+0 &
 	else
 		xclock -geometry 190x190-0+0 &
 	fi
-	xterm -display $DISPLAY -geometry 80x42-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	xterm -display $DISPLAY -geometry 80x41-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/pkg/bin/mozilla -display $DISPLAY -geometry 935x990+0+0 &
 
 	# first column....
@@ -374,7 +412,6 @@ xtremely.weird.com:*)
 	xterm -display $DISPLAY -geometry 80x24-0-205 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Cn04 -T "Console-04 [RAID-00 /work]" -e console -S raid-00 &
 	xterm -display $DISPLAY -geometry 80x24-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Cn05 -T "Console-05 [RAID-01 /cvs]" -e console -S raid-01 &
 
-
 	# start xv first, in a subshell that sleeps first for a bit
 	# -- it needs to be running before we try our tkined trick, but after the window manager
 	( sleep 20; xv -owncm -iconic & ) &
@@ -384,17 +421,16 @@ xtremely.weird.com:*)
 	;;
 
 worm.planix.com:*)
-	xearth -gamma 1.3 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
 	xload -geometry 190x60-0+233 -hl red &
 	xclock -geometry 190x30-0+196 -digital &
-	if [ -x $X11BIN/swisswatch ] ; then
+	if $HAVESWISSWATCH ; then
 		swisswatch -name swissclock -geometry 190x190-0+0 &
 	else
 		xclock -geometry 190x190-0+0 &
 	fi
-	xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	xterm -display $DISPLAY -geometry 80x42-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	mozilla -display $DISPLAY -geometry 935x990+0+0 &
+	xterm -display $DISPLAY -geometry 101x66+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	xterm -display $DISPLAY -geometry 80x41-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	mozilla -display $DISPLAY -SelectProfile &
 	;;
 *)
 	if [ $SCREENDEPTH -eq 1 ] ; then
@@ -403,12 +439,13 @@ worm.planix.com:*)
 		xload -geometry 100x50-0+150 -hl red &
 	fi
 	xclock -geometry 100x30-0+110 -digital &
-	if [ -x $X11BIN/swisswatch ] ; then
+	if $HAVESWISSWATCH ; then
 		swisswatch -name swissclock -geometry 100x100-0+0 &
 	else
 		xclock -geometry 100x100-0+0 &
 	fi
-	xterm -display $DISPLAY -geometry 80x42-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	xterm -display $DISPLAY -geometry 80x30-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	xterm -display $DISPLAY -geometry 80x30+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	;;
 esac
 
