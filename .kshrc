@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	4.2	94/07/11 12:58:56 (woods)"
+#ident	"@(#)HOME:.kshrc	4.3	94/07/28 10:33:40 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -180,7 +180,7 @@ if [ "$id" -eq 0 ] ; then
 :/usr/adm/sulog"
 	fi
 	if [ "$VISUAL" = "emacsclient" ] ; then
-		export VISUAL=emacs
+		export VISUAL="emacs"
 	fi
 	# fix for ksh-11/16/88b
 	#alias passwd='/bin/passwd'
@@ -336,6 +336,18 @@ if [ "$TERM" = "xterm" ] ; then
 		/usr/bin/cu "$@"
 	}
 
+	if [ "$VISUAL" = emacsclient ] ; then
+		unalias emacs
+		alias emacs=_emacs
+		function _emacs
+		{
+			trap "trap 0 1 2 3 15; clearban" 0 1 2 3 15
+			XTBANNER="GNU Emacs @ $UUNAME"
+			setban
+			emacs "$@"
+		}
+	fi
+
 	unalias ckermit
 	alias ckermit=_ckermit
 	function _ckermit
@@ -344,26 +356,6 @@ if [ "$TERM" = "xterm" ] ; then
 		XTBANNER="C-Kermit $*"
 		setban
 		$LOCAL/bin/ckermit "$@"
-	}
-
-	unalias rlogin
-	alias rlogin=_rlogin
-	function _rlogin
-	{
-		trap "trap 0 1 2 3 15; clearban" 0 1 2 3 15
-		XTBANNER="rlogin $*"
-		setban
-		/usr/ucb/rlogin "$@"
-	}
-
-	unalias telnet
-	alias telnet=_telnet
-	function _telnet
-	{
-		trap "trap 0 1 2 3 15; clearban" 0 1 2 3 15
-		XTBANNER="telnet $*"
-		setban
-		/usr/ucb/telnet "$@"
 	}
 
 	unalias mushC
@@ -388,6 +380,16 @@ if [ "$TERM" = "xterm" ] ; then
 		xpnerun pnotes "$@"
 	}
 
+	unalias rlogin
+	alias rlogin=_rlogin
+	function _rlogin
+	{
+		trap "trap 0 1 2 3 15; clearban" 0 1 2 3 15
+		XTBANNER="rlogin $*"
+		setban
+		/usr/ucb/rlogin "$@"
+	}
+
 	unalias su
 	alias su=_su
 	function _su
@@ -400,25 +402,23 @@ if [ "$TERM" = "xterm" ] ; then
 		fi
 	}
 
-	function rxload
+	unalias telnet
+	alias telnet=_telnet
+	function _telnet
 	{
-		rsh -n "$1" "/usr/bin/X11/xload -display $UUNAME:0"
-	}
-
-	function rxperfmon
-	{
-		rexec "$1" "/usr/bin/X11/contrib/xperfmon -display $UUNAME:0"
+		trap "trap 0 1 2 3 15; clearban" 0 1 2 3 15
+		XTBANNER="telnet $*"
+		setban
+		/usr/ucb/telnet "$@"
 	}
 
 	function roterm
 	{
-	#	rsh -n "$1" "OPENWINHOME=/usr/openwin XFILESEARCHPATH=/usr/openwin/lib/%T/%N%S /usr/openwin/bin/xterm -ls -cn -rw -sb -si -sk -sl 1024 -vb -ut -fn 9x15 -fb 9x15bold -display $UUNAME:0 -name rsh:$1"
 		rsh -n "$1" "OPENWINHOME=/usr/openwin XFILESEARCHPATH=/usr/openwin/lib/%T/%N%S /usr/openwin/bin/xterm -ls -cn -rw -sb -si -sk -sl 1024 -vb -ut -display $UUNAME:0 -name rsh:$1"
 	}
 
 	function rxterm
 	{
-	#	rsh -n "$1" "/usr/bin/X11/xterm -ls -cn -rw -sb -si -sk -sl 1024 -vb -ut -fn 9x15 -fb 9x15bold -display $UUNAME:0 -name rsh:$1"
 		rsh -n "$1" "/usr/bin/X11/xterm -ls -cn -rw -sb -si -sk -sl 1024 -vb -ut -display $UUNAME:0 -name rsh:$1"
 	}
 
