@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	18.16	97/06/20 19:59:02 (woods)"
+#ident	"@(#)HOME:.twmrc	18.17	97/06/24 13:46:48 (woods)"
 #
 
 AutoRelativeResize
@@ -640,12 +640,31 @@ function "start-newscancom-rlogin" {
 
 #	for rlogin-pageactive menu
 #
+function "start-warp-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin warp.pageactive.com &"
+}
+
 function "start-deephaze-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin deephaze.pageactive.com &"
 }
 
 function "start-dynamic-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin dynamic.pageactive.com &"
+}
+
+
+#	for slogin-pageactive menu
+#
+function "start-warp-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin warp.pageactive.com &"
+}
+
+function "start-deephaze-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin deephaze.pageactive.com &"
+}
+
+function "start-dynamic-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin dynamic.pageactive.com &"
 }
 
 
