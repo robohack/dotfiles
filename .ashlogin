@@ -1,7 +1,7 @@
 #
 #	.ashlogin - login shell startup for ash
 #
-#ident	"@(#)HOME:.ashlogin	2.1	95/07/01 10:44:09 (woods)"
+#ident	"@(#)HOME:.ashlogin	2.2	97/01/19 13:58:08 (woods)"
 
 set -o ignoreeof	# we only do this for our login shell....
 
@@ -45,6 +45,8 @@ esac
 if [ -z "$MAILPATH" ] ; then
 	if [ -d /var/spool/mail ] ; then
 		export MAILPATH="/var/spool/mail/$LOGNAME"
+	elif [ -d /var/mail ] ; then
+		export MAILPATH="/var/mail/$LOGNAME"
 	elif [ -d /usr/mail ] ; then
 		export MAILPATH="/usr/mail/$LOGNAME"
 	elif [ -d /usr/spool/mail ] ; then
