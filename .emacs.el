@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.17	99/04/18 13:58:18 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.18	99/04/21 23:51:54 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1934,6 +1934,14 @@ current emacs server process..."
 ;;; Date: 18 Jan 1993 18:48:18 GMT
 ;;; Organization: STONE Project, Technical University of Berlin, Germany
 ;;; Message-ID: <NICKEL.93Jan18194816@tempest.cs.tu-berlin.de>
+;;;
+;;;; Once upon a time this used write-file-hooks and the function looked
+;;;; like this, but since I use SCCS vc-checkin-hook made more sense:
+;;;;
+;;;;(defun byte-compile-this-file ()
+;;;;  (write-region (point-min) (point-max) buffer-file-name nil 't)
+;;;;  (byte-compile-file buffer-file-name)
+;;;;  nil)
 ;;;
 ;;; Local Variables:
 ;;; eval: (defun byte-compile-this-file () (byte-compile-file buffer-file-name) nil)
