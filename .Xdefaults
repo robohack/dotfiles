@@ -1,5 +1,5 @@
 !
-!#ident	"@(#)HOME:.Xdefaults	26.1	03/01/05 16:26:11 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	26.2	03/11/23 14:27:04 (woods)"
 !
 #ifdef COLOR
 *customization:			-color
@@ -7,6 +7,36 @@
 #endif
 *cursorBlink:			true
 *deleteIsDEL:			true
+!
+XTerm*VT100.Translations:       #override \n\
+	~Shift <Key> Up:    string(\033[A) \n\
+	~Shift <Key> Down:  string(\033[B) \n\
+	~Shift <Key> Home:  string(\033[H) \n\
+	~Shift <Key> End:   string(\033[F) \n\
+	~Shift <Key> Prior: string(\033[5~) \n\
+	~Shift <Key> Next:  string(\033[6~) \n\
+	Shift  <Key> Up:    scroll-back(1,line) \n\
+	Shift  <Key> Down:  scroll-forw(1,line) \n\
+	Shift  <Key> Prior: scroll-back(1,page) \n\
+	Shift  <Key> Next:  scroll-forw(1,page) \n\
+	Shift  <Key> Home:  scroll-back(1000,page) \n\
+	Shift  <Key> End:   scroll-forw(1000,page) \n
+!
+! XXX for some reason the following have no effect
+!
+!	~Meta  <Key> Up:    string(\033[A) \n\
+!	~Meta  <Key> Down:  string(\033[B) \n\
+!	~Meta  <Key> Home:  string(\033[H) \n\
+!	~Meta  <Key> End:   string(\033[F) \n\
+!	~Meta  <Key> Prior: string(\033[5~) \n\
+!	~Meta  <Key> Next:  string(\033[6~) \n\
+!	Meta   <Key> Up:    scroll-back(1,line) \n\
+!	Meta   <Key> Down:  scroll-forw(1,line) \n\
+!	Meta   <Key> Prior: scroll-back(1,page) \n\
+!	Meta   <Key> Next:  scroll-forw(1,page) \n\
+!	Meta   <Key> Home:  scroll-back(1000,page) \n\
+!	Meta   <Key> End:   scroll-forw(1000,page) \n
+!
 Netscape*XmLGrid.foreground:	Black
 Netscape*XmLGrid.background:	White
 Netscape*XmLGrid.selectForeground:	White
@@ -17,6 +47,7 @@ Netscape*progressInterval:	3
 Netscape*maxImageColors:	64
 Netscape*useStderrDialog: False
 Netscape*useStdoutDialog: False
+!
 xosview*cpuDecay:	True
 xosview*usedLabelColor:	gray100
 xosview*swapDecay:	False
@@ -66,6 +97,7 @@ xosview*swapFreeColor:	gray40
 xosview*cpuPriority:	1
 xosview*usedlabels:	True
 xosview*swapPriority:	10
+!
 XVnews.Indent:	> 
 XVnews.displaysize:	9
 XVnews.sortSubjects:	0
@@ -84,6 +116,7 @@ XVnews.NextDefault:	3
 XVnews.PrevDefault:	2
 XVnews.logFile:	/home/most/woods/News/news.record
 XVnews.listfontsize:	1
+!
 #ifndef COLOR
 plan*foreground:        #000000
 plan*background:        #a0a0a0
