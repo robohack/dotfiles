@@ -1,0 +1,15 @@
+#
+#	.kshedit - ksh editing function customisation
+#
+#ident	"@(#)HOME:.kshedit	1.1	94/03/25 18:25:47 (woods)"
+
+
+set -o gmacs
+
+# these aliases only work in emacs/gmacs mode
+#
+alias __A=''		# up arrow
+alias __B=''		# down arrow
+alias __C=''		# right arrow
+alias __D=''		# left arrow
+alias __H=''		# beginning of line, HOME key
