@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	19.4	98/02/01 20:33:15 (woods)"
+#ident	"@(#)HOME:.xinitrc	19.5	98/02/02 10:53:23 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -235,7 +235,7 @@ else
 fi
 
 if [ -x $X11BIN/xbuffy ] ; then
-	if -n "$AUDIOPLAYER" -a -r $HOME/sounds/newmail ] ; then
+	if [ -n "$AUDIOPLAYER" -a -r $HOME/sounds/newmail ] ; then
 		xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd "$AUDIOPLAYER $HOME/sounds/newmail" &
 	else
 		xbuffy -geometry 80x25-0+235 -shortnames -header 0 &
