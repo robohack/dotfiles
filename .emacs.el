@@ -1,35 +1,36 @@
-;;;
-;;;	.emacs.el
-;;;
-;;;#ident	"@(#)HOME:.emacs.el	10.3	94/03/14 11:34:24 (woods)"
-;;;
-;;; per-user start-up functions for GNU-emacs v18 or v19
-;;;
+;;;;
+;;;;	.emacs.el
+;;;;
+;;;;#ident	"@(#)HOME:.emacs.el	10.4	94/03/14 11:56:33 (woods)"
+;;;;
+;;;; per-user start-up functions for GNU-emacs v18 or v19
+;;;;
 
-;; to debug, eval (^X^E) these after "emacs -q":
-;;
-; (setq debug-on-error t)
-; (load-file "~/.emacs.el")
-;;
-;; more goodies for debug:
-;;
-; (setq stack-trace-on-error t)
-; (setq debug-on-quit t)
-; (setq debug-on-error nil)
+;;; to debug, eval (^X^E) these after "emacs -q":
+;;;
+;;; (setq debug-on-error t)
+;;; (load-file "~/.emacs.el")
+;;;
+;;; more goodies for debug:
+;;;
+;;; (setq stack-trace-on-error t)
+;;; (setq debug-on-quit t)
+;;; (setq debug-on-error nil)
 
 ;; I don't want that annoying startup message.
 (setq inhibit-startup-message t)
 
-;; ----------
-;; stolen from cl.el -- find out where we are!
+;;;; ----------
+;;;; stolen from cl.el -- find out where we are!
+
 (defvar init-emacs-type (cond ((or (and (fboundp 'epoch::version)
 					(symbol-value 'epoch::version))
 				   (string-lessp emacs-version "19")) 18)
 			      ((string-match "Lucid" emacs-version) 'lucid)
 			      (t 19)))
 
-;; ----------
-;; get ready to load stuff
+;;;; ----------
+;;;; get ready to load stuff
 
 (defvar local-gnu-path (cond
 		      ((getenv "GNU")
@@ -48,8 +49,7 @@
 				  (concat local-gnu-path
 					  "/lib/emacs/site-lisp/hyperbole")))))
 
-;; emacs-18 doesn't have these...
-(if (= init-emacs-type '18)
+(if (= init-emacs-type '18)		; emacs-18 doesn't have these...
     (defmacro dont-compile (&rest body)
       "Like `progn', but the body always runs interpreted (not compiled).
 If you think you need this, you're probably making a mistake somewhere."
@@ -69,7 +69,7 @@ The result of the body appears to the compiler as a quoted constant."
       ;; Remember, it's magic.
       (cons 'progn body)))
 
-;; This could probably be rewritten to use mapcar
+;;; This could probably be rewritten to use mapcar
 (defun elisp-file-in-loadpath-p (file-name)
   "Returns t if there is an emacs lisp-library of the name FILENAME in
 the load-path list. Matching is first done by looking for the file
@@ -101,14 +101,14 @@ directory in the list PATHLIST, otherwise nil."
           (setq file-found-in-path-p t)))
     (eval 'file-found-in-path-p)))
 
-;; ----------
-;; some default packages we'd like...
+;;;; ----------
+;;;; some default packages we'd like...
 
 (if (elisp-file-in-loadpath-p "time")
     (dont-compile
-      ; display-time can't check "Status:" headers or "Forward to" files
-      ; so if not running vm or something else that cleans out the spool
-      ; files, disable the mail checking feature
+      ;; display-time can't check "Status:" headers or "Forward to" files
+      ;; so if not running vm or something else that cleans out the spool
+      ;; files, disable the mail checking feature
       (if (and (/= init-emacs-type '19)
 	       (not (elisp-file-in-loadpath-p "vm")))
 	  (setq display-time-mail-file "/THIS-IS-NOT-A-FILE"))
@@ -174,53 +174,55 @@ directory in the list PATHLIST, otherwise nil."
       (autoload 'vm-mail "vm" "Send a mail message using VM." t)
       (autoload 'vm-submit-bug-report "vm" "Send a bug report about VM." t))
   (progn
-    ; display-time can't check "Status:" headers or "Forward to" files
-    ; so if not running vm or something else that cleans out the spool
-    ; files, disable the mail checking feature
-    ;
-    ; must appear after display-time is invoked (thus after time.el is loaded)
-    ; [only called on emacs-19(?)]
-    ; 
+    ;; display-time can't check "Status:" headers or "Forward to" files
+    ;; so if not running vm or something else that cleans out the spool
+    ;; files, disable the mail checking feature
+    ;;
+    ;; must appear after display-time is invoked (thus after time.el is loaded)
+    ;; [only called on emacs-19(?)]
+    ;; 
     (defun display-time-file-nonempty-p (file)
       "This function returns 'nil, as it would only be useful if it could check
 Status: headers for O, or Forward to in mailboxes."
       nil)))
 
-;; ----------
-;; some property defintions...
+;;;; ----------
+;;;; some property defintions...
 
 (put 'eval-expression 'disabled nil)	; allow ESC ESC
 (put 'narrow-to-region 'disabled nil)	; allow C-x n
 (put 'rmail 'disabled t)		; avoid mbox destruction
 
-;; ----------
-;; handling of abbrev files...
+;;;; ----------
+;;;; handling of abbrev files...
+
 (condition-case ()
     (read-abbrev-file nil t)
   (file-error nil))
 
-;; ----------
-;; If running as root, don't make backup files.  This should be default!!!
+;;;; ----------
+;;;; If running as root, don't make backup files.  This should be default!!!
+
 (cond ((eq (user-uid) 0)
        (setq make-backup-files nil)
        (setq auto-save-default nil)))
 
-;; ----------
-;; Set defaults of other buffer-local variables
+;;;; ----------
+;;;; Set defaults of other buffer-local variables
 
 (setq-default case-fold-search nil)	; V-19 will fix this even better
 (setq-default indent-tabs-mode t)	; allow tabs in indentation
 (setq-default require-final-newline 1)	; needed by some unix programs
 
-;; ----------
-;; some new global variable settings...
+;;;; ----------
+;;;; some new global variable settings...
 
-;;;Date: Wed, 2 Feb 1994 12:49:31 GMT
-;;;Message-Id: <1994Feb2.124931.19715@nessie.mcc.ac.uk>
-;;;Organization: Manchester Computing Centre, Manchester, England
-;;;From: ehgasm2@uts.mcc.ac.uk (Simon Marshall)
-;;;Subject: Re: Quick routine to BOLDFACE directories in DIRED buffers
-;;
+;;; Date: Wed, 2 Feb 1994 12:49:31 GMT
+;;; Message-Id: <1994Feb2.124931.19715@nessie.mcc.ac.uk>
+;;; Organization: Manchester Computing Centre, Manchester, England
+;;; From: ehgasm2@uts.mcc.ac.uk (Simon Marshall)
+;;; Subject: Re: Quick routine to BOLDFACE directories in DIRED buffers
+;;;
 (if window-system
     (defvar dired-font-lock-keywords
       '(("\\S +\\([~%#]\\)$" . font-lock-doc-string-face)
@@ -233,7 +235,7 @@ Status: headers for O, or Forward to in mailboxes."
 
 (dont-compile
   (if (= init-emacs-type 18)
-      (setq ask-about-buffer-names t)))	;
+      (setq ask-about-buffer-names t)))
 (setq backup-by-copying t)		; copy, thus preserving modes and owner
 (dont-compile
   (if (= init-emacs-type 18)
@@ -241,7 +243,6 @@ Status: headers for O, or Forward to in mailboxes."
 (setq compilation-window-height 10)	; default height for a compile window
 (setq default-tab-width 8)		; a tab is a tab is a tab is a tab....
 (setq delete-auto-save-files t)		; delete auto-save file when saved
-;(setq enable-recursive-minibuffers t)	; do we really want this?  No, probably not
 (dont-compile
   (if (= init-emacs-type 18)
       (setq inhibit-local-variables t)	; confirm modes, etc. (security!)
@@ -325,24 +326,24 @@ Status: headers for O, or Forward to in mailboxes."
 (if (elisp-file-in-loadpath-p "foldout")
     (eval-after-load "outline" '(load "foldout")))
 
-;; unix "spell" knows to use "deroff", so only use this if you use a speller
-;; other than it.
-;;
-;(defun filter-through-deroff ()
-;  "Magic!"
-;  (setq spell-command (concat "deroff | " spell-command)))
+;;; unix "spell" knows to use "deroff", so only use this if you use a speller
+;;; other than it.
+;;;
+;;;(defun filter-through-deroff ()
+;;;  "Magic!"
+;;;  (setq spell-command (concat "deroff | " spell-command)))
 
-;; ----------
-;; some useful functions....
+;;;; ----------
+;;;; some useful functions....
 
-; I hate it running away off the end of the file - next line should stop at
-; the end of the file  (courtesy Mark Moraes)
-; [I wish they'd both ring the bell when the run into BOF or EOF....]
+;;; I hate it running away off the end of the file - next line should stop at
+;;; the end of the file  (courtesy Mark Moraes)
+;;; [I wish they'd both ring the bell when the run into BOF or EOF....]
 (defun next-line (count)
   (interactive "p")
   (previous-line (- count)))
 
-;; For mail reading or looking at man pages (courtesy Mark Moraes)
+;;;; For mail reading or looking at man pages (courtesy Mark Moraes)
 (defun remove-nroff-bs ()
   "remove all nroff overstriking from a buffer"
   (interactive "*")
@@ -353,7 +354,7 @@ Status: headers for O, or Forward to in mailboxes."
   (call-process-region (point-min) (point-max) "removebs" t t nil)
   (goto-char (point-min)))
 
-;; So I can conveniently do this from MH mode (also Mark Moraes)
+;;; So I can conveniently do this from MH mode (also Mark Moraes)
 (defun remove-nroff-bs-in-other-window ()
   "remove all nroff overstriking from the buffer in the other window"
   (interactive)
@@ -388,10 +389,10 @@ Status: headers for O, or Forward to in mailboxes."
   (interactive)
   (move-to-window-line -1))
 
-;; from the FAQ
-;;
-;; use:	(swap-keys ?\C-h ?\C-?)
-;;
+;;; from the FAQ
+;;;
+;;; use:	(swap-keys ?\C-h ?\C-?)
+;;;
 (defun swap-keys (key1 key2)
   "Swap keys KEY1 and KEY2 using map-key."
   (map-key key1 key2)
@@ -418,7 +419,7 @@ Status: headers for O, or Forward to in mailboxes."
 	      nil
 	    (substring keyboard-translate-table 0 (1+ i))))))
 
-;; Snarfed from Steve Humble
+;;; Snarfed from Steve Humble
 (defun ascii-table (new)
   "Show the buffer *Ascii Table* or make one.
 Make a new one if NEW (or prefix arg) is non-nil."
@@ -499,7 +500,7 @@ Wildcards and redirection are handle as usual in the shell."
         (start-process name buffer shell-file-name "-c"
                        (concat "exec " (mapconcat 'identity args " "))))))
 
-;; for orthogonality (thx to john@xanth.UUCP (John Owens))
+;;; for orthogonality (thx to john@xanth.UUCP (John Owens))
 (defun find-file-read-only-other-window (filename)
   "Like find-file-read-only, but does it in another window."
   (interactive "Find file read-only in other window: ")
@@ -507,7 +508,7 @@ Wildcards and redirection are handle as usual in the shell."
   (setq buffer-read-only t))
 (global-set-key "\^x4\^r" 'find-file-read-only-other-window)
 
-;; More stuff stolen from Roland. 
+;;; More stuff stolen from Roland. 
 (defun make-interactive (symbol &rest interactive-args)
   "Make the function definition of SYMBOL an interactive command.
 Remaining arguments, if any, are passed to interactive in the function."
@@ -565,20 +566,20 @@ If HOOK is void, it is first set to nil."
             (memq function (symbol-value hook)))
           (set hook (cons function (symbol-value hook))))))
 
-; From gnu@ai.mit.edu Sat Jan 22 01:37:54 1994
-; Date: Fri, 21 Jan 94 08:54:28 GMT
-; From: simonm@plod.ai.mit.edu (Simon Marshall)
-; Message-Id: <9401210854.AA22319@plod.esrin.esa.it>
-; To: bug-gnu-emacs@prep.ai.mit.edu
-; Reply-To: Simon.Marshall@mail.esrin.esa.it
-; Subject: [19.22]: `match-string': Short but sweet function
-; 
-; In GNU Emacs 19.22.1 of Tue Nov 30 1993 on tracy (berkeley-unix)
-; 
-; I think I got some version from someone else, but here's a nice function
-; to alleviate the (substring string (match-beginning 1) (match-end 1))
-; blues.  Now you can just (match-string 1 string) to your heart's delight...
-;
+;;; From gnu@ai.mit.edu Sat Jan 22 01:37:54 1994
+;;; Date: Fri, 21 Jan 94 08:54:28 GMT
+;;; From: simonm@plod.ai.mit.edu (Simon Marshall)
+;;; Message-Id: <9401210854.AA22319@plod.esrin.esa.it>
+;;; To: bug-gnu-emacs@prep.ai.mit.edu
+;;; Reply-To: Simon.Marshall@mail.esrin.esa.it
+;;; Subject: [19.22]: `match-string': Short but sweet function
+;;; 
+;;; In GNU Emacs 19.22.1 of Tue Nov 30 1993 on tracy (berkeley-unix)
+;;; 
+;;; I think I got some version from someone else, but here's a nice function
+;;; to alleviate the (substring string (match-beginning 1) (match-end 1))
+;;; blues.  Now you can just (match-string 1 string) to your heart's delight...
+;;;
 (defun match-string (n &optional string)
   "Return the matched grouping N from STRING.
 If STRING is not given, use the current buffer.  See `string-match'."
@@ -586,12 +587,12 @@ If STRING is not given, use the current buffer.  See `string-match'."
       (substring string (match-beginning n) (match-end n))
     (buffer-substring (match-beginning n) (match-end n))))
 
-; From: terra@diku.dk (Morten Welinder)
-; Sender: gnu-emacs-sources-request@prep.ai.mit.edu
-; To: gnu-emacs-sources@prep.ai.mit.edu
-; Subject: Making TAB scroll completions
-; Date: Sat, 12 Mar 1994 12:43:48 GMT
-;
+;;; From: terra@diku.dk (Morten Welinder)
+;;; Sender: gnu-emacs-sources-request@prep.ai.mit.edu
+;;; To: gnu-emacs-sources@prep.ai.mit.edu
+;;; Subject: Making TAB scroll completions
+;;; Date: Sat, 12 Mar 1994 12:43:48 GMT
+;;;
 ;;; Make multiple TABs scroll completions
 (defun minibuf-tab ()
   "Like `minibuffer-complete', but if you use this repeatedly it will scroll
@@ -609,8 +610,8 @@ the window showing completions."
 (define-key minibuffer-local-must-match-map "\t" 'minibuf-tab)
 (define-key minibuffer-local-completion-map "\t" 'minibuf-tab)
 
-;; ----------
-;; some special hooks.....
+;;;; ----------
+;;;; some special hooks.....
 
 (dont-compile
   (if (and (elisp-file-in-loadpath-p "server")
@@ -642,9 +643,9 @@ current emacs server process..."
 	(global-set-key "\C-x\C-c" 'server-really-exit)
 	(server-start))))
 
-; (enable-arrow-keys) must be done by this hook, since the .emacs file
-; is loaded and executed before the terminal code is loaded...
-;
+;;; (enable-arrow-keys) must be done by this hook, since the .emacs file
+;;; is loaded and executed before the terminal code is loaded...
+;;;
 (dont-compile
   (if (fboundp 'enable-arrow-keys) ; byte-compile-file may complain
       (add-hook 'term-setup-hook
@@ -653,15 +654,15 @@ current emacs server process..."
 		   "Private term-setup-hook."
 		   (enable-arrow-keys)))))) ; that enable-arrow-keys is not defined
 
-;; ----------
-;; some major-mode hooks...
+;;;; ----------
+;;;; some major-mode hooks...
 
-;;;Date: Wed, 2 Feb 1994 12:49:31 GMT
-;;;Message-Id: <1994Feb2.124931.19715@nessie.mcc.ac.uk>
-;;;Organization: Manchester Computing Centre, Manchester, England
-;;;From: ehgasm2@uts.mcc.ac.uk (Simon Marshall)
-;;;Subject: Re: Quick routine to BOLDFACE directories in DIRED buffers
-;;
+;;; Date: Wed, 2 Feb 1994 12:49:31 GMT
+;;; Message-Id: <1994Feb2.124931.19715@nessie.mcc.ac.uk>
+;;; Organization: Manchester Computing Centre, Manchester, England
+;;; From: ehgasm2@uts.mcc.ac.uk (Simon Marshall)
+;;; Subject: Re: Quick routine to BOLDFACE directories in DIRED buffers
+;;;
 (dont-compile
   (if window-system
       (add-hook 'dired-mode-hook
@@ -677,15 +678,15 @@ current emacs server process..."
 	     (setq mode-name "LispInteraction")
 	     (override-default-variable-settings))))
 
-; GNU-Emacs' (Stallman's?) ideas about formatting C code suck!  Let's stick to
-; doing things the good old K&R standard way!!!!
-;
+;;; GNU-Emacs' (Stallman's?) ideas about formatting C code suck!  Let's stick to
+;;; doing things the good old K&R standard way!!!!
+;;;
 (add-hook 'c-mode-hook
 	  (function
 	   (lambda ()
 	     "Private c-mode stuff."
-	     ; damn c-mode is too over-bearing!  It seems to insist re-setting
-	     ; these bindings without regard to the global key map.
+	     ;; damn c-mode is too over-bearing!  It seems to insist re-setting
+	     ;; these bindings without regard to the global key map.
 	     (local-set-key "\eh" 'mark-c-function)
 	     (local-set-key "\e\C-h" 'backward-kill-word)
 	     (local-set-key "\C-?" 'delete-char)
@@ -722,9 +723,16 @@ current emacs server process..."
 		(function
 		 (lambda ()
 		   "Private cvs-mode stuff."
-		   (setq cvs-diff-flags '("-u")) ; List of strings to use as flags to pass to ``diff'' and ``cvs diff''.
-		   (setq cvs-status-flags '("-Q")) ; List of strings to pass to ``cvs status''
-		   (setq cvs-diff-ignore-marks t)))))) ; Non-nil if cvs-diff and cvs-mode-diff-backup should ignore any marked files. 
+		   (setq cvs-diff-flags '("-u")) ; List of strings to use as
+						 ; flags to pass to ``diff''
+						 ; and ``cvs diff''.
+		   (setq cvs-status-flags '("-Q")) ; List of strings to pass to
+						   ; ``cvs status''
+		   (setq cvs-diff-ignore-marks t)))))) ; Non-nil if cvs-diff
+						       ; and
+						       ; cvs-mode-diff-backup
+						       ; should ignore any
+						       ; marked files.  
 
 (add-hook 'emacs-lisp-mode-hook
 	  (function
@@ -782,27 +790,27 @@ current emacs server process..."
 		   (local-set-key "\eq" 'reindent-c-comment)
 		   (setq c-comment-starting-blank t))))))
 
-;; ----------
-;; some default key re-binding....
+;;;; ----------
+;;;; some default key re-binding....
 
-; first off, we do some fancy stuff to make C-h work "properly," but still
-; have good access to the help functions!
-;
-; NOTE: this *should* work by simply reading termio for current erase char.
-;
+;;; first off, we do some fancy stuff to make C-h work "properly," but still
+;;; have good access to the help functions!
+;;;
+;;; NOTE: this *should* work by simply reading termio for current erase char.
+;;;
 (global-set-key "\C-h" 'delete-backward-char)
 (global-set-key "\C-?" 'delete-char)
 (global-set-key "\e\C-h" 'backward-kill-word)
 (global-set-key "\e\C-?" 'kill-word)
 (global-set-key "\e?" 'help-command)		; smart enough to set itself up
 
-; for fingers that forget....
+;;; for fingers that forget....
 (global-set-key "\C-\\" 'search-forward)
 (global-set-key "\C-x\C-\\" 'save-buffer)
 
-; much of the remainder is to get back some Jove/Gosmacs comaptability, but
-; without getting it all....
-;
+;;; much of the remainder is to get back some Jove/Gosmacs comaptability, but
+;;; without getting it all....
+;;;
 (global-set-key "\e\C-r" 'isearch-backward-regexp)
 (global-set-key "\eq" 'query-replace-regexp)
 (global-set-key "\eQ" 'query-replace)
@@ -823,7 +831,7 @@ current emacs server process..."
 (global-set-key "\C-x\C-d" 'insert-date-in-current-buffer)
 
 (global-set-key "\C-x\C-v" 'find-file)	; I never liked "visit"....
-;;(global-set-key "\C-xv" 'view-file)	; this is now the prefix for vc
+;;;(global-set-key "\C-xv" 'view-file)	; this is now the prefix for vc
 (global-set-key "\C-xV" 'find-alternate-file)
 
 (global-set-key "\ez" 'scroll-one-line-down)
@@ -852,78 +860,78 @@ current emacs server process..."
       (global-set-key "\C-x5i" 'iconify-frame)
       (global-set-key "\C-x5T" 'find-tag-other-frame)))
 
-;; Bindings to make it look like Jove (or old Emacs :-)
-;; (courtesy Mark Moraes)
-;(defun prev-window ()
-;  (interactive)
-;  (other-window -1)) ; this does not deal with argument
-;(define-key global-map "\C-xn" 'other-window)
-;(define-key global-map "\C-xp" 'prev-window)
-;(define-key global-map "\C-xq" 'quoted-insert)
-;(define-key global-map "\C-z" 'one-scroll-up)
-;(define-key global-map "\ez" 'one-scroll-down)
-;(define-key global-map "\C-r" 'search-backward)
-;(define-key global-map "\eq" 'query-replace-regexp)
-;(define-key global-map "\er" 'replace-regexp)
-;(define-key global-map "\eg" 'goto-line)
-;(define-key global-map "\ej" 'fill-paragraph)
-;(define-key global-map "\e\C-z" 'suspend-emacs)
-;(define-key global-map "\C-\\" 'search-forward)
-;(define-key global-map "\C-x\C-\\" 'save-buffer)
-;(define-key global-map "\C-x\C-i" 'insert-file)
-;(define-key global-map "\C-h" 'delete-backward-char)
-;(define-key global-map "\e\C-h" 'backward-kill-word)
-;(define-key global-map "\C-x!" 'shell-command)
-;(define-key global-map "\e\e" 'keyboard-quit)
-;(define-key global-map "\e " 'set-mark-command)
-;(define-key global-map "\eC-M" 'set-mark-command)
+;;; Bindings to make it look like Jove (or old Emacs :-)
+;;; (courtesy Mark Moraes)
+;;;(defun prev-window ()
+;;;  (interactive)
+;;;  (other-window -1)) ; this does not deal with argument
+;;;(define-key global-map "\C-xn" 'other-window)
+;;;(define-key global-map "\C-xp" 'prev-window)
+;;;(define-key global-map "\C-xq" 'quoted-insert)
+;;;(define-key global-map "\C-z" 'one-scroll-up)
+;;;(define-key global-map "\ez" 'one-scroll-down)
+;;;(define-key global-map "\C-r" 'search-backward)
+;;;(define-key global-map "\eq" 'query-replace-regexp)
+;;;(define-key global-map "\er" 'replace-regexp)
+;;;(define-key global-map "\eg" 'goto-line)
+;;;(define-key global-map "\ej" 'fill-paragraph)
+;;;(define-key global-map "\e\C-z" 'suspend-emacs)
+;;;(define-key global-map "\C-\\" 'search-forward)
+;;;(define-key global-map "\C-x\C-\\" 'save-buffer)
+;;;(define-key global-map "\C-x\C-i" 'insert-file)
+;;;(define-key global-map "\C-h" 'delete-backward-char)
+;;;(define-key global-map "\e\C-h" 'backward-kill-word)
+;;;(define-key global-map "\C-x!" 'shell-command)
+;;;(define-key global-map "\e\e" 'keyboard-quit)
+;;;(define-key global-map "\e " 'set-mark-command)
+;;;(define-key global-map "\eC-M" 'set-mark-command)
 
-;;-------
-;; more goodies
+;;;;-------
+;;;; more goodies
 
-;(if (= init-emacs-type '19) 
-;      (dont-compile
-;	(defun display-buffer-in-frame-or-window (buf)
-;	  "Try to find buffer BUF in another (visible) frame, otherwise call
-;display-buffer for it"
-;	  (or (get-buffer-window buf t)
-;	      (display-buffer buf)))
-;	(setq temp-buffer-show-function 'display-buffer-in-frame-or-window)))
+;;;(if (= init-emacs-type '19) 
+;;;      (dont-compile
+;;;	(defun display-buffer-in-frame-or-window (buf)
+;;;	  "Try to find buffer BUF in another (visible) frame, otherwise call
+;;;display-buffer for it"
+;;;	  (or (get-buffer-window buf t)
+;;;	      (display-buffer buf)))
+;;;	(setq temp-buffer-show-function 'display-buffer-in-frame-or-window)))
 
-;; From: dsmith@spam.maths.adelaide.edu.au (David Smith)
-;; Subject: framepop.el: Display temporary buffers in dedicated frame
-;; Date: 08 Oct 1993 09:17:05 GMT
-;; Organization: The University of Adelaide
-;; Message-Id: <DSMITH.93Oct8184705@spam.maths.adelaide.edu.au>
-;;
-;;
-; let's leave this until frame management is a wee bit more mature
-;
-;(if (and window-system
-;	 (elisp-file-in-loadpath-p "framepop"))
-;    (dont-compile
-;      (setq framepop-prefix-map (lookup-key global-map "\C-c\C-f"))
-;      (if (not (keymapp framepop-prefix-map))
-;	  (progn
-;	    (setq framepop-prefix-map (make-sparse-keymap))
-;	    (define-key global-map "\C-c\C-f" framepop-prefix-map)
-;	    (define-key global-map "\C-c\C-fz" 'framepop-toggle-frame)
-;	    (define-key global-map "\C-c\C-fv" 'framepop-scroll-frame)
-;	    (define-key global-map "\C-c\C-fs" 'framepop-show-frame)
-;	    (define-key global-map "\C-c\C-fx" 'framepop-iconify-frame)
-;	    (define-key global-map "\C-c\C-fr" 'framepop-raise-frame)
-;	    (define-key global-map "\C-c\C-fl" 'framepop-lower-frame)
-;	    (cond (window-system (require 'framepop)))))))
+;;; From: dsmith@spam.maths.adelaide.edu.au (David Smith)
+;;; Subject: framepop.el: Display temporary buffers in dedicated frame
+;;; Date: 08 Oct 1993 09:17:05 GMT
+;;; Organization: The University of Adelaide
+;;; Message-Id: <DSMITH.93Oct8184705@spam.maths.adelaide.edu.au>
+;;;
+;;;
+;;; let's leave this until frame management is a wee bit more mature
+;;;
+;;;(if (and window-system
+;;;	 (elisp-file-in-loadpath-p "framepop"))
+;;;    (dont-compile
+;;;      (setq framepop-prefix-map (lookup-key global-map "\C-c\C-f"))
+;;;      (if (not (keymapp framepop-prefix-map))
+;;;	  (progn
+;;;	    (setq framepop-prefix-map (make-sparse-keymap))
+;;;	    (define-key global-map "\C-c\C-f" framepop-prefix-map)
+;;;	    (define-key global-map "\C-c\C-fz" 'framepop-toggle-frame)
+;;;	    (define-key global-map "\C-c\C-fv" 'framepop-scroll-frame)
+;;;	    (define-key global-map "\C-c\C-fs" 'framepop-show-frame)
+;;;	    (define-key global-map "\C-c\C-fx" 'framepop-iconify-frame)
+;;;	    (define-key global-map "\C-c\C-fr" 'framepop-raise-frame)
+;;;	    (define-key global-map "\C-c\C-fl" 'framepop-lower-frame)
+;;;	    (cond (window-system (require 'framepop)))))))
 
-;; From: ca@cs.umd.edu (Cengiz Alaetinoglu)
-;; Newsgroups: gnu.emacs.sources
-;; Subject: compile-frame.el version 1.1
-;; Date: 08 Oct 1993 20:28:22 GMT
-;; Organization: University of Maryland, Computer Science Department
-;; Lines: 126
-;; Distribution: world
-;; Message-Id: <CA.93Oct8162822@yangtze.cs.umd.edu>
-;; 
+;;; From: ca@cs.umd.edu (Cengiz Alaetinoglu)
+;;; Newsgroups: gnu.emacs.sources
+;;; Subject: compile-frame.el version 1.1
+;;; Date: 08 Oct 1993 20:28:22 GMT
+;;; Organization: University of Maryland, Computer Science Department
+;;; Lines: 126
+;;; Distribution: world
+;;; Message-Id: <CA.93Oct8162822@yangtze.cs.umd.edu>
+;;; 
 (dont-compile
   (if (and (elisp-file-in-loadpath-p "compile-frame")
 	   window-system)
@@ -932,22 +940,22 @@ current emacs server process..."
 	(add-hook 'compilation-frame-selected-hook
 		  '(lambda () (raise-frame compilation-frame-id))))))
 
-;; From: kfogel@occs.cs.oberlin.edu (Karl Fogel)
-;; Date: Mon, 1 Nov 1993 10:23:04 -0500
-;; Message-Id: <9311011523.AA18545@occs.cs.oberlin.edu>
-;; To: gnu-emacs-sources@prep.ai.mit.edu
-;; Subject: frame hopping from the keyboard
-;; 
-;;         I wanted a something to move among frames without using the
-;; mouse.  Emacs 19 apparently has no native function to do this
-;; (corrections?  I couldn't find it, at least...), so here is one.  I
-;; bind it to C-c o, myself.  Another candidate was C-x 5 o; although
-;; it's too many keystrokes for me, it seems as though this is sort of
-;; what C-x 5 o was originally meant to do (again, not sure).  Please let
-;; me know if you find it useful or have any suggestions/fixes.  As you
-;; can see, it's quite short (shorter than this paragraph, okay), but I
-;; have hardly touched my mouse since I started using it :-)
-;; 
+;;; From: kfogel@occs.cs.oberlin.edu (Karl Fogel)
+;;; Date: Mon, 1 Nov 1993 10:23:04 -0500
+;;; Message-Id: <9311011523.AA18545@occs.cs.oberlin.edu>
+;;; To: gnu-emacs-sources@prep.ai.mit.edu
+;;; Subject: frame hopping from the keyboard
+;;; 
+;;;         I wanted a something to move among frames without using the
+;;; mouse.  Emacs 19 apparently has no native function to do this
+;;; (corrections?  I couldn't find it, at least...), so here is one.  I
+;;; bind it to C-c o, myself.  Another candidate was C-x 5 o; although
+;;; it's too many keystrokes for me, it seems as though this is sort of
+;;; what C-x 5 o was originally meant to do (again, not sure).  Please let
+;;; me know if you find it useful or have any suggestions/fixes.  As you
+;;; can see, it's quite short (shorter than this paragraph, okay), but I
+;;; have hardly touched my mouse since I started using it :-)
+;;; 
 (if (and (= init-emacs-type '19)
 	 window-system)
     (dont-compile
@@ -970,14 +978,14 @@ feeling, but you'll get used to it."
 		 (redirect-frame-focus nowframe nextframe)
 		 (raise-frame nextframe)))))))
 
-;; Based on suggestions by David G. Grubbs <dgg@ksr.com> and Paul Palmer
-;; <palmerp@math.orst.edu>.
-;;
-;; Assuming the use of detex 2.3 by Daniel Trinkle:
-;; -w means one word per line.
-;; -n means don't expand \input or \include commands.
-;; -l means force LaTeX mode.
-;
+;;; Based on suggestions by David G. Grubbs <dgg@ksr.com> and Paul Palmer
+;;; <palmerp@math.orst.edu>.
+;;;
+;;; Assuming the use of detex 2.3 by Daniel Trinkle:
+;;; -w means one word per line.
+;;; -n means don't expand \input or \include commands.
+;;; -l means force LaTeX mode.
+;;;
 (if (and (= init-emacs-type '19) 
 	 (elisp-file-in-loadpath-p "ispell"))
     (dont-compile
@@ -999,28 +1007,28 @@ feeling, but you'll get used to it."
 	       (setq ispell-filter-hook "deroff")
 	       (setq ispell-filter-hook-args '("-w")))))))
 
-;; From: kifer@sbkifer.cs.sunysb.edu (Michael Kifer)
-;; Subject: Re: calendar tool in Emacs?
-;; Organization: SUNY at Stony Brook
-;; Date: 15 Nov 1993 20:53:02 GMT
-;; Message-Id: <KIFER.93Nov15155303@sbkifer.cs.sunysb.edu>
-;;
-;(if (= init-emacs-type '19) 
-;    (progn
-;      (setq 
-;       view-diary-entries-initially t
-;       mark-diary-entries-in-calendar t
-;       mark-holidays-in-calendar t
-;       diary-display-hook (list 'appt-make-list 'fancy-diary-display)
-;       appt-display-duration 14		; seconds to display appointment message
-;       appt-issue-message t)
-;      (autoload 'appt-make-list "appt.el" nil t)
-;      (add-hook 'initial-calendar-window-hook 'display-time)
-;      (calendar)))
+;;; From: kifer@sbkifer.cs.sunysb.edu (Michael Kifer)
+;;; Subject: Re: calendar tool in Emacs?
+;;; Organization: SUNY at Stony Brook
+;;; Date: 15 Nov 1993 20:53:02 GMT
+;;; Message-Id: <KIFER.93Nov15155303@sbkifer.cs.sunysb.edu>
+;;;
+;;;(if (= init-emacs-type '19) 
+;;;    (progn
+;;;      (setq 
+;;;       view-diary-entries-initially t
+;;;       mark-diary-entries-in-calendar t
+;;;       mark-holidays-in-calendar t
+;;;       diary-display-hook (list 'appt-make-list 'fancy-diary-display)
+;;;       appt-display-duration 14		; seconds to display appointment message
+;;;       appt-issue-message t)
+;;;      (autoload 'appt-make-list "appt.el" nil t)
+;;;      (add-hook 'initial-calendar-window-hook 'display-time)
+;;;      (calendar)))
 (if (= init-emacs-type '19) 
     (dont-compile
       (require 'advice)
-      (defadvice appt-disp-window (around kn-appt-disp-win act)
+      (defadvice appt-disp-window (around kn-appt-disp-win compile)
 	(if (or (= min-to-app 20)
 		(and (<= min-to-app 6) (= (mod min-to-app 2) 0)))
 	    ad-do-it))
@@ -1054,24 +1062,28 @@ feeling, but you'll get used to it."
 	      (holiday-fixed 12 6 "National Day of Remembrance and Action on
 Violence Against Women")
 	      (holiday-fixed 12 26 "Boxing Day")))
-      (autoload 'appt-make-list "appt.el" nil t)
-      (add-hook 'initial-calendar-window-hook 'display-time)))
+;;; don't need to do this -- was done above
+;;;      (add-hook 'initial-calendar-window-hook 'display-time)
+      (autoload 'appt-make-list "appt.el" nil t)))
 
-; ;; Appointments every 3 minutes not every 1 minute!
-; (defadvice appt-check (around my-appt-advice activate)
-;    "Notify about appointments only if time is multiple of 3."
-;    (let ((cur-min (string-to-int 
-; 		   (substring (current-time-string) 14 16))))
-;      (if (eq 0 (mod cur-min 3))
-; 	 ad-do-it)))
+;;; ;; Appointments every 3 minutes not every 1 minute!
+;;; (defadvice appt-check (around my-appt-advice activate)
+;;;    "Notify about appointments only if time is multiple of 3."
+;;;    (let ((cur-min (string-to-int 
+;;; 		   (substring (current-time-string) 14 16))))
+;;;      (if (eq 0 (mod cur-min 3))
+;;; 	 ad-do-it)))
 
-;; From: nickel@cs.tu-berlin.de (Juergen Nickelsen)
-;; Newsgroups: gnu.emacs.help,comp.emacs
-;; Subject: Re: model for .emacs file
-;; Date: 18 Jan 1993 18:48:18 GMT
-;; Organization: STONE Project, Technical University of Berlin, Germany
-;; Message-ID: <NICKEL.93Jan18194816@tempest.cs.tu-berlin.de>
-;;
+;;;;-------
+;;;; the closing comments.....
+
+;;; From: nickel@cs.tu-berlin.de (Juergen Nickelsen)
+;;; Newsgroups: gnu.emacs.help,comp.emacs
+;;; Subject: Re: model for .emacs file
+;;; Date: 18 Jan 1993 18:48:18 GMT
+;;; Organization: STONE Project, Technical University of Berlin, Germany
+;;; Message-ID: <NICKEL.93Jan18194816@tempest.cs.tu-berlin.de>
+;;;
 ;;; Local Variables:
 ;;; eval: (defun byte-compile-this-file () (write-region (point-min) (point-max) buffer-file-name nil 't) (byte-compile-file buffer-file-name) nil)
 ;;; write-file-hooks: (byte-compile-this-file)
