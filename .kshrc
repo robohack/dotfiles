@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	18.11	97/03/07 23:45:28 (woods)"
+#ident	"@(#)HOME:.kshrc	18.12	97/10/15 02:37:12 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -162,18 +162,28 @@ if [ "$id" -eq 0 ] ; then
 		PATH=$(echo $PATH | sed -e 's~^/bin:~~' -e 's~:/etc:~:~')
 		dirprepend PATH /usr/5bin
 		dirappend PATH /usr/openwin/bin
-	else
-		dirprepend PATH /etc
+	elif [ ! -d /usr/sbin ] ; then
+		dirprepend PATH /etc /usr/etc
 	fi
-	dirappend PATH /usr/etc /usr/lbin /usr/ucb $X11BIN
+	dirprepend PATH /sbin /usr/sbin
+	dirappend PATH /usr/lbin /usr/ucb $X11BIN
 	if [ -n "$LOCAL" ] ; then
-		dirappend PATH $LOCAL/etc $LOCAL/sbin $LOCAL/bin $LOCAL/lib
+		dirappend PATH $LOCAL/sbin $LOCAL/bin $LOCAL/lib
+		if [ ! -d $LOCAL/sbin ] ; then
+			dirappend PATH $LOCAL/etc
+		fi
 	fi
 	if [ -n "$GNU" ] ; then
-		dirappend PATH $GNU/etc $GNU/sbin $GNU/bin $GNU/lib
+		dirappend PATH $GNU/sbin $GNU/bin $GNU/lib
+		if [ ! -d $GNU/sbin ] ; then
+			dirappend PATH $GNU/etc
+		fi
 	fi
 	if [ -n "$CONTRIB" ] ; then
-		dirappend PATH $CONTRIB/etc $CONTRIB/sbin $CONTRIB/bin $CONTRIB/lib
+		dirappend PATH $CONTRIB/sbin $CONTRIB/bin $CONTRIB/lib
+		if [ ! -d $CONTRIB/sbin ] ; then
+			dirappend PATH $CONTRIB/etc
+		fi
 	fi
 	dirappend PATH /usr/lib/uucp /usr/lib
 	dirappend PATH $HOME/bin
@@ -262,7 +272,7 @@ if [ "$TERM" = "xterm" ] ; then
 
 	function setban
 	{
-		eval TBANNER='"${WBANNER:+$WBANNER | }$PWD | $uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN"'
+		eval TBANNER='"${WBANNER:+$WBANNER|}$PWD|$uid@$UUNAME{$gid}($LOGNAME)[$LEV]:$TTYN"'
 		print "\033]0;$TBANNER\007\c"
 		WBANNER=""
 	}
@@ -285,12 +295,9 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			trap "trap 1 2 3 15; setban" 1 2 3 15
 			WBANNER="GNU Emacs @ $UUNAME"
 			setban
-			REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 			mesg n
 			emacs ${1+"$@"}
 			setban
-			$REMESG
-			unset REMESG
 		}
 	fi
 
@@ -306,12 +313,9 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		fi
 		WBANNER="CU $*"
 		setban
-		REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 		mesg n
 		/usr/bin/cu ${1+"$@"}
 		setban
-		$REMESG
-		unset REMESG
 	}
 
 	unalias ckermit
@@ -326,12 +330,9 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		fi
 		WBANNER="C-Kermit $*"
 		setban
-		REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 		mesg n
 		$LOCAL/bin/ckermit ${1+"$@"}
 		setban
-		$REMESG
-		unset REMESG
 	}
 
 	if expr "$(type rlogin)" : '.* is .*/rlogin$' >/dev/null 2>&1 ; then
@@ -343,12 +344,24 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			trap "trap 1 2 3 15; setban" 1 2 3 15
 			WBANNER="rlogin $*"
 			setban
-			REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 			mesg n
 			$RLOGIN ${1+"$@"}
 			setban
-			$REMESG
-			unset REMESG
+		}
+	fi
+
+	if expr "$(type slogin)" : '.* is .*/slogin$' >/dev/null 2>&1 ; then
+		SLOGIN="$(expr "$(type slogin)" : '^.*/\([^/]*\)$')"; export SLOGIN
+		unalias slogin
+		alias slogin=_slogin
+		function _slogin
+		{
+			trap "trap 1 2 3 15; setban" 1 2 3 15
+			WBANNER="slogin $*"
+			setban
+			mesg n
+			$SLOGIN ${1+"$@"}
+			setban
 		}
 	fi
 
@@ -366,12 +379,9 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			fi
 			WBANNER="telnet $*"
 			setban
-			REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 			mesg n
 			$TELNET ${1+"$@"}
 			setban
-			$REMESG
-			unset REMESG
 		}
 	fi
 
@@ -383,12 +393,9 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			trap "trap 1 2 3 15; setban" 1 2 3 15
 			WBANNER="MUSH $*"
 			setban
-			REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 			mesg n
 			mush -C ${1+"$@"}
 			setban
-			$REMESG
-			unset REMESG
 		}
 	fi
 
@@ -400,12 +407,9 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			trap "trap 1 2 3 15; setban" 1 2 3 15
 			WBANNER="IRC $*"
 			setban
-			REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 			mesg n
 			irc ${1+"$@"}
 			setban
-			$REMESG
-			unset REMESG
 		}
 	fi
 
@@ -417,12 +421,9 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			trap "trap 1 2 3 15; setban" 1 2 3 15
 			WBANNER="TRN $*"
 			setban
-			REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 			mesg n
 			trn ${1+"$@"}
 			setban
-			$REMESG
-			unset REMESG
 		}
 	fi
 
@@ -433,7 +434,6 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		trap "trap 1 2 3 15; setban" 1 2 3 15
 		WBANNER="SU $*"
 		setban
-		REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 		mesg n
 		if [ -x /usr/5bin/su ] ; then
 			/usr/5bin/su ${1+"$@"}
@@ -443,8 +443,6 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			/bin/su ${1+"$@"}
 		fi
 		setban
-		$REMESG
-		unset REMESG
 	}
 
 	if [ -x $LOCAL/games/nethack ] ; then
@@ -458,12 +456,9 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			fi
 			WBANNER="NetHack"
 			setban
-			REMESG=$(mesg | sed -e 's/is/mesg/' -e 's/^y/mesg y/')
 			mesg n
 			$LOCAL/games/nethack
 			setban
-			$REMESG
-			unset REMESG
 		}
 	fi
 
