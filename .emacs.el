@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	16.3	95/04/05 23:51:37 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	16.4	95/04/20 16:11:05 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -257,6 +257,42 @@ directory in the list PATHLIST, otherwise nil."
 
 ;;;; ----------
 ;;;; some useful functions....
+
+;;From: friedman@gnu.ai.mit.edu (Noah Friedman)
+;;Message-Id: <9502130229.AA10679@tepui.cli.com>
+;;Subject: nuke-trailing-whitespace
+;;Date: Sun, 12 Feb 95 20:29:02 CST
+;;
+(defvar nuke-trailing-whitespace-p 'ask
+  "If `nil', the function `nuke-trailing-whitespace' is disabled.
+If `t', `nuke-trailing-whitespace' unreservedly strips trailing whitespace
+from the current buffer.  If not `nil' and not `t', a query is made for each
+instance of trailing whitespace.")
+;;
+;;(add-hook 'write-file-hooks 'nuke-trailing-whitespace)
+;;
+(defun nuke-trailing-whitespace ()
+  "Nuke all trailing whitespace in the buffer.
+Whitespace in this case is just spaces or tabs.
+This is a useful function to put on write-file-hooks.
+
+If the variable `nuke-trailing-whitespace-p' is `nil', this function is
+disabled.  If `t', unreservedly strip trailing whitespace.
+If not `nil' and not `t', query for each instance."
+  (interactive)
+  (and nuke-trailing-whitespace-p
+       (save-match-data
+         (save-excursion
+           (save-restriction
+             (widen)
+             (goto-char (point-min))
+             (cond ((eq nuke-trailing-whitespace-p t)
+                    (while (re-search-forward "[ \t]+$" (point-max) t)
+                      (delete-region (match-beginning 0) (match-end 0))))
+                   (t
+                    (query-replace-regexp "[ \t]+$" "")))))))
+  ;; always return nil, in case this is on write-file-hooks.
+  nil)
 
 ;;;; For mail reading or looking at man pages (courtesy Mark Moraes)
 (defun remove-nroff-bs ()
