@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.24	99/08/10 20:22:16 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.25	99/08/10 23:30:21 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1922,10 +1922,10 @@ current emacs server process..."
 (add-hook 'list-diary-entries-hook 'sort-diary-entries)
 (add-hook 'mark-diary-entries-hook 'mark-included-diary-files)
 (setq view-diary-entries-initially t)
-;;;   (setq mark-diary-entries-in-calendar t) ; way too expensive....
+(setq mark-diary-entries-in-calendar t) ; quite CPU expensive....
 (setq mark-holidays-in-calendar t)
 (setq diary-display-hook (list 'appt-make-list 'fancy-diary-display))
-(setq number-of-diary-entries [3 3 3 3 3 4 3])
+(setq number-of-diary-entries [4 4 4 4 4 5 5])
 (setq all-christian-calendar-holidays t)
 (setq other-holidays
       '((holiday-sexp			; abs-easter stolen from holidays.el
