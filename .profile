@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	8.3	95/02/17 14:07:07 (woods)"
+#ident	"@(#)HOME:.profile	8.4	95/03/02 10:53:14 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -416,7 +416,7 @@ robohack | toile | wombat | spinne | weirdo )
 * )
 	echo "Re-setting terminal preferences...."
 	stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
-	eval `tset -sr -m dmd:dmd -m dmd-myx:dmd-myx -m sun:sun -m xterm:xterm -m vt100:vt100 -m vt102:vt102 -m at386:at386 -m AT386:at386 -m :?$TERM -`
+	eval `tset -sr -m dmd:dmd -m dmd-myx:dmd-myx -m sun:sun -m xterm:xterm -m vt100:vt100 -m vt102:vt102 -m at386:at386 -m AT386:at386 -m ibmpc3:ibmpc3 -m :?$TERM -`
 	case $TTY in
 	/dev/tty[p-zP-Z]* | /dev/vt* | /dev/console )
 		echo "Setting up an 8-bit tty environment...."
@@ -446,7 +446,7 @@ esac
 
 if [ -d $HOME/lib/terminfo ] ; then
 	case $TERM in
-	at386*|AT386*|386AT*|386at*|dmd|dmd-myx)
+	at386*|AT386*|386AT*|386at*|dmd|dmd-myx|ibmpc3|pc3)
 		TERMINFO=$HOME/lib/terminfo ; export TERMINFO
 		;;
 	esac
