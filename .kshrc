@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	6.1	95/02/15 11:08:05 (woods)"
+#ident	"@(#)HOME:.kshrc	6.2	95/02/15 17:54:42 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -66,7 +66,11 @@ function dirprepend
 	unset varname varvalue
 }
 
-# for window systems, first time a shell starts (i.e. $LEV == 0)
+if typeset -f do_first_time >/dev/null ; then
+	unset -f do_first_time
+fi
+
+# for window systems which don't emulate login sessions in each window
 #
 function do_first_time
 {
@@ -91,6 +95,9 @@ function do_first_time
 				echo '\nNotes on: ' *
 			fi
 		)
+	fi
+	if [ -r $HOME/.trninit$TERM ] ; then
+		TRNINIT="$HOME/.trninit$TERM" ; export TRNINIT
 	fi
 }
 
@@ -219,7 +226,7 @@ fi
 
 if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	if [ "$LEV" -eq 0 ] ; then
-		do_first_time
+		do_first_time	# in xterms, we are a login shell, but not in layers
 	fi
 	MYXCLR_L="$(myxban -l)"
 	MYXCLR_C="$(myxban -c)"
@@ -249,10 +256,6 @@ if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 fi
 
 if [ "$TERM" = "xterm" ] ; then
-	if [ "$LEV" -eq 0 ] ; then
-		do_first_time
-	fi
-
 	alias clearban='WBANNER=""; setban'
 
 	function setban
