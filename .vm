@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.5	98/10/08 10:21:44 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.6	98/10/08 12:15:30 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -365,18 +365,23 @@ NOTE:  Changes to this variable only take effect when your .vm is reloaded.")
 necessary any more with newer versions of VM, eg. 6.62."
   (interactive)
   (save-excursion
-    (my-vm-quit-all-virtual-folders)
+    ;; this is no longer necessar with newer versions of VM, eg. 6.62
+    ;;(my-vm-quit-all-virtual-folders)
+    ;; make sure all new messages are in their target folders so that the magic
+    ;; for the General Delivery folder works....
     (my-vm-visit-all-virtual-folders)))
 
 (defun my-vm-get-new-mail ()
   "Local version of vm-get-new-mail that updates all virtual folders in
-vm-virtual-folder-alist.  This doesn't seem to be necessary any more with newer
-versions of VM, eg. 6.62."
+vm-virtual-folder-alist."
   (interactive)
   (save-excursion
-    (my-vm-quit-all-virtual-folders)
+    ;; this is no longer necessar with newer versions of VM, eg. 6.62
+    ;;(my-vm-quit-all-virtual-folders)
     (set-buffer (vm-get-file-buffer vm-primary-inbox))
     (vm-get-new-mail)
+    ;; make sure all new messages are in their target folders so that the magic
+    ;; for the General Delivery folder works....
     (my-vm-visit-all-virtual-folders)))
 
 ;; This overrides the normal binding of 'G' to vm-sort-messages....
