@@ -1,7 +1,13 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	8.8	95/03/11 18:48:02 (woods)"
+#ident	"@(#)HOME:.profile	8.9	95/03/16 22:29:53 (woods)"
+
+#
+# Assumptions:
+#
+#	- $argv0 is `basename $0` from .xinitrc or .xsession
+#
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -19,12 +25,6 @@ fi
 
 if [ -z "$DOMAINNAME" ] ; then
 	case "$UUNAME" in
-	scilink )		# the one I want!
-		DOMAINNAME=".planix.com" ; export DOMAINNAME
-		;;
-	kuma )			# the *real* one!
-		DOMAINNAME=".web.net" ; export DOMAINNAME
-		;;
 	toile | web )		# 386/ix machines
 		DOMAINNAME=".web.apc.org" ; export DOMAINNAME
 		;;
@@ -32,9 +32,11 @@ if [ -z "$DOMAINNAME" ] ; then
 		if expr "`type domainname`" : '.* is .*/domainname$' >/dev/null 2>&1 ; then
 			DOMAINNAME="`domainname`" ; export DOMAINNAME
 		else
+			# these cases for machines without domanname....
+			#
 			case "$UUNAME" in
 			weirdo )
-				DOMAINNAME="weird.com" ; export DOMAINNAME
+				DOMAINNAME=".weird.com" ; export DOMAINNAME
 				;;
 			* )
 				DOMAINNAME=".UUCP" ; export DOMAINNAME
@@ -90,6 +92,7 @@ dirprepend ()
 
 case "$UUNAME" in
 robohack | kuma | araignee | tar | spinne | toile | wombat | weirdo | most | very | isit )
+	# we trust $PATH has been initialized correctly on these machines....
 	;;
 * )
 	PATH="/bin" ; export PATH	# start fresh...
@@ -103,7 +106,7 @@ if [ -z "$LOCAL" ] ; then
 	elif [ -d /usr/local ] ; then
 		LOCAL="/usr/local" ; export LOCAL
 	else
-		LOCAL="/local" ; export LOCAL
+		LOCAL="/NO-local-FOUND" ; export LOCAL
 	fi
 fi
 
@@ -113,7 +116,7 @@ if [ -z "$CONTRIB" ] ; then
 	elif [ -d /usr/contrib ] ; then
 		CONTRIB="/usr/contrib" ; export CONTRIB
 	else
-		CONTRIB="/contrib" ; export CONTRIB
+		CONTRIB="/NO-contrib-FOUND" ; export CONTRIB
 	fi
 fi
 
@@ -125,7 +128,7 @@ if [ -z "$GNU" ] ; then
 	elif [ -d /usr/local/gnu ] ; then
 		GNU="/usr/local/gnu" ; export GNU
 	else
-		GNU="/gnu" ; export GNU
+		GNU="/NO-gnu-FOUND" ; export GNU
 	fi
 fi
 
@@ -141,7 +144,7 @@ if [ -z "$X11PATH" ] ; then
 	elif [ -d /usr/local/X11R? ] ; then
 		X11PATH="`echo /usr/local/X11R?`" ; export X11PATH
 	else
-		X11PATH="`echo /X11R?`" ; export X11PATH
+		X11PATH="/NO-X11-FOUND" ; export X11PATH
 	fi
 fi
 
@@ -149,7 +152,7 @@ dirappend PATH /usr/bin/X11 $LOCAL/bin $GNU/bin $CONTRIB/bin /usr/ucb
 dirappend PATH /usr/games $LOCAL/games
 
 # TODO: We need to find some way to tell if this is 4.4BSD or not, since
-# TODO: we shouldn't set MANPATH for that man(1).
+# TODO: we shouldn't set MANPATH for that version of man(1).
 #
 if [ -z "$MANPATH" ] ; then
 	if [ -d /usr/share/man ] ; then
@@ -246,14 +249,19 @@ fi
 case "$MAILER" in
 mh )
 	if [ -d $CONTRIB/mh ] ; then
-		MHDIR=$CONTRIB/mh ; export MHDIR
+		dirprepend PATH $CONTRIB/mh/bin
+		dirprepend MANPATH $CONTRIB/mh/man
 	elif [ -d $LOCAL/mh ] ; then
-		MHDIR=$LOCAL/mh ; export MHDIR
-	else
-		MHDIR=/usr/mh ; export MHDIR
+		dirprepend PATH $LOCAL/mh/bin
+		dirprepend MANPATH $LOCAL/mh/man
+	elif [ -d /usr/mh ] ; then
+		dirprepend PATH /usr/mh/bin
+		dirprepend MANPATH /usr/mh/man
+	elif [ -d $LOCAL/bin/mh ] ;then
+		# this is a non-std setup -- $LOCAL/mh/man might not exist
+		dirprepend PATH $LOCAL/bin/mh
+		dirprepend MANPATH $LOCAL/mh/man
 	fi
-	dirprepend PATH $MHDIR/bin
-	dirprepend MANPATH $MHDIR/man
 	;;
 esac
 
@@ -342,6 +350,8 @@ EDITOR="`expr "$EDITOR" : '^.*/\([^/]*\)$'`"; export EDITOR
 VISUAL="`expr "$VISUAL" : '^.*/\([^/]*\)$'`"; export VISUAL
 EXINIT="set sm" ; export EXINIT
 
+# TODO: move this to .localprofile
+#
 if [ -n "$APCCONFIG" ] ; then
 	case "$UUNAME" in
 	web )
@@ -380,7 +390,7 @@ if [ -n "$APCCONFIG" ] ; then
 	dirappend PATH $APCCONFIG/bin $APCCONFIG/xbin /apc/bin /apc/xbin
 	dirappend PATH /usr/local/apc/bin /usr/local/apc/xbin
 	dirappend MANPATH /apc/man
-	if [ -d $HOME/.pn ] ; then
+	if [ -d $HOME/.pn -a "$argv0" != ".xsession" -a "$argv0" != ".xinitrc" ] ; then
 		echo "$TERM" > $HOME/.pn/TERM
 		stty -g > $HOME/.pn/SANE
 		echo "$TERMINFO" > $HOME/.pn/TERMINFO
@@ -406,12 +416,13 @@ TRNINIT="$HOME/.trninit" ; export TRNINIT
 
 # set terminal type...
 case "$UUNAME" in
-robohack | toile | wombat | spinne | sunweb | weirdo | isit | most | very )
+robohack | toile | wombat | spinne | tar | sunweb | weirdo | isit | most | very )
 	: we trust that everything is all set up as it should be....
 	;;
 * )
 	echo "Re-setting terminal preferences...."
 	stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
+	# TODO: use getttytype()
 	eval `tset -I -sr -m dmd:dmd -m dmd-myx:dmd-myx -m sun:sun -m xterm:xterm -m vt100:vt100 -m vt102:vt102 -m at386:at386 -m AT386:at386 -m ibmpc3:ibmpc3 -m :?$TERM -`
 	case $TTY in
 	/dev/tty[p-zP-Z]* | /dev/vt* | /dev/console )
@@ -422,15 +433,17 @@ robohack | toile | wombat | spinne | sunweb | weirdo | isit | most | very )
 	;;
 esac
 
+# TODO: find some way to see if login(1) ran, or xterm(n) started us
+# TODO: since login(1) checks for mail too, but xterm(n) doesn't.
+#
 # check your mail...
+#
 case "$UUNAME" in
 robohack | toile | wombat )
 	# /etc/profile or login(1) does this for us
 	:
 	;;
 * )
-	# TODO: find some way to see if login(1) ran, or xterm(n) started us
-	# TODO: since login(1) checks for mail too, but xterm(n) doesn't.
 	[ -x /bin/mail ] && /bin/mail -e
 	HAVENEWMAIL=$?
 	if $HAVEMUSH && [ $HAVENEWMAIL -eq 0 ] ; then
@@ -455,19 +468,9 @@ if [ -d $HOME/lib/terminfo ] ; then
 	esac
 fi
 
-if [ -r $HOME/.kshedit ] ; then
-	if grep "^set -o vi" $HOME/.kshedit ; then
-		# this horrible hack assumes that vi users
-		# will also have the prevailing default stty
-		# settings in /etc/profile....
-		: real men use emacs!
-	else
-		# we don't want no stinking defaults!
-		stty intr '^?'
-	fi
+if [ "$argv0" != ".xsession" -a "$argv0" != ".xinitrc" ] ; then
+	SANE="`stty -g`" ; export SANE
 fi
-
-SANE="`stty -g`" ; export SANE
 
 # one thing we assume here is that PS1 will be set in .*login or $ENV
 #
@@ -522,7 +525,7 @@ if expr "`type xinit`" : '.* is .*/xinit$' >/dev/null 2>&1 ; then
 	HAVEX=true
 fi
 
-if $HAVEX ; then
+if $HAVEX && [ "$argv0" != ".xinitrc" -a "$argv0" != ".xsession" ] ; then
 	case "$TTYN" in
 	console|vg*|vt*|ttyc*)
 		case "$TERM" in
@@ -616,12 +619,19 @@ fi
 if [ -r $HOME/.trninit$TERM ] ; then
 	TRNINIT="$HOME/.trninit$TERM" ; export TRNINIT
 fi
+
+# final system-local user preferences go in here
+#
+if [ -r $HOME/.localprofile ] ; then
+	. $HOME/.localprofile
+fi
+
 # TODO: do something with msgs(1) if needed....
 
-# NOTE: trick 4.4BSD shell into -E by putting it in here, not
-# "set -o emacs" in .ashrc, as that'll core-dump it....
+# NOTE: trick 4.4BSD shell into -E by putting it in here, 'cause you can't
+# "set -o emacs" in .ashrc, as that'll cause it to dump core....
 #
-if [ -s $HOME/.shell ] ; then
+if [ -s $HOME/.shell -a "$argv0" != ".xinitrc" -a "$argv0" != ".xsession" ] ; then
 	# mktable just throws away comments....
 	exec `mktable $HOME/.shell`
 fi
