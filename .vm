@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.12	98/03/02 19:02:38 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.13	98/03/04 02:19:12 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -407,6 +407,7 @@ message/rfc822 attachments."
 			      ("aegis-users@" . "aegis-users-l")
 			      ("auto-net@" . "auto-net-l")
 			      ("automake@" . "automake-l")
+			      ("cssc-users@gnu.org" . "cssc-users-l")
 			      ("best-of-security@suburbia.net" . "best-of-security-l")
 			      ("bind@" . "bind-l")
 			      ("bind-users@" . "bind-users-l")
