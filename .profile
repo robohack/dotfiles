@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	18.10	97/10/15 02:14:25 (woods)"
+#ident	"@(#)HOME:.profile	18.11	98/01/05 20:14:42 (woods)"
 
 #
 # Assumptions:
@@ -165,6 +165,17 @@ if [ -z "$CONTRIB" ] ; then
 	export CONTRIB
 fi
 
+if [ -z "$PKG" ] ; then
+	if [ -d /pkg -a -d /pkg/bin ] ; then
+		PKG="/pkg"
+	elif [ -d /usr/pkg -a -d /usr/pkg/bin ] ; then
+		PKG="/usr/PKG"
+	else
+		PKG="/NO-pkg-FOUND"
+	fi
+	export PKG
+fi
+
 if [ -z "$GNU" ] ; then
 	if [ -d /local/gnu -a -d /local/gnu/bin ] ; then
 		GNU="/local/gnu"
@@ -176,6 +187,25 @@ if [ -z "$GNU" ] ; then
 		GNU="/NO-gnu-FOUND"
 	fi
 	export GNU
+fi
+
+if [ -z "$WORKPATH" ] ; then
+	if [ -d /work -a -d /work/$LOGNAME-work.d ] ; then
+		WORKPATH="$WORKPATH:/work/$LOGNAME-work.d"
+	fi
+	if [ -d /work -a -w /work/work.d -a -x /work/work.d ] ; then
+		WORKPATH="$WORKPATH:/work/work.d"
+	fi
+	if [ -d $LOCAL/work -a -d $LOCAL/work/$LOGNAME-work.d ] ; then
+		WORKPATH="$LOCAL/work/$LOGNAME-work.d"
+	fi
+	if [ -d $LOCAL/work.d -a -w $LOCAL/work.d -a -x $LOCAL/work.d ] ; then
+		WORKPATH="$WORKPATH:/work/work.d"
+	fi
+	if [ -z "$WORKPATH" ] ; then
+		WORKPATH="/NO-work-FOUND:Rejoice!"
+	fi
+	export WORKPATH
 fi
 
 # TODO: explore more options for this....  (xmkmf?)
@@ -208,7 +238,7 @@ if [ -z "$X11PATH" ] ; then
 	export X11BIN
 fi
 
-dirappend PATH /usr/ccs/bin $X11BIN $LOCAL/bin $GNU/bin $CONTRIB/bin /usr/ucb /usr/bsd
+dirappend PATH /usr/ccs/bin $X11BIN $LOCAL/bin $GNU/bin $CONTRIB/bin $PKG/bin /usr/ucb /usr/bsd
 dirappend PATH /usr/games $LOCAL/games
 case "$UUNAME" in
 web | robohack )
@@ -230,7 +260,7 @@ OMANPATH="$MANPATH" ; export OMANPATH
 if [ ! -d $LOCAL/share/man ] ; then
 	dirappend MANPATH $LOCAL/man
 fi
-dirprepend MANPATH $LOCAL/share/man $GNU/man $CONTRIB/man $X11PATH/man
+dirprepend MANPATH $LOCAL/share/man $GNU/man $CONTRIB/man $PKG/man $X11PATH/man
 # XXX tcl manpages are horrible as they override many others!
 #dirappend MANPATH $LOCAL/share/man.tcltk
 
@@ -240,7 +270,7 @@ if [ -x /usr/bin/sun ] ; then
 		ISSUN=true
 		PATH=`echo $PATH | sed 's/^\/bin://'`
 		if [ "`uname -r | sed 's/^\([0-9]*\).*$/\1/'`" -lt 5 ] ; then
-			if [ "$LOGNAME" != root ] ; then
+			if [ "X$LOGNAME" != "Xroot" ] ; then
 				dirprepend PATH /usr/5bin
 			else
 				dirappend PATH /usr/5bin
@@ -377,6 +407,9 @@ mh )
 	if [ -d $CONTRIB/mh ] ; then
 		dirprepend PATH $CONTRIB/mh/bin
 		dirprepend MANPATH $CONTRIB/mh/man
+	elif [ -d $PKG/mh ] ; then
+		dirprepend PATH $CONTRIB/mh/bin
+		dirprepend MANPATH $CONTRIB/mh/man
 	elif [ -d $LOCAL/mh ] ; then
 		dirprepend PATH $LOCAL/mh/bin
 		dirprepend MANPATH $LOCAL/mh/man
@@ -387,6 +420,25 @@ mh )
 		# this is a non-std setup -- $LOCAL/mh/man might not exist
 		dirprepend PATH $LOCAL/bin/mh
 		dirprepend MANPATH $LOCAL/mh/man
+	fi
+	;;
+nmh )
+	if [ -d $CONTRIB/nmh ] ; then
+		dirprepend PATH $CONTRIB/nmh/bin
+		dirprepend MANPATH $CONTRIB/nmh/man
+	elif [ -d $PKG/nmh ] ; then
+		dirprepend PATH $CONTRIB/nmh/bin
+		dirprepend MANPATH $CONTRIB/nmh/man
+	elif [ -d $LOCAL/nmh ] ; then
+		dirprepend PATH $LOCAL/nmh/bin
+		dirprepend MANPATH $LOCAL/nmh/man
+	elif [ -d /usr/nmh ] ; then
+		dirprepend PATH /usr/nmh/bin
+		dirprepend MANPATH /usr/nmh/man
+	elif [ -d $LOCAL/bin/nmh ] ;then
+		# this is a non-std setup -- $LOCAL/nmh/man might not exist
+		dirprepend PATH $LOCAL/bin/nmh
+		dirprepend MANPATH $LOCAL/nmh/man
 	fi
 	;;
 esac
@@ -570,8 +622,8 @@ if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 		case "$TERM" in
 		xterm|sun|pc3|ibmpc3)
 			# users will have to set their own $DISPLAY....
-			dirappend PATH /usr/bin/X11 $X11PATH/bin
-			dirappend MANPATH /usr/share/X11/man $X11PATH/man
+			dirappend PATH $X11PATH/bin
+			dirappend MANPATH $X11PATH/man
 			;;
 		esac
 
@@ -651,7 +703,7 @@ elif [ -r $HOME/.shlogin ] ; then
 		if [ -n "$ENV" -a -r "$ENV" ] ; then
 			. $ENV
 		else
-			if [ "$LOGNAME" = root ] ; then
+			if [ "X$LOGNAME" = "Xroot" ] ; then
 				PS1="[$TTYN]<$LOGNAME@$UUNAME> # "
 			else
 				PS1="[$TTYN]<$LOGNAME@$UUNAME> $ "
