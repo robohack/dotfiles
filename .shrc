@@ -1,7 +1,7 @@
 #
 #	.shrc - per-shell startup stuff for /bin/sh
 #
-#ident	"@(#)HOME:.shrc	20.1	98/07/20 11:23:47 (woods)"
+#ident	"@(#)HOME:.shrc	20.2	98/10/14 01:42:05 (woods)"
 
 PATH="$PATH"
 export PATH
@@ -287,7 +287,7 @@ nstty ()
 }
 maillog ()
 {
-	$PAGER -e +G $MAILLOG
+	$PAGER -e -p ": remote [A-Z ]*:" +G $MAILLOG
 }
 rstty ()
 {
