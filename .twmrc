@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.5	95/08/22 19:43:03 (woods)"
+#ident	"@(#)HOME:.twmrc	2.6	95/11/26 00:02:53 (woods)"
 #
 
 AutoRelativeResize
@@ -126,6 +126,10 @@ function "start-x11host-xterm" {
 	f.exec "$RSH -n $X11HOST $X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls &"
 }
 
+function "start-isit-xterm" {
+	f.exec "$RSH -n isit $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+}
+
 function "start-most-xterm" {
 	f.exec "$RSH -n most $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
 }
@@ -134,12 +138,16 @@ function "start-very-xterm" {
 	f.exec "$RSH -n very $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
+function "start-sometimes-xterm" {
+	f.exec "$RSH -n sometimes $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
 function "start-araignee-xterm" {
 	f.exec "$RSH -n araignee $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
 function "start-jala-xterm" {
-	f.exec "$RSH -n jala $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	f.exec "$RSH -n jala $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
 function "start-kuma-xterm" {
@@ -178,35 +186,47 @@ function "start-very-rlogin" {
 }
 
 function "start-sometimes-rlogin" {
-	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin sometimes.weird.com &"
+	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin sometimes.weird.com &"
 }
 
 function "start-totoro-rlogin" {
 	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin totoro.cyclic.com &"
 }
 
+function "start-aci-rlogin" {
+	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin aci.on.ca &"
+}
+
+function "start-logon-rlogin" {
+	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin log.on.ca &"
+}
+
+function "start-cancom-rlogin" {
+	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin cancom.ca &"
+}
+
+function "start-newscancom-rlogin" {
+	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin news.cancom.ca &"
+}
+
 function "start-araignee-rlogin" {
-	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin araignee.web.net &"
+	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin araignee.web.net &"
 }
 
 function "start-jala-rlogin" {
-	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin jala.web.net &"
+	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin jala.web.net &"
 }
 
 function "start-kuma-rlogin" {
-	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin kuma.web.net &"
+	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin kuma.web.net &"
 }
 
 function "start-netserver-rlogin" {
 	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin netserver.web.net &"
 }
 
-function "start-oldweb-rlogin" {
-	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin oldweb.web.net &"
-}
-
 function "start-tar-rlogin" {
-	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin tar.web.net &"
+	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin tar.web.net &"
 }
 
 function "start-web-rlogin" {
@@ -349,6 +369,7 @@ menu "defops"
 	"Twm"			f.title
 	"Window Operations..."	f.menu "winops"
 	"Window Manager..."	f.menu "wmops"
+	"  Refresh"		f.winrefresh
 	""			f.nop
 	"Applications..."	f.menu "applications"
 	"Preferences..."	f.menu "preferences"
@@ -385,14 +406,14 @@ menu "winops"
 
 menu "wmops"
 {
+	"Icon Manager..."	f.menu "iconmgr"
+	"Window Summary..."	f.menu "TwmWindows"
+	""			f.nop
 	"Refresh"		f.refresh
+	""			f.nop
 	"Restart"		f.restart
 	""			f.nop
-	"Icon Manager..."	f.menu "iconmgr"
-	""			f.nop
 	"Version"		f.version
-	""			f.nop
-	"Window Summary..."	f.menu "TwmWindows"
 }
 
 menu "zooms"
@@ -425,17 +446,69 @@ menu "iconmgr"
 	"Right"			f.righticonmgr
 }
 
-# "personal preference" adjustment
+# "personal preference" adjustments
 menu "preferences"
 {
 	"Preferences"		f.title
-	"Bell On"		!"xset b 100 800 &"
-	"Bell Off"		!"xset b 0 &"
-	"Click On"		!"xset c on &"
-	"Click Off"		!"xset c off &"
-	"Mouse Fast"		!"xset m 9 5&"
-	"Mouse Normal"		!"xset m 6 3&"
-	"Mouse Slow"		!"xset m 1 1&"
+	"Query"			!"xset q"
+	"Auto Repeat On"	!"xset r on"
+	"Auto Repeat Off"	!"xset r off"
+	"Bell On"		!"xset b 100 800"
+	"Bell Off"		!"xset b 0"
+	"Click On"		!"xset c on"
+	"Click Off"		!"xset c off"
+	"Mouse Fast"		!"xset m 9 5"
+	"Mouse Normal"		!"xset m 6 3"
+	"Mouse Slow"		!"xset m 1 1"
+	"Mouse Default"		!"xset m default"
+	"Bug Compat On"		!"xset bc"
+	"Bug Compat Off"	!"xset -bc"
+	"ReHash FP"		!"xset fp rehash"
+	"Reset FP Default"	!"xset fp default"
+	"Prefer 75dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/75dpi/,/usr/lib/X11/fonts/100dpi/"
+	"Prefer 100dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/100dpi/,/usr/lib/X11/fonts/75dpi/"
+##	"Video Inverse"		!"xset p 1 0"
+##	"Video Normal"		!"xset p 0 1"
+	"Screen Saver..."	f.menu "screensaver"
+	"Keyboard LEDs..."	f.menu "leds"
+}
+menu "screensaver"
+{
+	"Screen Saver Features"	f.title
+	"Set Timer..."		f.menu "screensavertime"
+	"Enable"		!"xset s on"
+	"Disable"		!"xset s off"
+	"Use Video Blanking"	!"xset s blank"
+	"Use Background Pattern" !"xset s noblank"
+	""			f.nop
+	"Set Defaults"		!"xset s default"
+}
+
+menu "screensavertime"
+{
+	"Enable Screen Saver after:"	f.title
+	"5  sec"			!"xset s 5"
+	"30 sec"			!"xset s 30"
+	"1  min"			!"xset s 60"
+	"5  min"			!"xset s 300"
+	"10 min"			!"xset s 600"
+	"15 min"			!"xset s 900"
+}
+
+
+menu "leds"
+{
+	"Keyboard LED Control"	f.title
+	"all on"		!"xset led on"
+	"all off"		!"xset led off"
+	"1 on"			!"xset led 1"
+	"1 off"			!"xset -led 1"
+	"2 on"			!"xset led 2"
+	"2 off"			!"xset -led 2"
+	"3 on"			!"xset led 3"
+	"3 off"			!"xset -led 3"
+	"4 on"			!"xset led 4"
+	"4 off"			!"xset -led 4"
 }
 
 menu "exit"
@@ -455,19 +528,23 @@ menu "applications"
 	"WWW Everywhere..."		f.menu "www"
 	"Games Everywhere..."		f.menu "games"
 	""				f.nop
+	"xshell"			!"xshell &"
+	"xman"				!"xman &"
+	"xcalc"				!"xcalc &"
 	"xclock"			!"xclock -geometry 190x190-4+4 &"
 	"xclock -digital"		!"xclock -geometry 190x30-4+196 -digital &"
 	"xmailwatcher"			!"xmailwatcher -geometry 300x100-4+240 -iconic -icongeometry -140+240 -iconic -mailbox $MAILPATH &"
-	"xcalc"				!"xcalc &"
 	"xload"				!"xload -geometry 120x137-205+4 -hl grey90 &"
+	"xload @most"			!"$RSH -n most xload -display $DISPLAY -geometry 120x150-205+150 -hl grey90 &"
 	"xlock"				!"xlock -mode flame &"
 	"xlock remote"			!"xlock -remote -mode flame &"
-	"xman"				!"xman &"
+	"OpenWin-2 xlock"		!"env LD_LIBRARY_PATH=/usr/openwin/lib:/usr/lib xlock -mode qix &"
+	"   Backgrounds"		f.nop
+	"xearth"			!"xearth -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
+	"xearth on greyscale"		!"xearth -gamma 1.6 -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xphoon"			!"xphoon -t 10 &"
 	"xsetroot eschernknot"		!"xsetroot -bitmap $X11PATH/include/X11/bitmaps/escherknot"
 	"xsetroot xsnow"		!"xsetroot -bitmap $X11PATH/include/X11/bitmaps/snow"
-	"xshell"			!"xshell &"
-	"OpenWin-2 xlock"		!"env LD_LIBRARY_PATH=/usr/openwin/lib:/usr/lib xlock -mode qix &"
 }
 
 menu "emacs"
@@ -482,12 +559,14 @@ menu "emacs"
 menu "www"
 {
 	"WWW Browsers Everywhere!"	f.title
+	"  Mosaic:"			f.nop
 	"Mosaic@localhost"		f.function "start-mosaic"
 	"Mosaic@X11-host"		f.function "start-x11host-mosaic"
 	"Mosaic@sometimes"		f.function "start-sometimes-mosaic"
 	"Mosaic@weird"			f.function "start-weird-mosaic"
 	"Mosaic@spinne"			f.function "start-spinne-mosaic"
 	"Mosaic@kuma"			f.function "start-kuma-mosaic"
+	"  Netscape:"			f.nop
 	"netscape@localhost"		f.function "start-netscape"
 	"netscape@X11-host"		f.function "start-x11host-netscape"
 	"netscape@netserver"		f.function "start-netserver-netscape"
@@ -509,8 +588,10 @@ menu "xterm"
 	"Xterm @localhost"		f.function "start-xterm"
 	"Xterm @X11-host"		f.function "start-x11host-xterm"
 	"    weird.com hosts"		f.nop
+	"Xterm @isit"			f.function "start-isit-xterm"
 	"Xterm @most"			f.function "start-most-xterm"
 	"Xterm @very"			f.function "start-very-xterm"
+	"Xterm @sometimes"		f.function "start-sometimes-xterm"
 	"    web.net hosts"		f.nop
 	"Xterm @araignee"		f.function "start-araignee-xterm"
 	"Xterm @jala"			f.function "start-jala-xterm"
@@ -531,23 +612,17 @@ menu "rlogin"
 	""				f.nop
 	"Rlogin @totoro.cyclic.com"	f.function "start-totoro-rlogin"
 	""				f.nop
-	"Rlogin @araignee.web.net"	f.function "start-araignee-rlogin"
-	"Rlogin @jala.web.net"		f.function "start-jala-rlogin"
-	"Rlogin @kuma.web.net"		f.function "start-kuma-rlogin"
-	"Rlogin @netserver.web.net"	f.function "start-netserver-rlogin"
-	"Rlogin @oldweb.web.net"	f.function "start-oldweb-rlogin"
-	"Rlogin @spinne.web.net"	f.function "start-spinne-rlogin"
-	"Rlogin @tar.web.net"		f.function "start-tar-rlogin"
-	"Rlogin @web.net"		f.function "start-web-rlogin"
-	""				f.nop
 	"Rlogin @whome.planix.com"	f.function "start-whome-rlogin"
 	"Rlogin @woffi.planix.com"	f.function "start-woffi-rlogin"
 	"Rlogin @worm.planix.com"	f.function "start-worm-rlogin"
 	""				f.nop
-	"Rlogin @druid.com"		f.function "start-druid-rlogin"
-	"Rlogin @skeptic.druid.com"	f.function "start-skeptic-rlogin"
-	""				f.nop
 	"Rlogin @martech.planix.com"	f.function "start-martech-rlogin"
+	""				f.nop
+	"Rlogin @aci.on.ca"		f.function "start-aci-rlogin"
+	"Rlogin @log.on.ca"		f.function "start-logon-rlogin"
+	""				f.nop
+	"Rlogin @cancom.ca"		f.function "start-cancom-rlogin"
+	"Rlogin @news.cancom.ca"	f.function "start-newscancom-rlogin"
 	""				f.nop
 	"Rlogin @passport.ca"		f.function "start-passport-rlogin"
 	""				f.nop
@@ -557,4 +632,15 @@ menu "rlogin"
 	""				f.nop
 	"Rlogin @iguana.reptiles.org"	f.function "start-iguana-rlogin"
 	"Rlogin @tuatara.reptiles.org"	f.function "start-tuatara-rlogin"
+	""				f.nop
+	"Rlogin @druid.com"		f.function "start-druid-rlogin"
+	"Rlogin @skeptic.druid.com"	f.function "start-skeptic-rlogin"
+	""				f.nop
+	"Rlogin @araignee.web.net"	f.function "start-araignee-rlogin"
+	"Rlogin @jala.web.net"		f.function "start-jala-rlogin"
+	"Rlogin @kuma.web.net"		f.function "start-kuma-rlogin"
+	"Rlogin @netserver.web.net"	f.function "start-netserver-rlogin"
+	"Rlogin @spinne.web.net"	f.function "start-spinne-rlogin"
+	"Rlogin @tar.web.net"		f.function "start-tar-rlogin"
+	"Rlogin @web.net"		f.function "start-web-rlogin"
 }
