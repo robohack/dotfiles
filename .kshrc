@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	3.2	94/05/10 12:34:18 (woods)"
+#ident	"@(#)HOME:.kshrc	3.3	94/05/10 12:35:08 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -145,6 +145,9 @@ if [ "$id" -eq 0 ] ; then
 		MAILPATH="/usr/mail/${LOGNAME}:/usr/mail/root:/usr/mail/adm\
 :/usr/mail/uucp:/usr/mail/badmail:/usr/mail/usenet:/usr/adm/lastlog\
 :/usr/adm/sulog"
+	fi
+	if [ "$VISUAL" = "emacsclient" ] ; then
+		export VISUAL=emacs
 	fi
 	# fix for ksh-11/16/88b
 	#alias passwd='/bin/passwd'
