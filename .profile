@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	9.10	95/11/30 14:54:57 (woods)"
+#ident	"@(#)HOME:.profile	9.11	95/11/30 14:57:03 (woods)"
 
 #
 # Assumptions:
@@ -234,7 +234,7 @@ if [ -x /usr/bin/sun ] ; then
 				dirappend PATH /usr/5bin
 			fi
 		else
-			dirprepend PATH /opt/SUNSwpro/bin
+			dirprepend PATH /opt/SUNWspro/bin
 		fi
 		dirappend PATH /usr/openwin/bin /usr/openwin/demo
 		dirappend MANPATH /usr/openwin/share/man
