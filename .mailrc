@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	24.4	02/11/06 17:49:21 (woods)"
+# ident	"@(#)HOME:.mailrc	24.5	02/11/18 15:15:16 (woods)"
 
 # NOTE: Comments (lines with a leading '#') must have whitespace after the '#'
 
@@ -108,6 +108,7 @@ alias jet-fuel	"jet-fuel@weird.com (Caffeine is fuel for your mind)"
 #	friendly aliases
 #
 alias aci-support "support@aci.on.ca (ACI Technical Support)"
+alias aci-netadmin "netadmin@aci.on.ca (ACI Network Administrator)"
 alias adb	"adb@onramp.ca (Anthony DeBoer)"
 alias alex	"alex@corelan.com (Alex von Tiesenhausen)"
 alias all-planix "all@planix.com (Those Planix Dudes)"
@@ -147,6 +148,7 @@ alias kyle	"Kyle Jones <kyle_jones@wonderworks.com>"
 alias lcis	"professionals@bookclubservices.com (Library of Computer and Information Sciences)"
 alias marc	"marc@somanetworks.com (Marc Staveley)"
 alias me	"woods@weird.com (Greg A. Woods)"
+alias netadmin-aci "netadmin@aci.on.ca (ACI Network Administrator)"
 alias nik	"habern@caledon.org (Nik Habermel)"
 alias norman	"norman@cs.yorku.ca (Norman Wilson)"
 alias ops	"ops@weird.com (Weird NOC)"
