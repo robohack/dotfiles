@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	8.7	94/03/06 11:45:14 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	8.8	94/03/07 19:39:00 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -893,6 +893,7 @@ current emacs server process..."
 (global-set-key "\eJ" 'fill-region)
 
 (global-set-key "\C-x\C-i" 'insert-file)
+(global-set-key "\C-xI" 'insert-buffer)
 (global-set-key "\e " 'set-mark-command)
 (global-set-key "\C-x " 'fixup-whitespace)
 (global-set-key "\C-xt" 'goto-line)
