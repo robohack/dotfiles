@@ -3,9 +3,9 @@
 #
 #	.xinitrc - X Window System startup file
 #
-#ident	"@(#)HOME:$Id$"
-#ident	"@(#)HOME:.xinitrc	1.2	93/11/26 14:50:22 (woods)"
-#
+#ident	"@(#)HOME:.xinitrc	1.3	94/02/17 18:17:31 (woods)"
+
+PATH=$PATH:$HOME/bin
 
 argv0="`basename $0`"
 
@@ -49,8 +49,12 @@ if [ "$argv0" = .xinitrc -a "$TTY" = /dev/console ] ; then
 fi
 
 xclock -geometry 190x30-4+196 -digital &
+# ensure they get overlayed in the right order
 sleep 1
 xclock -geometry 190x190-4+4 &
+
+rsh -n kuma /usr/openwin/bin/perfmeter -geometry 130x640-205+4 -display $DISPLAY kuma.web.net &
+rsh -n kuma /usr/openwin/bin/perfmeter -geometry 130x640-340+4 -display $DISPLAY tar.web.net &
 
 xmailwatcher -geometry 300x100-4+240 -iconic -icongeometry -140+240 -iconic -mailbox /var/spool/mail/$LOGNAME &
 xmailwatcher -geometry 300x100-4+300 -iconic -icongeometry -140+300 -iconic -mailbox /kuma/big/var/spool/mail/$LOGNAME &
@@ -58,15 +62,15 @@ xmailwatcher -geometry 300x100-4+300 -iconic -icongeometry -140+300 -iconic -mai
 # Grrr.... xsol doesn't take standard toolkit args....
 #xsol -geometry 32x48-4+260 -iconic &
 
-if [ -x /usr/bin/X11/xsysstats ] ; then
-	xsysstats -geometry 120x137-205+4 -type load1 -type disk -sample 5 &
-	xsysstats -geometry 120x137-205+150 -type load1 -host kuma -type disk -host kuma -sample 5 &
-#	xsysstats -geometry 120x137-4+260 -type load1 -host araignee -type disk -host araignee -sample 5 &
-else
-	xload -geometry 120x137-205+4 -hl grey90 &
-	rsh -n kuma /usr/openwin/bin/xload -geometry 120x137-205+150 -jumpscroll 1 -hl grey90 -display $DISPLAY &
-#	rsh -n araignee /usr/openwin/bin/xload -geometry 120x137-4+260 -hl grey90 -display $DISPLAY &
-fi
+#if [ -x /usr/bin/X11/xsysstats ] ; then
+#	xsysstats -geometry 120x137-205+4 -type load1 -type disk -sample 5 &
+#	xsysstats -geometry 120x137-205+150 -type load1 -host kuma -type disk -host kuma -sample 5 &
+#else
+#	xload -geometry 120x137-205+4 -hl grey90 &
+#	rsh -n kuma /usr/openwin/bin/xload -geometry 120x137-205+150 -jumpscroll 1 -hl grey90 -display $DISPLAY &
+#fi
+
+sleep 1
 
 xterm -geometry 80x24-4+360 -sl 500 -sb -sk -si -rw  -ls -T Primary &
 
