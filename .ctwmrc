@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	21.3	00/01/07 01:20:10 (woods)"
+#ident	"@(#)HOME:.ctwmrc	21.4	00/01/07 01:25:21 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -62,11 +62,10 @@ DontPaintRootWindow
 DontSqueezeTitle
 NoGrabServer
 OpaqueResize
+OpaqueMove
 NoRaiseOnMove
 NoRaiseOnResize
 NoMenuShadows
-NoTitleHighlight
-OpaqueMove
 RestartPreviousState
 ReallyMoveInWorkspaceManager
 #ReverseCurrentWorkspace
@@ -76,6 +75,7 @@ SchrinkIconTitles
 StayUpMenus
 StartInMapState
 SunkFocusWindowTitle
+NoTitleHighlight
 UseThreeDBorders
 UseThreeDIconBorders
 UseThreeDIconManagers
