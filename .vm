@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.28	96/10/20 18:56:09 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.29	96/10/20 20:13:25 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -491,6 +491,19 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-movemail-program "movemail"
       vm-mutable-frames nil
       vm-mutable-windows t
+;;; because of the silly way call-process works, and the horrid syntax
+;;; of netscape's -remote option you'll need a script like this in order
+;;; to start netscape on a remote host:
+;; #! /bin/sh
+;; 
+;; NETSCAPEHOST=weird
+;; NETSCAPEPATH=/usr/local/bin/netscape
+;; 
+;; if [ $# -eq 2 -a X"$1" = X"-remote" ] ; then
+;; 	rsh $NETSCAPEHOST $NETSCAPEPATH -display $DISPLAY -remote "'$2'"
+;; else
+;; 	rsh $NETSCAPEHOST $NETSCAPEPATH -display $DISPLAY 
+;; fi
       vm-netscape-program "netscape"
 ;;; shouldn't mess with this
 ;;;   vm-options-file "~/.vm.options"
