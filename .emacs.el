@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.8	93/11/03 19:42:47 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	1.9	93/11/11 14:29:06 (woods)"
 ;;;
 ;;; per-user start-up functions
 ;;;
@@ -138,8 +138,10 @@ directory in the list PATHLIST, otherwise nil."
        '(("/[^/]+\\.t[imes]?$" . nroff-mode))
        '(("/[^/]+\\.t$" . c-mode))
        '(("/[^/]*[rR][eE][aA][dD]" . indented-text-mode))
-       '(("^/tmp/\\.ed" . indented-text-mode))
-       '(("^/tmp/nf" . indented-text-mode))
+       '(("/.article" . indented-text-mode))
+       '(("/.letter" . indented-text-mode))
+       '(("^.*/tmp/\\.ed.*$" . indented-text-mode))
+       '(("^.*/tmp/nf.*$" . indented-text-mode))
        auto-mode-alist))
 
 (if (elisp-file-in-loadpath-p "ksh-mode")
