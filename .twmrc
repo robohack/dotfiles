@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	18.17	97/06/24 13:46:48 (woods)"
+#ident	"@(#)HOME:.twmrc	18.18	97/08/29 13:01:39 (woods)"
 #
 
 AutoRelativeResize
@@ -153,7 +153,7 @@ Button2 = : iconmgr : f.iconify
 Button3 = : iconmgr : f.lower
 
 
-#	for xterms menus
+#	for weird-xterms menu
 #
 function "start-local-xterm" {
 	f.exec "$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls &"
@@ -195,6 +195,9 @@ function "start-pretty-xterm" {
 	f.exec "$RSH -n pretty.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
+
+#	for planix-xterms menu
+#
 function "start-whome-xterm" {
 	f.exec "$RSH -n whome.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
@@ -203,60 +206,8 @@ function "start-woffi-xterm" {
 	f.exec "$RSH -n woffi.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
-function "start-wind-xterm" {
-	f.exec "$RSH -n wind.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-}
-
-function "start-weight-xterm" {
-	f.exec "$RSH -n weight.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-}
-
-function "start-clapton-xterm" {
-	f.exec "$RSH -n clapton.seachange.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-}
-
-function "start-tugboat-xterm" {
-	f.exec "$RSH -n tugboat.seachange.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-}
-
-function "start-sparky-xterm" {
-	f.exec "$RSH -n sparky.seachange.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-}
-
-function "start-prospero-xterm" {
-	f.exec "$RSH -n prospero.seachange.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-}
-
-function "start-hamlet-xterm" {
-	f.exec "$RSH -n hamlet.seachange.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-}
-
-function "start-bsdibox-xterm" {
-	f.exec "$RSH -n bsdibox.seachange.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-}
-
-function "start-bsdibox-xterm" {
-	f.exec "$RSH -n bsdibox.seachange.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-}
-
-function "start-rock-xterm" {
-	f.exec "$RSH -n rock.seachange.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-}
-
-function "start-quicksilver-xterm" {
-	f.exec "$RSH -n quicksilver.infoshare.net exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-}
-
-function "start-kuma-xterm" {
-	f.exec "$RSH -n kuma.web.net exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
-}
-
-function "start-web-xterm" {
-	f.exec "$RSH -n web.net exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-}
-
-function "start-gryphon-xterm" {
-	f.exec "$RSH -n gryphon.to.opentext.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+function "start-warlord-xterm" {
+	f.exec "$RSH -n warlord.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
 
@@ -437,131 +388,6 @@ function "start-warlord-slogin" {
 }
 
 
-#	for rlogin-ipass menu
-#
-function "start-seachange-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin seachange.com &"
-}
-
-function "start-auth1-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin auth1.ipass.com &"
-}
-
-function "start-clapton-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin clapton.seachange.com &"
-}
-
-function "start-tugboat-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin tugboat.seachange.com &"
-}
-
-function "start-sparky-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin sparky.seachange.com &"
-}
-
-function "start-prospero-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin prospero.seachange.com &"
-}
-
-function "start-hamlet-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin hamlet.seachange.com &"
-}
-
-function "start-bsdibox-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin bsdibox.seachange.com &"
-}
-
-function "start-rock-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin rock.seachange.com &"
-}
-
-
-#	for telnet-ipass menu
-#
-function "start-seachange-telnet" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet seachange.com &"
-}
-
-function "start-auth1-telnet" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet auth1.ipass.com &"
-}
-
-function "start-www-telnet" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet www.ipass.com &"
-}
-
-function "start-clapton-telnet" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet clapton.seachange.com &"
-}
-
-function "start-tugboat-telnet" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet tugboat.seachange.com &"
-}
-
-function "start-sparky-telnet" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet sparky.seachange.com &"
-}
-
-function "start-prospero-telnet" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet prospero.seachange.com &"
-}
-
-function "start-hamlet-telnet" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet hamlet.seachange.com &"
-}
-
-function "start-bsdibox-telnet" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet bsdibox.seachange.com &"
-}
-
-function "start-rock-telnet" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet rock.seachange.com &"
-}
-
-
-#	for slogin-ipass menu
-#
-function "start-seachange-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C seachange.com &"
-}
-
-function "start-auth1-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C auth1.ipass.com &"
-}
-
-function "start-www-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C www.ipass.com &"
-}
-
-function "start-clapton-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C clapton.seachange.com &"
-}
-
-function "start-tugboat-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C tugboat.seachange.com &"
-}
-
-function "start-sparky-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C sparky.seachange.com &"
-}
-
-function "start-prospero-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C prospero.seachange.com &"
-}
-
-function "start-hamlet-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C hamlet.seachange.com &"
-}
-
-function "start-bsdibox-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C bsdibox.seachange.com &"
-}
-
-function "start-rock-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C rock.seachange.com &"
-}
-
-
 #	for rlogin-infoshare menu
 #
 function "start-quicksilver-rlogin" {
@@ -581,6 +407,19 @@ function "start-quicksilver-slogin" {
 
 function "start-cyberia-slogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C cyberia.infoshare.net &"
+}
+
+
+#	for rlogin-proxy menu
+#
+function "start-proxy-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin server.proxy.com &"
+}
+
+#	for slogin-proxy menu
+#
+function "start-proxy-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin server.proxy.com &"
 }
 
 
@@ -616,7 +455,7 @@ function "start-logon-rlogin" {
 #	for slogin-logon menu
 #
 function "start-sogon-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin log.on.ca &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin log.on.ca &"
 }
 
 
@@ -656,15 +495,15 @@ function "start-dynamic-rlogin" {
 #	for slogin-pageactive menu
 #
 function "start-warp-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin warp.pageactive.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin warp.pageactive.com &"
 }
 
 function "start-deephaze-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin deephaze.pageactive.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin deephaze.pageactive.com &"
 }
 
 function "start-dynamic-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin dynamic.pageactive.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin dynamic.pageactive.com &"
 }
 
 
@@ -686,15 +525,15 @@ function "start-forged-rlogin" {
 #	for slogin-passport menu
 #
 function "start-passport-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin passport.ca &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin passport.ca &"
 }
 
 function "start-cayaman-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin cayman.passport.ca &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin cayman.passport.ca &"
 }
 
 function "start-forged-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin forged.passport.ca &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin forged.passport.ca &"
 }
 
 
@@ -706,6 +545,17 @@ function "start-solsinfo-rlogin" {
 
 function "start-solsweb-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin solsweb.sols.on.ca &"
+}
+
+
+#	for slogin-sols menu
+#
+function "start-solsinfo-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin solsinfo.sols.on.ca &"
+}
+
+function "start-solsweb-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin solsweb.sols.on.ca &"
 }
 
 
@@ -748,7 +598,7 @@ function "start-gryphon-rlogin" {
 #	for slogin-opentext menu
 #
 function "start-gryphon-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin gryphon.to.opentext.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin gryphon.to.opentext.com &"
 }
 
 
@@ -766,11 +616,11 @@ function "start-web-rlogin" {
 #	for slogin-web menu
 #
 function "start-kuma-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin kuma.web.net &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin kuma.web.net &"
 }
 
 function "start-web-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin web.net &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin web.net &"
 }
 
 
@@ -857,25 +707,6 @@ function "start-clapton-ghostview" {
 }
 
 
-#	for viewfaxes menu
-#
-function "start-local-viewfax" {
-	f.exec "$LOCAL/bin/viewfax -d $DISPLAY &"
-}
-
-function "start-x11server-viewfax" {
-	f.exec "$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY $LOCAL/bin/viewfax &"
-}
-
-function "start-most-viewfax" {
-	f.exec "$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $LOCAL/bin/viewfax &"
-}
-
-function "start-woffi-viewfax" {
-	f.exec "$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY $LOCAL/bin/viewfax &"
-}
-
-
 #	for WWW menu
 #
 function "start-local-mosaic" {
@@ -890,6 +721,10 @@ function "start-most-mosaic" {
 	f.exec "$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
 }
 
+function "start-weirdo-mosaic" {
+	f.exec "$RSH -n ns.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/Mosaic &"
+}
+
 function "start-sometimes-mosaic" {
 	f.exec "$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
 }
@@ -898,28 +733,19 @@ function "start-always-mosaic" {
 	f.exec "$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
 }
 
-function "start-weirdo-mosaic" {
-	f.exec "$RSH -n ns.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/Mosaic &"
-}
-
 function "start-woffi-mosaic" {
 	f.exec "$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/Mosaic &"
 }
 
-function "start-kuma-mosaic" {
-	f.exec "$RSH -n kuma.web.net exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
-}
 
-function "start-clapton-mosaic" {
-	f.exec "$RSH -n clapton.seachange.com exec env PATH=$PATH:/usr/contrib/bin DISPLAY=$DISPLAY /usr/local/bin/Mosaic -ics 65536 &"
-}
-
-function "start-sparky-mosaic" {
-	f.exec "$RSH -n sparky.seachange.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/Mosaic -ics 65536 &"
-}
-
+#	for www-netscape menu
+#
 function "start-local-netscape" {
 	f.exec "$LOCAL/bin/netscape -display $DISPLAY &"
+}
+
+function "start-x11server-netscape" {
+	f.exec "$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
 }
 
 function "start-weirdo-netscape" {
@@ -930,41 +756,14 @@ function "start-sometimes-netscape" {
 	f.exec "$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
 }
 
+function "start-always-netscape" {
+	f.exec "$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
+}
+
 function "start-woffi-netscape" {
 	f.exec "$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
 }
 
-function "start-clapton-netscape" {
-	f.exec "$RSH -n clapton.seachange.com exec env PATH=$PATH:/usr/contrib/bin DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
-}
-
-function "start-sparky-netscape" {
-	f.exec "$RSH -n sparky.seachange.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
-}
-
-function "start-local-netscape-gold" {
-	f.exec "$LOCAL/bin/netscape-gold -display $DISPLAY &"
-}
-
-function "start-weirdo-netscape-gold" {
-	f.exec "$RSH -n ns.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape-gold -display $DISPLAY &"
-}
-
-function "start-sometimes-netscape-gold" {
-	f.exec "$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape-gold -display $DISPLAY &"
-}
-
-function "start-woffi-netscape-gold" {
-	f.exec "$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape-gold -display $DISPLAY &"
-}
-
-function "start-clapton-netscape-gold" {
-	f.exec "$RSH -n clapton.seachange.com exec env PATH=$PATH:/usr/contrib/bin DISPLAY=$DISPLAY /usr/local/bin/netscape-gold -display $DISPLAY &"
-}
-
-function "start-sparky-netscape-gols" {
-	f.exec "$RSH -n sparky.seachange.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape-gold -display $DISPLAY &"
-}
 
 #
 #	And the menus, with all of the usual things...
@@ -984,6 +783,7 @@ menu "quickies"
 	"Xterm"			f.function "start-local-xterm"
 	"Xterm @x11server"	f.function "start-x11server-xterm"
 	"Xtalk"			!"xtalk &"
+	"Xalarm"		!"alarm &"
 	""			f.nop
 	"Screen Refresh"	f.refresh
 	"Window Refresh"	f.winrefresh
@@ -1191,7 +991,6 @@ menu "applications"
 	"Telnet's Everywhere..."	f.menu "telnet"
 	"Slogin's Everywhere..."	f.menu "slogin"
 	"GhostView's Everywhere..."	f.menu "ghostviews"
-	"ViewFax's Everywhere..."	f.menu "viewfaxes"
 	"WWW Everywhere..."		f.menu "www"
 	"Xv Everywhere..."		f.menu "xvs"
 	"Emacs Everywhere..."		f.menu "emacs"
@@ -1299,46 +1098,34 @@ menu "ghostviews"
 	"@clapton"			f.function "start-clapton-ghostview"
 }
 
-menu "viewfaxes"
-{
-	"ViewFax"			f.title
-	"@localhost"			f.function "start-local-viewfax"
-	"@x11server"			f.function "start-x11server-viewfax"
-	"@most"				f.function "start-most-viewfax"
-	"@woffi"			f.function "start-woffi-viewfax"
-}
-
 menu "www"
 {
 	"WWW Browsers Everywhere!"	f.title
-	"  Mosaic:"			f.nop
+	"Mosaic..."			f.menu "www-mosaic"
+	"Netscape..."			f.menu "www-netscape"
+}
+
+menu "www-mosaic"
+{
+	"Mosaic WWW Browsers Everywhere!"	f.title
 	"@localhost"			f.function "start-local-mosaic"
 	"@x11server"			f.function "start-x11server-mosaic"
 	"@most"				f.function "start-most-mosaic"
-	"@pretty"			f.function "start-pretty-mosaic"
+	"@weirdo"			f.function "start-weirdo-mosaic"
 	"@sometimes"			f.function "start-sometimes-mosaic"
 	"@always"			f.function "start-always-mosaic"
-	"@weirdo"			f.function "start-weirdo-mosaic"
 	"@woffi"			f.function "start-woffi-mosaic"
-	"@kuma"				f.function "start-kuma-mosaic"
-	"@clapton"			f.function "start-clapton-mosaic"
-	"@sparky"			f.function "start-sparky-mosaic"
-	"  Netscape:"			f.nop
+}
+
+menu "www-netscape"
+{
+	"Netscape WWW Browsers Everywhere!"	f.title
 	"@localhost"			f.function "start-local-netscape"
+	"@x11server"			f.function "start-x11server-netscape"
 	"@weirdo"			f.function "start-weirdo-netscape"
 	"@sometimes"			f.function "start-sometimes-netscape"
 	"@always"			f.function "start-always-netscape"
 	"@woffi"			f.function "start-woffi-netscape"
-	"@clapton"			f.function "start-clapton-netscape"
-	"@sparky"			f.function "start-sparky-netscape"
-	"  Netscape-Gold:"		f.nop
-	"@localhost"			f.function "start-local-netscape-gold"
-	"@weirdo"			f.function "start-weirdo-netscape-gold"
-	"@sometimes"			f.function "start-sometimes-netscape-gold"
-	"@always"			f.function "start-always-netscape-gold"
-	"@woffi"			f.function "start-woffi-netscape-gold"
-	"@clapton"			f.function "start-clapton-netscape-gold"
-	"@sparky"			f.function "start-sparky-netscape-gold"
 }
 
 menu "games"
@@ -1371,9 +1158,6 @@ menu "xterm"
 	"Xterm @x11server"		f.function "start-x11server-xterm"
 	"weird.com hosts..."		f.menu "weird-xterms"
 	"planix.com hosts..."		f.menu "planix-xterms"
-	"ipass.com hosts..."		f.menu "ipass-xterms"
-	"infoshare.net hosts..."	f.menu "infoshare-xterms"
-	"web.net hosts..."		f.menu "web-xterms"
 }
 
 menu "weird-xterms"
@@ -1397,50 +1181,17 @@ menu "planix-xterms"
 	"Xterm @warlord"		f.function "start-warlord-xterm"
 }
 
-menu "ipass-xterms"
-{
-	"ipass.com hosts"		f.title
-	"Xterm @clapton"		f.function "start-clapton-xterm"
-	"Xterm @tugboat"		f.function "start-tugboat-xterm"
-	"Xterm @sparky"			f.function "start-sparky-xterm"
-	"Xterm @prospero"		f.function "start-prospero-xterm"
-	"Xterm @hamlet"			f.function "start-hamlet-xterm"
-	"Xterm @bsdibox"		f.function "start-bsdibox-xterm"
-	"Xterm @rock"			f.function "start-rock-xterm"
-}
-
-menu "infoshare-xterms"
-{
-	"infoshare.net hosts"		f.title
-	"Xterm @quicksilver"		f.function "start-quicksilver-xterm"
-}
-
-menu "opentext-xterms"
-{
-	"opentext.com hosts"		f.title
-	"Xterm @gryphon"		f.function "start-gryphon-xterm"
-}
-
-menu "web-xterms"
-{
-	"web.net hosts"			f.title
-	"Xterm @kuma"			f.function "start-kuma-xterm"
-	"Xterm @web"			f.function "start-web-xterm"
-}
-
 menu "rlogin"
 {
 	"Rlogin's Everywhere"		f.title
 	"Rlogin's at Weird.com..."	f.menu "rlogin-weird"
-	"Rlogin's at Cyclic.com..."	f.menu "rlogin-cyclic"
 	"Rlogin's at Planix.com..."	f.menu "rlogin-planix"
-	"Rlogin's at Ipass.com..."	f.menu "rlogin-ipass"
 	"Rlogin's at Infoshare.net..."	f.menu "rlogin-infoshare"
+	"Rlogin's at Proxy.com..."	f.menu "rlogin-proxy"
+	"Rlogin's at PageActive.com..."	f.menu "rlogin-pageactive"
 	"Rlogin's at ACI.on.ca..."	f.menu "rlogin-aci"
 	"Rlogin's at Log.on.ca..."	f.menu "rlogin-logon"
 	"Rlogin's at FGSC.ca..."	f.menu "rlogin-fgsc"
-	"Rlogin's at Cancom.net..."	f.menu "rlogin-cancom"
-	"Rlogin's at PageActive.com..."	f.menu "rlogin-pageactive"
 	"Rlogin's at Passport.ca..."	f.menu "rlogin-passport"
 	"Rlogin's at SOLS.on.ca..."	f.menu "rlogin-sols"
 	"Rlogin's at Vex.net..."	f.menu "rlogin-vex"
@@ -1448,6 +1199,7 @@ menu "rlogin"
 	"Rlogin's at Druid.net..."	f.menu "rlogin-druid"
 	"Rlogin's at OpenText.com..."	f.menu "rlogin-opentext"
 	"Rlogin's at Web.net..."	f.menu "rlogin-web"
+	"Rlogin's at Cyclic.com..."	f.menu "rlogin-cyclic"
 }
 
 menu "telnet"
@@ -1455,7 +1207,6 @@ menu "telnet"
 	"Telnet's Everywhere"		f.title
 	"Telnet's at Weird.com..."	f.menu "telnet-weird"
 	"Telnet's at Planix.com..."	f.menu "telnet-planix"
-	"Telnet's at Ipass.com..."	f.menu "telnet-ipass"
 }
 
 menu "slogin"
@@ -1464,13 +1215,15 @@ menu "slogin"
 	"Slogin's at Weird.com..."	f.menu "slogin-weird"
 	"Slogin's at Planix.com..."	f.menu "slogin-planix"
 	"Slogin's at Infoshare.net..."	f.menu "slogin-infoshare"
+	"Slogin's at Proxy.com..."	f.menu "slogin-proxy"
 	"Slogin's at PageActive.com..."	f.menu "slogin-pageactive"
 	"Slogin's at Passport.ca..."	f.menu "slogin-passport"
+	"Slogin's at SOLS.on.ca..."	f.menu "slogin-sols"
 	"Slogin's at ACI.on.ca..."	f.menu "slogin-aci"
 	"Slogin's at Log.on.ca..."	f.menu "slogin-logon"
+	"Slogin's at Rogers.wave.ca..." f.nop
 	"Slogin's at OpenText.com..."	f.menu "slogin-opentext"
 	"Slogin's at Web.net..."	f.menu "slogin-web"
-	"Slogin's at Ipass.com..."	f.menu "slogin-ipass"
 }
 
 menu "rlogin-weird"
@@ -1547,52 +1300,6 @@ menu "slogin-planix"
 	"Slogin @warlord"		f.function "start-warlord-slogin"
 }
 
-menu "rlogin-ipass"
-{
-	"Rlogin's At Ipass.com"		f.title
-	"Rlogin @seachange"		f.function "start-seachange-rlogin"
-	"Rlogin @auth1"			f.function "start-auth1-rlogin"
-	""				f.nop
-	"Rlogin @clapton"		f.function "start-clapton-rlogin"
-	"Rlogin @tugboat"		f.function "start-tugboat-rlogin"
-	"Rlogin @sparky"		f.function "start-sparky-rlogin"
-	"Rlogin @prospero"		f.function "start-prospero-rlogin"
-	"Rlogin @hamlet"		f.function "start-hamlet-rlogin"
-	"Rlogin @bsdibox"		f.function "start-bsdibox-rlogin"
-	"Rlogin @rock"			f.function "start-rock-rlogin"
-}
-
-menu "telnet-ipass"
-{
-	"Telnet's At Ipass.com"		f.title
-	"telnet @seachange"		f.function "start-seachange-telnet"
-	"telnet @auth1"			f.function "start-auth1-telnet"
-	"telnet @www"			f.function "start-www-telnet"
-	""				f.nop
-	"Telnet @clapton"		f.function "start-clapton-telnet"
-	"Telnet @tugboat"		f.function "start-tugboat-telnet"
-	"Telnet @sparky"		f.function "start-sparky-telnet"
-	"Telnet @prospero"		f.function "start-prospero-telnet"
-	"Telnet @hamlet"		f.function "start-hamlet-telnet"
-	"Telnet @bsdibox"		f.function "start-bsdibox-telnet"
-	"Telnet @rock"			f.function "start-rock-telnet"
-}
-
-menu "slogin-ipass"
-{
-	"Slogin's At Ipass.com"		f.title
-	"Slogin @seachange"		f.function "start-seachange-slogin"
-	"Slogin @auth1"			f.function "start-auth1-slogin"
-	"Slogin @www"			f.function "start-www-slogin"
-	""				f.nop
-	"Slogin @clapton"		f.function "start-clapton-slogin"
-	"Slogin @tugboat"		f.function "start-tugboat-slogin"
-	"Slogin @sparky"		f.function "start-sparky-slogin"
-	"Slogin @prospero"		f.function "start-prospero-slogin"
-	"Slogin @hamlet"		f.function "start-hamlet-slogin"
-	"Slogin @bsdibox"		f.function "start-bsdibox-slogin"
-	"Slogin @rock"			f.function "start-rock-slogin"
-}
 
 menu "rlogin-infoshare"
 {
@@ -1606,6 +1313,18 @@ menu "slogin-infoshare"
 	"Slogin's At Infoshare.net"	f.title
 	"Slogin @quicksilver"		f.function "start-quicksilver-slogin"
 	"Slogin @cyberia"		f.function "start-cyberia-slogin"
+}
+
+menu "rlogin-proxy"
+{
+	"Rlogin's At Proxy.com"		f.title
+	"Rlogin @server.proxy.com"	f.function "start-proxy-rlogin"
+}
+
+menu "slogin-proxy"
+{
+	"Slogin's At Proxy.com"		f.title
+	"Slogin @server.proxy.com"	f.function "start-proxy-slogin"
 }
 
 menu "rlogin-aci"
@@ -1638,13 +1357,6 @@ menu "rlogin-fgsc"
 {
 	"Rlogin's At FGSC.ca"		f.title
 	"Rlogin @fgsc.ca"		f.function "start-fgsc-rlogin"
-}
-
-menu "rlogin-cancom"
-{
-	"Rlogin's At Cancom.net"	f.title
-	"Rlogin @mail"			f.function "start-cancom-rlogin"
-	"Rlogin @news"			f.function "start-newscancom-rlogin"
 }
 
 menu "rlogin-pageactive"
@@ -1684,6 +1396,13 @@ menu "rlogin-sols"
 	"Rlogin's At SOLS.on.ca"	f.title
 	"Rlogin @solsinfo"		f.function "start-solsinfo-rlogin"
 	"Rlogin @solsweb"		f.function "start-solsweb-rlogin"
+}
+
+menu "slogin-sols"
+{
+	"Slogin's At SOLS.on.ca"	f.title
+	"Slogin @solsinfo"		f.function "start-solsinfo-slogin"
+	"Slogin @solsweb"		f.function "start-solsweb-slogin"
 }
 
 menu "rlogin-vex"
