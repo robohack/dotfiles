@@ -1,24 +1,20 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.4	98/02/01 00:18:19 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.5	98/02/01 02:41:38 (woods)"
 #
 
-# Ideas on how to use more powerful M4 processing on this file:
-#
-# Use different pictures on color and black & white screen:
-#ifelse(PLANES, 1, `
-#VirtualDesktopBackgroundPixmap  "/homes/elves/lib/rasters/space.rast"
-#PannerBackgroundPixmap "/homes/elves/lib/rasters/space2.xbm"',
-#`VirtualDesktopBackgroundPixmap  "/homes/elves/lib/rasters/space.color.gif"
-#PannerBackgroundPixmap "/homes/elves/lib/rasters/space2.xpm"')
-#
-# Centrally maintained menus:
-#include(/local/skel/X/twm-logins)
+changequote([, ])
+
+ifelse(eval(index(HOSTNAME, weird.com) >= 0), 1, [define(AT_WEIRD, [@weird.com])], [])
+ifelse(eval(index(HOSTNAME, planix.com) >= 0), 1, [define(AT_PLANIX, [@planix.com])], [])
+ifelse(eval(index(HOSTNAME, web.net) >= 0), 1, [define(AT_WEB, [@web.net])], [])
+ifelse(eval(index(HOSTNAME, seachange.com) >= 0), 1, [define(AT_SEACHANGE, [@seachange.com])], [])
+ifelse(eval(index(HOSTNAME, leitch.com) >= 0), 1, [define(AT_LEITCH, [@leitch.com])], [])
 
 AutoRelativeResize
 AutoRaiseIcons
-BeNiceToColormap
+ifelse(COLOR, Yes, [BeNiceToColormap], [])
 BorderResizeCursors
 CenterFeedbackWindow
 ClientBorderWidth
@@ -54,6 +50,7 @@ BorderShadowDepth		2
 FramePadding			0
 IconBorderWidth			3
 IconManagerShadowDepth		3
+MaxWindowSize			"WIDTH[x]HEIGHT"
 MenuShadowDepth			3
 MoveDelta			3
 OpaqueMoveThreshold		20
@@ -75,8 +72,9 @@ IconManagerFont	"-*-helvetica-bold-r-normal-*-*-80-100-100-*-*-*-*"
 # DefaultFunction must come after fonts....
 DefaultFunction f.beep
 
-WorkSpaceManagerGeometry	"120x150-200+140" 2
-#WorkSpaceManagerGeometry	"160x285-340+0" 2
+ifelse(HOSTNAME, very.weird.com,
+ [WorkSpaceManagerGeometry	"170x285-330+0" 2],
+ [WorkSpaceManagerGeometry	"120x150-200+140" 2])
 
 WorkSpaces {
 	"Main"
@@ -87,7 +85,8 @@ WorkSpaces {
 	"Work 2"
 }
 
-Color {
+ifelse(COLOR, Yes,
+[Color {
 	# highlit window borders
 	BorderColor		"SteelBlue"
 	# unused?
@@ -120,8 +119,17 @@ Color {
 	TitleBackground		"blue"
 	TitleForeground		"White"
 }
-
-Monochrome {
+MapWindowCurrentWorkSpace {
+	"yellow"
+	"grey50"
+	"grey98"
+}
+MapWindowDefaultWorkSpace {
+	"DarkGreen"
+	"grey98"
+	"grey50"
+}],
+[Monochrome {
 	BorderColor		"grey70"
 	BorderTileBackground	"grey6"
 	BorderTileForeground	"grey50"
@@ -138,29 +146,25 @@ Monochrome {
 	TitleBackground		"blue"
 	TitleForeground		"White"
 }
-
-# These should go in the colour selection, but don't work there
-# (somewhat equiv. to ReverseCurrentWorkspace)
-
 MapWindowCurrentWorkSpace {
-	"yellow"
+	"White"
 	"grey50"
 	"grey98"
 }
 MapWindowDefaultWorkSpace {
-	"DarkGreen"
+	"Black"
 	"grey98"
 	"grey50"
 }
-# MapWindowCurrentWorkSpace { "White" "Black" "grey98" }
-# MapWindowDefaultWorkSpace { "Black" "grey50" "grey98" }
+])
 
 IconJustification		"right"
 
 IconRegion	"500x250-0+300" North East 25 25
 
-IconDirectory		"HOME/lib/bitmaps:/usr/include/X11/bitmaps"
-PixmapDirectory		"HOME/lib/pixmaps:/usr/lib/X11/twm/images"
+IconDirectory		"HOME/lib/bitmaps:/usr/[include]/X11/bitmaps"
+ifdef([XPM],
+ [PixmapDirectory	"HOME/lib/pixmaps:/usr/lib/X11/twm/images"], [])
 
 #IconManagers	{ "XTerm" "=305x100-200+0" 1 }
 
@@ -189,19 +193,21 @@ UnknownIcon			"xpm:unknown.xpm"
 
 Icons {
 	"Untitled"	"xlogo16"
-	"auedit"	"xpm:audio_editor.xpm"
+	"xcmap"		"plaid"
+	"XConsole"	"terminal"
+ ifdef([XPM],
+[	"auedit"	"xpm:audio_editor.xpm"
 	"ghostview"	"xpm:ghostview.xpm"
 	"Mosaic"	"xpm:xmosaic.xpm"
 	"spider"	"xpm:spider.xpm"
 	"xcalendar"	"xpm:datebook.xpm"
 	"xclipboard"	"xpm:clipboard.xpm"
-	"xcmap"		"plaid"
-	"XConsole"	"terminal"
 	"xedit"		"xpm:xedit.xpm"
 	"xftp"		"xpm:xftp.xpm"
 	"xpostit"	"xpm:postit.xpm"
 	"XSm"		"xpm:xgrab.xpm"
-	"xterm"		"xpm:term.xpm"
+	"xterm"		"xpm:term.xpm"],
+[	"xterm"	"Term"])
 }
 
 Cursors {
@@ -322,9 +328,9 @@ Button1 =      : iconmgr : f.iconify
 Button2 =      : iconmgr : f.raise
 Button3 =      : iconmgr : f.lower
 
-LeftTitleButton ":xpm:bar" = f.menu "winops"
-#RightTitleButton  ":xpm:dot" = f.iconify
-#RightTitleButton "%xpm:resize" = f.resize
+ifdef([XPM],
+[LeftTitleButton ":xpm:bar" = f.menu "winops"],
+[LeftTitleButton "menu12" = f.menu "winops"])
 
 "F11"	=      : root	: f.nextworkspace
 "F12"	=      : root	: f.prevworkspace
@@ -354,8 +360,11 @@ menu "quickies"
 	"WinDelete or Destroy"	f.deleteordestroy
 	"Kill"			f.menu "kill"
 	""			f.separator
-	"Xterm"			!"$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls &"
-	"Xterm @x11server"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm @CLIENTHOST"	!"$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls &"
+ ifdef([AT_WEIRD],
+  ifelse(HOSTNAME, very.weird.com,
+	["Xterm @most"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"]
+	[]), [])
 	""			f.separator
 	"Toggle workspace"	f.togglestate
 	"Screen Refresh"	f.refresh
@@ -369,7 +378,7 @@ menu "quickies"
 
 menu "defops"
 {
-	"Twm"			f.title
+	"TWM_TYPE - Version TWM_VERSION"	f.title
 	"Window Operations..."	f.menu "winops"
 	"Window Manager..."	f.menu "wmops"
 	""			f.separator
@@ -421,12 +430,13 @@ menu "wmops"
 	"ShowWorkspaceManager"	f.showWorkspaceMgr
 	"HideWorkspaceManager"	f.hideWorkspaceMgr
 	"Adopt Window"		f.adoptwindow
+	"Identify Window"	f.identify
 	""			f.separator
-	"Refresh"		f.refresh
+	"Refresh Screen"	f.refresh
 	""			f.separator
-	"Restart"		f.restart
+	"Restart TWM_TYPE"	f.restart
 	""			f.separator
-	"Version"		f.version
+	"About TWM_TYPE"	f.version
 }
 
 menu "zooms"
@@ -486,12 +496,14 @@ menu "preferences"
 	"Prefer 100dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Type1/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/100dpi/,/usr/lib/X11/fonts/75dpi/,/usr/lib/X11/fonts/PEX/"
 ##	"Video Inverse"		!"xset p 1 0"
 ##	"Video Normal"		!"xset p 0 1"
-	"Colour Map Ctl..."	f.menu "cmap"
+ ifelse(COLOR, Yes,
+	["Colour Map Ctl..."	f.menu "cmap"], [])
 	"Screen Saver..."	f.menu "screensaver"
 	"Keyboard LEDs..."	f.menu "leds"
 }
 
-menu "cmap"
+ifelse(COLOR, Yes,
+[menu "cmap"
 {
 	"Colour Map Control"	f.title
 	"View Default Map"	!"xcmap &"
@@ -510,7 +522,7 @@ menu "cmap"
 	"Delete red"		!"xstdcmap -delete red -verbose &"	
 	"Delete green"		!"xstdcmap -delete green -verbose &"	
 	"Delete blue"		!"xstdcmap -delete blue -verbose &"	
-}
+}], [])
 
 menu "screensaver"
 {
@@ -669,7 +681,8 @@ menu "emacs"
 	"@whats"			!"$RSH -n whats.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
 	"@woffi"			!"$RSH -n woffi.planix.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /local/bin/emacs -display '$DISPLAY' -i' &"
 	"@kuma"				!"$RSH -n kuma.web.net '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/spool/mail/$LOGNAME'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
-	"@clapton"			!"$RSH -n clapton.seachange.com '. ./.localprofile; PATH='$PATH':/usr/contrib/bin; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /usr/contrib/bin/emacs -display '$DISPLAY' -i ' &"
+ ifdef([AT_SEACHANGE],
+	["@clapton"			!"$RSH -n clapton.seachange.com '. ./.localprofile; PATH='$PATH':/usr/contrib/bin; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /usr/contrib/bin/emacs -display '$DISPLAY' -i ' &"], [])
 }
 
 menu "monitors"
@@ -683,8 +696,9 @@ menu "monitors"
 	"xbiff @x11server"	!"$ONX11SERVER $X11BIN/xbiff -rv -bw 0 -display $DISPLAY &"
 	"xlbiff"		!"xlbiff &"
 	"xbuffy"		!"xbuffy -geometry 100x25-0+250 -shortnames -header 0 -acmd 'auplay -audio $AUDIOSERVER HOME/sounds/newmail' &"
-	"xbuffy @x11server"	!"$ONX11SERVER $X11BIN/xbuffy -mail $MAILPATH -display $DISPLAY -geometry 100x25-0+250 -shortnames -header 0 -acmd '\"/opt/games/bin/auplay -audio '$AUDIOSERVER' HOME/sounds/newmail\"' &"
-	"xbuffy @most"		!"$ONX11SERVER $X11BIN/xbuffy -mail /var/spool/mail/$LOGNAME -display $DISPLAY -geometry 100x25-0+250 -shortnames -header 0 -acmd '\"/opt/games/bin/auplay -audio '$AUDIOSERVER' /local/audio/newmail1.au\"' &"
+	"xbuffy @x11server"	!"$ONX11SERVER $X11BIN/xbuffy -mail $MAILPATH -display $DISPLAY -geometry 100x25-0+250 -shortnames -header 0 ifdef([AT_WEIRD], [-acmd '\"/opt/games/bin/auplay -audio '$AUDIOSERVER' HOME/sounds/newmail\"'], []) &"
+ ifdef([AT_WEIRD],
+	["xbuffy @most"		!"$RSH -n most.weird.com $X11BIN/xbuffy -mail /var/spool/mail/$LOGNAME -display $DISPLAY -geometry 100x25-0+250 -shortnames -header 0 -acmd '\"/opt/games/bin/auplay -audio '$AUDIOSERVER' /local/audio/newmail1.au\"' &"])
 	""			f.separator
 	"xload"			!"xload -geometry 120x130-200+0 -hl grey90 &"
 	"xload @x11server"	!"$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x130-200+148 -hl grey90 &"
@@ -713,16 +727,17 @@ menu "backgrounds"
 	"xearth"		!"xearth -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth nogrid"		!"xearth -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -wait 900 -nice 10 &"
 	"xearth orbiting"	!"xearth -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
-	"xearth orbiting fast"	!"xearth -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -nice 10 &"
-	"xearth -gamma 1.7"	!"xearth -gamma 1.7 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
+	"xearth orbiting fast"	!"xearth -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid &"
+ ifelse(COLOR, Yes,
+	["xearth -gamma 1.7"	!"xearth -gamma 1.7 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth -gamma 1.7 nogrid" !"xearth -gamma 1.7 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -wait 900 -nice 10 &"
 	"xearth -gamma 1.7 orbiting" !"xearth -gamma 1.7 -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
-	"xearth -gamma 1.7 orbiting fast" !"xearth -gamma 1.7 -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -nice 10 &"
-	"xearth on greyscale"	!"xearth -gamma 1.6 -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
-	"xearth on mono"	!"xearth -mono -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
+	"xearth -gamma 1.7 orbiting fast" !"xearth -gamma 1.7 -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid &"
+	"xearth on greyscale"	!"xearth -gamma 1.6 -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"],
+	["xearth on mono"	!"xearth -mono -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"])
 	"xphoon"		!"xphoon -t 10 &"
-	"xsetroot eschernknot"	!"xsetroot -bitmap $X11PATH/include/X11/bitmaps/escherknot"
-	"xsetroot xsnow"	!"xsetroot -bitmap $X11PATH/include/X11/bitmaps/snow"
+	"xsetroot eschernknot"	!"xsetroot -bitmap $X11PATH/[include]/X11/bitmaps/escherknot"
+	"xsetroot xsnow"	!"xsetroot -bitmap $X11PATH/[include]/X11/bitmaps/snow"
 }
 
 menu "ghostviews"
@@ -734,7 +749,8 @@ menu "ghostviews"
 	"@whats"	!"$RSH -n whats.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
 	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/bin/X11/bin/ghostview &"
 	"@kuma"		!"$RSH -n kuma.web.net exec env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
-	"@clapton"	!"$RSH -n clapton.seachange.com exec env PATH=$PATH:/usr/contrib/bin DISPLAY=$DISPLAY /usr/contrib/bin/ghostview &"
+ ifdef([AT_SEACHANGE], 
+	["@clapton"	!"$RSH -n clapton.seachange.com exec env PATH=$PATH:/usr/contrib/bin DISPLAY=$DISPLAY /usr/contrib/bin/ghostview &"], [])
 }
 
 menu "www"
@@ -813,35 +829,43 @@ menu "www-netscape-cmap"
 	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
 }
 
+ifdef([AT_WEIRD],
+	[define(OPT_GAMES_PATH_, [/opt/games/bin/])],
+	[define(OPT_GAMES_PATH_, [])])
+
 menu "games"
 {
 	"X11 Games"		f.title
-	"ACM"			!"acm &"
-	"Spider"		!"spider &"
-	"XPipeMan"		!"xpipeman &"
+	"xlife"			!"OPT_GAMES_PATH_[xlife] &"
 	"Xsol"			!"xsol -r &"
 	"Xsol for colour"	!"xsol +r &"
+	"Spider"		!"OPT_GAMES_PATH_[spider] &"
+	"mahjongg"		!"OPT_GAMES_PATH_[mahjongg] &"
+	"xdragon (mahjongg)"	!"OPT_GAMES_PATH_[xdragon] -geometry 40x40 &"
 	"Xtetris"		!"xtetris -bw &"
 	"Xtetris for colour"	!"xtetris -color &"
+	"Tetris"		!"OPT_GAMES_PATH_[tetris] &"
+	"xcol (tetris)"		!"OPT_GAMES_PATH_[xcol] &"
+	"xminesweep"		!"xminesweep &"
+	"xvmines"		!"OPT_GAMES_PATH_[xvmines] &"
+	"sweeper"		!"OPT_GAMES_PATH_[sweeper] &"
+	"XPipeMan"		!"xpipeman &"
+	"xsokoban"		!"OPT_GAMES_PATH_[xsokoban] &"
+	"spheral"		!"OPT_GAMES_PATH_[spheral] &"
+	"xgal (galaga)"		!"OPT_GAMES_PATH_[xgal] &"
+	"x4war"			!"OPT_GAMES_PATH_[x4war] &"
+	"xctb"			!"OPT_GAMES_PATH_[xctb] &"
+	"leblon"		!"OPT_GAMES_PATH_[leblon] &"
 	"vine"			!"vine -e &"
 	"vine -w"		!"vine -w &"
-	"xminesweep"		!"xminesweep &"
+	"ACM"			!"acm &"
 	""			f.separator
-	"Spider"		!"/opt/games/bin/spider &"
-	"spheral"		!"/opt/games/bin/spheral &"
-	"mahjongg"		!"/opt/games/bin/mahjongg &"
-	"xdragon (mahjongg)"	!"/opt/games/bin/xdragon -geometry 40x40 &"
-	"xsokoban"		!"/opt/games/bin/xsokoban &"
-	"Tetris"		!"/opt/games/bin/tetris &"
-	"xcol (tetris)"		!"/opt/games/bin/xcol &"
-	"leblon"		!"/opt/games/bin/leblon.static &"
-	"xvmines"		!"/opt/games/bin/xvmines &"
-	"sweeper"		!"/opt/games/bin/sweeper &"
-	"xgal (galaga)"		!"/opt/games/bin/xgal &"
-	"xlife"			!"/opt/games/bin/xlife &"
-	"x4war"			!"/opt/games/bin/x4war &"
-	"xctb"			!"/opt/games/bin/xctb &"
-	""			f.separator
+	"X11 Sample Toys..."	f.menu "samplegames"
+}
+
+menu "samplegames"
+{
+	"X11 Sample Toys"	f.title
 	"Xeyes"			!"xeyes &"
 	"Xgc"			!"xgc &"
 	"Xgas"			!"xgas &"
