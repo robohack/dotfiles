@@ -1,7 +1,9 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	23.5	02/04/24 18:22:27 (woods)"
+# ident	"@(#)HOME:.mailrc	23.6	02/06/14 18:08:26 (woods)"
+
+# NOTE: Comments (lines with a leading '#') must have whitespace after the '#'
 
 set keep
 set keepsave
@@ -9,6 +11,10 @@ set askcc
 set ask
 set hold
 set crt=24
+
+set sign="\n-- \n\t\t\t\t\t\tGreg."
+set Sign="\n-- \n\t\t\t\t\t\t\t\tGreg A. Woods\n\n+1 416 218-0098;  <gwoods@acm.org>;  <g.a.woods@ieee.org>;  <woods@robohack.ca>\nPlanix, Inc. <woods@planix.com>; VE3TCP; Secrets of the Weird <woods@weird.com>"
+
 
 #
 # mailing lists
@@ -64,7 +70,7 @@ alias qotd		"quotationoftheday@yahoo.ca (Quotation of the Day List)"
 alias rescue		"rescue@sunhelp.org (Sun Rescue List)"
 alias shape-l		"SHAPE-L%DB0TUI11.BITNET@vm.gmd.de (ShapeTools Discussion Mailing List)"
 alias smail-bugs	"smail-bugs@planix.com (Smail PR Reports and followups)"
-#alias smail3-maintainers "smail3-maintainers@smail.sbay.org (Smail-3 Maintainers Mailing List)"
+# alias smail3-maintainers "smail3-maintainers@smail.sbay.org (Smail-3 Maintainers Mailing List)"
 alias smail3-wizards	"smail3-wizards@athabascau.ca (Smail-3 Wizards Mailing List)"
 alias smail3-users	"smail3-users@athabascau.ca (Smail-3 Users Mailing List)"
 alias spamtools		"spamtools@abuse.net (Spam Tools Mailing List)"
