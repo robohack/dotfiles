@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.27	96/10/25 00:21:17 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.28	96/10/30 09:14:08 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -169,7 +169,10 @@ directory in the list PATHLIST, otherwise nil."
 
 ;; not autoload'ed in 19.28, but there....
 (if (elisp-file-in-loadpath-p "sh-script")
-    (autoload 'sh-mode "sh-mode" "Major mode for editing shell scripts." t))
+    (progn
+      (autoload 'shell-script-mode "sh-script" "Major mode for editing shell
+scripts (alias)." t)
+      (autoload 'sh-mode "sh-script" "Major mode for editing shell scripts." t)))
 
 (if (elisp-file-in-loadpath-p "foldout")
     (eval-after-load "outline" '(load "foldout")))
