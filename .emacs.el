@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.8	95/11/07 13:24:34 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.9	95/11/07 13:28:46 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -227,7 +227,7 @@ directory in the list PATHLIST, otherwise nil."
 	  (append
 	   '(("/[Mm]ake[^/]*$" . makefile-mode))
 	   '(("/[^/]+\\.mk$" . makefile-mode))
-	   auto-mode-alist))
+	   auto-mode-alist)))
 
 (if (elisp-file-in-loadpath-p "ksh-mode")
     (setq auto-mode-alist
