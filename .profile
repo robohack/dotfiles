@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	9.17	96/08/27 00:16:49 (woods)"
+#ident	"@(#)HOME:.profile	9.18	96/11/20 19:40:05 (woods)"
 
 #
 # Assumptions:
@@ -127,7 +127,7 @@ dirprepend ()
 }
 
 case "$UUNAME" in
-robohack | kuma | araignee | tar | spinne | toile | wombat | weirdo | most | very | isit | pretty )
+robohack | kuma | araignee | tar | spinne | toile | wombat | weirdo | most | very | isit | pretty | whats )
 	# we trust $PATH has been initialized correctly on these machines....
 	;;
 * )
