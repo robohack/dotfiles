@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.19	96/03/08 09:46:01 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.20	96/06/06 18:47:09 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1285,27 +1285,42 @@ current emacs server process..."
 (setq calendar-time-display-form
       '(24-hours ":" minutes
 		 (if time-zone " (") time-zone (if time-zone ")")))
-(setq appt-message-warning-time 20) ; minutes of warning prior to appt
+(setq appt-audible t)			; beep to warn of appointments
+(setq appt-display-diary t)		; display diary at midnight (want?)
+(setq appt-display-duration 60)		; seconds to display appointment message
+(setq appt-display-mode-line t)		; show sppt msg in mode line
+(setq appt-issue-message t)		; enable appt msgs
+(setq appt-message-warning-time 30)	; minutes of warning prior to appt
+(setq appt-msg-window nil)		; no extra window for appt message!
+(setq appt-visible t)			; show appt msg in echo area
 (setq view-diary-entries-initially t)
-;;;   (setq mark-diary-entries-in-calendar t) ; too expensive....
+;;;   (setq mark-diary-entries-in-calendar t) ; way too expensive....
 (setq mark-holidays-in-calendar t)
 (setq diary-display-hook (list 'appt-make-list 'fancy-diary-display))
-(setq appt-display-duration 60)	; seconds to display appointment message
-(setq appt-issue-message t)
 (setq number-of-diary-entries [3 3 3 3 3 4 3])
 (setq all-christian-calendar-holidays t)
 (setq other-holidays
       '((holiday-fixed 1 11 "Sir John A. Macdonald's birthday")
 	(holiday-float 2 1 3 "Heritage Day") ; (unoff.) third Monday
+	(holiday-fixed 4 1 "April Fool's Day")
 	(holiday-fixed 4 21 "Queen Elizabeth's birthday")
 	(holiday-fixed 4 22 "Earth Day")
 	(holiday-float 5 1 -2 "Victoria Day") ; second last Monday
+	(holiday-float 5 1 -1 "Memorial Day Spring Holiday (U.K.)") ; last Monday (?)
+	(holiday-fixed 6 8 "Queen's Birthday (N.Z.)") ; ????
+	(holiday-float 6 1 2 "Aueen's Birthday (A.C.T., NSW, N.T., Qld., S.A.,
+Tas., Vic., Aust.)")			; ????
+	(holiday-float 6 1 -1 "Fete National (Quebec)") ; last Monday (?)
 	(holiday-fixed 7 14 "Bastille Day")
 	(holiday-fixed 7 1 "Canada Day")
 	(holiday-float 8 1 1 "Civic Holiday") ; first Monday
+	(holiday-float 8 1 -1 "Summer Bank Holiday (U.K.") ; last Monday(?)
 	(holiday-float 9 1 1 "Labour Day") ; first Monday
-	(holiday-float 10 1 2 "Thanksgiving Day (Canada)")
+	(holiday-float 10 1 1 "Labour Day (A.C.T, N.S.W, S.A., Aust.)") ; first Monday
+	(holiday-float 10 1 2 "Thanksgiving Day (Canada)") ; second Monday
 	(holiday-fixed 10 16 "World Food Day") ; ????
+	(holiday-float 10 1 -1 "Labour Day (N.Z.)") ; last Monday
+	(holiday-fixed 11 11 "Remembrance Day (Canada)")
 	(holiday-fixed 12 6 "National Day of Remembrance and Action on
 Violence Against Women")
 	(holiday-fixed 12 26 "Boxing Day")))
