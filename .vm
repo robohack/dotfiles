@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.15	99/03/17 13:57:53 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.16	99/04/11 14:51:27 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -301,6 +301,47 @@ ORGANIZATION.  If not nil, takes precedence over the file
 		 org)
 	       "\n")))			; mail-mode needs the trailing newline,
 					; VM will cope either way
+
+;;
+;; dired stuff...
+;;
+
+;;Message-ID: <cxjpv5he74u.fsf@engc.bu.edu>
+;;References: <cajhfquqejw.fsf@faui5pc29.informatik.uni-erlangen.de>
+;;Date: 06 Apr 1999 18:06:25 -0400
+;;From: David Bakhash <cadet@bu.edu>
+;;Organization: Boston University
+;;Subject: Re: Selecting a special  mail
+;;To: info-vm@uunet.uu.net
+;;
+;; I don't think that's feasible given the command interface that VM
+;; has.  With some programming, you can probably figure out something,
+;; but the best way to do it, of course, is to just use vm-visit-folder
+;; instead of find-file.  If you visit with dired, then use the `r'
+;; binding (XEmacs), and you will visit it with vm-visit-folder instead
+;; of find-file.  If you're using GNU Emacs, then try this code out in
+;; your ~/.emacs file:
+;;
+(defun dired-vm (&optional read-only)
+  "Run VM on this file.
+With prefix arg, visit folder read-only (this requires at least VM 5).
+See also variable `dired-vm-read-only-folders'."
+  (interactive "P")
+  (let ((dir (dired-current-directory))
+        (fil (dired-get-filename)))
+    ;; take care to supply 2nd arg only if requested - may still run VM 4!
+    (require 'vm)			; vm-visit-folder may not be an autoload
+    (setq this-command 'vm-visit-folder) ; for vm window config
+    (if read-only
+        (vm-visit-folder fil t)
+      (vm-visit-folder fil))
+    ;; so that pressing `v' inside VM does prompt within current directory:
+    (set (make-local-variable 'vm-folder-directory) dir)))
+
+(add-hook 'dired-mode-hook 
+	  '(lambda ()
+	     (require 'dired-x)
+	     (define-key dired-mode-map "r" 'dired-vm)))
 
 ;;;
 ;;;	VM related things
@@ -667,7 +708,12 @@ message/rfc822 attachments."
       vm-mime-digest-discard-header-regexp "X400-"
       vm-mime-digest-headers nil
       vm-mime-display-function nil
-      vm-mime-external-content-types-alist nil
+      vm-mime-external-content-types-alist '(("text/html" 	"xterm -e lynx")
+					     ("image/gif" 	"xv")
+					     ("image/jpeg" 	"xv")
+					     ("video/mpeg" 	"mpeg_play")
+					     ("video" 		"xanim")
+					     ) ; basically from the example
       vm-mime-ignore-mime-version t
       vm-mime-internal-content-types t
       vm-mime-max-message-size nil
