@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	4.3	94/11/03 16:53:29 (woods)"
+;;;#ident	"@(#)HOME:.vm	4.4	94/11/04 12:35:26 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -82,7 +82,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
      vm-auto-center-summary nil
      vm-auto-folder-alist '(
 			    ;; To: & Cc: entries here.
-			    ("^\\(to\\|cc\\)"
+			    ("^\\(to\\|cc\\|apparently-to\\)"
 			     ("source-changes@NetBSD.ORG" .
 			      (concat vm-folder-directory
 				      "netbsd/source-changes"))
