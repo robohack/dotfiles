@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	18.12	97/10/15 02:12:28 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	18.13	97/10/16 01:21:54 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -359,9 +359,9 @@ scripts (alias)." t)
     (progn
       (if (and window-system
 	       (boundp 'menu-bar-tools-menu))
-	  ;; to quiet the v19 byte compiler
-	  (defvar menu-bar-tools-menu)
 	  (progn
+	    ;; to quiet the v19 byte compiler
+	    (defvar menu-bar-tools-menu)
 	    (define-key menu-bar-tools-menu [rmail] '("Read Mail" . vm))
 	    (define-key-after menu-bar-tools-menu [smail] '("Send Mail" . vm-mail) 'rmail)))
       (setq auto-mode-alist
