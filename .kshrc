@@ -1,8 +1,9 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	1.1	93/11/17 19:17:17 (woods)"
-#
+#ident	"@(#)HOME:.kshrc	1.2	93/11/18 16:27:02 (woods)"
+
+# WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
 
 #set -o nolog		# no functions in $HISTFILE
