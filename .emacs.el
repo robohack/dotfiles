@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.21	96/06/09 10:48:32 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.22	96/09/23 19:49:41 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -143,6 +143,25 @@ directory in the list PATHLIST, otherwise nil."
 
 (if (elisp-file-in-loadpath-p "foldout")
     (eval-after-load "outline" '(load "foldout")))
+
+;;; Message-ID: <u7ybihq0jg.fsf@wmperry.oz.net>
+;;; X-Face: O~Rn;(l][/-o1sALg4A@xpE:9-"'IR[%;,,!m7</SYF`{vYQ(&RI1&EiH[FvT;J}@f!4kfz
+;;;  x_!Y#=y{Uuj9GvUi=cPuajQ(Z42R[wE@{G,sn$qGr5g/wnb*"*ktI+,CD}1Z'wxrM2ag-r0p5I6\nA
+;;;  [WJopW_J.WY;
+;;; From: William Perry <wmperry@aventail.com>
+;;; To: info-vm@uunet.uu.net
+;;; Date: 10 Sep 1996 18:54:11 -0700
+;;; Subject: Re: configuring SMPT server
+;;;
+(if (elisp-file-in-loadpath-p "smtpmail")
+    (progn
+      (defvar vm-local-domain-name)	; to quiet the v19 byte compiler
+      (setq send-mail-function 'smtpmail-send-it)
+      (setq smtpmail-default-smtp-server (concat "mail" vm-local-domain-name))
+      (setq smtpmail-smtp-service "smtp")
+      (setq smtpmail-local-domain vm-local-domain-name)
+      
+      (require 'smtpmail)))
 
 ;;;; ----------
 ;;;; some property defintions...
