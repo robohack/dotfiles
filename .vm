@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.23	98/06/28 19:05:28 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.24	98/07/05 17:31:57 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -834,6 +834,7 @@ message/rfc822 attachments."
 			      ("bind@" . "bind-l")
 			      ("bind-users@" . "bind-users-l")
 			      ("bind-workers@" . "bind-workers-l")
+			      ("bitkeeper-users@" . "bitkeeper-users-l")
 			      ("com-priv@.*psi.com" . "com-priv-l")
 			      ("devel-cvs@" . "devel-cvs-l")
 			      ("djb-qmailbeta@" . "djb-qmailbeta-l")
@@ -960,16 +961,15 @@ message/rfc822 attachments."
 		 (("INBOX")
 		  (or (recipient "bug-vm@")
 		      (recipient "info-vm@"))))
-		("ZZZ-lists"
-		 (("INBOX")
-		  (or (recipient "stk@")
-		      (recipient "ssh@")
-		      (recipient "prcs-list@")
-		      (recipient "shape-l@")
-		      (recipient "tkined@"))))
 		("automake"
 		 (("INBOX")
 		  (recipient "automake@")))
+		("cm-stuff"
+		 (("INBOX")
+		  (or (recipient "prcs-list@")
+		      (recipient "cssc-users@")
+		      (recipient "bitkeeper-users@")
+		      (recipient "shape-l@"))))
 		("cvs"
 		 (("INBOX")
 		  (or (recipient "bug-cvs@")
@@ -1047,18 +1047,16 @@ message/rfc822 attachments."
 		("netbsd-port-alpha"
 		 (("INBOX")
 		  (recipient "port-alpha@")))
-		("netbsd-port-arm32"
-		 (("INBOX")
-		  (recipient "port-arm32@")))
 		("netbsd-port-i386"
 		 (("INBOX")
 		  (recipient "port-i386@")))
+		("netbsd-port-misc"
+		 (("INBOX")
+		  (or (recipient "port-arm32@")
+		      (recipient "port-powerpc@"))))
 		("netbsd-port-pmax"
 		 (("INBOX")
 		  (recipient "port-pmax@")))
-		("netbsd-port-powerpc"
-		 (("INBOX")
-		  (recipient "port-powerpc@")))
 		("netbsd-port-sparc"
 		 (("INBOX")
 		  (recipient "port-sparc@")))
@@ -1072,6 +1070,15 @@ message/rfc822 attachments."
 		("smail3"
 		 (("INBOX")
 		  (recipient "smail3")))
+		("ssh"
+		 (("INBOX")
+		  (recipient "ssh@")))
+		("stk"
+		 (("INBOX")
+		  (recipient "stk@")))
+		("tkined"
+		 (("INBOX")
+		  (recipient "tkined@")))
 		("vmailer"
 		 (("INBOX")
 		  (recipient "vmailer-testers@"))))))
