@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	4.2	94/03/28 20:33:14 (woods)"
+#ident	"@(#)HOME:.profile	4.3	94/03/29 19:32:17 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -274,13 +274,22 @@ MAILPOSTER="Rnmush -h %h" ; export MAILPOSTER
 # set terminal type..
 case "$UUNAME" in
 robohack )
+	: we trust that everything is all set up as it should be....
 	;;
 toile | wombat )
 	if [ -r $HOME/.kshedit ] ; then
 		if grep "^set -o vi" $HOME/.kshedit ; then
+			: real men use emacs!
+		else
 			stty intr '^?'
 		fi
 	fi
+	case $TTY in
+	/dev/tty[p-zP-Z]* | /dev/vt* | /dev/console )
+		echo "Setting up an 8-bit tty environment...."
+		stty cs8 -istrip -parenb
+		;;
+	esac
 	;;
 * )
 	echo "Re-setting terminal preferences...."
