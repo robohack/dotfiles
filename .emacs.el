@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	11.4	94/03/29 15:27:58 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	11.5	94/03/31 14:23:35 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -627,15 +627,19 @@ suffixes `.elc' or `.el' to the specified name FILE."
 ;;;; ----------
 ;;;; some special hooks.....
 
-(if (string-equal (getenv "VISUAL") "emacsclient")
-    (dont-compile
+(if (or (string-equal (getenv "EDITOR") "emacsclient")
+	(string-equal (getenv "VISUAL") "emacsclient"))
+    (progn
       (require 'server)
       ;; I *USUALLY* EXPECT THE BACKSPACE KEY TO GENERATE AN ASCII BACKSPACE!
       (define-key function-key-map [backspace] [8])
       (define-key function-key-map [backspace] [?\C-h])
       (define-key function-key-map [C-backspace] [?\C-h])
       (define-key function-key-map [M-backspace] [?\M-\C-h])
-      ;; From: qhslali@aom.ericsson.se (Lars Lindberg EHS/PBE 80455 2122 { tom -> 940531  ansv. EHS/PBE Christer Nilsson })
+      (setq server-temp-file-regexp
+	    "/tmp/Re\\|/draft$\\|/\\.letter$\\|/\\.article$/\\|/tmp/[^/]*\\.ed\\|/tmp/[^/]*nf")
+      ;; From: qhslali@aom.ericsson.se (Lars Lindberg EHS/PBE 80455 2122 { tom
+      ;;	-> 940531  ansv. EHS/PBE Christer Nilsson }) 
       ;; Message-Id: <9402170914.AA18291@aom.ericsson.se>
       ;; Subject: [19.22] emacsclient server should have a hook for kill-buffer
       (add-hook 'server-visit-hook
@@ -665,7 +669,7 @@ current emacs server process..."
 ;;; Subject: Re: Quick routine to BOLDFACE directories in DIRED buffers
 ;;;
 (if window-system
-    (dont-compile
+    (progn
       (require 'font-lock)
       (add-hook 'dired-mode-hook
 		(function (lambda ()
