@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.8	98/10/21 18:31:38 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.9	98/10/22 01:27:32 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -481,7 +481,7 @@ message/rfc822 attachments."
 ;;;   vm-arrived-message-hook nil
 ;;;   vm-arrived-messages-hook nil
       vm-auto-center-summary nil
-      vm-auto-decode-mime-messages t
+      vm-auto-decode-mime-messages nil	; might miss text in preamble otherwise!
       vm-auto-displayed-mime-content-types '("text" "multipart" "message/rfc822")
       vm-auto-folder-case-fold-search t	; so that vm-auto-folder-alist is simpler
       vm-auto-get-new-mail nil		; keep this manual for now
