@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	7.1	94/12/20 14:38:51 (woods)"
+#ident	"@(#)HOME:.profile	7.2	95/01/27 13:04:35 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -94,20 +94,6 @@ robohack | kuma | araignee | tar | spinne | toile | wombat | weirdo )
 * )
 	PATH="/bin" ; export PATH	# start fresh...
 	dirappend PATH /usr/bin /usr/lbin
-	;;
-esac
-
-case "$UUNAME" in
-tar | kuma )
-	APCSRCDIR=/apcsoft/work.d/$LOGNAME/apc ; export APCSRCDIR
-	APCCONFIG=$APCSRCDIR/configure ; export APCCONFIG
-	apcmake ()
-	{
-		gmake -I $APCCONFIG APCSRCDIR=$APCSRCDIR APCCONFIG=$APCCONFIG APCINCDIR=$APCSRCDIR/include APCLIBDIR=$APCSRCDIR/lib ${1+"$@"}
-	}
-	;;
-web )
-	APCCONFIG=/etc/apc ; export APCCONFIG
 	;;
 esac
 
