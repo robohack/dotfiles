@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	6.11	96/03/25 08:51:08 (woods)"
+#ident	"@(#)HOME:.xinitrc	6.12	96/10/30 09:55:25 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -45,6 +45,16 @@ if [ -z "$RSH" ] ; then
 		RSH=/usr/bin/rsh
 	fi
 	export RSH					# used by .twmrc
+fi
+
+# TODO:  think about using `type` ala .profile, but type isn't everywhere
+if [ -z "$WM" ] ; then
+	if [ -x $X11BIN/fvwm -a -r $HOME/.fvwmrc ] ; then
+		WM=fvwm
+	else
+		WM=twm					# assumptions....
+	fi
+	export WM
 fi
 
 if [ -z "$ONX11SERVER" ] ; then
@@ -187,4 +197,4 @@ xterm -geometry 80x24-4-195 -sl 500 -sb -sk -si -rw  -ls -T Primary &
 
 # when the window manager exits so shall we...
 #
-exec twm
+exec $WM
