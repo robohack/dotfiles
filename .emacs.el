@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.7	95/10/04 08:46:37 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.8	95/11/07 13:24:34 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -197,7 +197,7 @@ directory in the list PATHLIST, otherwise nil."
     (setq search-highlight t))		; i-search hightlight match
 
 (if window-system
-    (setq baud-rate 153600))		; let's make things a bit more efficient
+    (setq baud-rate 153600))		; let's make things more efficient
 
 ;;;; ----------
 ;;;; auto-mode-alist setup
@@ -207,27 +207,34 @@ directory in the list PATHLIST, otherwise nil."
        '(("/[^/]+\.vm$" . emacs-lisp-mode))	; VM customisation file
        '(("/\.vm$" . emacs-lisp-mode))		; VM init file
        '(("/[^/]+\\.[chtly].[.0-9]+$" . c-mode)) ; cvs backup file
-       '(("/[^/]+\\.t$" . c-mode))		; APC "ling" file
        '(("/[^/chtly]+\\.[0-9][a-z]?$" . nroff-mode)) ; man page
-       '(("/[^/+\\.an$" . nroff-mode))		; man page
+       '(("/[^/]+\\.an$" . nroff-mode))		; man page
        '(("/[^/]+\\.d.[.0-9]+$" . nroff-mode))	; cvs backup file
        '(("/[^/]+\\.d$" . nroff-mode))		; documentation file
        '(("/[^/]+\\.m[mes]?$" . nroff-mode))	; mm, me, ms docs
-       '(("/[^/]+\\.t[imes]*$" . nroff-mode))	; as above, but with leading 't'
+       '(("/[^/]+\\.t[imes]*$" . nroff-mode))	; as above, but w/leading 't'
        '(("/[^/]*[rR][eE][aA][dD]" . indented-text-mode))
        '(("/[^/]*\\.article.*$" . indented-text-mode))
        '(("/[^/]*\\.letter.*$" . indented-text-mode))
        '(("^.*/tmp/[^/]*\\.ed.*$" . indented-text-mode)) ; mail edit buffer
-       '(("^.*/tmp/[^/]*nf.*$" . indented-text-mode)) ; notesfile compose buffer
-       '(("/tmp/\.mail.*$" . mail-mode))
+       '(("/[^/]+\\.t$" . c-mode))		; APC "ling" file
+       '(("^.*/tmp/[^/]*nf.*$" . indented-text-mode)) ; notesfile compose buf
+       '(("/tmp/\\.mail.*$" . mail-mode))
        auto-mode-alist))
+
+(if (elisp-file-in-loadpath-p "ksh-mode")
+    (setq auto-mode-alist
+	  (append
+	   '(("/[Mm]ake[^/]*$" . makefile-mode))
+	   '(("/[^/]+\\.mk$" . makefile-mode))
+	   auto-mode-alist))
 
 (if (elisp-file-in-loadpath-p "ksh-mode")
     (setq auto-mode-alist
 	  (append
 	   '(("\\.sh.[.0-9]+$" . ksh-mode))
 	   '(("\\.sh$" . ksh-mode))
-	   '(("\\.ksh.*$" . ksh-mode))
+	   '(("\\.ksh[^/]*$" . ksh-mode))
 	   '(("\\..*profile" . ksh-mode))
 	   auto-mode-alist)))
 
