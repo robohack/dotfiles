@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	1.8	95/06/14 10:50:39 (woods)"
+#ident	"@(#)HOME:.twmrc	1.9	95/06/25 20:34:20 (woods)"
 #
 
 AutoRelativeResize
@@ -397,9 +397,11 @@ menu "applications"
 	""				f.nop
 	"xclock"			!"xclock -geometry 190x190-4+4 &"
 	"xclock -digital"		!"xclock -geometry 190x30-4+196 -digital &"
+	"xmailwatcher"			!"xmailwatcher -geometry 300x100-4+240 -iconic -icongeometry -140+240 -iconic -mailbox $MAILPATH &"
 	"xcalc"				!"xcalc &"
 	"xload"				!"xload -geometry 120x137-205+4 -hl grey90 &"
 	"xlock"				!"xlock -mode flame &"
+	"xlock remote"			!"xlock -remote -mode flame &"
 	"xman"				!"xman &"
 	"xshell"			!"xshell &"
 	"OpenWin-2 xlock"		!"env LD_LIBRARY_PATH=/usr/openwin/lib:/usr/lib xlock -mode qix &"
