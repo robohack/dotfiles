@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	25.1	02/11/25 16:09:46 (woods)"
+#ident	"@(#)HOME:.profile	25.2	02/12/07 14:28:59 (woods)"
 
 #
 # Assumptions that may cause breakage:
@@ -592,6 +592,13 @@ fi
 if expr "`type less`" : '.* is .*/less$' >/dev/null 2>&1 ; then
 	PAGER="`type less`"
 	LESS="-eM" ; export LESS
+	if [ ! -f $HOME/.less ] ; then
+		if [ ! -f $HOME/.lesskey ] ; then
+			echo "N	next-file" > $HOME/.lesskey
+			echo "P	prev-file" >> $HOME/.lesskey
+		fi
+		lesskey
+	fi
 elif [ -x /usr/xpg4/bin/more ] ; then
 	# SunOS-5's, at least, has the 'G' command!
 	PAGER="/usr/xpg4/bin/more"
