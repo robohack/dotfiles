@@ -1,18 +1,19 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	20.1	98/07/20 11:23:40 (woods)"
+#ident	"@(#)HOME:.profile	20.2	98/08/07 19:44:08 (woods)"
 
 #
-# Assumptions:
+# Assumptions that may cause breakage:
 #
 #	- standard environment has been set by login(1)
 #	- $argv0 is `basename $0` from .xinitrc or .xsession
+#	- test(1), aka "[", supports '-h' for testing symlinks
 #
 
-# Files referenced:
+# Files referenced [all optional]:
 #
-#	$HOME/.ashtype	- sourced once, if readable and if running ash(1)
+#	$HOME/.ashtype	- sourced once, if running ash(1)
 #	$HOME/.ashlogin	- sourced once, if running ash(1)
 #	$HOME/.bashlogin - sourced once, if running bash(1)
 #	$HOME/.editor	- name of prefered text editor command
@@ -70,7 +71,7 @@ fi
 
 if [ -z "$DOMAINNAME" ] ; then
 	if [ -r /etc/resolv.conf ] && fgrep domain /etc/resolv.conf >/dev/null 2>&1; then
-		eval `sed -n 's/domain /DOMAINNAME=./p' /etc/resolv.conf`
+		eval `sed -n 's/domain[ 	]*/DOMAINNAME=./p' /etc/resolv.conf`
 	elif expr "`type domainname`" : '.* is .*/domainname$' >/dev/null 2>&1 ; then
 		DOMAINNAME="`domainname`"
 	elif expr "$HOSTNAME" : '^[^\.]*\.' >/dev/null 2>&1 ; then
@@ -150,7 +151,7 @@ fi
 export PATH
 
 if [ -z "$LOCAL" ] ; then
-	if [ -d /local -a -d /local/bin ] ; then
+	if [ -d /local -a ! -h /local -a -d /local/bin ] ; then
 		LOCAL="/local"
 	elif [ -d /usr/local -a -d /usr/local/bin ] ; then
 		LOCAL="/usr/local"
@@ -161,7 +162,7 @@ fi
 export LOCAL
 
 if [ -z "$CONTRIB" ] ; then
-	if [ -d /contrib -a -d /contrib/bin ] ; then
+	if [ -d /contrib -a ! -h /contrib -a -d /contrib/bin ] ; then
 		CONTRIB="/contrib"
 	elif [ -d /usr/contrib -a -d /usr/contrib/bin ] ; then
 		CONTRIB="/usr/contrib"
@@ -172,7 +173,7 @@ fi
 export CONTRIB
 
 if [ -z "$PKG" ] ; then
-	if [ -d /pkg -a -d /pkg/bin ] ; then
+	if [ -d /pkg -a ! -h /pkg -a -d /pkg/bin ] ; then
 		PKG="/pkg"
 	elif [ -d /usr/pkg -a -d /usr/pkg/bin ] ; then
 		PKG="/usr/pkg"
@@ -183,7 +184,7 @@ fi
 export PKG
 
 if [ -z "$OPT" ] ; then
-	if [ -d /opt ] ; then
+	if [ -d /opt -a ! -h /opt ] ; then
 		OPT="/opt"
 	elif [ -d /usr/opt ] ; then
 		OPT="/usr/opt"
@@ -194,7 +195,7 @@ fi
 export OPT
 
 if [ -z "$GNU" ] ; then
-	if [ -d /local/gnu -a -d /local/gnu/bin ] ; then
+	if [ -d /local/gnu -a ! -h /local/gnu -a -d /local/gnu/bin ] ; then
 		GNU="/local/gnu"
 	elif [ -d /usr/gnu -a -d /usr/gnu/bin ] ; then
 		GNU="/usr/gnu"
@@ -207,8 +208,9 @@ fi
 export GNU
 
 if [ -z "$PROJECT" ] ; then
-	export PROJECT="SCCS"
+	PROJECT="SCCS"
 fi
+export PROJECT
 
 if [ -z "$WORKPATH" ] ; then
 	WORKPATH="$HOME/work.d"
@@ -223,22 +225,22 @@ export WORKPATH
 #
 if [ -z "$X11PATH" ] ; then
 	# FIXME: this won't work very well if X11R? is multiple names....
-	if [ -d /local/X11R? ] ; then
+	if [ -d /local/X11R? -a ! -h /local/X11R? ] ; then
 		X11PATH="`echo /local/X11R?`"
-	elif [ -d /usr/X11 ] ; then
+	elif [ -d /usr/X11 -a ! -h /usr/X11 ] ; then
 		X11PATH="/usr/X11"
-	elif [ -d /usr/X11R? ] ; then
+	elif [ -d /usr/X11R? -a ! -h /usr/X11? ] ; then
 		X11PATH="`echo /usr/X11R?`"
-	elif [ -d /usr/X??? ] ; then
+	elif [ -d /usr/X??? -a ! -h /usr/X??? ] ; then	# X386, for example
 		X11PATH="`echo /usr/X???`"
-	elif [ -d /usr/local/X11R? ] ; then
+	elif [ -d /usr/local/X11R? -a ! -h /usr/local/X11R? ] ; then
 		X11PATH="`echo /usr/local/X11R?`"
 	else
 		X11PATH="/NO-X11-FOUND"
 	fi
 	export X11PATH
 	# TODO: this is a best guess that might fail for remote hosts
-	if [ -d /usr/bin/X11 ] ; then
+	if [ -d /usr/bin/X11 -a ! -h /usr/bin/X11 ] ; then
 		X11BIN=/usr/bin/X11
 	else
 		X11BIN=$X11PATH/bin
@@ -254,7 +256,7 @@ dirappend PATH /usr/games $LOCAL/games $OPT/games/bin
 # make sure these directories are fixed in even if they are not
 # present at login time.
 #
-export CDPATH=":$HOME:$WORKPATH:$HOME/src:$HOME/src/lib:$HOME/lib"
+CDPATH=":$HOME:$WORKPATH:$HOME/src:$HOME/src/lib:$HOME/lib"
 
 dirappend CDPATH /usr/src /usr/src/lib /usr/src/cmd /usr/src/add-on /usr/src/uts
 dirappend CDPATH /usr/src/bin /usr/src/distrib /usr/src/domestic /usr/src/etc
@@ -265,6 +267,8 @@ dirappend CDPATH /usr/src/local /usr/src/local/lib /usr/src/local/cmd
 dirappend CDPATH $LOCAL/src $LOCAL/src/lib $LOCAL/src/gnu $LOCAL/src/bsd
 dirappend CDPATH /usr/src/ucbcmd /usr/src/ucblib
 dirappend CDPATH $LOCAL $LOCAL/lib /opt /usr/lib /usr/spool / /usr
+
+export CDPATH
 
 OMANPATH="$MANPATH" ; export OMANPATH
 
@@ -730,6 +734,8 @@ fi
 if [ ${RANDOM:-0} -ne ${RANDOM:-0} -a -z "${BASH}" ] ; then
 	# TODO: try to remember why we don't trust this...
 	SHELL=""
+	[ -x $PKG/bin/ksh ] && export SHELL="$PKG/bin/ksh"
+	[ -x $CONTRIB/bin/ksh ] && export SHELL="$CONTRIB/bin/ksh"
 	[ -x $LOCAL/bin/ksh ] && export SHELL="$LOCAL/bin/ksh"
 	[ -z "$SHELL" -a -x /usr/bin/ksh ] && export SHELL="/usr/bin/ksh"
 	[ -z "$SHELL" -a -x /bin/ksh ] && export SHELL="/bin/ksh"
