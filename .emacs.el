@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.3	98/09/18 01:54:56 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.4	98/10/15 21:11:15 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -70,6 +70,9 @@
 (defvar emacs-version-build (emacs-version-get-component 'build)
   "Build number for this Emacs.")
 ;;; end by Noah Freidman from /home/fsf/friedman/etc/init/emacs/init.el
+
+(if (= init-emacs-type 20)
+    (setq inhibit-eol-conversion t))	; show MS crap for what it is....
 
 ;(if (= init-emacs-type 20)
 ;    ;; You probably want/need this.
