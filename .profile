@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	8.6	95/03/08 17:55:10 (woods)"
+#ident	"@(#)HOME:.profile	8.7	95/03/10 20:14:08 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -88,37 +88,6 @@ dirprepend ()
 	unset varname varvalue
 }
 
-# first time in for window systems which emulate login shells in each window
-#
-do_first_time ()
-{
-	if [ -x /usr/games/fortune ] ; then
-		/usr/games/fortune
-	elif [ -x $LOCAL/games/fortune ] ; then
-		$LOCAL/games/fortune
-	fi
-	if [ -r calendar -o -r .month ] ; then
-		echo "\nToday's Events:"
-		if [ -r .month ] ; then
-			month -B
-		fi
-		if [ -r calendar ] ; then
-			calendar
-		fi
-	fi
-	if [ -d $HOME/notes ] ; then
-		(
-			cd $HOME/notes
-			if [ `ls|wc -w` != 0 ] ; then
-				echo '\nNotes on: ' *
-			fi
-		)
-	fi
-	if [ -r $HOME/.trninit$TERM ] ; then
-		TRNINIT="$HOME/.trninit$TERM" ; export TRNINIT
-	fi
-}
-
 case "$UUNAME" in
 robohack | kuma | araignee | tar | spinne | toile | wombat | weirdo | most | very | isit )
 	;;
@@ -160,9 +129,28 @@ if [ -z "$GNU" ] ; then
 	fi
 fi
 
+# TODO: explore more options for this....  (xmkmf?)
+#
+if [ -z "$X11PATH" ] ; then
+	if [ -d /local/X11R? ] ; then
+		X11PATH="`echo /local/X11R?`" ; export X11PATH
+	elif [ -d /usr/X11R? ] ; then
+		X11PATH="`echo /usr/X11R?`" ; export X11PATH
+	elif [ -d /usr/X? ] ; then
+		X11PATH="`echo /usr/X11R?`" ; export X11PATH
+	elif [ -d /usr/local/X11R? ] ; then
+		X11PATH="`echo /usr/local/X11R?`" ; export X11PATH
+	else
+		X11PATH="`echo /X11R?`" ; export X11PATH
+	fi
+fi
+
 dirappend PATH /usr/bin/X11 $LOCAL/bin $GNU/bin $CONTRIB/bin /usr/ucb
 dirappend PATH /usr/games $LOCAL/games
 
+# TODO: We need to find some way to tell if this is 4.4BSD or not, since
+# TODO: we shouldn't set MANPATH for that man(1).
+#
 if [ -z "$MANPATH" ] ; then
 	if [ -d /usr/share/man ] ; then
 		MANPATH="/usr/share/man" ; export MANPATH
@@ -171,7 +159,9 @@ if [ -z "$MANPATH" ] ; then
 	fi
 fi
 OMANPATH="$MANPATH" ; export OMANPATH
-dirprepend MANPATH $LOCAL/share/man $LOCAL/man $GNU/man $CONTRIB/man /X11R5/man
+dirprepend MANPATH $LOCAL/share/man $LOCAL/man $GNU/man $CONTRIB/man $X11PATH/man
+#
+# TODO: We also need to strop $LOCAL/man if it's a symlink -> $LOCAL/share/man
 
 ISSUN=false; export ISSUN
 if [ -x /usr/bin/sun ] ; then
@@ -306,6 +296,7 @@ emacs | "" )
 		if [ -n "$DISPLAY" -o "$TERM" = "xterm" ] ; then
 			if [ -x /usr/bin/id ] ; then
 				eval `id | sed 's/[^a-z0-9=].*//'`
+				# TODO: maybe not?
 				if [ "${uid:=0}" -ne 0 ] ; then
 					VISUAL="`type emacsclient`"
 				fi
@@ -366,8 +357,6 @@ if [ -n "$APCCONFIG" ] ; then
 		dirprepend MANPATH /usr/catman
 		;;
 	sunweb )
-		# assume anywhere but old web has the execvp() support
-		#
 		# the hacker editor (takes precedence if you're a hacker)
 		#
 		APCEDIT="pico" ; export APCEDIT
@@ -417,13 +406,13 @@ TRNINIT="$HOME/.trninit" ; export TRNINIT
 
 # set terminal type...
 case "$UUNAME" in
-robohack | toile | wombat | spinne | weirdo | isit | most | very )
+robohack | toile | wombat | spinne | sunweb | weirdo | isit | most | very )
 	: we trust that everything is all set up as it should be....
 	;;
 * )
 	echo "Re-setting terminal preferences...."
 	stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
-	eval `tset -sr -m dmd:dmd -m dmd-myx:dmd-myx -m sun:sun -m xterm:xterm -m vt100:vt100 -m vt102:vt102 -m at386:at386 -m AT386:at386 -m ibmpc3:ibmpc3 -m :?$TERM -`
+	eval `tset -I -sr -m dmd:dmd -m dmd-myx:dmd-myx -m sun:sun -m xterm:xterm -m vt100:vt100 -m vt102:vt102 -m at386:at386 -m AT386:at386 -m ibmpc3:ibmpc3 -m :?$TERM -`
 	case $TTY in
 	/dev/tty[p-zP-Z]* | /dev/vt* | /dev/console )
 		echo "Setting up an 8-bit tty environment...."
@@ -435,10 +424,13 @@ esac
 
 # check your mail...
 case "$UUNAME" in
-robohack | toile | wombat | spinne | weirdo | isit | most | very )
-	: /etc/profile does this for us
+robohack | toile | wombat )
+	# /etc/profile or login(1) does this for us
+	:
 	;;
 * )
+	# TODO: find some way to see if login(1) ran, or xterm(n) started us
+	# TODO: since login(1) checks for mail too, but xterm(n) doesn't.
 	/bin/mail -e
 	HAVENEWMAIL=$?
 	if $HAVEMUSH && [ $HAVENEWMAIL -eq 0 ] ; then
@@ -446,11 +438,15 @@ robohack | toile | wombat | spinne | weirdo | isit | most | very )
 		mush -H:n
 	elif [ "$MAILER" = mh -a $HAVENEWMAIL -eq 0 ] ; then
 		echo "Change this line in $HOME/.profile to show new mail using MH"
+	elif [ $HAVENEWMAIL -eq 0 ] ; then
+		echo "You have some mail!"
 	fi
 	unset HAVENEWMAIL
 	;;
 esac
 
+# TODO: this needs to be a lot smarter....
+#
 if [ -d $HOME/lib/terminfo ] ; then
 	case $TERM in
 	at386*|AT386*|386AT*|386at*|dmd|dmd-myx|ibmpc3|pc3)
@@ -473,7 +469,10 @@ fi
 
 SANE="`stty -g`" ; export SANE
 
+# one thing we assume here is that PS1 will be set in .*login or $ENV
+#
 if [ ${RANDOM:-0} -ne 0 ] ; then
+	# TODO: try to remember why we don't trust this...
 	SHELL=""
 	[ -x $LOCAL/bin/ksh ] && export SHELL="$LOCAL/bin/ksh"
 	[ -z "$SHELL" -a -x /usr/bin/ksh ] && export SHELL="/usr/bin/ksh"
@@ -482,13 +481,23 @@ if [ ${RANDOM:-0} -ne 0 ] ; then
 		. $HOME/.kshlogin
 	fi
 elif [ `echo ~` = $HOME ] ; then
-	# actually, maybe this should be a Posix shell environ...
+	# TODO: actually, maybe this should be a Posix shell environment...
 	if [ -r $HOME/.ashlogin ] ; then
 		. $HOME/.ashlogin
 	fi
 elif [ -r $HOME/.shlogin ] ; then
 	if [ -r $HOME/.shlogin ] ; then
 		. $HOME/.shlogin
+		# TODO: maybe this should be done last?
+		if [ -n "$ENV" ] ; then
+			. $ENV
+		else
+			if [ "$LOGNAME" = root ] ; then
+				PS1="[$TTYN]<$LOGNAME@$UUNAME> # "
+			else
+				PS1="[$TTYN]<$LOGNAME@$UUNAME> $ "
+			fi
+		fi
 	fi
 else
 	if [ "$LOGNAME" = root ] ; then
@@ -508,57 +517,36 @@ else
 	}
 fi
 
-if [ -r calendar -o -r .month ] ; then
-	echo "\nToday's Events:"
-	if $HAVEMONTH && [ -r .month ] ; then
-		month -B
-#		monthd -i5
-	fi
-	if $HAVECALENDAR && [ -r calendar ] ; then
-		calendar
-	fi
-fi
-if [ -d $HOME/notes ] ; then
-	cd $HOME/notes
-	if [ `ls|wc -w` -ne 0 ] ; then
-		echo '\nYou have notes on: ' * '\n'
-	fi
-	cd $HOME
-fi
-
 HAVEX=false ; export HAVEX
 if expr "`type xinit`" : '.* is .*/xinit$' >/dev/null 2>&1 ; then
 	HAVEX=true
 fi
 
-if $HAVEX && [ "`tty`" = "/dev/console" ] ; then
-	case "$TERM" in
-	sun|pc3|at386|AT386)
-		trap '' 2
-		echo ""
-		echo $n "Do you want to start X? ([y]/n) $c"
-		read yn
-		trap 2
-		case "$yn" in
-			"" | [yY]*)
+if $HAVEX ; then
+	case "$TTYN" in
+	console|vg*|vt*|ttyc*)
+		case "$TERM" in
+		sun|pc3|at386|AT386)
 			trap '' 2
-			xinit
-			tput clear
-			exec sleep 1
-			;;
-		*)
-			echo "OK, not starting X..."
+			echo ""
+			echo $n "Do you want to start X? ([y]/n) $c"
+			read yn
+			trap 2
+			case "$yn" in
+				"" | [yY]*)
+				trap '' 2
+				xinit
+				tput clear
+				exec sleep 1
+				;;
+			*)
+				echo "OK, not starting X..."
+				;;
+			esac
 			;;
 		esac
 		;;
-	*)
-		;;
 	esac
-fi
-
-if [ "$TERM" = "xterm" ] ; then
-	do_first_time
-	PS1="]0;${PS1}${PS1}" ; export PS1
 fi
 
 if $HAVELAYERS && [ "$TERM" = "dmd" -a "`ismpx`" != "yes" ] ; then
@@ -574,6 +562,7 @@ if $HAVELAYERS && [ "$TERM" = "dmd" -a "`ismpx`" != "yes" ] ; then
 		else
 			layers=layers
 		fi
+		# TODO: maybe not?
 		if [ "$VISUAL" = "emacs" ] ; then
 			VISUAL="emacsclient" ; export VISUAL
 		fi
@@ -591,13 +580,47 @@ if $HAVELAYERS && [ "$TERM" = "dmd" -a "`ismpx`" != "yes" ] ; then
 		stty ixon ixoff -ixany
 		;;
 	*)
-		if $HAVEMONTH && [ -r .month ] ; then
-			monthd -i5
-		fi
+		echo "OK, not starting layers..."
 		;;
 	esac
 fi
 
+#
+# NOTE:  we don't get here the first time if we're starting a windo system, so
+# for first time in for window systems which emulate login shells in each window
+#
+
+# TODO:  should use $HAVEFORTUNE and $FORTUNE
+if [ -x /usr/games/fortune ] ; then
+	/usr/games/fortune
+elif [ -x $LOCAL/games/fortune ] ; then
+	$LOCAL/games/fortune
+fi
+if [ -r calendar -o -r .month ] ; then
+	echo "\nToday's Events:"
+	if $HAVEMONTH && [ -r .month ] ; then
+		month -B
+		#		monthd -i5
+	fi
+	if $HAVECALENDAR && [ -r calendar ] ; then
+		calendar
+	fi
+fi
+if [ -d $HOME/notes ] ; then
+	cd $HOME/notes
+	if [ `ls|wc -w` -ne 0 ] ; then
+		echo '\nYou have notes on: ' * '\n'
+	fi
+	cd $HOME
+fi
+if [ -r $HOME/.trninit$TERM ] ; then
+	TRNINIT="$HOME/.trninit$TERM" ; export TRNINIT
+fi
+# TODO: do something with msgs(1) if needed....
+
+# NOTE: trick 4.4BSD shell into -E by putting it in here, not
+# "set -o emacs" in .ashrc, as that'll core-dump it....
+#
 if [ -s $HOME/.shell ] ; then
 	# mktable just throws away comments....
 	exec `mktable $HOME/.shell`
