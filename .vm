@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	21.1	99/11/18 13:12:50 (woods)"
+;;;#ident	"@(#)HOME:.vm	21.2	99/12/06 14:43:38 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -657,28 +657,28 @@ message/rfc822 attachments."
 ;;
 (setq vm-font-lock-keywords
       '(t
-	("^\\(Subject:\\) \\(.*\\)$"
+	("^\\(Subject:\\) \\(.+\\)$"
 	 (1 'vm-header-name-face)
 	 (2 'vm-subject-face))
-        ("^\\(From:\\) \\(.*\\)$"
+        ("^\\(From:\\) \\(.+\\)$"
 	 (1 'vm-header-name-face)
 	 (2 'vm-header-from-face))
-        ("^\\(Reply-To:\\) \\(.*\\)$"
+        ("^\\(Reply-To:\\) \\(.+\\)$"
 	 (1 'vm-header-name-face)
 	 (2 'vm-header-from-face))
-        ("^\\(Cc:\\) \\(.*\\)$"
+        ("^\\(Cc:\\) \\(.+\\)$"
 	 (1 'vm-header-name-face)
 	 (2 'vm-header-cc-face))
 	;; Resent-* headers
-	("^\\(resent-[^ \t\n:]+:\\) \\(.*\\)$"
+	("^\\(resent-[^ \t\n:]+:\\) \\(.+\\)$"
 	 (1 'vm-resent-header-name-face)
 	 (2 'vm-header-content-face))
 	;; Other headers
-	("^\\([^ \t\n:]+:\\) \\(.*\\)$"
+	("^\\([^ \t\n:]+:\\) \\(.+\\)$"
 	 (1 'vm-header-name-face)
 	 (2 'vm-header-content-face))
- 	;; citations
-        ("^[a-z0-9 \t]*[>|}]\\(.*\\)$"
+ 	;; citations (try to avoid Unix mailbox ">From" quoting)
+        ("^[a-z0-9 \t]*[>|}:]+\\(.+\\)$"
 	 (1 'vm-citation-face))))
 
 (defun vm-fontify ()
@@ -1275,6 +1275,7 @@ message/rfc822 attachments."
 			     ("^\\(from\\|resent-from\\)"
 			      ("0xdeadbeef@" . "0xdeadbeef-l")
 			      ("gegai@.*io\\.org" . "from/andy")
+			      ("Andy_Mills@jdedwards.com" . "from/andy")
 			      ("gnats-bugs@netbsd.org" . "netbsd/gnats-bugs")
 			      ;; code to make auto-folder default to the user name of the sender.
 			      ;; this should be last in the auto folder alist since it tends to
