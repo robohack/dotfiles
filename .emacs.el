@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	18.14	97/11/20 00:18:06 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	18.15	98/01/10 14:48:06 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1690,6 +1690,14 @@ current emacs server process..."
 (setq calendar-time-display-form
       '(24-hours ":" minutes
 		 (if time-zone " (") time-zone (if time-zone ")")))
+(setq american-date-diary-pattern
+      '((month "/" day "[^/0-9]")
+	(month "/" day "/" year "[^0-9]")
+	(month "-" day "[^/0-9]")
+	(year "-" month "-" year "[^0-9]")
+	(monthname " *" day "[^,0-9]")
+	(monthname " *" day ", *" year "[^0-9]")
+	(dayname "\\W")))
 (setq appt-audible t)			; beep to warn of appointments
 (setq appt-display-diary t)		; display diary at midnight (want?)
 (setq appt-display-duration 60)		; seconds to display appointment message
@@ -1698,6 +1706,9 @@ current emacs server process..."
 (setq appt-message-warning-time 30)	; minutes of warning prior to appt
 (setq appt-msg-window nil)		; no extra window for appt message!
 (setq appt-visible t)			; show appt msg in echo area
+(add-hook 'list-diary-entries-hook 'include-other-diary-files)
+(add-hook 'list-diary-entries-hook 'sort-diary-entries)
+(add-hook 'mark-diary-entries-hook 'mark-included-diary-files)
 (setq view-diary-entries-initially t)
 ;;;   (setq mark-diary-entries-in-calendar t) ; way too expensive....
 (setq mark-holidays-in-calendar t)
@@ -1705,30 +1716,52 @@ current emacs server process..."
 (setq number-of-diary-entries [3 3 3 3 3 4 3])
 (setq all-christian-calendar-holidays t)
 (setq other-holidays
-      '((holiday-fixed 1 11 "Sir John A. Macdonald's birthday")
+      '((holiday-sexp			; abs-easter stolen from holidays.el
+	 '(let* (; (year (car (cdr (cdr (cdr (cdr (cdr (decode-time))))))))
+		(century (1+ (/ year 100)))
+		(shifted-epact        ;; Age of moon for April 5...
+		 (% (+ 14 (* 11 (% year 19));;     ...by Nicaean rule
+		       (-           ;; ...corrected for the Gregorian century rule
+			(/ (* 3 century) 4))
+		       (/    ;; ...corrected for Metonic cycle inaccuracy.
+			(+ 5 (* 8 century)) 25)
+		       (* 30 century));;              Keeps value positive.
+		    30))
+		(adjusted-epact       ;;  Adjust for 29.5 day month.
+		 (if (or (= shifted-epact 0)
+			 (and (= shifted-epact 1) (< 10 (% year 19))))
+		     (1+ shifted-epact)
+		   shifted-epact))
+		(paschal-moon       ;; Day after the full moon on or after March 21.
+		 (- (calendar-absolute-from-gregorian (list 4 19 year))
+		    adjusted-epact))
+		(abs-easter (calendar-dayname-on-or-before 0 (+ paschal-moon 7))))
+	   (calendar-gregorian-from-absolute (+ abs-easter 1))) "Easter Monday (Canada)")
+	(holiday-float 5 1 -2 "Victoria Day (Canada)") ; second last Monday [or
+						       ; is it the 3rd Monday?]
+	(holiday-fixed 7 1 "Canada Day")
+	(holiday-float 8 1 1 "Civic Holiday (Canada)") ; first Monday
+	(holiday-float 9 1 1 "Labour Day (Canada)") ; first Monday
+	(holiday-float 10 1 2 "Thanksgiving Day (Canada)") ; second Monday
+	(holiday-fixed 12 26 "Boxing Day (Canada & UK)")
+	;; the rest are pseudo-holidays or non-local holidays...
+	(holiday-fixed 1 11 "Sir John A. Macdonald's birthday")
 	(holiday-float 2 1 3 "Heritage Day") ; (unoff.) third Monday
 	(holiday-fixed 4 1 "April Fool's Day")
 	(holiday-fixed 4 21 "Queen Elizabeth's birthday")
 	(holiday-fixed 4 22 "Earth Day")
-	(holiday-float 5 1 -2 "Victoria Day") ; second last Monday
 	(holiday-float 5 1 -1 "Memorial Day Spring Holiday (U.K.)") ; last Monday (?)
-	(holiday-fixed 6 8 "Queen's Birthday (N.Z.)") ; ????
-	(holiday-float 6 1 2 "Queen's Birthday (A.C.T., NSW, N.T., Qld., S.A.,
-Tas., Vic., Aust.)")			; ????
+	(holiday-fixed 6 8 "Queen's Birthday (N.Z.)") ; (?)
+	(holiday-float 6 1 2 "Queen's Birthday (A.C.T., NSW, N.T., Qld., S.A., Tas., Vic., Aust.)") ; (?)
 	(holiday-float 6 1 -1 "Fete National (Quebec)") ; last Monday (?)
 	(holiday-fixed 7 14 "Bastille Day")
-	(holiday-fixed 7 1 "Canada Day")
-	(holiday-float 8 1 1 "Civic Holiday") ; first Monday
 	(holiday-float 8 1 -1 "Summer Bank Holiday (U.K.") ; last Monday(?)
-	(holiday-float 9 1 1 "Labour Day") ; first Monday
 	(holiday-float 10 1 1 "Labour Day (A.C.T, N.S.W, S.A., Aust.)") ; first Monday
-	(holiday-float 10 1 2 "Thanksgiving Day (Canada)") ; second Monday
 	(holiday-fixed 10 16 "World Food Day") ; ????
 	(holiday-float 10 1 -1 "Labour Day (N.Z.)") ; last Monday
 	(holiday-fixed 11 11 "Remembrance Day (Canada)")
-	(holiday-fixed 12 6 "National Day of Remembrance and Action on
-Violence Against Women")
-	(holiday-fixed 12 26 "Boxing Day")))
+	(holiday-fixed 12 6 "National Day of Remembrance and Action on Violence Against Women")))
+
 ;;; don't need to do this -- was done above
 ;;;      (add-hook 'initial-calendar-window-hook 'display-time)
 (autoload 'appt-make-list "appt.el" nil t)
