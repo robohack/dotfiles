@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	19.2	98/02/01 20:37:34 (woods)"
+#ident	"@(#)HOME:.kshrc	19.3	98/06/02 20:01:06 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -594,7 +594,6 @@ if [ -r $HOME/.kshsccs ] ; then
 fi
 if [ -r $HOME/.kshpwd ] ; then
 	. $HOME/.kshpwd
-	cd; cd -
 fi
 if [ -r $HOME/.kshlocal ] ; then
 	. $HOME/.kshlocal
