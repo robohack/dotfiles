@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.2	93/11/01 12:53:01 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	1.3	93/11/01 13:15:09 (woods)"
 ;;;
 ;;; per-user start-up functions
 ;;;
@@ -618,9 +618,46 @@ current emacs server process..."
 
 ;; more goodies
 
+
+;; From: kfogel@occs.cs.oberlin.edu (Karl Fogel)
+;; Date: Mon, 1 Nov 1993 10:23:04 -0500
+;; Message-Id: <9311011523.AA18545@occs.cs.oberlin.edu>
+;; To: gnu-emacs-sources@prep.ai.mit.edu
+;; Subject: frame hopping from the keyboard
+;; 
+;;         I wanted a something to move among frames without using the
+;; mouse.  Emacs 19 apparently has no native function to do this
+;; (corrections?  I couldn't find it, at least...), so here is one.  I
+;; bind it to C-c o, myself.  Another candidate was C-x 5 o; although
+;; it's too many keystrokes for me, it seems as though this is sort of
+;; what C-x 5 o was originally meant to do (again, not sure).  Please let
+;; me know if you find it useful or have any suggestions/fixes.  As you
+;; can see, it's quite short (shorter than this paragraph, okay), but I
+;; have hardly touched my mouse since I started using it :-)
+;; 
+(if (= init-emacs-type '19) 
+    (global-set-key "\C-co" 'keyboard-focus-next-or-previous-frame)
+  ;;
+  (defun keyboard-focus-next-or-previous-frame (parg)
+    "Switch the focus to the next logical frame (and raise that frame to
+the front).  Keyboard input will go to the newly selected frame.
+Prefix arg means go to previous frame, not next frame.
+The mouse cursor will not follow you, which is kind of a weird
+feeling, but you'll get used to it."
+    (interactive "P")
+    (let* ((nowframe (selected-frame))
+	   (nextframe (if parg (previous-frame) (next-frame)))
+	   (visip (frame-visible-p nextframe)))
+      (and visip
+	   (progn
+	     (select-frame nextframe)
+	     (if (eq visip 'icon) (iconify-or-deiconify-frame))
+	     (redirect-frame-focus nowframe nextframe)
+	     (raise-frame nextframe))))))
+
 ;; Based on suggestions by David G. Grubbs <dgg@ksr.com> and Paul Palmer
 ;; <palmerp@math.orst.edu>.
-
+;;
 ;; Assuming the use of detex 2.3 by Daniel Trinkle:
 ;; -w means one word per line.
 ;; -n means don't expand \input or \include commands.
