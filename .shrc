@@ -1,7 +1,7 @@
 #
 #	.shrc - per-shell startup stuff for /bin/sh
 #
-#ident	"@(#)HOME:.shrc	3.2	95/08/11 00:22:25 (woods)"
+#ident	"@(#)HOME:.shrc	3.3	96/02/02 12:58:32 (woods)"
 
 PATH="$PATH"
 export PATH
@@ -47,8 +47,15 @@ dirprepend ()
 eval "`id|sed -e 's/^uid=\([0-9]*\)(\(..*\)) gid=[0-9]*(\([^) ]*\)).*$/id=\1 uid=\2 gid=\3/'`"
 
 if [ "$id" -eq 0 ] ; then
-	# got to get rid of lone ":" in PATH
-	PATH="`echo $PATH | sed -e 's/::/:/g' -e 's/^://' -e 's/:$//'`"
+	# got to get rid of lone ":" or any "." in PATH
+	PATH="`echo $PATH | sed -e 's/::/:/g' -e 's/^://' -e 's/:$//' -e 's/^\.://' -e 's/:\.://' -e 's/:\.$//'`"
+	if $ISSUN; then
+		PATH="`echo $PATH | sed -e 's~^/bin:~~' -e 's~:/etc:~:~'`"
+		dirprepend PATH /usr/5bin
+		dirappend PATH /usr/openwin/bin
+	else
+		dirprepend PATH /etc
+	fi
 	dirprepend PATH /sbin /usr/sbin
 	dirappend PATH /usr/etc /usr/lbin /usr/ucb $X11BIN
 	if [ -n "$LOCAL" ] ; then

@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	8.4	95/11/30 11:56:44 (woods)"
+#ident	"@(#)HOME:.kshrc	8.5	96/02/02 12:00:39 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -163,10 +163,10 @@ if [ "$id" -eq 0 ] ; then
 	else
 		HISTFILE="/.sh_history"
 	fi
+	# got to get rid of lone ":" or any "." in PATH
+	PATH="`echo $PATH | sed -e 's/::/:/g' -e 's/^://' -e 's/:$//' -e 's/^\.://' -e 's/:\.://' -e 's/:\.$//'`"
 	if $ISSUN; then
-		PATH=${PATH#".:"}		# in case /usr/5bin/su hasn't had the patch
-		PATH=${PATH#"/bin:"}		# don't need /bin any more (it's a symlink)
-		# should also trim /etc from the middle, but ksh doesn't offer this feature
+		PATH="`echo $PATH | sed -e 's~^/bin:~~' -e 's~:/etc:~:~'`"
 		dirprepend PATH /usr/5bin
 		dirappend PATH /usr/openwin/bin
 	else
