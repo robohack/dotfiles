@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	20.6	99/04/29 13:19:07 (woods)"
+#ident	"@(#)HOME:.xinitrc	20.7	99/06/13 22:35:13 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -29,10 +29,6 @@ if [ "$XOPATH" != "$PATH" ] ; then
 	echo "$argv0: adjusted PATH='$PATH'"
 fi
 unset XOPATH
-if [ "$XODISPLAY" != "$DISPLAY" ] ; then
-	echo "$argv0: adjusted DISPLAY='$DISPLAY'"
-fi
-unset XODISPLAY
 
 if [ $argv0 = ".xsession" -a -z "$XDMHOST" ] ; then
 	# assume HOSTNAME & DOMAINNAME are set by profile(s)
@@ -54,10 +50,14 @@ case "$DISPLAY" in
 		ls -l /dev/console
 	fi
 	DISPLAY="${XDMHOST:-${HOSTNAME}${DOMAINNAME}}:0.0"
-	export DISPLAY
 	echo "$argv0: have set DISPLAY='$DISPLAY'"
 	;;
 esac
+if [ "$XODISPLAY" != "$DISPLAY" ] ; then
+	echo "$argv0: adjusted DISPLAY='$DISPLAY'"
+fi
+unset XODISPLAY
+export DISPLAY
 
 # may be things that depend on DISPLAY in here, so source again....
 #
@@ -233,12 +233,17 @@ fi
 
 # TODO:  think about using `type` ala .profile, but type isn't in (a)sh, etc.
 if [ -z "$WM" ] ; then
-	if [ -x $X11BIN/ctwm -o -x $HOME/bin/ctwm ] ; then
+	if [ \( -x $X11BIN/ctwm -o -x $HOME/bin/ctwm \) -a $HOME/.ctwmrc ] ; then
 		if [ $SCREENDEPTH -eq 1 ] ; then
-			WM="ctwm -W"
+			# the welcome screen on monochrome is silly and slow
+			WM="ctwm -k -v -display $DISPLAY -W"
 		else
-			WM=ctwm
+			WM="ctwm -k -v -display $DISPLAY"
 		fi
+	elif [ \( -x $X11BIN/wmaker -o -x $HOME/bin/wmaker \) -a $HOME/GNUstep/Defaults/WindowMaker ] ; then
+		WM=wmaker
+	elif [ \( -x $X11BIN/fvwm -o -x $HOME/bin/fvwm \) -a $HOME/.fvwmrc ] ; then
+		WM=fvwm
 	else
 		WM=twm					# silly assumption?
 	fi
@@ -248,7 +253,7 @@ fi
 # argv0 is .xinitrc if called by xinit or startx
 #
 if [ "$argv0" = .xinitrc ] ; then
-	xconsole -geometry 500x160-0-0 &
+	xconsole -geometry 500x160-0-0 -notify -verbose &
 	# wait to ensure xconsole is running to display errors....
 	sleep 1
 	if [ -x $X11BIN/xearth ] ; then
@@ -282,10 +287,12 @@ else
 	#	we're probably logging in on an independent xterm....
 	#
 	if [ -r $HOME/.xsession-errors-$DISPLAY ] ; then
-		xterm -geometry 60x12-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 500 -ut -T "Xsession Messages for '$DISPLAY'" -e sh -c "mesg n; exec tail -200f $HOME/.xsession-errors-$DISPLAY" &
+		xconsole -geometry 500x160-0-0 -notify -verbose -file $HOME/.xsession-errors-$DISPLAY &
+		# xterm -geometry 60x12-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 500 -ut -T "Xsession Messages for '$DISPLAY'" -e sh -c "mesg n; exec tail -200f $HOME/.xsession-errors-$DISPLAY" &
 	else
 		echo "$argv0: didn't find .xsession-errors-$DISPLAY"
-		xterm -geometry 60x12-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 500 -ut -T "Xsession Messages" -e sh -c "mesg n; exec tail -200f $HOME/.xsession-errors" &
+		xconsole -geometry 500x160-0-0 -notify -verbose -file $HOME/.xsession-errors &
+		# xterm -geometry 60x12-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 500 -ut -T "Xsession Messages" -e sh -c "mesg n; exec tail -200f $HOME/.xsession-errors" &
 	fi
 fi
 
