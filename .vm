@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	22.2	01/11/04 13:40:55 (woods)"
+;;;#ident	"@(#)HOME:.vm	22.3	01/11/13 12:43:30 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -1096,13 +1096,6 @@ ORGANIZATION.  If not nil, takes precedence over the file
 				    ("application/octet-stream" .
 				     "%-35.35(%d, %f%) [%k to %a]")
 				    )
-;;
-;; is this the only way to get a charset alias into place?
-;;
-;;    vm-mime-mule-charset-to-coding-alist (append
-;;					    vm-mime-mule-charset-to-coding-alist
-;;					    '("gb2312" cn-gb-2312)
-;;					    '("big5" chinese-big5))
       vm-mime-charset-font-alist '(("x-unknown" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-1")
 				   ("us-ascii" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-1")
 				   ("iso-8859-1" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-1")
@@ -1141,6 +1134,24 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-mime-internal-content-type-exceptions nil
       vm-mime-internal-content-types t
       vm-mime-max-message-size 100000	; that's more than big enough!
+      ;;
+      ;; is this the only way to get a charset alias into place?
+      ;;
+      ;;    vm-mime-mule-charset-to-coding-alist (append
+      ;;					    vm-mime-mule-charset-to-coding-alist
+      ;;					    '("gb2312" cn-gb-2312)
+      ;;					    '("big5" chinese-big5))
+      ;;
+      ;;
+      ;; Emacs-20 cannot handle UTF-8, but if you only expect Latin1 characters
+      ;; you can do this:
+      ;;
+      ;; (add-to-list 'vm-mime-mule-charset-to-coding-alist '("utf-8" iso-8859-1))
+      ;;
+      ;; and under Emacs 19, you can
+      ;;
+      ;; (add-to-list 'vm-mime-charset-font-alist '("utf-8" . "some-font-spec"))
+      ;;
       vm-mime-qp-decoder-program "qp-decode" ; assume it's there
       vm-mime-qp-decoder-switches nil
       vm-mime-qp-encoder-program "qp-encode" ; assume it's there
@@ -1465,6 +1476,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("gegai@.*io\\.org" . "from/andy")
 			      ("Andy_Mills@jdedwards\\.com" . "from/andy")
 			      ("andy.mills@schwab.*\\.com" . "from/andy")
+			      ("amills@infinetcomm.*\\.com" . "from/andy")
 			      ("gnats-bugs@netbsd\\.org" . "netbsd/gnats-bugs")
 			      ;; code to make auto-folder default to the user name of the sender.
 			      ;; this should be last in the auto folder alist since it tends to
