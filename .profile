@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	3.1	94/02/16 18:18:17 (woods)"
+#ident	"@(#)HOME:.profile	3.2	94/03/01 14:37:06 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -113,7 +113,11 @@ dirappend PATH /usr/bin/X11 $LOCAL/bin $GNU/bin /usr/ucb
 dirappend PATH /usr/games $LOCAL/games
 
 if [ -z "$MANPATH" ] ; then
-	MANPATH="/usr/share/man" ; export MANPATH
+	if [ -d /usr/share/man ] ; then
+		MANPATH="/usr/share/man" ; export MANPATH
+	else
+		MANPATH="/usr/man" ; export MANPATH
+	fi
 fi
 dirprepend MANPATH $LOCAL/share/man $LOCAL/man $GNU/man /X11R5/man
 
@@ -221,6 +225,7 @@ if [ -n "$APCCONFIG" ] ; then
 	INTERFACE="apcsh" ; export INTERFACE
 	dirappend PATH $APCCONFIG/bin /apc/bin /apc/xbin /apc/lbin
 	dirappend PATH /usr/local/apc/bin /usr/local/apc/xbin
+	dirprepend MANPATH /usr/catman
 	dirappend MANPATH /apc/man
 fi
 
