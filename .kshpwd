@@ -1,7 +1,7 @@
 #
 #	.kshpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.kshpwd	19.1	98/01/11 20:58:15 (woods)"
+#ident	"@(#)HOME:.kshpwd	19.2	98/06/02 20:00:45 (woods)"
 
 if [ "$PWD" = "$HOME" ] ; then
 	PWD='~'
@@ -41,3 +41,6 @@ function _cd
 		setban
 	fi
 }
+
+# make sure PWD is now set right...
+cd; cd -
