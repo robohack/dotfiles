@@ -1,7 +1,7 @@
 #
 #	.bashrc - per-shell startup stuff for bash via $ENV
 #
-#ident	"@(#)HOME:.bashrc	18.1	97/01/20 11:49:33 (woods)"
+#ident	"@(#)HOME:.bashrc	18.2	97/10/24 13:54:07 (woods)"
 
 # Assumptions:
 
@@ -199,7 +199,7 @@ if [ "$TERM" = "xterm" ] ; then
 
 	setban ()
 	{
-		eval TBANNER='"${WBANNER:+$WBANNER | }${BANNERWD} | $uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN"'
+		eval TBANNER='"${WBANNER:-sh}://$UUNAME/${BANNERWD} | $uid{$gid}($LOGNAME)[$LEV]:$TTYN"'
 		echo -n "]0;$TBANNER"
 		WBANNER=""
 	}

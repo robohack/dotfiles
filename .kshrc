@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	18.12	97/10/15 02:37:12 (woods)"
+#ident	"@(#)HOME:.kshrc	18.13	97/10/24 13:54:58 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -272,7 +272,7 @@ if [ "$TERM" = "xterm" ] ; then
 
 	function setban
 	{
-		eval TBANNER='"${WBANNER:+$WBANNER|}$PWD|$uid@$UUNAME{$gid}($LOGNAME)[$LEV]:$TTYN"'
+		eval TBANNER='"${WBANNER:-sh}://$UUNAME/$PWD | $uid{$gid}($LOGNAME)[$LEV]:$TTYN"'
 		print "\033]0;$TBANNER\007\c"
 		WBANNER=""
 	}

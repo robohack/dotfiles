@@ -1,7 +1,7 @@
 #
 #	.ashrc - per-shell startup stuff for ash via $ENV
 #
-#ident	"@(#)HOME:.ashrc	18.3	97/10/15 02:38:28 (woods)"
+#ident	"@(#)HOME:.ashrc	18.4	97/10/24 13:54:43 (woods)"
 
 # Assumptions:
 #	- chdir must be synonymous with cd, and cd can be reset to a function
@@ -165,7 +165,7 @@ if [ "$TERM" = "xterm" ] ; then
 
 	setban ()
 	{
-		eval TBANNER='"${WBANNER:+$WBANNER|}${BANNERWD}|$uid@$UUNAME{$gid}($LOGNAME)[$LEV]:$TTYN"'
+		eval TBANNER='"${WBANNER:-sh}://$UUNAME/${BANNERWD} | $uid{$gid}($LOGNAME)[$LEV]:$TTYN"'
 		echo -n "]0;$TBANNER"
 		WBANNER=""
 	}

@@ -1,7 +1,7 @@
 #
 #	.shrc - per-shell startup stuff for /bin/sh
 #
-#ident	"@(#)HOME:.shrc	18.1	97/01/20 10:09:42 (woods)"
+#ident	"@(#)HOME:.shrc	18.2	97/10/24 13:54:23 (woods)"
 
 PATH="$PATH"
 export PATH
@@ -128,7 +128,7 @@ if [ "$TERM" = "xterm" ] ; then
 	setban ()
 	{
 		BANNERWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;'`
-		eval TBANNER='"${WBANNER:+$WBANNER | }${BANNERWD} | $uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN"'
+		eval TBANNER='"${WBANNER:-sh}://$UUNAME/${BANNERWD} | $uid{$gid}($LOGNAME)[$LEV]:$TTYN"'
 		echo "]0;$TBANNER\c"
 		WBANNER=""
 	}
