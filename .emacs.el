@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	9.1	94/03/07 19:40:57 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	9.2	94/03/10 18:53:33 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -156,6 +156,11 @@ directory in the list PATHLIST, otherwise nil."
 	 (require 'func-menu)
 	 (define-key global-map [S-down-mouse-1]
 	   'function-menu)))
+
+(if (elisp-file-in-loadpath-p "shwtmpbuf")
+    (progn
+      (load "shwtmpbuf")
+      (global-set-key "\C-xH" 'hide-temp-buffers))) ; defaults to C-x t in shwtmpbuf
 
 (if (elisp-file-in-loadpath-p "vm")
     (progn
@@ -573,121 +578,6 @@ If STRING is not given, use the current buffer.  See `string-match'."
   (if (stringp string)
       (substring string (match-beginning n) (match-end n))
     (buffer-substring (match-beginning n) (match-end n))))
-
-; From: wmesard@cs.stanford.edu (Wayne Mesard)
-; Newsgroups: gnu.emacs.sources
-; Subject: auto-size.el for Emacs19
-; Message-ID: <WMESARD.93Nov10151418@Lahaina.Stanford.EDU>
-; Date: 10 Nov 93 23:14:18 GMT
-; Organization: Distributed Systems Group, Stanford University
-; 
-; I've been using this forever.  It needed a little tweak to work with
-; Emacs19.19 and I haven't seen it posted in a long time, so...
-; 
-; Wayne();
-; 
-; ==================================================
-;; From: jbw%bucsf.BU.EDU@BU-CS.BU.EDU (Joe Wells)
-;; Newsgroups: gnu.emacs
-;; Subject: help windows
-;; Message-ID: <8903201934.AA03471@bucsf>
-;; Date: 20 Mar 89 19:34:49 GMT
-;; Lines: 94
-;; 
-;; Are you annoyed when help windows take up half of the screen, but only
-;; have one line of text?  Do you hate resizing them?  Here's a small
-;; package that will fix the problem of badly sized help windows.
-;; 
-;; This package will adjust the size of help windows to fit the text,
-;; subject to a maximum size.  It will never accidentally enlarge the
-;; minibuffer, which some people were recently discussing.  If the window
-;; for the temp buffer is already on the screen, it will be resized.
-;; 
-;; Have fun, send bugs to me.
-;; 
-;; --
-;; Joe Wells
-;; INTERNET: jbw%bucsf.bu.edu@bu-it.bu.edu    IP: [128.197.10.201]
-;; UUCP: ...!harvard!bu-cs!bucsf!jbw
-;; ----------------------------------------------------------------------
-;; Improved help-window display.
-;; Copyright (C) 1989 Free Software Foundation, Inc.
-;;
-;; Author: Joe Wells
-;; jbw%bucsf.bu.edu@bu-it.bu.edu (school year)
-;; joew%uswest@boulder.colorado.edu (summer)
-;;
-;; The ideas for this package were derived from the C code in
-;; src/window.c.
-;;
-;; CHANGES:
-;; - Added auto-size-min-height (It shouldn't have been using window-min-height
-;; which really means something else.) -wsm6/26/90.
-;; - Added auto-size-exception-list (I'm tired of the *compilation* window
-;; being too small -wsm7/6/90.
-;; - Added hack to make this work with both Emacs18 and Emacs19 -wsm11/6/93.
-;; - Added WINDOW argument to vertical-motion call to make this work with
-;; Lemacs19.19 -cor3/3/94
-;;
-(defvar auto-size-min-height window-min-height
-  "*SHOW-TEMP-BUFFER should never produce a window smaller than this")
-
-(defvar auto-size-exception-list
-  '(("*compilation*" . 10))
-  "Don't calculate the height for these windows.  Use the supplied heights.")
-
-(defvar temp-buffer-max-height (/ (- (frame-height) 2) 2)
-  "*This is the maximum window height (in text lines + mode line) which
-show-temp-buffer will give to a temp buffer.")
-
-;; There is a bug that if the current buffer is a temporary buffer (such as a
-;; *Buffer List*) is the only window, and you re-invoke the function which
-;; created it, the minibuffer will be expanded to fill the empty space
-;; 
-(defun show-temp-buffer (buffer)
-  "Display BUFFER on the screen in a window of appropriate size.  Will
-not give a window of size greater than temp-buffer-max-height."
-  (let* ((current-window (selected-window))
-	 (window (display-buffer buffer))
-	 (window-lines (window-height window))
-	 ;; Check if we can safely resize this window
-	 (minibuffer-line (nth 1 (window-edges (minibuffer-window))))
-	 (window-edges (window-edges window))
-	 (minibuffer-safe (not (and (= (nth 1 window-edges) 0)
-				    (= (nth 3 window-edges)
-				       minibuffer-line))))
-	 window-lines-needed)
-    ;; Ensure sane initial window configuration
-    (setq minibuffer-scroll-window window)
-    (set-window-start window 1)
-    (set-window-point window 1)
-    (set-window-hscroll window 0)
-    (save-excursion
-      (set-buffer buffer)
-      (goto-char (point-min))
-      ;; Delete leading blank lines
-      (if (looking-at "\n+")
-	  (let ((buffer-read-only nil)
-		(buffer-modified-p (buffer-modified-p)))
-	    (replace-match "")
-	    (set-buffer-modified-p buffer-modified-p)))
-      ;; Calculate vertical lines needed by text
-      (setq window-lines-needed
-	    (or (cdr (assoc (buffer-name buffer) auto-size-exception-list))
-		(+ 1 (vertical-motion (- temp-buffer-max-height 2))
-		   (if (bolp) 0 1)))))
-    (cond (minibuffer-safe
-	   ;; Make sure the window isn't too small
-	   (setq window-lines-needed
-		 (if (< window-lines-needed auto-size-min-height)
-		     auto-size-min-height
-		   window-lines-needed))
-	   ;; Do the resize operation
-	   (select-window window)
-	   (enlarge-window (- window-lines-needed window-lines))
-	   (select-window current-window)))))
-
-(setq temp-buffer-show-function 'show-temp-buffer)
 
 ;; ----------
 ;; some special hooks.....
