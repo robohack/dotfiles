@@ -1,9 +1,12 @@
 !
-!#ident	"@(#)HOME:.Xdefaults	21.1	99/11/18 13:13:11 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	21.2	01/10/17 11:54:38 (woods)"
 !
 #ifdef COLOR
 *customization:			-color
+*installColormap:		Yes
 #endif
+*cursorBlink:			true
+*deleteIsDEL:			true
 Netscape*XmLGrid.foreground:	Black
 Netscape*XmLGrid.background:	White
 Netscape*XmLGrid.selectForeground:	White
