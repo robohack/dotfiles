@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.27	96/09/07 20:50:12 (woods)"
+#ident	"@(#)HOME:.twmrc	2.28	96/09/07 20:59:55 (woods)"
 #
 
 AutoRelativeResize
@@ -88,6 +88,7 @@ WarpCursor {
 	"xterm"
 }
 
+
 # Define some useful functions for motion-based actions.
 #
 MoveDelta 4
@@ -118,7 +119,8 @@ Button1 = : iconmgr : f.raise
 Button2 = : iconmgr : f.iconify
 Button3 = : iconmgr : f.lower
 
-#	for xterms menu
+
+#	for xterms menus
 #
 function "start-local-xterm" {
 	f.exec "$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls &"
@@ -162,14 +164,6 @@ function "start-wind-xterm" {
 
 function "start-weight-xterm" {
 	f.exec "$RSH -n weight.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-}
-
-function "start-box1-xterm" {
-	f.exec "$RSH -n box1.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-}
-
-function "start-box1-r-xterm" {
-	f.exec "$RSH -n box1-r.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
 function "start-clapton-xterm" {
@@ -232,6 +226,7 @@ function "start-tar-xterm" {
 	f.exec "$RSH -n tar.web.net exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
+
 #	for rlogin-weird menu
 #
 function "start-weird-rlogin" {
@@ -257,6 +252,7 @@ function "start-always-rlogin" {
 function "start-pretty-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin pretty.weird.com &"
 }
+
 
 #	for slogin-weird menu
 #
@@ -284,11 +280,13 @@ function "start-pretty-slogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin pretty.weird.com &"
 }
 
+
 #	for rlogin-cyclic menu
 #
 function "start-totoro-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin totoro.cyclic.com &"
 }
+
 
 #	for rlogin-planix menu
 #
@@ -316,13 +314,6 @@ function "start-weight-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin weight.planix.com &"
 }
 
-function "start-box1-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin box1.planix.com &"
-}
-
-function "start-box1-r-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin box1-r.planix.com &"
-}
 
 #	for srlogin-planix menu
 #
@@ -348,14 +339,6 @@ function "start-worm-slogin" {
 
 function "start-weight-slogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin weight.planix.com &"
-}
-
-function "start-box1-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin box1.planix.com &"
-}
-
-function "start-box1-r-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin box1-r.planix.com &"
 }
 
 
@@ -423,11 +406,13 @@ function "start-cyberia-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin cyberia.infoshare.net &"
 }
 
+
 #	for rlogin-aci menu
 #
 function "start-aci-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin aci.on.ca &"
 }
+
 
 #	for rlogin-logon menu
 #
@@ -435,11 +420,13 @@ function "start-logon-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin log.on.ca &"
 }
 
+
 #	for rlogin-fgsc menu
 #
 function "start-fgsc-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin mailgate.fgsc.ca &"
 }
+
 
 #	for rlogin-cancom menu
 #
@@ -451,6 +438,7 @@ function "start-newscancom-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin news.cancom.net &"
 }
 
+
 #	for rlogin-pageactive menu
 #
 function "start-deephaze-rlogin" {
@@ -460,6 +448,7 @@ function "start-deephaze-rlogin" {
 function "start-dynamic-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin dynamic.pageactive.com &"
 }
+
 
 #	for rlogin-passport menu
 #
@@ -475,6 +464,7 @@ function "start-forged-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin forged.passport.ca &"
 }
 
+
 #	for rlogin-psi menu
 #
 function "start-psi1-rlogin" {
@@ -484,6 +474,7 @@ function "start-psi1-rlogin" {
 function "start-psi2-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin ns2.psi.ca &"
 }
+
 
 #	for rlogin-sols menu
 #
@@ -495,6 +486,7 @@ function "start-solsweb-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin solsweb.sols.on.ca &"
 }
 
+
 #	for rlogin-reptiles menu
 #
 function "start-iguana-rlogin" {
@@ -504,6 +496,7 @@ function "start-iguana-rlogin" {
 function "start-tuatara-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin tuatara.reptiles.org &"
 }
+
 
 #	for rlogin-druid menu
 #
@@ -1048,8 +1041,6 @@ menu "planix-xterms"
 	"Xterm @wind"			f.function "start-wind-xterm"
 	"Xterm @wish"			f.function "start-wish-xterm"
 	"Xterm @weight"			f.function "start-weight-xterm"
-	"Xterm @box1"			f.function "start-box1-xterm"
-	"Xterm @box1-r"			f.function "start-box1-r-xterm"
 }
 
 menu "ipass-xterms"
