@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.12	98/03/03 01:35:28 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.13	98/03/03 01:39:36 (woods)"
 #
 
 changequote([, ])
@@ -948,7 +948,7 @@ menu "xterm"
 	"Xterm @almost"	!"$RSH -n almost.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
   ])
   ifelse(HOSTNAME, once.weird.com, [], [
-	"Xterm @almost"	!"$RSH -n once.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm @once"	!"$RSH -n once.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
   ])
   ifelse(HOSTNAME, whats.weird.com, [], [
 	"Xterm @whats"	!"$RSH -n whats.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
