@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	7.3	94/02/16 13:15:45 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	7.4	94/02/16 17:42:10 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -942,7 +942,7 @@ feeling, but you'll get used to it."
 		       (if time-zone " (") time-zone (if time-zone ")")))
       (setq appt-message-warning-time 20)
       (setq view-diary-entries-initially t)
-      (setq mark-diary-entries-in-calendar t)
+;;;   (setq mark-diary-entries-in-calendar t)
       (setq mark-holidays-in-calendar t)
       (setq diary-display-hook (list 'appt-make-list 'fancy-diary-display))
       (setq appt-display-duration 60)	; seconds to display appointment message
@@ -951,7 +951,7 @@ feeling, but you'll get used to it."
       (setq all-christian-calendar-holidays t)
       (setq other-holidays
 	    '((holiday-fixed 1 11 "Sir John A. Macdonald's birthday")
-	      (holiday-fixed 2 17 "Heritage Day") ; ?????
+	      (holiday-float 2 1 -2 "Heritage Day") ; second last Monday?
 	      (holiday-fixed 4 21 "Queen Elizabeth's birthday")
 	      (holiday-fixed 4 22 "Earth Day")
 	      (holiday-float 5 1 -2 "Victoria Day") ; second last Monday
