@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	14.2	94/06/20 22:39:03 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	14.3	94/08/16 19:04:41 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -194,6 +194,9 @@ directory in the list PATHLIST, otherwise nil."
 
 (if window-system
     (setq search-highlight t))		; i-search hightlight match
+
+(if window-system
+    (setq baud-rate 153600))		; let's make things a bit more efficient
 
 ;;;; ----------
 ;;;; auto-mode-alist setup
