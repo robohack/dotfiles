@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	18.1	97/01/20 10:09:58 (woods)"
+#ident	"@(#)HOME:.twmrc	18.2	97/01/20 12:32:16 (woods)"
 #
 
 AutoRelativeResize
@@ -1008,7 +1008,7 @@ function "start-kuma-emacs" {
 
 # note this uses the local path, etc....
 function "start-clapton-emacs" {
-	f.exec "$RSH -n clapton.seachange.com '. ./.localprofile; PATH=/usr/contrib/bin; MAILPATH='$MAILPATH'; export MAILPATH:'$PATH'; export PATH; exec /usr/contrib/bin/emacs -display '$DISPLAY' -i ' &"
+	f.exec "$RSH -n clapton.seachange.com '. ./.localprofile; PATH='$PATH':/usr/contrib/bin; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec /usr/contrib/bin/emacs -display '$DISPLAY' -i ' &"
 }
 
 
