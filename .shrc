@@ -1,7 +1,7 @@
 #
 #	.shrc - per-shell startup stuff for /bin/sh
 #
-#ident	"@(#)HOME:.shrc	1.1	94/12/20 14:15:39 (woods)"
+#ident	"@(#)HOME:.shrc	1.2	95/02/14 17:40:43 (woods)"
 
 export PATH="$PATH"
 
@@ -61,9 +61,30 @@ if [ "$id" -eq 0 ] ; then
 	fi
 	dirappend PATH /usr/lib/uucp /usr/lib
 	dirappend PATH $HOME/bin
-	PS1="$TTYN:<$LOGNAME@$UUNAME> # "
+	case "$TERM" in
+	xterm)
+		PS1="]0;$TTYN:<$LOGNAME@$UUNAME>$TTYN:<$LOGNAME@$UUNAME> # "
+		;;
+	*)
+		PS1="$TTYN:<$LOGNAME@$UUNAME> # "
+		;;
+	esac
 elif [ "$uid" != "$LOGNAME" ] ; then
-	PS1="$TTYN:<$uid($LOGNAME)@$UUNAME)> $ "
+	case "$TERM" in
+	xterm)
+		PS1="]0;$TTYN:<$uid($LOGNAME)@$UUNAME)>$TTYN:<$uid($LOGNAME)@$UUNAME)> $ "
+		;;
+	*)
+		PS1="$TTYN:<$uid($LOGNAME)@$UUNAME)> $ "
+		;;
+	esac
 else
-	PS1="$TTYN:<$LOGNAME@$UUNAME> $ "
+	case "$TERM" in
+	xterm)
+		PS1="]0;$TTYN:<$LOGNAME@$UUNAME>$TTYN:<$LOGNAME@$UUNAME> $ "
+		;;
+	*)
+		PS1="$TTYN:<$LOGNAME@$UUNAME> $ "
+		;;
+	esac
 fi
