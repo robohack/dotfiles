@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	19.8	98/04/25 21:46:31 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	19.9	98/04/25 21:55:48 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -57,11 +57,8 @@
 
 (standard-display-european t)		; This forces iso8859-1
 
-;;; Load VM.
-;(require 'vm)
-;;; Inhibit fatal message.
-;(defun vm-check-emacs-version ()
-;  (message "WARNING: vm-check-emacs-version disabled."))
+;;; Let's make sure we're "home"....
+(cd "~")
 
 ;;;; ----------
 ;;;; What to do after this file has been loaded...
