@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	6.7	94/11/30 15:52:51 (woods)"
+#ident	"@(#)HOME:.profile	6.8	94/11/30 16:46:13 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -145,6 +145,7 @@ if [ -z "$MANPATH" ] ; then
 		MANPATH="/usr/man" ; export MANPATH
 	fi
 fi
+OMANPATH="$MANPATH" ; export OMANPATH
 dirprepend MANPATH $LOCAL/share/man $LOCAL/man $GNU/man /X11R5/man
 
 ISSUN=false; export ISSUN
