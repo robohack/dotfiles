@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	23.1	02/01/12 14:43:19 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	23.2	02/06/03 22:59:30 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -315,7 +315,7 @@ scripts (alias)." t)
   "fixed"
   "My preferred font")
 
-;; The Bitstream Courier font is very clean and doesn't seem to have a matching
+;; The Bitstream Courier font is very clean but doesn't seem to have a matching
 ;; size italic (and has no oblique) font (at least not on some stock X11's).
 ;;
 ;;	"-bitstream-courier-medium-r-*-*-*-120-*-*-m-*-iso8859-1"
@@ -331,8 +331,12 @@ scripts (alias)." t)
 ;;
 ;; ... assuming it's X, that is!  ;-)
 ;;
-;; What we're actually using is one of the fonts from the GNU intlfonts
-;; distribution.  These are by far the very best all-round complete fonts.
+;; Ideally you can install a custom font with all unique glyphs (and a
+;; complete set of glhphs).
+;;
+;; This is What we're actually using.  It's one of the fonts from the GNU
+;; intlfonts distribution.  These are by far the very best all-round
+;; complete fonts I've ever seen.
 ;;
 (if (eq window-system 'x)
     (setq preferred-frame-font
@@ -346,7 +350,9 @@ scripts (alias)." t)
   (modify-frame-parameters frame
 			   (list (cons 'font preferred-frame-font)))
   ;; Update faces that want a bold or italic version of the default font.
-  (frame-update-faces frame))
+  (if (not (and (>= init-emacs-type 21)
+		(>= emacs-version-minor 1)))
+      (frame-update-faces frame)))
 (add-hook 'after-make-frame-functions 'set-frame-face-to-preferred-frame-font)
 
 ;; this gets the current frame, which already exists, and already has a font
@@ -367,6 +373,7 @@ scripts (alias)." t)
 (setq delete-auto-save-files t)		; delete auto-save file when saved
 (setq enable-local-variables 1)		; non-nil, non-t means query...
 (setq file-name-handler-alist nil)	; turn off ange-ftp entirely
+(setq indicate-empty-lines t)		; show which window lines are past the EOF
 (setq make-backup-files nil)		; too much clutter
 (setq message-log-max 1000)		; default of 50 loses too much!
 (setq next-line-add-newlines nil)	; I hate it when it does that!  ;-)
@@ -900,36 +907,6 @@ If not `nil' and not `t', query for each instance."
   "Move the point to the bottom line in the current window."
   (interactive)
   (move-to-window-line -1))
-
-;;; from the FAQ
-;;;
-;;; use:	(swap-keys ?\C-h ?\C-?)
-;;;
-(defun swap-keys (key1 key2)
-  "Swap keys KEY1 and KEY2 using map-key."
-  (map-key key1 key2)
-  (map-key key2 key1))
-
-(defun map-key (from to)
-  "Make key FROM behave as though key TO was typed instead."
-  (setq keyboard-translate-table
-	(concat keyboard-translate-table
-		(let* ((i (length keyboard-translate-table))
-		       (j from)
-		       (k i)
-		       (str (make-string (max 0 (- j (1- i))) ?X)))
-		  (while (<= k j)
-		    (aset str (- k i) k)
-		    (setq k (1+ k)))
-		  str)))
-  (aset keyboard-translate-table from to)
-  (let ((i (1- (length keyboard-translate-table))))
-    (while (and (>= i 0) (eq (aref keyboard-translate-table i) i))
-      (setq i (1- i)))
-    (setq keyboard-translate-table
-	  (if (eq i -1)
-	      nil
-	    (substring keyboard-translate-table 0 (1+ i))))))
 
 ;;; Snarfed from Steve Humble
 (defun ascii-table (new)
@@ -1635,11 +1612,19 @@ it could check Status: headers for O, or Forward to in mailboxes."
 ;;; have good access to the help functions!
 ;;
 ;; NOTE: this *should* work by simply reading termio for current erase char.
-;; There is a proposal afoot do do just this, but it has a twisted agenda.
+;; As of emacs-21.2 there's a note in the NEWS file which says "** On terminals
+;; whose erase-char is ^H (Backspace), Emacs now uses
+;; normal-erase-is-backspace-mode."  Unfortunately this does exactly the wrong
+;; thing, and in a totally bizzare and stupid way.
 ;;
 ;; Remember to call override-local-key-settings in the appropriate hooks to fix
 ;; up modes which violate global user preferences....
 ;;
+(if (and (>= init-emacs-type 21)
+	 (>= emacs-version-minor 2))
+    ;; grrr.... do something with that stupid broken poor useless excuse for
+    ;; a feature, normal-erase-is-backspace-mode....
+    (setq keyboard-translate-table nil))
 (global-set-key "\C-h" 'delete-backward-char)
 (global-set-key "\C-?" 'delete-char)
 (global-set-key "\e\C-h" 'backward-kill-word)
