@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.21	96/03/21 20:28:22 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.22	96/08/23 16:09:42 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -119,27 +119,34 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("com-priv@.*psi.com" . "com-priv-l")
 			      ("devel-cvs@" . "devel-cvs-l")
 			      ("djb-qmailbeta@" . "djb-qmailbeta-l")
+			      ("djb-qmail@" . "djb-qmail-l")
 			      ("domain-policy@" . "domain-policy-l")
 			      ("exim-users@" . "exim-users-l")
 			      ("\\(hyperbole\\|hyperbole-announce\\)@" . "hyperbole-l")
 			      ("iap@" . "iap-l")
 			      ("info-vm@" . "bug-vm") ; just merge these....
+			      ("ipfilter@" . "ipfilter-l")
+			      ("isp-telco@" . "isp-telco-l")
 			      ("jet-fuel@" . "jet-fuel-l")
 			      ("lout@" . "lout-l")
 			      ("NAMEDROPPERS@LISTS.INTERNIC.NET" . "namedroppers-l")
 			      ("namedroppers@internic.net" . "namedroppers-l")
 			      ("net-dist@nikhef.nl" . "nikhef.net-dist-l")
-			      ("newdom@" . "newdom-l")
+			      ("newdom@iiia.org" . "newdom-l")
 			      ("pcl-cvs@" . "pcl-cvs-l")
+			      ("pcl-cvs-auto-bugs@" . "pcl-cvs-l")
 			      ("qotd@" . "qotd-l")
 			      ("rc@hawkwind.utcs.toronto.edu" . "rc-l")
 			      ("rs-info@internic.net" . "rs-info-l")
+			      ("shared-tld@" . "shared-tld-l")
 			      ("smail3-bugs-fwd@" . "smail3-bugs-fwd-l")
 			      ("smail3-devel@" . "smail3-devel-l")
 			      ("smail3-maintainers@" . "smail3-maintainers-l")
 			      ("smail3-users@" . "smail3-users-l")
 			      ("smail3-wizards@" . "smail3-wizards-l")
+			      ("ssh@" . "ssh-l")
 			      ("stk@" . "stk-l")
+			      ("tkined@" . "tkined-l")
 			      ("trn-test@" . "trn-test-l")
 			      ("zmailer@" . "zmailer-l")
 			      ;; various netbsd lists
@@ -262,7 +269,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;;;   vm-mode-hook nil
 ;;;   vm-mode-hooks nil
       vm-move-after-deleting t		; keep on rolling
-      vm-move-after-undeleting t	; keep on rolling
+      vm-move-after-undeleting nil
       vm-move-messages-physically nil
       vm-movemail-program "movemail"
       vm-mutable-frames nil
@@ -354,7 +361,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;;;   vm-select-new-message-hook nil
 ;;;   vm-select-unread-message-hook nil
 ;;;   vm-send-digest-hook nil
-      vm-skip-deleted-messages nil	; try it this way for a while....
+      vm-skip-deleted-messages 1
       vm-skip-read-messages nil
       vm-startup-with-summary 0		; pop up summary window right away
       vm-strip-reply-headers nil
