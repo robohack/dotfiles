@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.2	95/07/01 16:38:56 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.3	95/07/12 13:18:05 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -121,6 +121,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("smail3-users@" . "smail3-users-l")
 			      ("smail3-wizards@" . "smail3-wizards-l")
 			      ("trn-test@" . "trn-test-l")
+			      ("zmailer@" . "zmailer-l")
 			      ;; various netbsd lists
 			      ("source-changes@NetBSD.ORG" . "netbsd/source-changes")
 			      ("\\(current-users@NetBSD.ORG\\|apana-lists-os-netbsd-general@\\|source@NetBSD.ORG\\)" .
