@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.6	98/10/23 02:17:43 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.7	98/10/24 15:16:25 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -342,6 +342,8 @@ scripts (alias)." t)
 (setq completion-ignored-extensions
       (append '(".out")
 	      completion-ignored-extensions))
+
+(setq gnus-read-active-file t)		; default of 'some causes it to hang
 
 (if window-system
     (setq baud-rate 153600))		; let's make things more efficient
