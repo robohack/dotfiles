@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.3	95/07/29 10:52:02 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.4	95/07/30 12:33:57 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -277,6 +277,8 @@ directory in the list PATHLIST, otherwise nil."
 	(message "Line %d of %d"
 		 ln
 		 (+ ln (count-lines (point) (point-max))))))))
+(global-set-key "\C-xl" 'what-line)
+(global-set-key "\C-xL" 'count-lines-page)
 
 ;;From: friedman@gnu.ai.mit.edu (Noah Friedman)
 ;;Message-Id: <9502130229.AA10679@tepui.cli.com>
