@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file
 #
-#ident	"@(#)HOME:.xinitrc	4.4	94/08/31 16:13:56 (woods)"
+#ident	"@(#)HOME:.xinitrc	4.5	94/09/29 11:03:59 (woods)"
 
 . /etc/profile
 
@@ -57,22 +57,21 @@ xclock -geometry 190x30-4+196 -digital &
 sleep 1
 xclock -geometry 190x190-4+4 &
 
-rsh -n kuma /usr/openwin/bin/perfmeter -geometry 148x330-355+4 -display $DISPLAY tar.web.net &
-rsh -n kuma /usr/openwin/bin/perfmeter -geometry 148x330-200+4 -display $DISPLAY kuma.web.net &
-
 xmailwatcher -geometry 300x100-4+240 -iconic -icongeometry -140+240 -iconic -mailbox /var/spool/mail/$LOGNAME &
-xmailwatcher -geometry 300x100-4+300 -iconic -icongeometry -140+300 -iconic -mailbox /kuma/big/var/spool/mail/$LOGNAME &
+xmailwatcher -geometry 300x100-4+300 -iconic -icongeometry -140+300 -iconic -mailbox /kuma/var/spool/mail/$LOGNAME &
 
 # Grrr.... xsol doesn't take standard toolkit args....
 #xsol -geometry 32x48-4+260 -iconic &
 
-#if [ -x /usr/bin/X11/xsysstats ] ; then
-#	xsysstats -geometry 120x137-205+4 -type load1 -type disk -sample 5 &
-#	xsysstats -geometry 120x137-205+150 -type load1 -host kuma -type disk -host kuma -sample 5 &
-#else
-#	xload -geometry 120x137-205+4 -hl grey90 &
+if [ -x /usr/bin/X11/xsysstats ] ; then
+	xsysstats -geometry 120x137-205+4 -type load1 -type disk -sample 5 &
+	xsysstats -geometry 120x137-205+150 -type load1 -host kuma -type disk -host kuma -sample 5 &
+	#rsh -n kuma /usr/openwin/bin/perfmeter -geometry 148x330-355+4 -display $DISPLAY tar.web.net &
+	#rsh -n kuma /usr/openwin/bin/perfmeter -geometry 148x330-200+4 -display $DISPLAY kuma.web.net &
+else
+	xload -geometry 120x137-205+4 -hl grey90 &
 #	rsh -n kuma /usr/openwin/bin/xload -geometry 120x137-205+150 -jumpscroll 1 -hl grey90 -display $DISPLAY &
-#fi
+fi
 
 sleep 1
 
