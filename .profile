@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	19.1	98/01/11 20:58:38 (woods)"
+#ident	"@(#)HOME:.profile	19.2	98/02/01 20:36:36 (woods)"
 
 #
 # Assumptions:
@@ -26,6 +26,11 @@
 #	$HOME/.shrc	- sourced once from .shlogin, and pathname used in $ENV
 #	$HOME/.stty	- sourced for stty command(s), etc. just before tset(1)
 #	$HOME/.trninit	- pathname set as value for $TRNINIT
+
+# Notes:
+#
+#	.localprofile may set $PATH_IS_OKAY to "true" if it is so.
+#
 
 if [ -r $HOME/.bashlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} -a -n "${BASH}" ] ; then
 	trap '. $HOME/.bashlogout ; exit $?' 0
@@ -169,11 +174,22 @@ if [ -z "$PKG" ] ; then
 	if [ -d /pkg -a -d /pkg/bin ] ; then
 		PKG="/pkg"
 	elif [ -d /usr/pkg -a -d /usr/pkg/bin ] ; then
-		PKG="/usr/PKG"
+		PKG="/usr/pkg"
 	else
 		PKG="/NO-pkg-FOUND"
 	fi
 	export PKG
+fi
+
+if [ -z "$OPT" ] ; then
+	if [ -d /opt ] ; then
+		OPT="/opt"
+	elif [ -d /usr/opt ] ; then
+		OPT="/usr/opt"
+	else
+		OPT="/NO-opt-FOUND"
+	fi
+	export OPT
 fi
 
 if [ -z "$GNU" ] ; then
@@ -239,12 +255,9 @@ if [ -z "$X11PATH" ] ; then
 fi
 
 dirappend PATH /usr/ccs/bin $X11BIN $LOCAL/bin $GNU/bin $CONTRIB/bin $PKG/bin /usr/ucb /usr/bsd
-dirappend PATH /usr/games $LOCAL/games
-case "$UUNAME" in
-web | robohack )
-	dirprepend MANPATH $LOCAL/man
-	;;
-esac
+dirappend PATH /usr/games $LOCAL/games $OPT/games/bin
+
+OMANPATH="$MANPATH" ; export OMANPATH
 
 # don't set MANPATH with 4.4BSD man....
 #
@@ -256,13 +269,15 @@ if [ -z "$MANPATH" -a ! -r /etc/man.conf ] ; then
 	fi
 	export MANPATH
 fi
-OMANPATH="$MANPATH" ; export OMANPATH
+case "$UUNAME" in
+web | robohack )
+	dirprepend MANPATH $LOCAL/man
+	;;
+esac
 if [ ! -d $LOCAL/share/man ] ; then
 	dirappend MANPATH $LOCAL/man
 fi
 dirprepend MANPATH $LOCAL/share/man $GNU/man $CONTRIB/man $PKG/man $X11PATH/man
-# XXX tcl manpages are horrible as they override many others!
-#dirappend MANPATH $LOCAL/share/man.tcltk
 
 ISSUN=false; export ISSUN
 if [ -x /usr/bin/sun ] ; then
@@ -540,6 +555,15 @@ if [ -x $LOCAL/bin/diff ] ; then
 	DIFF="$LOCAL/bin/diff" ; export DIFF
 elif expr "`type gdiff`" : '.* is .*/jove$' >/dev/null 2>&1 ; then
 	DIFF="`type gdiff`" ; export DIFF
+fi
+
+if expr "`type auplay`" : '.* is .*/auplay$' >/dev/null 2>&1 ; then
+	AUDIOPLAYER="`type auplay`"
+elif expr "`type audioplay`" : '.* is .*/more$' >/dev/null 2>&1 ; then
+	AUDIOPLAYER="`type audioplay`"
+fi
+if [ -n "$AUDIOPLAYER" ] ; then
+	AUDIOPLAYER="`expr "$AUDIOPLAYER" : '^.*/\([^/]*\)$'`"; export AUDIOPLAYER
 fi
 
 MONTH="AIKO" ; export MONTH
