@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	4.9	94/11/28 15:28:25 (woods)"
+;;;#ident	"@(#)HOME:.vm	4.10	94/11/29 12:40:22 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -73,6 +73,12 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;;;
 ;;;	VM related things
 ;;;
+(defun my-vm-auto-archive-messages ()
+  (interactive)
+  (if (y-or-n-p "Are you sure you want to archive all messages???")
+      (vm-auto-archive-messages)))
+
+(define-key vm-mode-map "A" 'my-vm-auto-archive-messages)
 
 ;; commented lines indicate changed values....  (from v5.72)
 ;;
