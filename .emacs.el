@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	10.2	94/03/14 11:28:38 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	10.3	94/03/14 11:34:24 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -107,7 +107,10 @@ directory in the list PATHLIST, otherwise nil."
 (if (elisp-file-in-loadpath-p "time")
     (dont-compile
       ; display-time can't check "Status:" headers or "Forward to" files
-      (if (/= init-emacs-type '19)
+      ; so if not running vm or something else that cleans out the spool
+      ; files, disable the mail checking feature
+      (if (and (/= init-emacs-type '19)
+	       (not (elisp-file-in-loadpath-p "vm")))
 	  (setq display-time-mail-file "/THIS-IS-NOT-A-FILE"))
       (setq display-time-day-and-date t)
       (if (= init-emacs-type '19)
@@ -169,15 +172,19 @@ directory in the list PATHLIST, otherwise nil."
       (autoload 'vm-visit-virtual-folder "vm" "Visit a VM virtual folder." t)
       (autoload 'vm-mode "vm" "Run VM major mode on a buffer" t)
       (autoload 'vm-mail "vm" "Send a mail message using VM." t)
-      (autoload 'vm-submit-bug-report "vm" "Send a bug report about VM." t)))
-
-; must appear after display-time is invoked (thus after time.el is loaded)
-; [only called on emacs-19(?)]
-; 
-(defun display-time-file-nonempty-p (file)
-  "This function returns 'nil, as it would only be useful if it could check
+      (autoload 'vm-submit-bug-report "vm" "Send a bug report about VM." t))
+  (progn
+    ; display-time can't check "Status:" headers or "Forward to" files
+    ; so if not running vm or something else that cleans out the spool
+    ; files, disable the mail checking feature
+    ;
+    ; must appear after display-time is invoked (thus after time.el is loaded)
+    ; [only called on emacs-19(?)]
+    ; 
+    (defun display-time-file-nonempty-p (file)
+      "This function returns 'nil, as it would only be useful if it could check
 Status: headers for O, or Forward to in mailboxes."
-  nil)
+      nil)))
 
 ;; ----------
 ;; some property defintions...
