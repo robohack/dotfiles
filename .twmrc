@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	18.15	97/06/10 01:23:01 (woods)"
+#ident	"@(#)HOME:.twmrc	18.16	97/06/20 19:59:02 (woods)"
 #
 
 AutoRelativeResize
@@ -612,6 +612,14 @@ function "start-logon-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin log.on.ca &"
 }
 
+
+#	for slogin-logon menu
+#
+function "start-sogon-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin log.on.ca &"
+}
+
+
 #	for rlogin-fgsc menu
 #
 function "start-fgsc-rlogin" {
@@ -653,6 +661,21 @@ function "start-cayaman-rlogin" {
 
 function "start-forged-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin forged.passport.ca &"
+}
+
+
+#	for slogin-passport menu
+#
+function "start-passport-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin passport.ca &"
+}
+
+function "start-cayaman-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin cayman.passport.ca &"
+}
+
+function "start-forged-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin forged.passport.ca &"
 }
 
 
@@ -1398,7 +1421,7 @@ menu "rlogin"
 	"Rlogin's at Log.on.ca..."	f.menu "rlogin-logon"
 	"Rlogin's at FGSC.ca..."	f.menu "rlogin-fgsc"
 	"Rlogin's at Cancom.net..."	f.menu "rlogin-cancom"
-	"Rlogin's at Pageactive.com..."	f.menu "rlogin-pageactive"
+	"Rlogin's at PageActive.com..."	f.menu "rlogin-pageactive"
 	"Rlogin's at Passport.ca..."	f.menu "rlogin-passport"
 	"Rlogin's at SOLS.on.ca..."	f.menu "rlogin-sols"
 	"Rlogin's at Vex.net..."	f.menu "rlogin-vex"
@@ -1423,8 +1446,9 @@ menu "slogin"
 	"Slogin's at Planix.com..."	f.menu "slogin-planix"
 	"Slogin's at Infoshare.net..."	f.menu "slogin-infoshare"
 	"Slogin's at PageActive.com..."	f.menu "slogin-pageactive"
+	"Slogin's at Passport.ca..."	f.menu "slogin-passport"
 	"Slogin's at ACI.on.ca..."	f.menu "slogin-aci"
-	"Slogin's at Log.on.ca..."	f.menu "slogin-aci"
+	"Slogin's at Log.on.ca..."	f.menu "slogin-logon"
 	"Slogin's at OpenText.com..."	f.menu "slogin-opentext"
 	"Slogin's at Web.net..."	f.menu "slogin-web"
 	"Slogin's at Ipass.com..."	f.menu "slogin-ipass"
@@ -1585,6 +1609,12 @@ menu "rlogin-logon"
 	"Rlogin @log.on.ca"		f.function "start-logon-rlogin"
 }
 
+menu "slogin-logon"
+{
+	"Slogin's At Log.on.ca"		f.title
+	"Slogin @log.on.ca"		f.function "start-logon-slogin"
+}
+
 menu "rlogin-fgsc"
 {
 	"Rlogin's At FGSC.ca"		f.title
@@ -1601,8 +1631,17 @@ menu "rlogin-cancom"
 menu "rlogin-pageactive"
 {
 	"Rlogin's At Pageactive.com"	f.title
+	"Rlogin @warp"			f.function "start-warp-rlogin"
 	"Rlogin @deephaze"		f.function "start-deephaze-rlogin"
 	"Rlogin @dynamic"		f.function "start-dynamic-rlogin"
+}
+
+menu "slogin-pageactive"
+{
+	"Slogin's At Pageactive.com"	f.title
+	"Slogin @warp"			f.function "start-warp-slogin"
+	"Slogin @deephaze"		f.function "start-deephaze-slogin"
+	"Slogin @dynamic"		f.function "start-dynamic-slogin"
 }
 
 menu "rlogin-passport"
@@ -1611,6 +1650,14 @@ menu "rlogin-passport"
 	"Rlogin @diplomatic"		f.function "start-passport-rlogin"
 	"Rlogin @cayaman"		f.function "start-cayaman-rlogin"
 	"Rlogin @forged"		f.function "start-forged-rlogin"
+}
+
+menu "slogin-passport"
+{
+	"Slogin's At Passport.ca"	f.title
+	"Slogin @diplomatic"		f.function "start-passport-slogin"
+	"Slogin @cayaman"		f.function "start-cayaman-Slogin"
+	"Slogin @forged"		f.function "start-forged-slogin"
 }
 
 menu "rlogin-sols"
