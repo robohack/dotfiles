@@ -1,8 +1,20 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	1.9	97/12/06 20:15:57 (woods)"
+#ident	"@(#)HOME:.ctwmrc	1.10	97/12/10 15:41:37 (woods)"
 #
+
+# Ideas on how to use more powerful M4 processing on this file:
+#
+# Use different pictures on color and black & white screen:
+#ifelse(PLANES, 1, `
+#VirtualDesktopBackgroundPixmap  "/homes/elves/lib/rasters/space.rast"
+#PannerBackgroundPixmap "/homes/elves/lib/rasters/space2.xbm"',
+#`VirtualDesktopBackgroundPixmap  "/homes/elves/lib/rasters/space.color.gif"
+#PannerBackgroundPixmap "/homes/elves/lib/rasters/space2.xpm"')
+#
+# Centrally maintained menus:
+#include(/local/skel/X/twm-logins)
 
 AutoRelativeResize
 AutoRaiseIcons
