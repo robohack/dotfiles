@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	19.7	98/03/23 20:40:35 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	19.8	98/04/25 21:46:31 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -269,6 +269,10 @@ scripts (alias)." t)
 ;; Unfortunately the cleaner Bitstream Courier doesn't seem to have a matching
 ;; size italic (and has no oblique) fonts
 ;;
+;; this is the next best thing for a default X11 installation:
+;;
+;;	"-adobe-*-medium-r-normal--*-120-*-*-m-*-iso8859-1"
+;;
 ;; A pxlsz of '0' would force the use of Type-1 fonts...  but since they don't
 ;; always have a proper back-tick, we're hosed and we must stay with this
 ;; slightly bigger and slightly uglier version (which still doesn't have proper
@@ -276,9 +280,12 @@ scripts (alias)." t)
 ;;
 ;; ... assuming it's X, that is!  ;-)
 ;;
+;; What we're actually using is one of the fonts from the GNU intlfonts
+;; distribution.  These are by far the very best all-round complete fonts.
+;;
 (if (eq window-system 'x)
     (setq preferred-frame-font
-	  "-adobe-*-medium-r-normal--*-120-*-*-m-*-iso8859-1"))
+	  "-etl-fixed-medium-r-normal--16-*-*-*-c-*-iso8859-1"))
 
 (require 'frame)
 (defun set-frame-face-to-preferred-frame-font (frame)
@@ -436,6 +443,21 @@ scripts (alias)." t)
 
 ;;;; ----------
 ;;;; some useful functions....
+
+;;; I prefer if already capitalized characters stay that way....
+;;;
+(defun upcase-initials-word (arg)
+  "Capitalize the character after the point (and the initial character on the
+next ARG-1 words if ARG is greater than 1), moving over."
+  (interactive "*p")
+  (let (lastpoint)
+    (save-excursion
+      (mark-word arg)
+      (setq lastpoint (mark))
+      (upcase-initials-region (point) lastpoint))
+    (goto-char lastpoint)))
+(global-set-key "\ec" 'upcase-initials-word)
+(global-set-key "\eC" 'capitalize-word)
 
 ;; Message-ID: <1996Nov14.092737.1@psiclu.psi.ch>
 ;; From: badii@cvax.psi.ch
@@ -1297,8 +1319,8 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	  (function
 	   (lambda ()
 	     "Private view-mode stuff."
-	     (define-key view-mode-map "b" 'View-scroll-lines-backward)
-	     (define-key view-mode-map "\C-h" 'View-scroll-lines-backward))))
+	     (define-key view-mode-map "b" 'View-scroll-page-backward)
+	     (define-key view-mode-map "\C-h" 'View-scroll-page-backward))))
 
 ;; the real thing, in 19.30(?) and above
 (if (elisp-file-in-loadpath-p "sh-script")
