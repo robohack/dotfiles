@@ -1,4 +1,4 @@
-# ident	"@(#)HOME:.mailrc  19.7    98/03/29 19:41:52 (woods)"
+# ident	"@(#)HOME:.mailrc  19.8    98/04/03 20:10:22 (woods)"
 #
 #	.mailrc - for mailx and emacs-VM
 #
@@ -16,14 +16,20 @@ set crt=24
 alias aegis-users	"aegis-users@bmr.gov.au (Aegis Users Mailing List)"
 alias automake		"automake@gnu.org (GNU Automake Mailing List)"
 alias bug-cvs		"bug-cvs@gnu.org (CVS-II Bugs Mailing List)"
+alias bug-gnu-emacs	"bug-gnu-emacs@@gnu.org (GNU Emacs Bugs Mailing List)"
 alias bug-vm		"bug-vm@UUnet.UU.net (ViewMail Bugs Mailing List)"
+alias current-users	"current-users@NetBSD.ORG (NetBSD-current Discussion List)"
 alias exim-users	"exim-users@exim.org (Exim Users Mailing List)"
+alias gnu-emacs-sources	"gnu-emacs-sources@gnu.org (GNU Emacs Sources Mailing List)"
 alias info-cvs		"info-cvs@gnu.org (CVS-II Discussion Mailing List)"
+alias info-vm		"info-vm@UUnet.UU.net (ViewMail Info Mailing List)"
 alias ipfilter		"ipfilter@postbox.anu.edu.au (IP-Filter Mailing List)"
 alias ip-filter		"ipfilter@postbox.anu.edu.au (IP-Filter Mailing List)"
-alias netbsd-current	"netbsd-current@NetBSD.ORG (NetBSD-current Discussion List)"
+alias netbsd-current	"current-users@NetBSD.ORG (NetBSD-current Discussion List)"
 alias mush-users	"mush-users-request@garp.mit.edu (Mush Users)"
 alias port-alpha	"port-alpha@NetBSD.ORG (NetBSD/alpha Discussion List)"
+alias port-i386		"port-i386@NetBSD.ORG (NetBSD/i386 Discussion List)"
+alias port-sparc	"port-sparc@NetBSD.ORG (NetBSD/sparc Discussion List)"
 alias port-sun3		"port-sun3@NetBSD.ORG (NetBSD/sun3 Discussion List)"
 alias smail3-maintainers "smail3-maintainers@smail.sbay.org (Smail-3 Maintainers Mailing List)"
 alias smail3-wizards	"smail3-wizards@cs.athabascau.ca (Smail-3 Wizards Mailing List)"
