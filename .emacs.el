@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.15	93/11/25 18:56:49 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	1.16	93/11/26 12:04:44 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -451,8 +451,8 @@ current emacs server process..."
       (function
        (lambda ()
 	 "Private term-setup-hook."
-	 (if (fboundp 'enable-arrow-keys)
-	     (enable-arrow-keys)))))
+	 (if (fboundp 'enable-arrow-keys) ; byte-compile-file may complain
+	     (enable-arrow-keys)))))	  ; that enable-arrow-keys is not defined
 
 ;; ----------
 ;; some major-mode hooks...
@@ -587,8 +587,8 @@ current emacs server process..."
 (global-set-key "\C-x!" 'shell-command)
 (global-set-key "\C-x\C-d" 'insert-date-in-current-buffer)
 
-(global-set-key "\C-x\C-v" 'find-file)		; I never liked "visit"....
-(global-set-key "\C-xv" 'view-file)
+(global-set-key "\C-x\C-v" 'find-file)	; I never liked "visit"....
+;;(global-set-key "\C-xv" 'view-file)	; this is now the prefix for vc
 (global-set-key "\C-xV" 'find-alternate-file)
 
 (global-set-key "\ez" 'scroll-one-line-down)
@@ -665,14 +665,17 @@ display-buffer for it"
 ;
 ;(if (elisp-file-in-loadpath-p "framepop")
 ;    (progn
-;      (
-;      (define-key global-map "\C-cz" 'framepop-toggle-frame)
-;      (define-key global-map "\C-cv" 'framepop-scroll-frame)
-;      (define-key global-map "\C-cs" 'framepop-show-frame)
-;      (define-key global-map "\C-cx" 'framepop-iconify-frame)
-;      (define-key global-map "\C-cr" 'framepop-raise-frame)
-;      (define-key global-map "\C-cl" 'framepop-lower-frame)
-;      (cond (window-system (require 'framepop)))))
+;      (if (not (keymapp framepop-prefix-map))
+;	  (progn
+;	    (setq framepop-prefix-map (make-sparse-keymap))
+;	    (define-key global-map "\C-c\C-f" framepop-prefix-map)
+;	    (define-key global-map "\C-c\C-fz" 'framepop-toggle-frame)
+;	    (define-key global-map "\C-c\C-fv" 'framepop-scroll-frame)
+;	    (define-key global-map "\C-c\C-fs" 'framepop-show-frame)
+;	    (define-key global-map "\C-c\C-fx" 'framepop-iconify-frame)
+;	    (define-key global-map "\C-c\C-fr" 'framepop-raise-frame)
+;	    (define-key global-map "\C-c\C-fl" 'framepop-lower-frame)
+;	    (cond (window-system (require 'framepop)))))))
 
 ;; From: ca@cs.umd.edu (Cengiz Alaetinoglu)
 ;; Newsgroups: gnu.emacs.sources
