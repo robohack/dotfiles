@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.34	96/09/08 00:01:45 (woods)"
+#ident	"@(#)HOME:.twmrc	2.35	96/09/08 00:04:27 (woods)"
 #
 
 AutoRelativeResize
@@ -176,6 +176,10 @@ function "start-tugboat-xterm" {
 
 function "start-sparky-xterm" {
 	f.exec "$RSH -n sparky.seachange.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
+function "start-prospero-xterm" {
+	f.exec "$RSH -n prospero.seachange.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
 function "start-hamlet-xterm" {
@@ -425,6 +429,10 @@ function "start-sparky-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin sparky.seachange.com &"
 }
 
+function "start-prospero-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin prospero.seachange.com &"
+}
+
 function "start-hamlet-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin hamlet.seachange.com &"
 }
@@ -464,6 +472,10 @@ function "start-sparky-telnet" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet sparky.seachange.com &"
 }
 
+function "start-prospero-telnet" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet prospero.seachange.com &"
+}
+
 function "start-hamlet-telnet" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet hamlet.seachange.com &"
 }
@@ -497,6 +509,10 @@ function "start-tugboat-slogin" {
 
 function "start-sparky-slogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin sparky.seachange.com &"
+}
+
+function "start-prospero-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin prospero.seachange.com &"
 }
 
 function "start-hamlet-slogin" {
@@ -1342,6 +1358,7 @@ menu "ipass-xterms"
 	"Xterm @clapton"		f.function "start-clapton-xterm"
 	"Xterm @tugboat"		f.function "start-tugboat-xterm"
 	"Xterm @sparky"			f.function "start-sparky-xterm"
+	"Xterm @prospero"		f.function "start-prospero-xterm"
 	"Xterm @hamlet"			f.function "start-hamlet-xterm"
 	"Xterm @bsdibox"		f.function "start-bsdibox-xterm"
 	"Xterm @rock"			f.function "start-rock-xterm"
@@ -1505,6 +1522,7 @@ menu "rlogin-ipass"
 	"Rlogin @clapton"		f.function "start-clapton-rlogin"
 	"Rlogin @tugboat"		f.function "start-tugboat-rlogin"
 	"Rlogin @sparky"		f.function "start-sparky-rlogin"
+	"Rlogin @prospero"		f.function "start-prospero-rlogin"
 	"Rlogin @hamlet"		f.function "start-hamlet-rlogin"
 	"Rlogin @bsdibox"		f.function "start-bsdibox-rlogin"
 	"Rlogin @rock"			f.function "start-rock-rlogin"
@@ -1519,6 +1537,7 @@ menu "telnet-ipass"
 	"Telnet @clapton"		f.function "start-clapton-telnet"
 	"Telnet @tugboat"		f.function "start-tugboat-telnet"
 	"Telnet @sparky"		f.function "start-sparky-telnet"
+	"Telnet @prospero"		f.function "start-prospero-telnet"
 	"Telnet @hamlet"		f.function "start-hamlet-telnet"
 	"Telnet @bsdibox"		f.function "start-bsdibox-telnet"
 	"Telnet @rock"			f.function "start-rock-telnet"
@@ -1533,6 +1552,7 @@ menu "slogin-ipass"
 	"Slogin @clapton"		f.function "start-clapton-slogin"
 	"Slogin @tugboat"		f.function "start-tugboat-slogin"
 	"Slogin @sparky"		f.function "start-sparky-slogin"
+	"Slogin @prospero"		f.function "start-prospero-slogin"
 	"Slogin @hamlet"		f.function "start-hamlet-slogin"
 	"Slogin @bsdibox"		f.function "start-bsdibox-slogin"
 	"Slogin @rock"			f.function "start-rock-slogin"
