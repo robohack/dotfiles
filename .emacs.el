@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.11	93/11/18 16:40:15 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	1.12	93/11/19 20:09:02 (woods)"
 ;;;
 ;;; per-user start-up functions
 ;;;
@@ -547,6 +547,13 @@ current emacs server process..."
 (global-set-key "\e\C-h" 'backward-kill-word)
 (global-set-key "\e\C-?" 'kill-word)
 (global-set-key "\e?" 'help-command)		; smart enough to set itself up
+
+; Un-mess the X11 keymap interpretations....
+(if (= init-emacs-type '19)
+    (progn
+      (define-key function-key-map [backspace] [?\C-h])
+      (define-key function-key-map [C-backspace] [?\C-h])
+      (define-key function-key-map [M-backspace] [?\M-\C-h])))
 
 ; for fingers that forget....
 (global-set-key "\C-\\" 'search-forward)
