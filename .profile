@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	8.5	95/03/08 15:32:16 (woods)"
+#ident	"@(#)HOME:.profile	8.6	95/03/08 17:55:10 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -334,6 +334,13 @@ vi )
 	fi
 	;;
 * )
+	if expr "`type nvi`" : '.* is .*/nvi$' >/dev/null 2>&1 ; then
+		EDITOR="`type nvi`"
+	elif expr "`type vi`" : '.* is .*/vi$' >/dev/null 2>&1 ; then
+		EDITOR="`type vi`"
+	else
+		EDITOR="`type ed`"
+	fi
 	if expr "$EDPREF" : '.*/.*$' > /dev/null 2>&1 ; then
 		VISUAL="$EDPREF"
 	else
@@ -551,7 +558,7 @@ fi
 
 if [ "$TERM" = "xterm" ] ; then
 	do_first_time
-	PS1="]0;$PS1$PS1" ; export PS1
+	PS1="]0;${PS1}${PS1}" ; export PS1
 fi
 
 if $HAVELAYERS && [ "$TERM" = "dmd" -a "`ismpx`" != "yes" ] ; then
