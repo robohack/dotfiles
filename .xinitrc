@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	18.6	97/11/16 17:42:50 (woods)"
+#ident	"@(#)HOME:.xinitrc	18.7	97/11/20 00:13:03 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -101,7 +101,7 @@ fi
 if [ -z "$WM" ] ; then
 	if [ -x $X11BIN/xsession -a -r $HOME/.X11Startup ] ; then
 		WM=xsession	# TODO: '$ONX11SERVER xsession -remote'?
-	elif [ -x $X11BIN/ctwm -a -r $HOME/.ctwmrc ] ; then
+	elif [ \( -x $X11BIN/ctwm -o -x $HOME/bin/ctwm \) -a -r $HOME/.ctwmrc ] ; then
 		WM=ctwm
 	else
 		WM=twm					# assumptions....
@@ -179,7 +179,7 @@ fi
 # TODO:  always do, but only if we're not on the console....
 #
 if [ "$argv0" = .xinitrc ] ; then
-	xconsole -geometry 500x160-4-4 &
+	xconsole -geometry 500x160-0-0 &
 	# wait to ensure xconsole is running to display errors....
 	sleep 1
 	if [ -x $X11BIN/xearth ] ; then
@@ -206,10 +206,10 @@ if [ "$argv0" = .xinitrc ] ; then
 	elif [ -r /usr/openwin/share/include/X11/bitmaps/escherknot ] ; then
 		xsetroot -bitmap /usr/openwin/share/include/X11/bitmaps/escherknot
 	fi
-	xclock -geometry 190x30-4+196 -digital &
+	xclock -geometry 190x30-0+196 -digital &
 	# wait to ensure they get overlayed in the right order
 	sleep 1
-	xclock -geometry 190x190-4+4 &
+	xclock -geometry 190x190-0+0 &
 	sleep 1
 elif $ONCONSOLE ; then
 	#
@@ -221,20 +221,20 @@ else
 	#	probably starting on an independent xterm....
 	#
 	if [ -r $HOME/bin/xerrors ] ; then
-		xterm -geometry 80x12-4-4 -cn -rw -sb -si -sk -sl 200 -e xerrors &
+		xterm -geometry 80x12-0-0 -cn -rw -sb -si -sk -sl 200 -e xerrors &
 	else
 		# TODO:  grrr....  this needs to do a 'mesg n' too somehow...
-		xterm -geometry 80x12-4-4 -cn -rw -sb -si -sk -sl 200 -T "Xsession Errors" -e tail -200f $HOME/.xsession-errors &
+		xterm -geometry 80x12-0-0 -cn -rw -sb -si -sk -sl 200 -T "Xsession Errors" -e tail -200f $HOME/.xsession-errors &
 	fi
 	if [ -n "$ONX11SERVER" ] ; then
 		if [ -x $X11BIN/xsysstats ] ; then
 			# this is normally done in Xsetyp by xdm, and if not there's a menu
-			#xsysstats -geometry 120x137-205+4 -type load1 -type disk -sample 5 &
+			#xsysstats -geometry 120x137-205+0 -type load1 -type disk -sample 5 &
 			$ONX11SERVER xsysstats -geometry 120x137-205+150 -type load1 -host most -type disk -host $XDMHOST -sample 5 &
 		else
 			# xload is in the MIT X11R5 distribution, so default to it....
 			# this is normally done in Xsetyp by xdm, and if not there's a menu
-			#xload -geometry 120x137-205+4 -hl grey90 &
+			#xload -geometry 120x137-205+0 -hl grey90 &
 			$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x137-205+150 -hl grey90 &
 		fi
 	fi
@@ -244,42 +244,42 @@ if [ -x $X11BIN/xmailwatcher ] ; then
 	# TODO:  this is still a silly way to do things....
 	case "$HOME" in
 	*/kuma/*)
-		xmailwatcher -geometry 300x100-4+240 -iconic -icongeometry -4+240 -iconic -mailbox $MAILPATH &
+		xmailwatcher -geometry 300x100-0+240 -iconic -icongeometry -0+240 -iconic -mailbox $MAILPATH &
 		# WARNING: assumes MAILPATH is same on server....
-		$RSH -n kuma.web.net exec $X11BIN/xmailwatcher -display $DISPLAY -geometry 300x100-4+300 -iconic -icongeometry -4+300 -iconic -mailbox $MAILPATH &
+		$RSH -n kuma.web.net exec $X11BIN/xmailwatcher -display $DISPLAY -geometry 300x100-0+300 -iconic -icongeometry -0+300 -iconic -mailbox $MAILPATH &
 		;;
 	*/most/*)
 		# WARNING: assumes MAILPATH is same on server....
-		$RSH -n most.weird.com exec $X11BIN/xmailwatcher -display $DISPLAY -geometry 300x100-4+235 -iconic -icongeometry -4+235 -iconic -mailbox $MAILPATH &
+		$RSH -n most.weird.com exec $X11BIN/xmailwatcher -display $DISPLAY -geometry 300x100-0+240 -iconic -icongeometry -0+240 -iconic -mailbox $MAILPATH &
 		;;
 	*)
-		xmailwatcher -display $DISPLAY -geometry 300x100-4+235 -iconic -icongeometry -4+235 -iconic &
+		xmailwatcher -display $DISPLAY -geometry 300x100-0+240 -iconic -icongeometry -0+240 -iconic &
 		;;
 	esac
 elif [ -x $X11BIN/xbuffy ] ; then
 	# TODO:  and this is only slightly better
 	case "$DOMAINNAME" in
 	*seachange.com)
-		$RSH -n clapton.seachange.com /usr/local/bin/xbuffy -display $DISPLAY -geometry 90x30-4+260 -mail /var/mail/woods -shortnames -header 5 &
+		$RSH -n clapton.seachange.com /usr/local/bin/xbuffy -display $DISPLAY -geometry 90x30-0+260 -mail /var/mail/woods -shortnames -header 5 &
 		;;
 	*weird.com)
-		$RSH -n most.weird.com $X11BIN/xbuffy -display $DISPLAY -geometry 90x30-4+260 -shortnames -header 5 -mail $MAILPATH &
+		$RSH -n most.weird.com $X11BIN/xbuffy -display $DISPLAY -geometry 90x30-0+260 -shortnames -header 5 -mail $MAILPATH &
 		;;
 	*)
-		xbuffy -display $DISPLAY -geometry 90x30-4+260 -shortnames -header 5 &
+		xbuffy -display $DISPLAY -geometry 90x30-0+260 -shortnames -header 5 &
 		;;
 	esac
 else
 	# TODO:  as above, this is still a silly way to do things....
 	case "$HOME" in
 	*/most/*)
-		$RSH -n most.weird.com exec $X11BIN/xbiff -display $DISPLAY -geometry 48x48-4+4 -title Most-biff &
+		$RSH -n most.weird.com exec $X11BIN/xbiff -display $DISPLAY -geometry 48x48-0+0 -title Most-biff &
 		;;
 	*/kuma/*)
-		$RSH -n kuma.web.net exec $X11BIN/xbiff -display $DISPLAY -geometry 48x48-4+4 -title Kuma-biff &
+		$RSH -n kuma.web.net exec $X11BIN/xbiff -display $DISPLAY -geometry 48x48-0+0 -title Kuma-biff &
 		;;
 	*)
-		xbiff -geometry 48x48-4+4 -bw 0 &
+		xbiff -geometry 48x48-0+0 -bw 0 &
 		;;
 	esac
 fi
@@ -287,3 +287,7 @@ fi
 # when the window manager exits so shall we...
 #
 exec $WM
+
+# Local Variables:
+# local-write-file-hooks: (set-file-modes (buffer-file-name) 493)
+# End:
