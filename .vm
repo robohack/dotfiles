@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.25	99/08/27 20:43:46 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.26	99/09/04 11:41:19 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -788,6 +788,9 @@ message/rfc822 attachments."
       vm-mime-qp-decoder-switches nil
       vm-mime-qp-encoder-program "qp-encode"
       vm-mime-qp-encoder-switches nil
+      vm-mime-type-converter-alist '(("application/msword"	"text/plain"	"catdoc -")
+				     ("application/ms-word"	"text/plain"	"catdoc -")
+				     )	; why I should even mention this, I do not know....
 ;;;   vm-mode-hook nil
 ;;;   vm-mode-hooks nil			; >6.0?
       vm-mode-line-format '("" "  %&%& "
