@@ -1,9 +1,16 @@
 #
 #	.shlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.shlogin	1.2	95/03/08 15:31:32 (woods)"
+#ident	"@(#)HOME:.shlogin	1.3	95/03/08 16:24:58 (woods)"
 
+# this doesn't do anything but let you type '. $ENV'
 ENV=$HOME/.shrc ; export ENV
+
+if [ "$LOGNAME" = root ] ; then
+	PS1="[$TTYN]<$LOGNAME@$UUNAME> # "
+else
+	PS1="[$TTYN]<$LOGNAME@$UUNAME> $ "
+fi
 
 if [ -z "$LOGNAME" ] ; then
 	# some systems won't allow this...
