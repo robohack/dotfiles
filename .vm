@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.25	98/07/05 23:42:14 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.26	98/07/08 10:24:57 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -1059,12 +1059,10 @@ message/rfc822 attachments."
 		("netbsd-port-pmax"
 		 (("INBOX")
 		  (recipient "port-pmax@")))
-		("netbsd-port-sparc"
+		("netbsd-port-sun"
 		 (("INBOX")
-		  (recipient "port-sparc@")))
-		("netbsd-port-sun3"
-		 (("INBOX")
-		  (recipient "port-sun3@")))
+		  (or (recipient "port-sparc@")
+		  (recipient "port-sun3@"))))
 		("pcl-cvs"
 		 (("INBOX")
 		  (or (recipient "pcl-cvs-auto-bugs@")
