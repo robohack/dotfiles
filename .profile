@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	23.1	02/01/12 14:43:19 (woods)"
+#ident	"@(#)HOME:.profile	23.2	02/03/17 15:36:09 (woods)"
 
 #
 # Assumptions that may cause breakage:
@@ -463,6 +463,8 @@ if expr "`type month`" : '.* is .*/month$' >/dev/null 2>&1 ; then
 	HAVEMONTH=true
 fi
 
+MONTH="AIKO" ; export MONTH
+
 HAVELAYERS=false ; export HAVELAYERS
 if expr "`type layers`" : '.* is .*/layers$' >/dev/null 2>&1 ; then
 	HAVELAYERS=true
@@ -646,27 +648,34 @@ if [ -z "$CVSROOT" ] ; then
 	CVSROOT="$LOCAL/src-CVS" ; export CVSROOT
 fi
 
-##ENSCRIPT="$ENSCRIPT -G" ; export ENSCRIPT
-
 if [ -x $LOCAL/bin/diff ] ; then
 	DIFF="$LOCAL/bin/diff" ; export DIFF
 elif expr "`type gdiff`" : '.* is .*/jove$' >/dev/null 2>&1 ; then
 	DIFF="`type gdiff`" ; export DIFF
 fi
 
-
-if [ -n "$AUDIOPLAYER" ] ; then
-	if expr "`type auplay`" : '.* is .*/auplay$' >/dev/null 2>&1 ; then
-		AUDIOPLAYER="`type auplay` -v 20"
-	elif expr "`type audioplay`" : '.* is .*/more$' >/dev/null 2>&1 ; then
-		AUDIOPLAYER="`type audioplay`"
-	fi
-	if [ -n "$AUDIOPLAYER" ] ; then
-		AUDIOPLAYER="`expr "$AUDIOPLAYER" : '.*/\([^/]*\)$'`"; export AUDIOPLAYER
-	fi
+HAVEAUPLAY=false ; export HAVEAUPLAY
+if expr "`type auplay`" : '.* is .*/auplay$' >/dev/null 2>&1 ; then
+	HAVEAUPLAY=true
 fi
 
-MONTH="AIKO" ; export MONTH
+HAVEAUDIOPLAY=false ; export HAVEAUDIOPLAY
+if expr "`type audioplay`" : '.* is .*/audioplay$' >/dev/null 2>&1 ; then
+	HAVEAUDIOPLAY=true
+fi
+
+if [ -n "$AUDIOPLAYER" ] ; then
+	if [ -n "$AUDIOSERVER" ] ; then
+		if $HAVEAUPLAY ; then
+			AUDIOPLAYER="auplay -v 20"
+		fi
+	elif [ -w /dev/audio ] ; then
+		if $HAVEAUDIOPLAY ; then
+			AUDIOPLAYER="audioplay"
+		fi
+	fi
+fi
+export AUDIOPLAYER
 
 RNINIT="-v -M -S -T -i=8 -g2" ; export RNINIT
 TRNINIT="$HOME/.trninit" ; export TRNINIT
@@ -861,9 +870,9 @@ fi
 
 if $HAVEX && [ "X$argv0" != "X.xinitrc" -a "X$argv0" != "X.xsession" ] ; then
 	case "$TTYN" in
-	console|vg*|vt*|ttyc*)
+	console|vg*|vt*|ttyc*|ttyE*)
 		case "$TERM" in
-		sun|pc3|at386|AT386)
+		sun|pc3|at386|AT386|vt220|vt100|wsvt25)
 			trap '' 2
 			echo ""
 			echo $n "Do you want to start X? ([y]/n) $c"
@@ -933,15 +942,25 @@ if [ -x /usr/games/fortune ] ; then
 elif [ -x $LOCAL/games/fortune ] ; then
 	$LOCAL/games/fortune
 fi
-if [ -r calendar -o -r .month ] ; then
+if [ -r calendar -o -r diary -o -r .month ] ; then
 	echo ""
 	echo "Today's Events:"
 	if $HAVEMONTH && [ -r .month ] ; then
 		month -B
 		#		monthd -i5
 	fi
-	if $HAVECALENDAR && [ -r calendar ] ; then
-		calendar
+	if $HAVECALENDAR ; then
+		if [ -r calendar ] ; then
+			calendar -l 2 -w 4
+		elif [ -r diary ] ; then
+			#
+			# uses cpp, which gets confused with some
+			# comments....  and unfortunately won't accept
+			# '-f -', nor will it read from /dev/stdin or
+			# /fdesc/stdin...  grrr....
+			#
+			calendar -l 2 -w 4 -f diary 2>/dev/null
+		fi
 	fi
 fi
 if [ -d $HOME/notes ] ; then
