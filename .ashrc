@@ -1,7 +1,7 @@
 #
 #	.ashrc - per-shell startup stuff for ash via $ENV
 #
-#ident	"@(#)HOME:.ashrc	2.7	97/01/19 14:01:05 (woods)"
+#ident	"@(#)HOME:.ashrc	2.8	97/01/19 14:52:37 (woods)"
 
 # Assumptions:
 #	- chdir must be synonymous with cd, and cd can be reset to a function
@@ -199,6 +199,140 @@ if [ "$TERM" = "xterm" ] ; then
 	setban
 fi
 
+if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
+	if [ "$VISUAL" = "emacsclient" -a -z "$DISPLAY" ] ; then
+		unalias emacs
+		alias emacs=_emacs
+		_emacs ()
+		{
+			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			WBANNER="GNU Emacs @ $UUNAME"
+			setban
+			mesg n
+			emacs "$@"
+		}
+	fi
+
+	unalias cu
+	alias cu=_cu
+	_cu ()
+	{
+		if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
+			trap "trap 0 1 2 3 15; mkmenu -; setban" 0 1 2 3 15
+			myxsize -s
+		else
+			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+		fi
+		WBANNER="cu $*"
+		setban
+		mesg n
+		/usr/bin/cu "$@"
+	}
+
+	unalias ckermit
+	alias ckermit=_ckermit
+	_ckermit ()
+	{
+		if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
+			trap "trap 0 1 2 3 15; mkmenu -; setban" 0 1 2 3 15
+			myxsize -s
+		else
+			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+		fi
+		WBANNER="C-Kermit $*"
+		setban
+		mesg n
+		$LOCAL/bin/ckermit "$@"
+	}
+
+	if expr "$(type slogin)" : '.* is .*/slogin$' >/dev/null 2>&1 ; then
+		SLOGIN="$(expr "$(type slogin)" : '^.*/\([^/]*\)$')"; export SLOGIN
+		unalias slogin
+		alias slogin=_slogin
+		_slogin ()
+		{
+			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			WBANNER="slogin $*"
+			setban
+			mesg n
+			$SLOGIN "$@"
+		}
+	fi
+
+	if expr "$(type rlogin)" : '.* is .*/rlogin$' >/dev/null 2>&1 ; then
+		RLOGIN="$(expr "$(type rlogin)" : '^.*/\([^/]*\)$')"; export RLOGIN
+		unalias rlogin
+		alias rlogin=_rlogin
+		_rlogin ()
+		{
+			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			WBANNER="rlogin $*"
+			setban
+			mesg n
+			$RLOGIN "$@"
+		}
+	fi
+
+	if expr "$(type telnet)" : '.* is .*/telnet$' >/dev/null 2>&1 ; then
+		TELNET="$(expr "$(type telnet)" : '^.*/\([^/]*\)$')" ; export TELNET
+		unalias telnet
+		alias telnet=_telnet
+		_telnet ()
+		{
+			if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
+				trap "trap 0 1 2 3 15; mkmenu -; setban" 0 1 2 3 15
+				myxsize -s
+			else
+				trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			fi
+			WBANNER="telnet $*"
+			setban
+			mesg n
+			$TELNET "$@"
+		}
+	fi
+
+	if $HAVEMUSH ; then
+		unalias mushC
+		alias mushC=_mushC
+		_mushC ()
+		{
+			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			WBANNER="MUSH $*"
+			setban
+			mush -C "$@"
+		}
+	fi
+
+	unalias su
+	alias su=_su
+	_su ()
+	{
+		trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+		mesg n
+		if [ -x /usr/5bin/su ] ; then
+			/usr/5bin/su "$@"
+		else
+			/bin/su "$@"
+		fi
+	}
+
+	if [ -x $LOCAL/games/nethack ] ; then
+		nethack ()
+		{
+			if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
+				trap "trap 0 1 2 3 15; loadfont thin.9x14; setban" 0 1 2 3 15
+				loadfont rogue.9x18
+			else
+				trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			fi
+			WBANNER="NetHack"
+			setban
+			$LOCAL/games/nethack
+		}
+	fi
+fi
+
 if $ISSUN; then
 	alias df="/usr/bin/df"
 fi
@@ -219,6 +353,8 @@ fi
 if [ -r $HOME/.ashlocal ] ; then
 	. $HOME/.ashlocal
 fi
+
+
 
 errno ()
 {
