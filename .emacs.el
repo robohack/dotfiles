@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	8.6	94/03/06 11:43:21 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	8.7	94/03/06 11:45:14 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -159,10 +159,12 @@ directory in the list PATHLIST, otherwise nil."
 
 (if (elisp-file-in-loadpath-p "vm")
     (progn
-      (autoload 'vm "vm" "Start View-Mail" t)
-      (autoload 'vm-mail "vm" "Send mail using View-Mail" t)
-      (autoload 'vm-visit-folder "vm" "View-Mail on a folder" t)
-      (autoload 'vm-mode "vm" "View-Mail Major Mode" t)))
+      (autoload 'vm "vm" "Start VM on your primary inbox." t)
+      (autoload 'vm-visit-folder "vm" "Start VM on an arbitrary folder." t)
+      (autoload 'vm-visit-virtual-folder "vm" "Visit a VM virtual folder." t)
+      (autoload 'vm-mode "vm" "Run VM major mode on a buffer" t)
+      (autoload 'vm-mail "vm" "Send a mail message using VM." t)
+      (autoload 'vm-submit-bug-report "vm" "Send a bug report about VM." t)))
 
 ; must appear after display-time is invoked (thus after time.el is loaded)
 ; [only called on emacs-19(?)]
