@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	18.3	97/01/22 13:55:13 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	18.4	97/01/25 21:33:14 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1339,6 +1339,25 @@ it could check Status: headers for O, or Forward to in mailboxes."
 ;;(define-key function-key-map [C-backspace] [?\C-h]) ; sometimes *is* DEL....
 
 ;;; OK, that's the end of the stuff to fix GNU Emacs' C-h brain damage.
+
+;;;Message-Id: <3063228438513258@naggum.no>
+;;;References: <199701241330.IAA26620@mks.com>
+;;;From: Erik Naggum <erik@naggum.no>
+;;;To: gnu-emacs-bug@cis.ohio-state.edu
+;;;Date: 26 Jan 1997 00:47:18 +0000
+;;;Subject: Re: y-or-n-p should accept RET as a positive acknowlegement
+;;;
+;;;* David J. Fiander
+;;;| Why does it accept SP but not RET as a positive acknowlegement?
+;;;
+;;;add these lines somewhere in your setup files:
+;;;
+;;;#\Erik
+;;;-- 
+;;;1,3,7-trimethylxanthine -- a basic ingredient in quality software.
+;;
+(define-key query-replace-map [return] 'act)
+(define-key query-replace-map "\C-m" 'act)
 
 ;;; for fingers that forget and terminals that are brain-dead....
 (global-set-key "\C-\\" 'isearch-forward)
