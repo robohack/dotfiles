@@ -1,6 +1,7 @@
 .Xdefaults
 .Xmodmap-PCKBD
 .Xmodmap-ncd-108
+.Xmodmap-sun-compact-1
 .ashlogin
 .ashlogout
 .ashrc
