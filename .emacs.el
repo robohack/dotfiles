@@ -1,8 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.1	93/11/01 12:46:05 (woods)"
-;;;#ident	"@(#)HOME:$Id$"
+;;;#ident	"@(#)HOME:.emacs.el	1.2	93/11/01 12:53:01 (woods)"
 ;;;
 ;;; per-user start-up functions
 ;;;
