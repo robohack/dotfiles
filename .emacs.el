@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.20	99/06/10 11:53:20 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.21	99/07/22 18:51:57 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -74,8 +74,9 @@
 (if (= init-emacs-type 20)
     (setq inhibit-eol-conversion t))	; show MS crap for what it is....
 
-(set-language-environment "Latin-1")	; force the issue
-(set-terminal-coding-system 'no-conversion) ; force the issue
+(standard-display-european 1)
+;(set-language-environment "Latin-1")	; force the issue
+;(set-terminal-coding-system 'iso-8859-1) ; force the issue
 
 ;;; Let's make sure we're "home"....
 (cd "~")
@@ -1111,6 +1112,28 @@ overridden without consideration by the major mode."
   ;; try this on for size...
   (local-set-key "\C-x\e\C-e" 'recompile)
   )
+
+;; 1999-07-12 Noah Friedman <friedman@splode.com>
+;; Public domain
+;;
+(defun make-buffer-file-executable-if-script-p ()
+  "Make file executable according to umask if not already executable.
+If file already has any execute bits set at all, do not change existing
+file modes."
+  (and (save-excursion
+         (save-restriction
+           (widen)
+           (goto-char (point-min))
+           (save-match-data
+             (looking-at "^#!"))))
+       (let* ((current-mode (file-modes (buffer-file-name)))
+              (add-mode (logand ?\111 (default-file-modes))))
+         (or (/= (logand ?\111 current-mode) 0)
+             (zerop add-mode)
+             (set-file-modes (buffer-file-name)
+                             (logior current-mode add-mode))))))
+
+(add-hook 'after-save-hook 'make-buffer-file-executable-if-script-p)
 
 ;;;; ----------
 ;;;; some special hooks.....
