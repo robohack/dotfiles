@@ -1,10 +1,12 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	18.6	97/04/04 18:07:53 (woods)"
+;;;#ident	"@(#)HOME:.vm	18.7	97/05/14 10:01:34 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
+
+(require 'sendmail)			; get this over with right away
 
 ;;; rmime.el --- read MIME messages
 ;; Author: Ray Moody <moody@cray.com>
@@ -84,6 +86,65 @@ domain is undefined, the domain name is got from it."
 		    (substring date (match-beginning 5) (match-end 5)) ;Second
 		    )
 	  (error "Cannot understand current-time-string: %s." date)))))
+
+;;;From: friedman@splode.com (Noah Friedman)
+;;;In-Reply-To: <srandall@quixote.asic.sc.ti.com> , 13 May 1997 10:32:32 -0500
+;;;References: <wq9d8qvie0f.fsf@quixote.i-have-a-misconfigured-system-so-shoot-me>
+;;;Message-Id: <19970514015519.FMU96188@piglet.splode.com>
+;;;To: srandall@quixote.asic.sc.ti.com
+;;;Cc: info-vm@uunet.uu.net
+;;;Date: Wed, 14 May 1997 01:55:19 -0700 (PDT)
+;;;Subject: please help me fix minor annoyances in vm
+
+(define-key mail-mode-map "\C-i" 'mail-goto-next-header-or-insert)
+
+;; FIXME:  Why doesn't Emacs see "Shift-TAB"??????
+;;(define-key mail-mode-map [Shift-tab] 'mail-goto-previous-header)
+(define-key mail-mode-map [C-tab] 'mail-goto-previous-header)
+
+(defun mail-goto-previous-header (&optional count)
+  "Call mail-goto-next-header-or-insert with (- COUNT)"
+  (interactive "p")
+  (mail-goto-next-header-or-insert (- count)))
+
+(defun mail-goto-next-header-or-insert (&optional count)
+  "If in header area, go to beginning of next header.
+If point is not in the header area, just insert the character which
+invoked this command.
+
+With numeric prefix arg, skip forward that many headers.
+If prefix arg is negative, skip backward that many headers.
+
+If either the head or tail of the headers are reached, wrap around
+to the other end and continue."
+  (interactive "p")
+  (let* ((headers-end
+	  (save-excursion
+	    (goto-char (point-min))
+	    (re-search-forward
+	     (concat "^" (regexp-quote mail-header-separator) "$"))
+	    (match-beginning 0)))
+	 (forwardp (or (null count) (> count 0)))
+	 (fn (if forwardp 're-search-forward 're-search-backward))
+	 (la (if forwardp 2 1))
+	 (nla (if forwardp 1 2))
+	 (re "^[^:\n\t ]+:")
+	 (i (abs count)))
+    (cond ((>= (point) headers-end)
+	   (call-interactively 'self-insert-command))
+	  (t
+	   (save-restriction
+	     (narrow-to-region (point-min) headers-end)
+	     (while (not (zerop i))
+	       (cond
+		((funcall fn re nil t (if (looking-at re) la nla)))
+		(t
+		 (goto-char (point-min))
+		 (funcall fn re nil t)))
+	       (setq i (1- i)))
+	     (goto-char (match-end 0))
+	     (and (looking-at "[ \t]")
+		  (forward-char 1)))))))
 
 ;;;
 ;;;	some stuff for sendmail.el ...
