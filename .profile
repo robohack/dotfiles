@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	18.9	97/09/16 12:27:35 (woods)"
+#ident	"@(#)HOME:.profile	18.10	97/10/15 02:14:25 (woods)"
 
 #
 # Assumptions:
@@ -590,13 +590,9 @@ fi
 # TODO: since login(1) checks for mail too, but xterm(n) doesn't.
 #
 # check your mail...
-#
-case "$UUNAME" in
-robohack | toile | wombat )
-	# /etc/profile or login(1) does this for us
-	:
-	;;
-* )
+if expr "`type messages`" : '.* is .*/messages$' >/dev/null 2>&1 ; then
+	messages
+else
 	[ -x /bin/mail ] && /bin/mail -e
 	HAVENEWMAIL=$?
 	if $HAVEMUSH && [ $HAVENEWMAIL -eq 0 ] ; then
@@ -608,8 +604,8 @@ robohack | toile | wombat )
 		echo "You have some mail!"
 	fi
 	unset HAVENEWMAIL
-	;;
-esac
+fi
+
 
 # TODO: this needs to be a lot smarter....
 #
