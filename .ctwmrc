@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.6	98/02/01 20:35:05 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.7	98/02/01 21:26:56 (woods)"
 #
 
 changequote([, ])
@@ -207,7 +207,7 @@ Icons {
 	"xpostit"	"xpm:postit.xpm"
 	"XSm"		"xpm:xgrab.xpm"
 	"xterm"		"xpm:term.xpm"],
-[	"xterm"	"Term"])
+[	"xterm"		"Term"])
 }
 
 Cursors {
@@ -665,8 +665,18 @@ menu "xvs"
 	"XV"				f.title
 	"@localhost"			!"$X11BIN/xv &"
 	"@x11server"			!"$ONX11SERVER $X11BIN/xv -display $DISPLAY &"
-	"@most"				!"$RSH -n most.weird.com exec $X11BIN/xv -display $DISPLAY &"
+ ifdef([AT_WEIRD], [
+  ifelse(HOSTNAME, most.weird.com, [], [
+	"@most"			!"$RSH -n most.weird.com exec $X11BIN/xv -display $DISPLAY &"])
+  ifelse(HOSTNAME, whats.weird.com, [], [
 	"@whats"			!"$RSH -n whats.weird.com exec $X11BIN/xv -display $DISPLAY &"
+  ])
+ ])
+ ifdef([AT_PLANIX], [
+  ifelse(HOSTNAME, woffi.planix.com, [], [
+	"@woffi"			!"$RSH -n woffi.planix.com exec $X11BIN/xv -display $DISPLAY &"
+  ])
+ ])
 }
 
 menu "emacs"
@@ -674,12 +684,23 @@ menu "emacs"
 	"Emacsen"			f.title
 	"@localhost"			!"emacs -i &"
 	"@x11server"			!"$RSH -n $XDMHOST '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
+ ifelse(HOSTNAME, most.weird.com, [], [
 	"@most"				!"$RSH -n most.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/spool/mail/$LOGNAME'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
+ ])
+ ifelse(HOSTNAME, whats.weird.com, [], [
 	"@whats"			!"$RSH -n whats.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
+ ])
+ ifelse(HOSTNAME, woffi.planix.com, [], [
 	"@woffi"			!"$RSH -n woffi.planix.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /local/bin/emacs -display '$DISPLAY' -i' &"
+ ])
+ ifelse(HOSTNAME, kuma.web.net, [], [
 	"@kuma"				!"$RSH -n kuma.web.net '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/spool/mail/$LOGNAME'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
- ifdef([AT_SEACHANGE],
-	["@clapton"			!"$RSH -n clapton.seachange.com '. ./.localprofile; PATH='$PATH':/usr/contrib/bin; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /usr/contrib/bin/emacs -display '$DISPLAY' -i ' &"], [])
+ ])
+ ifdef([AT_SEACHANGE], [
+  ifelse(HOSTNAME, kuma.web.net, [], [
+	"@clapton"			!"$RSH -n clapton.seachange.com '. ./.localprofile; PATH='$PATH':/usr/contrib/bin; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /usr/contrib/bin/emacs -display '$DISPLAY' -i ' &"
+  ])
+ ])
 }
 
 menu "monitors"
@@ -746,12 +767,29 @@ menu "ghostviews"
 	"GhostView"	f.title
 	"@localhost"	!"$X11BIN/ghostview -d $DISPLAY &"
 	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
+ ifdef([AT_WEIRD], [
+  ifelse(HOSTNAME, most.weird.com, [], [
 	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
+  ])
+  ifelse(HOSTNAME, whats.weird.com, [], [
 	"@whats"	!"$RSH -n whats.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
+  ])
+ ])
+ ifdef([AT_PLANIX], [
+  ifelse(HOSTNAME, woffi.planix.com, [], [
 	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/bin/X11/bin/ghostview &"
+  ])
+ ])
+ ifdef([AT_WEB], [
+  ifelse(HOSTNAME, kuma.web.net, [], [
 	"@kuma"		!"$RSH -n kuma.web.net exec env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
- ifdef([AT_SEACHANGE], 
-	["@clapton"	!"$RSH -n clapton.seachange.com exec env PATH=$PATH:/usr/contrib/bin DISPLAY=$DISPLAY /usr/contrib/bin/ghostview &"], [])
+  ])
+ ])
+ ifdef([AT_SEACHANGE], [
+  ifelse(HOSTNAME, kuma.web.net, [], [
+	"@clapton"	!"$RSH -n clapton.seachange.com exec env PATH=$PATH:/usr/contrib/bin DISPLAY=$DISPLAY /usr/contrib/bin/ghostview &"
+  ])
+ ])
 }
 
 menu "www"
@@ -884,30 +922,60 @@ menu "xterm"
 	"Xterm's Everywhere"	f.title
 	"Xterm @localhost"	!"$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls &"
 	"Xterm @x11server"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
-	"weird.com hosts..."	f.menu "weird-xterms"
-	"planix.com hosts..."	f.menu "planix-xterms"
-}
-
-menu "weird-xterms"
-{
-	"weird.com hosts"	f.title
+ ifdef([AT_WEIRD], [
+  ifelse(HOSTNAME, isit.weird.com, [], [
 	"Xterm @isit"	!"$RSH -n ns.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ])
+  ifelse(HOSTNAME, most.weird.com, [], [
 	"Xterm @most"	!"$RSH -n most.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ])
+  ifelse(HOSTNAME, very.weird.com, [], [
 	"Xterm @very"	!"$RSH -n very.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ])
+  ifelse(HOSTNAME, almost.weird.com, [], [
 	"Xterm @almost"	!"$RSH -n almost.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ])
+  ifelse(HOSTNAME, whats.weird.com, [], [
 	"Xterm @whats"	!"$RSH -n whats.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ])
+  ifelse(HOSTNAME, pretty.weird.com, [], [
 	"Xterm @pretty"	!"$RSH -n pretty.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ])
+  ifelse(HOSTNAME, sometimes.weird.com, [], [
 	"Xterm @sometimes" !"$RSH -n sometimes.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ])
+  ifelse(HOSTNAME, always.weird.com, [], [
 	"Xterm @always"	!"$RSH -n always.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
-}
-
-menu "planix-xterms"
-{
-	"planix.com hosts" f.title
+  ])
+])
+ ifdef([AT_PLANIX], [
+  ifelse(HOSTNAME, whome.planix.com, [], [
 	"Xterm @whome"	!"$RSH -n whome.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ])
+  ifelse(HOSTNAME, woffi.planix.com, [], [
 	"Xterm @woffi"	!"$RSH -n woffi.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ])
+  ifelse(HOSTNAME, weight.planix.com, [], [
 	"Xterm @weight"	!"$RSH -n weight.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ])
+  ifelse(HOSTNAME, warlord.planix.com, [], [
 	"Xterm @warlord" !"$RSH -n warlord.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ])
+])
+ ifdef([AT_LEITCH], [
+  ifelse(HOSTNAME, brain.zeus.leitch.com, [], [
+	"Xterm @brain"	!"$RSH -n brain.zeus.leitch.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ])
+  ifelse(HOSTNAME, bitter.zeus.leitch.com, [], [
+	"Xterm @bitter"	!"$RSH -n bitter.zeus.leitch.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ])
+  ifelse(HOSTNAME, sonet.zeus.leitch.com, [], [
+	"Xterm @sonet"	!"$RSH -n sonet.zeus.leitch.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ])
+  ifelse(HOSTNAME, tap.zeus.leitch.com, [], [
+	"Xterm @tap"	!"$RSH -n tap.zeus.leitch.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ])
+])
 }
 
 menu "rlogin"
@@ -1006,6 +1074,7 @@ menu "rlogin-cyclic"
 menu "rlogin-planix"
 {
 	"Rlogin's At Planix.com" f.title
+	"Rlogin @whome"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin whome.planix.com &"
 	"Rlogin @woffi"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin woffi.planix.com &"
 	"Rlogin @weight"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin weight.planix.com &"
 	"Rlogin @warlord"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin warlord.planix.com &"
@@ -1134,17 +1203,17 @@ menu "rlogin-fgsc"
 menu "rlogin-pageactive"
 {
 	"Rlogin's At Pageactive.com"	f.title
-	"Rlogin @warp"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin warp.pageactive.com &"
+	"Rlogin @warp"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin warp.pageactive.com &"
 	"Rlogin @deephaze"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin deephaze.pageactive.com &"
-	"Rlogin @dynamic"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin dynamic.pageactive.com &"
+	"Rlogin @dynamic"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin dynamic.pageactive.com &"
 }
 
 menu "slogin-pageactive"
 {
 	"Slogin's At Pageactive.com"	f.title
-	"Slogin @warp"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin warp.pageactive.com &"
+	"Slogin @warp"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin warp.pageactive.com &"
 	"Slogin @deephaze"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin deephaze.pageactive.com &"
-	"Slogin @dynamic"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin dynamic.pageactive.com &"
+	"Slogin @dynamic"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin dynamic.pageactive.com &"
 }
 
 menu "rlogin-passport"
