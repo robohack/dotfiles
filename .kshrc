@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	26.2	03/09/18 20:50:56 (woods)"
+#ident	"@(#)HOME:.kshrc	26.3	03/11/23 14:26:24 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -490,9 +490,11 @@ if type setban > /dev/null ; then
 		trap "trap 1 2 3 15; setban" 1 2 3 15
 		showargs=${*-"root"}
 		if [ $showargs = "root" ]; then
+			\cd /
 			PWD=/
+			showargs=""
 		fi
-		WBANNER="SU $showargs "
+		WBANNER="SU $showargs"
 		setban
 		mesg n
 		if [ -x /usr/5bin/su ] ; then
@@ -502,6 +504,7 @@ if type setban > /dev/null ; then
 		else
 			/bin/su ${1+"$@"}
 		fi
+		\cd -
 		PWD=$(pwd)
 		setban
 	}
@@ -651,8 +654,12 @@ alias ilog='$PAGER -en +G /var/log/important'
 alias j='jobs -l'
 alias l='/bin/ls -CF'
 alias la='/bin/ls -CFa'
+alias ld='/bin/ls -CFd'
+alias lL='/bin/ls -CFL'
 alias ll='/bin/ls -lis'
+alias llL='/bin/ls -lisL'
 alias lla='/bin/ls -lisa'
+alias lld='/bin/ls -lisd'
 alias llr='/bin/ls -lisR'
 alias llra='/bin/ls -lisaR'
 alias lr='/bin/ls -CFR'
