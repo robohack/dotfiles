@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	11.3	94/03/25 19:32:33 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	11.4	94/03/29 15:27:58 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -181,13 +181,15 @@ Status: headers for O, or Forward to in mailboxes."
 (setq compilation-window-height 10)	; default height for a compile window
 (setq default-tab-width 8)		; a tab is a tab is a tab is a tab....
 (setq delete-auto-save-files t)		; delete auto-save file when saved
-(if window-system
-    (setq search-highlight t))		; i-search hightlight match
 (setq enable-local-variables t)		; (is this the default in v19?)
 (setq make-backup-files nil)		; too much clutter
+(setq next-line-add-newlines nil)	; I hate it when it does that!  ;-)
 (setq track-eol nil)			; too hard to control (it's sticky!)
-(setq window-min-height 1)
+(setq window-min-height 1)		; don't be snobbish
 (setq window-min-width 1)
+
+(if window-system
+    (setq search-highlight t))		; i-search hightlight match
 
 (setq auto-mode-alist
       (append
@@ -265,13 +267,6 @@ Status: headers for O, or Forward to in mailboxes."
 
 ;;;; ----------
 ;;;; some useful functions....
-
-;;; I hate it running away off the end of the file - next line should stop at
-;;; the end of the file  (courtesy Mark Moraes)
-;;; [I wish they'd both ring the bell when the run into BOF or EOF....]
-(defun next-line (count)
-  (interactive "p")
-  (previous-line (- count)))
 
 ;;;; For mail reading or looking at man pages (courtesy Mark Moraes)
 (defun remove-nroff-bs ()
@@ -482,6 +477,31 @@ If STRING is not given, use the current buffer.  See `string-match'."
       (substring string (match-beginning n) (match-end n))
     (buffer-substring (match-beginning n) (match-end n))))
 
+;; These ones I dreampt up myself!
+;;
+;; (I would also like to have a similar function that deletes all the trailing
+;; whitespace from every line in a buffer.)
+;;
+(defun buffer-trim-trailing-whitespace (&optional buff-nm)
+  "Trim the trailing whitespace a buffer.
+If BUFF-NM is not given, use the current buffer."
+  (interactive)
+  (if (not (bufferp buff-nm))
+      (setq buff-nm (read-buffer "Buffer to trim: "
+				 (buffer-name (current-buffer)))))
+  (buffer-trim-trailing-chars buff-nm))
+
+(defun buffer-trim-trailing-chars (buff-nm &optional chars-to-trim)
+  "Trim trailing characters from a buffer.
+If CHARS-TO-TRIM is not given, default to ``\ \t\n'' (i.e. whitespace)."
+  (save-window-excursion
+    (set-buffer buff-nm)
+    (goto-char (point-max))
+    (let ((end-pt (point)))
+      (skip-chars-backward (or chars-to-trim
+			       "\ \t\n"))
+      (delete-region (point) end-pt))))
+
 ;;; From: terra@diku.dk (Morten Welinder)
 ;;; Sender: gnu-emacs-sources-request@prep.ai.mit.edu
 ;;; To: gnu-emacs-sources@prep.ai.mit.edu
@@ -520,12 +540,23 @@ the window showing completions."
 ;;; Author: Jim Blandy <jimb@gnu.ai.mit.edu>
 ;;; Created: 18 Mar 1994
 ;;; Keywords: lisp
-
+;;;
 (defun load-file-defining-function (function)
   "Return the name of the source file from which FUNCTION was loaded.
 If FUNCTION was defined by reading from a buffer, return 'buffer.
 If FUNCTION is a subr, or a lisp function dumped with Emacs, return nil."
-  (interactive "aFunction: ")
+  (interactive
+   (let ((fn (function-called-at-point)) ; note, this requires help.el to have
+					 ; been loaded!
+	 (enable-recursive-minibuffers t)	     
+	 val)
+     (setq val (completing-read (if fn
+				    (format "Find function (default %s): " fn)
+				  "Find function: ")
+				obarray 'fboundp t))
+     (list (if (equal val "")
+	       fn
+	     (intern val)))))
   (symbol-function function)
   (let ((hist load-history)
         (file nil))
@@ -536,7 +567,8 @@ If FUNCTION is a subr, or a lisp function dumped with Emacs, return nil."
             (setq file (if name name 'buffer)
                   hist nil)
           (setq hist (cdr hist)))))
-    (setq file (load-file-name file))
+    (if file
+	(setq file (load-file-name file)))
     (if (interactive-p)
         (message
          (cond
@@ -549,6 +581,8 @@ If FUNCTION is a subr, or a lisp function dumped with Emacs, return nil."
            (format "Function %s loaded when Emacs was built."
                    function)))))
     file))
+
+(define-key help-map "F" 'load-file-defining-function)
 
 (defun load-file-name (filename &optional nosuffix)
   "Expand FILENAME, searching in the directories listed in `load-path'.
