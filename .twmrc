@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	18.6	97/01/24 17:54:22 (woods)"
+#ident	"@(#)HOME:.twmrc	18.7	97/01/27 14:41:52 (woods)"
 #
 
 AutoRelativeResize
@@ -1452,9 +1452,9 @@ menu "monitors"
 	"xbiff"				!"xbiff -rv -bw 0 &"
 	"xbiff @x11server"		!"$ONX11SERVER $X11BIN/xbiff -rv -bw 0 -display $DISPLAY &"
 	"xlbiff"			!"xlbiff &"
-	"xbuffy"			!"xbuffy -geometry 90x30-4+235 -shortnames -header 5 &"
-	"xbuffy @x11server"		!"$ONX11SERVER $X11BIN/xbuffy -mail $MAILPATH -display $DISPLAY -geometry 90x30-4+235 -shortnames -header 5 &"
-	"xbuffy @clapton"		!"$RSH -n clapton.seachange.com /usr/local/bin/xbuffy -display $DISPLAY -geometry 90x30-4+235 -mail /var/mail/woods -shortnames -header 5 &"
+	"xbuffy"			!"xbuffy -geometry 90x30-4+260 -shortnames -header 5 &"
+	"xbuffy @x11server"		!"$ONX11SERVER $X11BIN/xbuffy -mail $MAILPATH -display $DISPLAY -geometry 90x30-4+260 -shortnames -header 5 &"
+	"xbuffy @clapton"		!"$RSH -n clapton.seachange.com /usr/local/bin/xbuffy -display $DISPLAY -geometry 90x30-4+260 -mail /var/mail/woods -shortnames -header 5 &"
 	"xmailwatcher"			!"xmailwatcher -geometry 300x100-4+240 -iconic -icongeometry -4+235 -iconic -mailbox $MAILPATH &"
 	"xmailwatcher @x11server"	!"$ONX11SERVER $X11BIN/xmailwatcher -display $DISPLAY -geometry 300x100-4+235 -iconic -icongeometry -4+235 -iconic -mailbox $MAILPATH &"
 	""				f.nop
@@ -1478,6 +1478,7 @@ menu "backgrounds"
 	"xearth"			!"xearth -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth orbiting"		!"xearth -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth -gamma 1.7"		!"xearth -gamma 1.7 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
+	"xearth -gamma 1.7 orbiting"	!"xearth -gamma 1.7 -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth on greyscale"		!"xearth -gamma 1.6 -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth on mono"		!"xearth -mono -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xphoon"			!"xphoon -t 10 &"
