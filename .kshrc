@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	18.3	97/01/25 17:04:18 (woods)"
+#ident	"@(#)HOME:.kshrc	18.4	97/01/25 17:13:47 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -244,6 +244,12 @@ if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		\cd $*
 		eval myxban -l "\"$MYXBAN_L\""
 	}
+
+	function psm
+	{
+		ps -ft $(tty | sed 's~/dev/xt~xt/~')
+	}
+
 fi
 
 if [ "$TERM" = "xterm" ] ; then
@@ -385,11 +391,6 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			$LOCAL/games/nethack
 		}
 	fi
-
-	function psm
-	{
-		ps -ft $(tty | sed 's~/dev/xt~xt/~')
-	}
 
 	setban
 fi
