@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	6.12	94/12/03 20:52:49 (woods)"
+#ident	"@(#)HOME:.profile	6.13	94/12/07 13:16:49 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -215,10 +215,28 @@ if expr "`type layers`" : '.* is .*/layers$' >/dev/null 2>&1 ; then
 fi
 
 HAVEMUSH=false ; export HAVEMUSH
-if expr "`type mush`" : '.* is .*/mush$' >/dev/null 2>&1 ; then
+MAILER=mail ; export MAILER
+if [ -s $HOME/.mailer ] ; then
+	MAILER="`mktable $HOME/.mailer`"
+elif expr "`type mush`" : '.* is .*/mush$' >/dev/null 2>&1 ; then
 	HAVEMUSH=true
-	MAILER="mush" ; export MAILER
+	MAILER="mush"
+elif expr "`type mailx`" : '.* is .*/mailx$' >/dev/null 2>&1 ; then
+	MAILER="mailx"
 fi
+case "$MAILER" in
+mh )
+	if [ -d $CONTRIB/mh ] ; then
+		MHDIR=$CONTRIB/mh ; export MHDIR
+	elif [ -d $LOCAL/mh ] ; then
+		MHDIR=$LOCAL/mh ; export MHDIR
+	else
+		MHDIR=/usr/mh ; export MHDIR
+	fi
+	dirprepend PATH $MHDIR/bin
+	dirprepend MANPATH $MHDIR/man
+	;;
+esac
 
 HAVECALENDAR=false ; export HAVECALENDAR
 if expr "`type calendar`" : '.* is .*/calendar$' >/dev/null 2>&1 ; then
@@ -334,16 +352,10 @@ MONTH="AIKO" ; export MONTH
 RNINIT="-v -M -S -T -i=8 -g2" ; export RNINIT
 TRNINIT="$HOME/.trninit" ; export TRNINIT
 
-# set terminal type..
+# set terminal type...
 case "$UUNAME" in
 robohack | toile | wombat | spinne | weirdo )
 	: we trust that everything is all set up as it should be....
-	;;
-kuma | araignee )
-	if $HAVEMUSH && /bin/mail -e ; then
-		echo 'You have mail:'
-		mush -H:n
-	fi
 	;;
 * )
 	echo "Re-setting terminal preferences...."
@@ -355,6 +367,24 @@ kuma | araignee )
 		stty cs8 -istrip -parenb
 		;;
 	esac
+	;;
+esac
+
+# check your mail...
+case "$UUNAME" in
+robohack | toile | wombat | spinne | weirdo )
+	: /etc/profile does this for us
+	;;
+* )
+	/bin/mail -e
+	HAVENEWMAIL=$?
+	if $HAVEMUSH && [ $HAVENEWMAIL -eq 0 ] ; then
+		echo 'You have mail:'
+		mush -H:n
+	elif [ "$MAILER" = mh -a $HAVENEWMAIL -eq 0 ] ; then
+		echo "Change this line in $HOME/.profile to show new mail using MH"
+	fi
+	unset HAVENEWMAIL
 	;;
 esac
 
