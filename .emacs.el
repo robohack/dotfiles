@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.19	93/12/06 17:50:32 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	2.1	93/12/08 16:14:58 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -131,9 +131,13 @@ directory in the list PATHLIST, otherwise nil."
 ;; ----------
 ;; some new global variable settings...
 
-(setq ask-about-buffer-names t)		;
-(setq backup-by-copying t)		;
-(setq completion-auto-exit t)		; have completing-reads exit when unique
+(dont-compile
+  (if (= init-emacs-type 18)
+      (setq ask-about-buffer-names t)))	;
+(setq backup-by-copying t)		; copy, thus preserving modes and owner
+(dont-compile
+  (if (= init-emacs-type 18)
+      (setq completion-auto-exit t)))	; have completing-reads exit when unique
 (setq compilation-window-height 10)	; default height for a compile window
 (setq default-tab-width 8)		; a tab is a tab is a tab is a tab....
 (setq delete-auto-save-files t)		; delete auto-save file when saved
@@ -146,8 +150,12 @@ directory in the list PATHLIST, otherwise nil."
 	  (setq search-highlight t))	; i-search hightlight match
       (setq enable-local-variables t)))) ; (is this the default in v19?)
 (setq make-backup-files nil)		; too much clutter
-(setq search-delete-char 8)		; C-h, same as delete-backward-char
-(setq spell-command "spell -b")		; we're British, you know! :-)
+(dont-compile
+  (if (= init-emacs-type 18)
+      (setq search-delete-char 8)))	; C-h, same as delete-backward-char
+(dont-compile
+  (if (= init-emacs-type 18)
+      (setq spell-command "spell -b")))	; we're British, you know! :-)
 (setq track-eol nil)			; too hard to control (it's sticky!)
 (setq window-min-height 1)
 (setq window-min-width 1)
@@ -426,7 +434,8 @@ If HOOK is void, it is first set to nil."
 ;; some special hooks.....
 
 (dont-compile
-  (if (elisp-file-in-loadpath-p "server")
+  (if (and (elisp-file-in-loadpath-p "server")
+	   (string-equal (getenv "VISUAL") "emacsclient"))
       (progn
 	(require 'server)
 	;; I *USUALLY* EXPECT THE BACKSPACE KEY TO GENERATE AN ASCII BACKSPACE!
