@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	1.2	95/03/16 22:13:23 (woods)"
+#ident	"@(#)HOME:.twmrc	1.3	95/03/16 22:23:16 (woods)"
 #
 
 AutoRelativeResize
@@ -115,7 +115,8 @@ Button1 = : iconmgr : f.raise
 Button2 = : iconmgr : f.iconify
 Button3 = : iconmgr : f.lower
 
-# for menus
+#
+#	for xterms menu
 #
 function "start-xterm" {
 	f.exec "/usr/bin/X11/xterm -cn -rw -sb -si -sk -sl 2048 -ls &"
@@ -129,47 +130,131 @@ function "start-very-xterm" {
 	f.exec "/usr/ucb/rsh -n very /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
+function "start-kuma-xterm" {
+	f.exec "/usr/ucb/rsh -n kuma /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+}
+
+function "start-sunweb-xterm" {
+	f.exec "/usr/ucb/rsh -n sunweb /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
+function "start-araignee-xterm" {
+	f.exec "/usr/ucb/rsh -n araignee /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
+function "start-spinne-xterm" {
+	f.exec "/usr/ucb/rsh -n spinne /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
+function "start-tar-xterm" {
+	f.exec "/usr/ucb/rsh -n tar /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
+#
+#	for rlogins menu
+#
 function "start-weird-rlogin" {
-	f.exec "/usr/ucb/rsh -n most /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin weird &"
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin ns.weird.com &"
+}
+
+function "start-most-rlogin" {
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin most.weird.com &"
+}
+
+function "start-very-rlogin" {
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin very.weird.com &"
+}
+
+function "start-araignee-rlogin" {
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin araignee.web.net &"
 }
 
 function "start-kuma-rlogin" {
-	f.exec "/usr/ucb/rsh -n most /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin kuma.web.net &"
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin kuma.web.net &"
 }
 
-function "start-spinne-rlogin" {
-	f.exec "/usr/ucb/rsh -n most /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin spinne.web.net &"
+function "start-tar-rlogin" {
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin tar.web.net &"
 }
 
 function "start-web-rlogin" {
-	f.exec "/usr/ucb/rsh -n most /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin web.net &"
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin web.net &"
+}
+
+function "start-spinne-rlogin" {
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin spinne.web.net &"
+}
+
+function "start-sunweb-rlogin" {
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin sunweb.web.net &"
 }
 
 function "start-whome-rlogin" {
-	f.exec "/usr/ucb/rsh -n most /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin whome.planix.com &"
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin whome.planix.com &"
 }
 
 function "start-woffi-rlogin" {
-	f.exec "/usr/ucb/rsh -n most /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin woffi.planix.com &"
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin woffi.planix.com &"
 }
 
 function "start-worm-rlogin" {
-	f.exec "/usr/ucb/rsh -n most /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin worm.planix.com &"
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin worm.planix.com &"
 }
 
+function "start-lsuc-rlogin" {
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin news.lsuc.on.ca &"
+}
+
+function "start-iguana-rlogin" {
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin iguana.reptiles.org &"
+}
+
+function "start-tuatara-rlogin" {
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin tuatara.reptiles.org &"
+}
+
+#	for emacs menu
+#
 function "start-emacs" {
-	f.exec "/usr/ucb/rsh -n most env PATH=$PATH DISPLAY=$DISPLAY /local/gnu/bin/emacs -d $DISPLAY -i &"
+	f.exec "$GNU/bin/emacs -d $DISPLAY -i &"
 }
 
+function "start-x11-emacs" {
+	f.exec "/usr/ucb/rsh -n $X11HOST env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/emacs -d $DISPLAY -i &"
+}
+
+function "start-kuma-emacs" {
+	f.exec "/usr/ucb/rsh -n kuma.web.net env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/emacs -d $DISPLAY -i &"
+}
+
+
+#	for netscape menu
+#
 function "start-weird-netscape" {
 	f.exec "/usr/ucb/rsh -n weird env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
 }
 
+function "start-netscape" {
+	f.exec "$LOCAL/netscape -display $DISPLAY &"
+}
+
+function "start-x11-netscape" {
+	f.exec "/usr/ucb/rsh -n $X11HOST env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
+}
+
+#
+#	for other menu
+#
 function "start-xsol" {
+	f.exec "xsol -r &"
+}
+
+function "start-sun-xsol" {
 	f.exec "env LD_LIBRARY_PATH=/usr/openwin/lib:/usr/lib /usr/openwin/demo/xsol -r &"
 }
 
-# And a menus with the usual things
+#
+#	And the menus with the usual things
 #
 menu "defops"
 {
@@ -177,6 +262,7 @@ menu "defops"
 	"Window Operations..."	f.menu "winops"
 	""			f.nop
 	"Applications..."	f.menu "applications"
+	""			f.nop
 	"Refresh"		f.refresh
 	"Restart"		f.restart
 	""			f.nop
@@ -200,10 +286,10 @@ menu "winops"
 	"Save"			f.saveyourself
 	"Identify"		f.identify
 	""			f.nop
+	"Icon Manager..."	f.menu "iconmgr"
+	""			f.nop
 	"Iconify"		f.iconify
 	"DeIconify"		f.deiconify
-	""			f.nop
-	"Icon Manager..."	f.menu "iconmgr"
 	""			f.nop
 	"Focus"			f.focus
 	"Unfocus"		f.unfocus
@@ -255,16 +341,45 @@ menu "applications"
 	"Applications"			f.title
 	"Xterm's Everywhere..."		f.menu "xterm"
 	"Rlogin's Everywhere..."	f.menu "rlogin"
-	""				f.nop
-	"GNU-Emacs"			f.function "start-emacs"
-	"NetScape"			f.function "start-netscape"
+	"Emacs Everywhere..."		f.menu "emacs"
+	"Netscape Everywhere..."	f.menu "netscape"
+	"Games Everywhere..."		f.menu "games"
+}
+
+menu "emacs"
+{
+	"GNU Emacs"			f.title
+	"@localhost"			f.function "start-emacs"
+	"@X11-host"			f.function "start-x11-emacs"
+	"@kuma"				f.function "start-kuma-emacs"
+}
+
+menu "netscape"
+{
+	"Mozzilla, i.e. NetScape"	f.title
+	"@localhost"			f.function "start-netscape"
+	"@X11-host"			f.function "start-x11-netscape"
+	"@weird"			f.function "start-weird-netscape"
+}
+
+menu "games"
+{
+	"X11 Games"			f.title
 	"Xsol"				f.function "start-xsol"
+	"OpenWin Xsol"			f.function "start-sun-xsol"
 }
 
 menu "xterm"
 {
 	"Xterm's Everywhere"		f.title
 	"Xterm @localhost"		f.function "start-xterm"
+	"    web.net hosts"		f.nop
+	"Xterm @araignee"		f.function "start-araignee-xterm"
+	"Xterm @kuma"			f.function "start-kuma-xterm"
+	"Xterm @spinne"			f.function "start-spinne-xterm"
+	"Xterm @sunweb"			f.function "start-sunweb-xterm"
+	"Xterm @tar"			f.function "start-tar-xterm"
+	"    weird.com hosts"		f.nop
 	"Xterm @most"			f.function "start-most-xterm"
 	"Xterm @very"			f.function "start-very-xterm"
 }
@@ -272,13 +387,23 @@ menu "xterm"
 menu "rlogin"
 {
 	"Rlogin's Everywhere"		f.title
+	"Rlogin @most.weird.com"	f.function "start-most-rlogin"
+	"Rlogin @very.weird.com"	f.function "start-very-rlogin"
 	"Rlogin @weird.com"		f.function "start-weird-rlogin"
 	""				f.nop
+	"Rlogin @araignee.web.net"	f.function "start-araignee-rlogin"
 	"Rlogin @kuma.web.net"		f.function "start-kuma-rlogin"
-	"Rlogin @web.net"		f.function "start-web-rlogin"
 	"Rlogin @spinne.web.net"	f.function "start-spinne-rlogin"
+	"Rlogin @sunweb.web.net"	f.function "start-sunweb-rlogin"
+	"Rlogin @tar.web.net"		f.function "start-tar-rlogin"
+	"Rlogin @web.net"		f.function "start-web-rlogin"
 	""				f.nop
 	"Rlogin @whome.planix.com"	f.function "start-whome-rlogin"
 	"Rlogin @woffi.planix.com"	f.function "start-woffi-rlogin"
 	"Rlogin @worm.planix.com"	f.function "start-worm-rlogin"
+	""				f.nop
+	"Rlogin @news.lsuc.on.ca"	f.function "start-lsuc-rlogin"
+	""				f.nop
+	"Rlogin @iguana.reptiles.org"	f.function "start-iguana-rlogin"
+	"Rlogin @tuatara.reptiles.org"	f.function "start-tuatara-rlogin"
 }
