@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	22.5	01/12/05 14:03:32 (woods)"
+#ident	"@(#)HOME:.xinitrc	22.6	01/12/07 02:13:03 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -354,28 +354,31 @@ xtremely.weird.com:*)
 	$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/pkg/bin/mozilla -display $DISPLAY -geometry 935x990+0+0 &
 
 	# first column....
-	xterm -display $DISPLAY -geometry 88x31+0+0   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn07 -T "Console-07 [isit.weird.com]" -e telnet tserv 2007 &
-	xterm -display $DISPLAY -geometry 88x31+0+256 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn06 -T "Console-06 [proven.weird.com]" -e telnet tserv 2006 &
-	xterm -display $DISPLAY -geometry 88x31+0+512 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn08 -T "Console-08 [becoming.weird.com]" -e telnet tserv 2008 &
-	xterm -display $DISPLAY -geometry 88x31+0+768 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n oCn1 -T "oCons-1 [DEChub 900MS]" -e telnet constantly 2001 &
+	xterm -display $DISPLAY -geometry 88x24+0+0   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn07 -T "Console-07 [isit.weird.com]" -e console -S isit &
+	xterm -display $DISPLAY -geometry 88x24+0+205 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn06 -T "Console-06 [proven.weird.com]" -e console -S proven &
+	xterm -display $DISPLAY -geometry 88x24+0+410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn08 -T "Console-08 [becoming.weird.com]" -e console -S becoming &
+	xterm -display $DISPLAY -geometry 88x24+0+615 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n oCn1 -T "oCons-1 [DEChub 900MS] (hubly)" -e console -S hubly &
+	xterm -display $DISPLAY -geometry 88x24+0+820 -fn 5x7 -cn -rw -sb -si -sk -sl 100  -ls -ziconbeep 1 -n oCn1 -T "Console-01 [Exabyte-210 library]" -e console -S exb210 &
 
 	# second column....
-	xterm -display $DISPLAY -geometry 88x31+475+0   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn10 -T "Console-10 [most.weird.com]" -e telnet tserv 2010 &
-	xterm -display $DISPLAY -geometry 88x31+475+256 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn03 -T "Console-03 [sometimes.weird.com]" -e telnet tserv 2003 &
-	xterm -display $DISPLAY -geometry 88x31+475+512 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn09 -T "Console-09 [always.weird.com]" -e telnet tserv 2009 &
-	xterm -display $DISPLAY -geometry 88x31+475+768 -fn 5x7 -cn -rw -sb -si -sk -sl 100  -ls -ziconbeep 1 -n oCn1 -T "Console-01 [Exabyte-210 library]" -e telnet tserv 2001 &
+	xterm -display $DISPLAY -geometry 88x24+475+0   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn10 -T "Console-10 [most.weird.com]" -e console -S most &
+	xterm -display $DISPLAY -geometry 88x24+475+205 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn03 -T "Console-03 [sometimes.weird.com]" -e console -S sometimes &
+	xterm -display $DISPLAY -geometry 88x24+475+410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn09 -T "Console-09 [always.weird.com]" -e console -S always &
+	xterm -display $DISPLAY -geometry 88x24+475+615 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn11 -T "Console-11 [starting-out.weird.com]" -e console -S starting-out &
+c	xterm -display $DISPLAY -geometry 88x24+475+820 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n cid -T "very:/dev/ttyb [Caller ID Box]" -e console -S callerid &
 
 	# right side...
-	xterm -display $DISPLAY -geometry 80x24-0-410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn02 -T "Console-02 [BEST-UPS]" -e telnet tserv 2002 &
-	xterm -display $DISPLAY -geometry 80x24-0-205 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Cn04 -T "Console-04 [RAID-00 /work]" -e telnet tserv 2004 &
-	xterm -display $DISPLAY -geometry 80x24-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Cn05 -T "Console-05 [RAID-01 /cvs]" -e telnet tserv 2005 &
+	xterm -display $DISPLAY -geometry 80x24-0-410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn02 -T "Console-02 [BEST-UPS]" -e console -S best1.4 &
+	xterm -display $DISPLAY -geometry 80x24-0-205 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Cn04 -T "Console-04 [RAID-00 /work]" -e console -S raid-00 &
+	xterm -display $DISPLAY -geometry 80x24-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Cn05 -T "Console-05 [RAID-01 /cvs]" -e console -S raid-01 &
+
 
 	# start xv first, in a subshell that sleeps first for a bit
 	# -- it needs to be running before we try our tkined trick, but after the window manager
 	( sleep 20; xv -owncm -iconic & ) &
 	# start tkined last, in a subshell that sleeps first for a bit
 	# -- hoping xv (from above) and the window manager are running already
-	( sleep 40; $RSH -n proven.weird.com exec /usr/local/bin/tkined1.5.0 -display $DISPLAY -use $(xwininfo -name "xv 3.10a(PNG) <unregistered>" | awk '/xwininfo/ {print $4}') -geometry 1200x925+0-0 $HOME/tkined-3.tki & ) &
+	( sleep 40; $RSH -n proven.weird.com exec /usr/local/bin/tkined1.5.0 -display $DISPLAY -use $(xwininfo -name "xv 3.10a(PNG) <unregistered>" | awk '/xwininfo/ {print $4}') -geometry 1200x925+0-0 /home/proven/woods/tkined-3.tki & ) &
 	;;
 
 worm.planix.com:*)
