@@ -1,22 +1,21 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	20.7	99/04/21 23:51:14 (woods)"
+#ident	"@(#)HOME:.ctwmrc	20.8	99/06/13 22:34:08 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
 # Private xbm icon collection goes in HOME/lib/bitmaps
 # Private xpm icon collection goes in HOME/lib/pixmaps
-# /usr/X11 should be a symlink to /usr/X11R6 or where-ever.
 # Sounds to play go in HOME/lib/sounds (eg "newmail").
-# Sounds are (in general) played by invoking "auplay".
+# Sounds are (in general) played by invoking "$X11BIN/auplay".
 #
 # Environment variables used (set by .profile et al):
 #
 # RSH		- path to local rsh(1) or ssh(1)
 # ONX11SERVER	- optional cmd prefix to invoke apps on powerful X server
 # X11BIN	- localized path for /usr/X11/bin or /usr/bin/X11, etc.
-#		(usually used with $ONX11SERVER)
+# X11PATH	- localized path for /usr/X11 or /usr/X11R6, etc.
 # DISPLAY	- of course
 # PATH		- sometimes included in one passed to remote hosts
 # MAIL		- location of system mail spool file
@@ -227,7 +226,7 @@ IconRegion	"500x250-0+300" North East 25 25
 IconDirectory	"HOME/lib/bitmaps"
 
 ifdef([XPM], [
-PixmapDirectory	"HOME/lib/pixmaps:/usr/lib/X11/twm/images"
+PixmapDirectory	"HOME/lib/pixmaps:/usr/lib/X11/twm/images:/usr/X11/lib/X11/twm/images::/usr/X11R6/lib/X11/twm/images"
 ])
 
 IconManagerDontShow {
@@ -256,13 +255,14 @@ Icons {
 	"emacs"		"gnu.xbm"	# only when no '-i' given
   ifdef([XPM], [
 	"auedit"	"xpm:audio_editor.xpm"
+	"emacs"		"xpm:emacs.xpm"	# only when no '-i' given
 	"ghostview"	"xpm:ghostview.xpm"
 	"log0"		"xpm:document-simple.xpm"
 	"log1"		"xpm:document-simple.xpm"
 	"log2"		"xpm:document-simple.xpm"
 	"Mosaic"	"xpm:xmosaic.xpm"
 	"spider"	"xpm:spider.xpm"
-	"swissclock"	"xpm:clock.xpm"
+	"swissclock"	"xpm:xclock.xpm"
 	"xcalendar"	"xpm:datebook.xpm"
 	"xclipboard"	"xpm:clipboard.xpm"
 	"xedit"		"xpm:xedit.xpm"
@@ -271,8 +271,8 @@ Icons {
 	"XSm"		"xpm:xgrab.xpm"
 	"xterm"		"xpm:term.xpm"
    ], [
-	"swissclock"	"clock.xbm"
 	"xterm"		"Term"
+	"swissclock"	"clock.xbm"
    ])
 }
 
@@ -352,9 +352,22 @@ Function "resize-or-lower"	{ f.lower f.deltastop f.resize }
 
 # Set some useful bindings.  Sort of uwm-ish, sort of simple-button-ish
 #
-Button1 = : root : f.menu "quickies"
-Button2 = : root : f.menu "TwmWindows"
-Button3 = : root : f.menu "defops"
+Button1 =	 : root : f.menu "quickies"
+Button2 =	 : root : f.menu "TwmWindows"
+Button3 =	 : root : f.menu "defops"
+
+Button1 = meta	 : root : f.menu "applications"
+Button2 = meta	 : root : f.menu "preferences"
+Button3 = meta	 : root : f.menu "monitors"
+
+# shift modifier doesn't seem to work (at least not on NCD HMX)
+#Button1 = shift : root : f.menu "xterm"
+#Button2 = shift : root : f.menu "wmops"
+#Button3 = shift : root : f.menu "miscapps"
+
+Button1 = control : root : f.menu "slogin"
+Button2 = control : root : f.menu "tools"
+Button3 = control : root : f.menu "games"
 
 Button1 = meta : window|icon : f.function "forcemove-or-raise"
 Button2 = meta : window|icon : f.function "forcemove-or-iconify"
@@ -389,8 +402,9 @@ Button2 =      : iconmgr : f.raise
 Button3 =      : iconmgr : f.lower
 
 ifdef([XPM],
- [LeftTitleButton ":xpm:bar" = f.menu "winops"],
- [LeftTitleButton "menu12" = f.menu "winops"])
+ [LeftTitleButton ":xpm:menu" = f.menu "winops"],
+ [LeftTitleButton "menu12" = f.menu "winops"]
+)
 
 "F11"	=      : root	: f.nextworkspace
 "F12"	=      : root	: f.prevworkspace
@@ -423,6 +437,9 @@ menu "quickies"
 	"Xterm [@CLIENTHOST]"	!"xterm -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
 	"Xterm @x11server"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
  ifdef([AT_WEIRD], [
+  ifelse(HOSTNAME, most.weird.com, [], [
+	"Xterm @most"		!"$RSH -n most.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+  ])
   ifelse(HOSTNAME, proven.weird.com, [], [
 	"Xterm @proven"		!"$RSH -n proven.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
@@ -799,6 +816,10 @@ menu "emacs"
 menu "monitors"
 {
 	"Monitors"		f.title
+	"xconsole"		!"xconsole -geometry 500x160-0-0 -notify -verbose &"
+	"xconsole x-errors"	!"xconsole -geometry 500x160-0-0 -notify -verbose -file HOME/.xsession-errors &"
+	"xconsole x-errors-DISPLAY" !"xconsole -geometry 500x160-0-0 -notify -verbose -file HOME/.xsession-errors-`echo $DISPLAY | sed 's/\.[[0-9]]*$//'` &"
+	""			f.separator
 	"xclock"		!"xclock -geometry 190x190-0+0 &"
 	"xclock -digital"	!"xclock -geometry 190x30-0+192 -digital &"
 	"swissclock"		!"swisswatch -name swissclock -geometry 190x190-0+0 &"
@@ -810,8 +831,8 @@ menu "monitors"
 
   ifdef([AT_WEIRD], [
     ifelse(HOSTNAME, most.weird.com, [], [
-	"xbuffy @most"		!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"/usr/X11/bin/auplay -audio '$AUDIOSERVER' /home/most/woods/lib/sounds/newmail\"' &"
-	"xbuffy @proven"	!"$RSH -n proven.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"/usr/X11/bin/auplay -audio '$AUDIOSERVER' /home/most/woods/lib/sounds/newmail\"' &"
+	"xbuffy @most w/-acmd"		!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"$X11BIN/auplay -audio '$AUDIOSERVER' /home/most/woods/lib/sounds/newmail\"' &"
+	"xbuffy @proven w-acmd"	!"$RSH -n proven.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"$X11BIN/auplay -audio '$AUDIOSERVER' /home/most/woods/lib/sounds/newmail\"' &"
     ])
   ])
   ifdef([AT_LEITCH], [
@@ -900,6 +921,7 @@ menu "www"
 	"Chimera..."			f.menu "www-chimera"
 	""				f.separator
 	"Netscape..."			f.menu "www-netscape"
+	"Netscape -ncols 96..."		f.menu "www-netscape-ncols"
 	"Netscape -install cmap..."	f.menu "www-netscape-cmap"
 }
 
@@ -992,6 +1014,41 @@ menu "www-netscape"
   ])
   ifelse(HOSTNAME, whome.planix.com, [], [
 	"@whome"	!"$RSH -n whome.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
+  ])
+ ])
+}
+
+menu "www-netscape-ncols"
+{
+	"Netscape own colour map."	f.title
+	"@localhost"	!"$LOCAL/bin/netscape -ncols 96 -display $DISPLAY &"
+	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -ncols 96 -display $DISPLAY &"
+ ifdef([AT_WEIRD], [
+  ifelse(HOSTNAME, most.weird.com, [], [
+	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -ncols 96 -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, proven.weird.com, [], [
+	"@proven"	!"$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -ncols 96 -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, whats.weird.com, [], [
+	"@whats"	!"$RSH -n whats.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -ncols 96 -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, sometimes.weird.com, [], [
+	"@sometimes"	!"$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -ncols 96 -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, always.weird.com, [], [
+	"@always"	!"$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -ncols 96 -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, pretty.weird.com, [], [
+	"@pretty"	!"$RSH -n pretty.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -ncols 96 -display $DISPLAY &"
+  ])
+ ])
+ ifdef([AT_PLANIX], [
+  ifelse(HOSTNAME, woffi.planix.com, [], [
+	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -ncols 96 -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, whome.planix.com, [], [
+	"@whome"	!"$RSH -n whome.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -ncols 96 -display $DISPLAY &"
   ])
  ])
 }
