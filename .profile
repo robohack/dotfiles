@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	9.4	95/08/25 00:17:24 (woods)"
+#ident	"@(#)HOME:.profile	9.5	95/09/09 11:09:26 (woods)"
 
 #
 # Assumptions:
@@ -32,8 +32,8 @@ elif [ -r $HOME/.shlogout ] ; then
 	trap '. $HOME/.shlogout ; exit $?' 0
 fi
 
-if [ `echo ~` = $HOME -a -r .ashtype -a ${RANDOM:-0} -eq ${RANDOM:-0} ] ; then
-	# TODO: actually, maybe this should be a Posix shell environment...
+if [ "`echo ~`" = "$HOME" -a -r $HOME/.ashtype -a ${RANDOM:-0} -eq ${RANDOM:-0} ] ; then
+	# TODO: actually, maybe this should be considered a Posix shell environment...
 	. $HOME/.ashtype
 fi
 
@@ -234,14 +234,14 @@ if [ -x /usr/bin/sun ] ; then
 	fi
 fi
 
-if [ -d $LOCAL/dmdlayers/bin -a "$TERM" = "dmd" ] ; then
+if [ -d $LOCAL/dmdlayers/bin -a "X$TERM" = "Xdmd" ] ; then
 	DMD=$LOCAL/dmdlayers ; export DMD
 	TOOLS=$DMD/local ; export TOOLS
 	dirappend PATH $DMD/bin $TOOLS/bin
 	dirprepend MANPATH $DMD/man $TOOLS/man
 fi
 
-if [ "$HOME" != "/" ] ; then
+if [ "X$HOME" != "X/" ] ; then
 	dirprepend PATH $HOME/bin
 	PATH="${PATH}:"
 fi
@@ -440,7 +440,7 @@ TRNINIT="$HOME/.trninit" ; export TRNINIT
 
 # set terminal type and tty settings, etc....
 #
-if [ "$argv0" != ".xsession" -a "$argv0" != ".xinitrc" ] ; then
+if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 	echo "Re-setting terminal preferences...."
 	if [ -r "$HOME/.stty" ] ; then
 		. $HOME/.stty
@@ -459,7 +459,7 @@ if [ "$argv0" != ".xsession" -a "$argv0" != ".xinitrc" ] ; then
 		#
 		get_newterm ()
 		{
-			while [ "$TERM" != "$ttytype" ] ; do
+			while [ "X$TERM" != "X$ttytype" ] ; do
 				$echo $n "Please enter your terminal type [$ttytype]: $c"
 				read newttytype
 				if [ -n "$newttytype" ] ; then
@@ -548,13 +548,13 @@ if [ -d $HOME/lib/terminfo ] ; then
 	esac
 fi
 
-if [ "$argv0" != ".xsession" -a "$argv0" != ".xinitrc" ] ; then
+if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 	SANE="`stty -g`" ; export SANE
 fi
 
 # one thing we assume here is that PS1 will be set in .*login or $ENV
 #
-if [ ${RANDOM:-0} -ne 0 ] ; then
+if [ ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	# TODO: try to remember why we don't trust this...
 	SHELL=""
 	[ -x $LOCAL/bin/ksh ] && export SHELL="$LOCAL/bin/ksh"
@@ -563,7 +563,7 @@ if [ ${RANDOM:-0} -ne 0 ] ; then
 	if [ -r $HOME/.kshlogin ] ; then
 		. $HOME/.kshlogin
 	fi
-elif [ `echo ~` = $HOME ] ; then
+elif [ "`echo ~`" = "$HOME" ] ; then
 	# TODO: actually, maybe this should be a Posix shell environment...
 	if [ -r $HOME/.ashlogin ] ; then
 		. $HOME/.ashlogin
@@ -583,7 +583,7 @@ elif [ -r $HOME/.shlogin ] ; then
 		fi
 	fi
 else
-	if [ "$LOGNAME" = root ] ; then
+	if [ "X$LOGNAME" = "Xroot" ] ; then
 		PS1="[$TTYN]<$LOGNAME@$UUNAME> # "
 	else
 		PS1="[$TTYN]<$LOGNAME@$UUNAME> $ "
@@ -605,7 +605,7 @@ if expr "`type xinit`" : '.* is .*/xinit$' >/dev/null 2>&1 ; then
 	HAVEX=true
 fi
 
-if $HAVEX && [ "$argv0" != ".xinitrc" -a "$argv0" != ".xsession" ] ; then
+if $HAVEX && [ "X$argv0" != "X.xinitrc" -a "X$argv0" != "X.xsession" ] ; then
 	case "$TTYN" in
 	console|vg*|vt*|ttyc*)
 		case "$TERM" in
@@ -632,7 +632,7 @@ if $HAVEX && [ "$argv0" != ".xinitrc" -a "$argv0" != ".xsession" ] ; then
 	esac
 fi
 
-if $HAVELAYERS && [ "$TERM" = "dmd" -a "`ismpx`" != "yes" ] ; then
+if $HAVELAYERS && [ "X$TERM" = "Xdmd" -a "`ismpx`" != "yes" ] ; then
 	trap '' 2
 	echo ""
 	echo $n "Do you want to start layers? ([y]/n/debug) $c"
@@ -706,12 +706,18 @@ if [ -r $HOME/.localprofile ] ; then
 	. $HOME/.localprofile
 fi
 
+# minor cleanup
+#
+if [ ${RANDOM:-0} -eq ${RANDOM:-0} ] ; then
+	unset RANDOM
+fi
+
 # TODO: do something with msgs(1) if needed....
 
 # NOTE: trick 4.4BSD shell into -E by putting it in here, 'cause you can't
 # "set -o emacs" in .ashrc, as that'll cause it to dump core....
 #
-if [ -s $HOME/.shell -a "$argv0" != ".xinitrc" -a "$argv0" != ".xsession" ] ; then
+if [ -s $HOME/.shell -a "X$argv0" != "X.xinitrc" -a "X$argv0" != "X.xsession" ] ; then
 	# mktable just throws away comments....
 	exec `mktable $HOME/.shell`
 fi
