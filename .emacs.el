@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	21.11	00/03/26 22:56:54 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	21.12	00/03/28 12:03:17 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -917,10 +917,10 @@ BUFFER-NAME.  Optional command args to process supplied by ARGS"
 ;; These ones I dreampt up myself!
 ;;
 ;; (I would also like to have a similar function that deletes all the trailing
-;; whitespace from every line in a buffer.)
+;; whitespace from every line in a buffer.  See rm-tspaces.el by Paul D. Smith.)
 ;;
 (defun buffer-trim-trailing-whitespace (&optional buff-nm)
-  "Trim the trailing whitespace a buffer.
+  "Trim the trailing whitespace from the end of a buffer.
 If BUFF-NM is not given, use the current buffer."
   (interactive)
   (if (not (bufferp buff-nm))
@@ -929,7 +929,7 @@ If BUFF-NM is not given, use the current buffer."
   (buffer-trim-trailing-chars buff-nm))
 
 (defun buffer-trim-trailing-chars (buff-nm &optional chars-to-trim)
-  "Trim trailing characters from a buffer.
+  "Trim trailing characters from the end of a buffer.
 If CHARS-TO-TRIM is not given, default to ``\ \t\n'' (i.e. whitespace)."
   (save-window-excursion
     (set-buffer buff-nm)
@@ -1212,7 +1212,7 @@ Use `list-faces-display' to see all available faces")
   (add-hook 'dired-mode-hook
 	    (function
 	     (lambda ()
-	       (font-lock-mode t)
+	       (font-lock-mode t)	; not needed with `global-font-lock-mode'?
 	       (setq font-lock-keywords
 		     dired-font-lock-keywords)))))
 
