@@ -1,14 +1,13 @@
 #-*-sh-*-
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	23.2	02/01/19 17:25:25 (woods)"
+#ident	"@(#)HOME:.ctwmrc	23.3	02/03/17 15:21:18 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
 # Private xbm icon collection goes in HOME/lib/bitmaps
 # Private xpm icon collection goes in HOME/lib/pixmaps
 # Sounds to play go in HOME/lib/sounds (eg "newmail").
-# Sounds are (in general) played by invoking "$X11BIN/auplay".
 #
 # Environment variables used (set by .profile et al):
 #
@@ -20,6 +19,7 @@
 # PATH		- sometimes included in one passed to remote hosts
 # MAIL		- location of system mail spool file
 # MAILPATH	- location of system mail spool file *OR* POP config for VM
+# AUDIOPLAYER	- program to invoke to play a sound file (eg. "auplay")
 #
 
 changequote([, ])
@@ -52,7 +52,7 @@ ifelse(HOSTNAME, most.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
 # keep these sorted as if the 'No' was stripped
 #
 AutoFocusToTransients
-AutoOccupy
+#AutoOccupy		# Maybe not a good idea....
 AutoRelativeResize
 AutoRaiseIcons
 # NOTE: should use either PLANES or BITS_PER_RGB to do this right
@@ -63,39 +63,45 @@ ClientBorderWidth
 DecorateTransients
 DontMoveOff
 DontPaintRootWindow
-DontSqueezeTitle
+#NoCaseSensitive	# only affects iconmanager?
 NoGrabServer
+NoMenuShadows
 NoRaiseOnMove
 NoRaiseOnResize
-NoMenuShadows
+NoShowOccupyAll
+PackNewWindows		# wonder if this is good or not.....
 RestartPreviousState
 ReallyMoveInWorkspaceManager
 #ReverseCurrentWorkspace
-NoShowOccupyAll
 ShowWorkSpaceManager
-# spello:
+# spello?
 SchrinkIconTitles
+ShortAllWindowsMenus
+#SortIconManager	# wonder if this is worthwhile....
 StayUpMenus
 StartInMapState
 SunkFocusWindowTitle
-NoTitleHighlight
 UseThreeDBorders
 UseThreeDIconBorders
 UseThreeDIconManagers
 UseThreeDMenus
 UseThreeDTitles
-#UseThreeDWMap
+#UseThreeDWMap		# this is way too wastefull....
 
-BorderShadowDepth		2
-#BorderWidth			2	# has no effect when UseThreeDBorders is on
+BorderShadowDepth		2	# should allow more on >8-bit displays
+BorderWidth			2	# has no effect when UseThreeDBorders is on
 FramePadding			0
 IconBorderWidth			3
 IconManagerShadowDepth		3
-MaxWindowSize			"WIDTH[x]HEIGHT"
-MenuShadowDepth			3
-MoveDelta			3
+MaxIconTitleWidth		500
+MaxWindowSize			"WIDTH[x]HEIGHT"	# not everyone plays well..., default "30000x30000"
+MoveDelta			4
+MoveOffResistance		50
+MovePackResistance		50
 OpaqueMoveThreshold		100	# window % of screen size
 OpaqueResizeThreshold		100	# window % of screen size
+OpenWindowTimeout		15
+ThreeDBorderWidth		6	# has no effect unless UseThreeDBorders is on
 TitleButtonShadowDepth		3
 TitleShadowDepth		3
 UsePPosition			"on"
@@ -117,8 +123,6 @@ ChangeWorkspaceFunction		!"$AUDIOPLAYER HOME/lib/sounds/wm-wschange &"
 IconifyFunction			!"$AUDIOPLAYER HOME/lib/sounds/wm-iconify &"
 DeIconifyFunction		!"$AUDIOPLAYER HOME/lib/sounds/wm-deiconify &"
 DefaultFunction			!"$AUDIOPLAYER HOME/lib/sounds/wm-default &"
-
-ifelse(COLOR, Yes, [
 
 Color {
 	# highlit window borders
@@ -153,6 +157,27 @@ Color {
 	TitleBackground		"blue"
 	TitleForeground		"White"
 }
+
+Monochrome {
+	BorderColor		"grey70"
+	BorderTileBackground	"grey6"
+	BorderTileForeground	"grey50"
+	DefaultBackground	"Black"
+	DefaultForeground	"White"
+	IconBorderColor		"grey3"
+	MapWindowBackground	"White"
+	MapWindowForeground	"Black"
+	MenuBackground		"Black"
+	MenuForeground		"White"
+	MenuTitleBackground	"grey98"
+	MenuTitleForeground	"Black"
+	MenuShadowColor		"gray50"
+	TitleBackground		"blue"
+	TitleForeground		"White"
+}
+
+ifelse(COLOR, Yes, [
+
 MapWindowCurrentWorkSpace {
 	"yellow"
 	"grey50"
@@ -167,23 +192,6 @@ MapWindowDefaultWorkSpace {
 # else not COLOR
 ], [
 
-Monochrome {
-	BorderColor		"grey70"
-	BorderTileBackground	"grey6"
-	BorderTileForeground	"grey50"
-	DefaultBackground	"Black"
-	DefaultForeground	"White"
-	IconBorderColor		"grey3"
-	MapWindowBackground	"White"
-	MapWindowForeground	"Black"
-	MenuBackground		"White"
-	MenuForeground		"Black"
-	MenuTitleBackground	"grey98"
-	MenuTitleForeground	"Black"
-	MenuShadowColor		"gray50"
-	TitleBackground		"blue"
-	TitleForeground		"White"
-}
 MapWindowCurrentWorkSpace {
 	"White"
 	"grey50"
@@ -199,8 +207,14 @@ MapWindowDefaultWorkSpace {
 ])
 
 IconJustification		"right"
+IconRegionAlignement		"border"
+IconRegionJustification		"border"
 
-IconRegion	"500x250-0+300" North East 25 25
+# this really means if screen is >= 1600x1200
+ifelse(HOSTNAME, very.weird.com,
+ [IconRegion	"500x250-0+300" North East 10 10],
+ [IconRegion	"250x500-0+300" North East 10 10])
+
 
 # Can only be one directory!  Uses resource bitmapFilePath first...
 #
@@ -227,31 +241,38 @@ IconManagerDontShow {
 	"XSysStats"
 }
 
-ifdef([XPM], [UnknownIcon "xpm:unknown.xpm"], [UnknownIcon "unknown.xbm"])
+ifdef([XPM], [UnknownIcon "xpm:unknown1.xpm"], [UnknownIcon "unknown.xbm"])
 
 Icons {
-	"Untitled"	"xlogo16"
+	"Untitled"	"Excl"
 	"xcmap"		"plaid"
 	"XConsole"	"terminal"
-	"emacs"		"gnu.xbm"	# only when no '-i' given
   ifdef([XPM], [
 	"auedit"	"xpm:audio_editor.xpm"
+	"Control"	"xpm:mixer.xpm"
 	"emacs"		"xpm:emacs.xpm"	# only when no '-i' given
 	"ghostview"	"xpm:ghostview.xpm"
 	"log0"		"xpm:document-simple.xpm"
 	"log1"		"xpm:document-simple.xpm"
 	"log2"		"xpm:document-simple.xpm"
 	"Mosaic"	"xpm:xmosaic.xpm"
+#	"MPEG Play"	"xpm:movie.xpm"
+	"pine"		"xpm:mail1.xpm"
 	"spider"	"xpm:spider.xpm"
 	"swissclock"	"xpm:xclock.xpm"
+#	"xanim"		"xpm:movie.xpm"
 	"xcalendar"	"xpm:datebook.xpm"
 	"xclipboard"	"xpm:clipboard.xpm"
 	"xedit"		"xpm:xedit.xpm"
 	"xftp"		"xpm:xftp.xpm"
+#	"xfractint"	"xpm:mandelbrot.xpm"
+	"Xman"		"xpm:xman.xpm"
 	"xpostit"	"xpm:postit.xpm"
 	"XSm"		"xpm:xgrab.xpm"
 	"xterm"		"xpm:term.xpm"
    ], [
+	"emacs"		"gnu.xbm"	# only when no '-i' given
+	"pine"		"letters"
 	"xterm"		"Term"
 	"swissclock"	"clock.xbm"
    ])
@@ -274,7 +295,7 @@ Cursors {
 # this really means if screen is >= 1600x1200
 ifelse(HOSTNAME, very.weird.com,
  [WorkSpaceManagerGeometry	"170x285-330+0" 2],
- [WorkSpaceManagerGeometry	"120x230-200+0" 2])
+ [WorkSpaceManagerGeometry	"130x235-190+0" 2])
 
 WorkSpaces {
 	"Main"
@@ -299,7 +320,7 @@ OccupyAll {
 	"Calculator"
 	"NCD User Services:  Console"
 	"NCD User Services:  Show Memory"
-	"OccupyAll"
+	"OccupyAll"		# a trick used for starting xterms...
 	"oclock"
 	"swisswatch"
 	"swissclock"
@@ -360,6 +381,8 @@ WarpCursor {
 
 # These have an optional window list parameter
 #
+DontSqueezeTitle
+NoTitleHighlight
 OpaqueResize
 OpaqueMove
 
@@ -369,73 +392,102 @@ Function "forcemove-or-iconify"	{ f.forcemove f.deltastop f.iconify }
 Function "move-or-lower"	{ f.move f.deltastop f.lower }
 Function "move-or-raise"	{ f.move f.deltastop f.raise }
 Function "move-or-iconify"	{ f.move f.deltastop f.iconify }
+Function "movepack-or-lower"	{ f.movepack f.deltastop f.lower }
+Function "movepack-or-raise"	{ f.movepack f.deltastop f.raise }
+Function "movepack-or-iconify"	{ f.movepack f.deltastop f.iconify }
 Function "resize-or-raise"	{ f.raise f.deltastop f.resize }
 Function "resize-or-lower"	{ f.lower f.deltastop f.resize }
 #Function "restore-colormap"	{ f.colormap "default" f.lower }
 
 # Set some useful bindings.  Sort of uwm-ish, sort of simple-button-ish
 #
-Button1 =	 : root : f.menu "quickies"
-Button2 =	 : root : f.menu "TwmWindows"
-Button3 =	 : root : f.menu "defops"
+Button1 =		: root		: f.menu "quickies"
+Button2 =		: root		: f.menu "TwmWindows"
+Button3 =		: root		: f.menu "defops"
 
-Button1 = meta	 : root : f.menu "applications"
-Button2 = meta	 : root : f.menu "preferences"
-Button3 = meta	 : root : f.menu "monitors"
+Button1 = control	: root		: f.menu "slogin"
+Button2 = control	: root		: f.menu "TwmIcons"
+Button3 = control	: root		: f.menu "preferences"
 
-# shift modifier doesn't seem to work (at least not on NCD HMX)
-#Button1 = shift : root : f.menu "xterm"
-#Button2 = shift : root : f.menu "wmops"
-#Button3 = shift : root : f.menu "miscapps"
+Button1 = meta		: root		: f.menu "applications"
+Button2 = meta		: root		: f.menu "TwmAllWindows"
+Button3 = meta		: root		: f.menu "wmops"
 
-Button1 = control : root : f.menu "slogin"
-Button2 = control : root : f.menu "tools"
-Button3 = control : root : f.menu "games"
+# shift modifier doesn't seem to work (at least not on an NCD HMX)
+# the un-alterd buttons get clobbered!
+#Button1 = shift	: root		: f.menu "xterm"
+#Button2 = shift	: root		: f.menu "TwmIcons"
+#Button3 = shift	: root		: f.menu "rlogin"
 
-Button1 = meta : window|icon : f.function "forcemove-or-raise"
-Button2 = meta : window|icon : f.function "forcemove-or-iconify"
-Button3 = meta : window|icon : f.function "forcemove-or-lower"
+Button1 = control	: icon		: f.menu "winops"
+Button2 = control	: icon		: f.iconify
+Button3 = control	: icon		: f.raiselower
 
-Button1 =      : title	: f.function "move-or-raise"
-Button2 =      : title	: f.raiselower
-Button3 =      : title	: f.function "move-or-lower"
+Button1 = meta		: icon|window	: f.function "forcemove-or-raise"
+Button2 = meta		: icon|window	: f.function "forcemove-or-iconify"
+Button3 = meta		: icon|window	: f.function "forcemove-or-lower"
 
-Button1 = meta : title	: f.function "forcemove-or-raise"
-Button2 = meta : title	: f.raiselower
-Button3 = meta : title	: f.function "forcemove-or-lower"
+Button1 =		: title		: f.function "movepack-or-raise"
+Button2 =		: title		: f.raiselower
+Button3 =		: title		: f.function "movepack-or-lower"
 
-Button1 =      : frame	: f.function "resize-or-raise"
-Button2 =      : frame	: f.function "move-or-raise"
-Button3 =      : frame	: f.function "resize-or-lower"
+Button1 =		: frame		: f.function "resize-or-raise"
+Button2 =		: frame		: f.raiselower
+Button3 =		: frame		: f.function "resize-or-lower"
 
-Button1 = meta : frame	: f.function "resize-or-raise"
-Button2 = meta : frame	: f.function "forcemove-or-raise"
-Button3 = meta : frame	: f.function "resize-or-lower"
+Button1 = meta		: frame|title	: f.function "forcemove-or-raise"
+Button2 = meta		: frame|title	: f.raiselower
+Button3 = meta		: frame|title	: f.function "forcemove-or-lower"
 
-Button1 =      : icon	: f.function "move-or-iconify"
-Button2 =      : icon	: f.iconify
-Button3 =      : icon	: f.lower
+Button1 =		: icon		: f.function "move-or-iconify"
+Button2 =		: icon		: f.iconify
+Button3 =		: icon		: f.lower
 
-Button1 = meta : icon	: f.function "forcemove-or-iconify"
-Button2 = meta : icon	: f.iconify
-Button3 = meta : icon	: f.lower
+Button1 = meta		: icon		: f.function "forcemove-or-iconify"
+Button2 = meta		: icon		: f.iconify
+Button3 = meta		: icon		: f.lower
 
-Button1 =      : iconmgr : f.iconify
-Button2 =      : iconmgr : f.raise
-Button3 =      : iconmgr : f.lower
+Button1 =		: iconmgr	: f.iconify
+Button2 =		: iconmgr	: f.raise
+Button3 =		: iconmgr	: f.lower
 
 ifdef([XPM],
- [LeftTitleButton ":xpm:menu" = f.menu "winops"],
- [LeftTitleButton "menu12" = f.menu "winops"]
+ [	LeftTitleButton ":xpm:menu" = f.menu "winops"
+	RightTitleButton ":xpm:bar" = f.menu "fills"
+	RightTitleButton ":xpm:box" = f.menu "zooms"
+ ],
+ [	LeftTitleButton "menu16" = f.menu "winops"
+	RightTitleButton "weird_size" = f.menu "fills"
+	RightTitleButton "icon" = f.menu "zooms"
+ ]
 )
 
-"F11"	=      : root	: f.nextworkspace
-"F12"	=      : root	: f.prevworkspace
+"Help"	=		: root		: f.version
 
-"Left"	= meta : root	: f.leftworkspace
-"Right"	= meta : root	: f.rightworkspace
-"Down"	= meta : root	: f.downworkspace
-"Up"	= meta : root	: f.upworkspace
+"F11"	=		: root		: f.prevworkspace
+"F12"	=		: root		: f.nextworkspace
+
+"Left"	= meta		: root		: f.leftworkspace
+"Right"	= meta		: root		: f.rightworkspace
+"Down"	= meta		: root		: f.downworkspace
+"Up"	= meta		: root		: f.upworkspace
+
+# Hmmm... these don't seem to work in 3.5.2 for some reason.... (syntax error)
+#"Left"	=		: frame|title	: f.jumpleft 2
+#"Right" =		: frame|title	: f.jumpright 2
+#"Down"	=		: frame|title	: f.jumpdown 2
+#"Up"	=		: frame|title	: f.jumpup 2
+
+# Hmmm... these seem to be delivered to the app regardless....
+#"Left"	= meta		: frame|title	: f.pack "left"
+#"Right" = meta		: frame|title	: f.pack "right"
+#"Up"	= meta		: frame|title	: f.pack "top"
+#"Down"	= meta		: frame|title	: f.pack "bottom"
+#"Left"	= shift|meta	: frame|title	: f.fill "left"
+#"Right" = shift|meta	: frame|title	: f.fill "right"
+#"Up"	= shift|meta	: frame|title	: f.fill "top"
+#"Down"	= shift|meta	: frame|title	: f.fill "bottom"
+
 
 #
 #	And the menus, with all of the usual things...
@@ -443,7 +495,10 @@ ifdef([XPM],
 menu "quickies"
 {
 	"Short Cuts"		f.title
+	"Pin"			f.pin
 	"Move"			f.move
+	"MovePack"		f.movepack
+	"Move & Push"		f.movepush
 	"Resize"		f.resize
 	"Lower"			f.lower
 	"Raise"			f.raise
@@ -455,30 +510,30 @@ menu "quickies"
 	""			f.separator
 	"WinDelete"		f.delete
 	"WinDelete or Destroy"	f.deleteordestroy
-	"Kill"			f.menu "kill"
+	"Kill"			f.destroy
 	""			f.separator
 	"Xterm [@CLIENTHOST]"	!"xterm -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
-	"Xterm @x11server"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
+	"Xterm @x11server"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
-	"Xterm @most"		!"$RSH -n most.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @most"		!"$RSH -n most.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
   ifelse(HOSTNAME, becoming.weird.com, [], [
-	"Xterm @becoming"	!"$RSH -n becoming.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @becoming"	!"$RSH -n becoming.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
   ifelse(HOSTNAME, proven.weird.com, [], [
-	"Xterm @proven"		!"$RSH -n proven.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @proven"		!"$RSH -n proven.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
   ifelse(HOSTNAME, sometimes.weird.com, [], [
-	"Xterm @sometimes"	!"$RSH -n sometimes.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @sometimes"	!"$RSH -n sometimes.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
   ifelse(HOSTNAME, starting-out.weird.com, [], [
-	"Xterm @starting-out"	!"$RSH -n starting-out.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @starting-out"	!"$RSH -n starting-out.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
   ifelse(HOSTNAME, whats.weird.com, [], [
-	"Xterm @whats"		!"$RSH -n whats.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @whats"		!"$RSH -n whats.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
-	"Rlogin @isit"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin isit.weird.com &"
+	"Rlogin @isit"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x41 -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin isit.weird.com &"
 	""			f.separator
 	"Console Server"	f.menu "consoles"
 	""			f.separator
@@ -514,6 +569,8 @@ menu "consoles"
 	CONSOLE_REP(exb210)
 	CONSOLE_REP(hubly)
 	CONSOLE_REP(best1.44)
+	CONSOLE_REP(best-3.1-0)
+	CONSOLE_REP(best-3.1-1)
 	CONSOLE_REP(callerid)
  undefine(CONSOLE_REP)
 }
@@ -576,7 +633,13 @@ menu "defops"
 menu "winops"
 {
 	"Window Operations"	f.title
+	"Save Geometry"		f.savegeometry
+	"Restore Geometry"	f.restoregeometry
+	""			f.separator
 	"Move"			f.move
+	"MovePack"		f.movepack
+	"MovePush"		f.movepush
+	""			f.separator
 	"Resize"		f.resize
 	""			f.separator
 	"Raise"			f.raise
@@ -584,11 +647,13 @@ menu "winops"
 	"Circle Up"		f.circleup
 	"Circle Down"		f.circledown
 	""			f.separator
-	"Occupy ..."		f.occupy
 	"Occupy All"		f.occupyall
 	"Vanish"		f.vanish
+	"Occupy ..."		f.occupy
 	""			f.separator
 	"Zoom..."		f.menu "zooms"
+	"Pack..."		f.menu "packs"
+	"Fill..."		f.menu "fills"
 	""			f.separator
 	"Refresh"		f.winrefresh
 	"Save"			f.saveyourself
@@ -609,7 +674,8 @@ menu "wmops"
 {
 	"Window Manager"	f.title
 	"Icon Manager..."	f.menu "iconmgr"
-	"Window Summary..."	f.menu "TwmWindows"
+	"WorkSpace Summary..."	f.menu "TwmWindows"
+	"Window Summary..."	f.menu "TwmAllWindows"
 	""			f.separator
 	"Toggle workspace"	f.togglestate
 	"ShowWorkspaceManager"	f.showWorkspaceMgr
@@ -621,18 +687,45 @@ menu "wmops"
 	""			f.separator
 	"Restart TWM_TYPE"	f.restart
 	""			f.separator
-	"About TWM_TYPE"	f.version
+	"About TWM_TYPE TWM_VERSION"	f.version
+}
+
+menu "packs"
+{
+	"Window Packing"	f.title
+	"Save Geometry"		f.savegeometry
+	"Restore Geometry"	f.restoregeometry
+	""			f.separator
+	"To-the-Left"		f.pack "left"
+	"To-the-Right"		f.pack "right"
+	"To-the-Top"		f.pack "top"
+	"To-the-Bottom"		f.pack "bottom"
 }
 
 menu "zooms"
 {
-	"Window Zooms"		f.title
+	"Zoom to Screen"	f.title
+	"Save Geometry"		f.savegeometry
+	"Restore Geometry"	f.restoregeometry
+	""			f.separator
 	"Top-to-bottom"		f.zoom
 	"Full-Screen"		f.fullzoom
 	"To-the-Left"		f.leftzoom
 	"To-the-Right"		f.rightzoom
 	"To-the-Top"		f.topzoom
 	"To-the-Bottom"		f.bottomzoom
+}
+
+menu "fills"
+{
+	"Zoom to Fill"		f.title
+	"Save Geometry"		f.savegeometry
+	"Restore Geometry"	f.restoregeometry
+	""			f.separator
+	"To-the-Left"		f.fill "left"
+	"To-the-Right"		f.fill "right"
+	"To-the-Top"		f.fill "top"
+	"To-the-Bottom"		f.fill "bottom"
 }
 
 menu "iconmgr"
@@ -677,8 +770,6 @@ menu "preferences"
 	"Bug Compat Off"	!"xset -bc"
 	"ReHash FP"		!"xset fp rehash"
 	"Reset FP Default"	!"xset fp default"
-##	"Video Inverse"		!"xset p 1 0"
-##	"Video Normal"		!"xset p 0 1"
  ifelse(COLOR, Yes,
 	["Colour Map Ctl..."	f.menu "cmap"], [])
 	"Screen Saver..."	f.menu "screensaver"
@@ -731,7 +822,6 @@ menu "screensavertime"
 	"15 min"			!"xset s 900"
 }
 
-
 menu "leds"
 {
 	"Keyboard LED Control"	f.title
@@ -745,12 +835,6 @@ menu "leds"
 	"3 off"			!"xset -led 3"
 	"4 on"			!"xset led 4"
 	"4 off"			!"xset -led 4"
-}
-
-menu "kill"
-{
-	"Kill X Application"		f.title
-	"        Confirm...."		f.destroy
 }
 
 menu "exit"
@@ -896,13 +980,12 @@ menu "monitors"
 
   ifdef([AT_WEIRD], [
     ifelse(HOSTNAME, most.weird.com, [], [
-	"xbuffy @most w/-acmd"		!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"'$X11BIN'/auplay -audio '$AUDIOSERVER' -v 25 /home/most/woods/lib/sounds/newmail &\"' &"
-	"xbuffy @proven w-acmd"	!"$RSH -n proven.weird.com exec /usr/pkg/bin/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"/usr/pkg/bin/auplay -audio '$AUDIOSERVER' -v 25 /home/most/woods/lib/sounds/newmail &\"' &"
-	"xbuffy @becoming w-acmd" !"$RSH -n becoming.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"'$X11BIN'/auplay -audio '$AUDIOSERVER' -v 25 /home/most/woods/lib/sounds/newmail &\"' &"
+	"xbuffy @most"		!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &"
+	"xbuffy @most w/-acmd"	!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"'$X11BIN'/auplay -audio '$AUDIOSERVER' -v 25 /home/most/woods/lib/sounds/newmail &\"' &"
     ])
   ])
 	""			f.separator
-	"xload"			!"xload -geometry 120x130-200+0 -hl grey90 &"
+	"xload"			!"xload -geometry 120x64-200+0 -hl grey90 &"
 	"xload @x11server"	!"$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x130-200+148 -hl grey90 &"
 	"xosview"		!"xosview -geometry 120x137-200+0 &"
 	"xosview @x11server"	!"$ONX11SERVER $X11BIN/xosview -display $DISPLAY -hl grey90 &"
