@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.10	98/02/23 20:42:22 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.11	98/02/23 20:49:53 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -51,7 +51,7 @@
 	(interactive)
 	(if (not layout)
 	    (setq layout
-		  (if vm-fsfemacs-19-p
+		  (if (and vm-fsfemacs-p (= emacs-major-version 19))
 		      (let (o-list (overlays-at (point)))
 			(while (and o-list
 				    (not (overlay-get (car o-list) 'vm-mime-layout)))
