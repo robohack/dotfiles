@@ -1,7 +1,7 @@
 #
 #	.kshlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.kshlogin	19.1	98/01/11 20:58:19 (woods)"
+#ident	"@(#)HOME:.kshlogin	19.2	98/04/26 15:58:12 (woods)"
 
 set -o ignoreeof	# we only do this for our login shell....
 
@@ -36,21 +36,27 @@ fi
 export PWD=$HOME
 export OLDPWD=$HOME
 
-if [ -z "$MAILPATH" ] ; then
-	if [ -d /var/spool/mail ] ; then
-		export MAILPATH="/var/spool/mail/$LOGNAME"
+# use MAIL instead of MAILPATH, primarily to avoid the clash of using
+# a POP specification in MAILPATH for emacs VM
+# 
+unset MAILPATH
+if [ -z "$MAIL" ] ; then
+	if [ -d /var/mail ] ; then
+		MAIL="/var/mail/$LOGNAME"
+	elif [ -d /var/spool/mail ] ; then
+		MAIL="/var/spool/mail/$LOGNAME"
 	elif [ -d /usr/mail ] ; then
-		export MAILPATH="/usr/mail/$LOGNAME"
+		MAIL="/usr/mail/$LOGNAME"
 	elif [ -d /usr/spool/mail ] ; then
-		export MAILPATH="/usr/spool/mail/$LOGNAME"
-	fi		
+		MAIL="/usr/spool/mail/$LOGNAME"
+	fi
 fi
+export MAIL
 
 # make sure these directories are fixed in even if they are not
 # present at login time.
 #
-export CDPATH=":$HOME:$HOME/src:$HOME/src/lib:$HOME/src/work.d\
-:$HOME/work.d:$HOME/lib:$WORKPATH"
+export CDPATH=":$HOME:$WORKPATH:$HOME/src:$HOME/src/lib:$HOME/lib"
 
 dirappend CDPATH /usr/src /usr/src/lib /usr/src/cmd /usr/src/add-on /usr/src/uts
 dirappend CDPATH /usr/src/bin /usr/src/distrib /usr/src/domestic /usr/src/etc
