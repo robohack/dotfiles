@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	3.4	94/05/09 10:40:53 (woods)"
+;;;#ident	"@(#)HOME:.vm	3.5	94/05/09 11:03:32 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -11,8 +11,6 @@
 ;;;
 
 (setq mail-signature t)			; auto-insert ~/.signature
-(add-hook 'vm-reply-hook 'mail-text)	; drop the cursor above the signature
-
 (setq mail-archive-file-name "~/Mail/.outgoing") ; for posterity
 (setq mail-default-reply-to (concat (user-login-name) "@" (vm-fqdn)
 				    " (" (user-full-name) ")"))
