@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	8.7	95/03/10 20:14:08 (woods)"
+#ident	"@(#)HOME:.profile	8.8	95/03/11 18:48:02 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -431,7 +431,7 @@ robohack | toile | wombat )
 * )
 	# TODO: find some way to see if login(1) ran, or xterm(n) started us
 	# TODO: since login(1) checks for mail too, but xterm(n) doesn't.
-	/bin/mail -e
+	[ -x /bin/mail ] && /bin/mail -e
 	HAVENEWMAIL=$?
 	if $HAVEMUSH && [ $HAVENEWMAIL -eq 0 ] ; then
 		echo 'You have mail:'
