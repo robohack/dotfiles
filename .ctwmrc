@@ -1,7 +1,26 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.19	98/07/18 00:27:17 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.20	98/07/18 02:53:28 (woods)"
+#
+# Things that affect the operation of various menus, etc.:
+#
+# Private icon (xbm) collection goes in HOME/lib/bitmaps
+# Private icon (xpm) collection goes in HOME/lib/pixmaps
+# /usr/X11 should be a symlink to /usr/X11R6 or where-ever.
+# Sounds to play go in HOME/lib/sounds (eg "newmail").
+# Sounds are (in general) played by invoking "auplay".
+#
+# Environment variables used (set by .profile et al):
+#
+# RSH		- path to local rsh(1) or ssh(1)
+# ONX11SERVER	- optional cmd prefix to invoke apps on powerful X server
+# X11BIN	- localized path for /usr/X11/bin or /usr/bin/X11, etc.
+#		(usually used with $ONX11SERVER)
+# DISPLAY	- of course
+# PATH		- sometimes included in one passed to remote hosts
+# MAIL		- location of system mail spool file
+# MAILPATH	- location of system mail spool file *OR* POP config for VM
 #
 
 changequote([, ])
@@ -505,8 +524,8 @@ menu "preferences"
 	"Bug Compat Off"	!"xset -bc"
 	"ReHash FP"		!"xset fp rehash"
 	"Reset FP Default"	!"xset fp default"
-	"Prefer 75dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Type1/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/75dpi/,/usr/lib/X11/fonts/100dpi/,/usr/lib/X11/fonts/PEX/"
-	"Prefer 100dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Type1/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/100dpi/,/usr/lib/X11/fonts/75dpi/,/usr/lib/X11/fonts/PEX/"
+##	"Prefer 75dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Type1/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/75dpi/,/usr/lib/X11/fonts/100dpi/,/usr/lib/X11/fonts/PEX/"
+##	"Prefer 100dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Type1/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/100dpi/,/usr/lib/X11/fonts/75dpi/,/usr/lib/X11/fonts/PEX/"
 ##	"Video Inverse"		!"xset p 1 0"
 ##	"Video Normal"		!"xset p 0 1"
  ifelse(COLOR, Yes,
@@ -742,11 +761,11 @@ menu "monitors"
 	"xbiff"			!"xbiff -rv -bw 0 &"
 	"xlbiff"		!"xlbiff &"
 	"xbuffy"		!"xbuffy -geometry 80x25-0+235 -shortnames -header 0 &"
-	"xbuffy w/-acmd"	!"xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd \"auplay -audio $AUDIOSERVER HOME/lib/sounds/newmail\" &"
+	"xbuffy w/-acmd"	!"xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd \"$AUDIOPLAYER HOME/lib/sounds/newmail\" &"
 
   ifdef([AT_WEIRD], [
     ifelse(HOSTNAME, most.weird.com, [], [
-	"xbuffy @most w/-acmd"	!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"/usr/local/bin/auplay -audio '$AUDIOSERVER' /home/most/woods/lib/sounds/newmail\"' &"
+	"xbuffy @most w/-acmd"	!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"/usr/pkg/bin/auplay -audio '$AUDIOSERVER' /home/most/woods/lib/sounds/newmail\"' &"
 	"xbuffy @most"		!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &"
     ])
   ])
