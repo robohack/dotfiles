@@ -1,10 +1,21 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	7.3	95/06/07 21:09:19 (woods)"
+#ident	"@(#)HOME:.kshrc	7.4	95/06/07 21:31:59 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
+
+# Assumptions:
+#
+
+# Files referenced:
+#
+#	$HOME/.kshsccs		- sourced, if it is readable
+#	$HOME/.kshpwd		- sourced, if it is readable
+#	$HOME/.kshlocal		- sourced, if it is readable
+#	$HOME/.kshedit		- sourced, if it is readable else gmacs editing set
+#	$HOME/.kshdir		- dir autoload aliases set, if it is readable
 
 #set -o nolog		# no functions in $HISTFILE
 set -o monitor
@@ -505,7 +516,9 @@ if [ -r $HOME/.kshpwd ] ; then
 	. $HOME/.kshpwd
 	cd $(pwd)
 fi
-
+if [ -r $HOME/.kshlocal ] ; then
+	. $HOME/.kshlocal
+fi
 if [ -r $HOME/.kshedit ] ; then
 	. $HOME/.kshedit
 else
@@ -616,8 +629,10 @@ function typeof
 	unset LLIBDIR
 }
 
-alias pushd='unalias pushd popd showd sd;. $HOME/.kshdir; pushd'
-alias popd='unalias pushd popd showd sd;. $HOME/.kshdir; popd'
-alias showd='unalias pushd popd showd sd;. $HOME/.kshdir; showd'
+if [ -r $HOME/.kshdir ] ; then
+	alias pushd='unalias pushd popd showd sd;. $HOME/.kshdir; pushd'
+	alias popd='unalias pushd popd showd sd;. $HOME/.kshdir; popd'
+	alias showd='unalias pushd popd showd sd;. $HOME/.kshdir; showd'
+fi
 
 unset -f do_first_time
