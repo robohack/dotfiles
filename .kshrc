@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	1.3	93/11/29 11:25:49 (woods)"
+#ident	"@(#)HOME:.kshrc	1.4	93/11/29 11:27:39 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -524,7 +524,7 @@ function lastlog
 
 function malias
 {
-	grep "alias[ 	]$*" /local/lib/mush/Mail.rc ~/.mushrc
+	grep "alias[ 	]$*" $LOCAL/lib/mush/Mail.rc ~/.mushrc
 }
 
 # note, there is an mk(8) on source licensed sites
