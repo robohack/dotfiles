@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	21.10	00/03/26 16:34:11 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	21.11	00/03/26 22:56:54 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -371,8 +371,7 @@ scripts (alias)." t)
 	"*scheme*")) ; *info* nixed
 
 (setq special-display-buffer-names
-      '("*Completions*"
-	"*compilation*"
+      '("*compilation*"
 	"*grep*"
 	"*tex-shell*"))
 
