@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.8	98/02/02 10:52:35 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.9	98/02/02 11:03:58 (woods)"
 #
 
 changequote([, ])
@@ -726,8 +726,8 @@ menu "monitors"
 	"xload @x11server"	!"$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x130-200+148 -hl grey90 &"
 	"xosview"		!"xosview -geometry 120x137-200+0 &"
 	"xosview @x11server"	!"$ONX11SERVER $X11BIN/xosview -display $DISPLAY -hl grey90 &"
-	"xcpustate"		!"xcpustate -geometry 190x20-0+230 -shorten 1 -wait -cpu -disk &"
-	"xcpustate @x11server"	!"$ONX11SERVER $X11BIN/xcpustate -display $DISPLAY -geometry 190x20-0+230 -shorten 1 -wait -cpu -disk &"
+	"xcpustate"		!"xcpustate -geometry 190x20-0+270 -shorten 1 -wait -cpu -disk &"
+	"xcpustate @x11server"	!"$ONX11SERVER $X11BIN/xcpustate -display $DISPLAY -geometry 190x20-0+300 -shorten 1 -wait -cpu -disk &"
 	""			f.separator
 	"xnetload localhost"	!"xnetload -hl grey90 -scale 0 -label 'local netload' localhost &"
 	"xnetload @xdmhost"	!"xnetload -hl grey90 -scale 0 -label ${XDMHOST}-net $XDMHOST &"
