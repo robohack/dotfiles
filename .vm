@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	6.1	94/12/20 15:28:36 (woods)"
+;;;#ident	"@(#)HOME:.vm	6.2	94/12/21 14:49:03 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -216,7 +216,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 						"@\\(.*\\.\\)?"
 						vm-local-domain-name
 						"\\([^.]+\\|$\\)"
-					       "\\)")
+					       "\\)"))
 					; just me!
       vm-reply-ignored-reply-tos nil
       vm-reply-subject-prefix "Re: "	; please do the standard thing!
