@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	24.3	02/11/06 17:48:58 (woods)"
+# ident	"@(#)HOME:.mailrc	24.4	02/11/06 17:49:21 (woods)"
 
 # NOTE: Comments (lines with a leading '#') must have whitespace after the '#'
 
@@ -160,6 +160,7 @@ alias sandu	"sandu@mail.on.rogers.wave.ca (Alexandru Sburlan)"
 alias stever	"steve@petabit.com (Steve Rapaport)"
 alias strange	"strange@strange.com (Kristofer P. Cox)"
 alias support-aci "support@aci.on.ca (ACI Technical Support)"
+alias timo	"timo@aci.on.ca (Timo Janhunen)"
 alias woods	"woods@planix.com (Greg A. Woods; Planix, Inc.)"
 
 alias dduffey	"dduffey@slb.com (sandra's friend sending baby pictures)"
