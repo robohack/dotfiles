@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.9	93/11/11 14:29:06 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	1.10	93/11/15 21:32:31 (woods)"
 ;;;
 ;;; per-user start-up functions
 ;;;
@@ -132,25 +132,27 @@ directory in the list PATHLIST, otherwise nil."
 
 (setq auto-mode-alist
       (append
-       '(("/[^/]+\\.[0-9][a-z]?$" . nroff-mode))
-       '(("/[^/]+\\.d?$" . nroff-mode))
-       '(("/[^/]+\\.m[mes]?$" . nroff-mode))
-       '(("/[^/]+\\.t[imes]?$" . nroff-mode))
-       '(("/[^/]+\\.t$" . c-mode))
+       '(("/[^/]+\\.[chtly].[.0-9]+$" . c-mode)) ; cvs backup file
+       '(("/[^/]+\\.t$" . c-mode))		; APC "ling" file
+       '(("/[^/chtly]+\\.[0-9][a-z]?$" . nroff-mode)) ; man page
+       '(("/[^/]+\\.d.[.0-9]+$" . nroff-mode))	; cvs backup file
+       '(("/[^/]+\\.d$" . nroff-mode))		; documentation file
+       '(("/[^/]+\\.m[mes]?$" . nroff-mode))	; mm, me, ms docs
+       '(("/[^/]+\\.t[imes]*$" . nroff-mode))	; as above, but with leading 't'
        '(("/[^/]*[rR][eE][aA][dD]" . indented-text-mode))
-       '(("/.article" . indented-text-mode))
-       '(("/.letter" . indented-text-mode))
-       '(("^.*/tmp/\\.ed.*$" . indented-text-mode))
-       '(("^.*/tmp/nf.*$" . indented-text-mode))
+       '(("/[^/]*\\.article.*$" . indented-text-mode))
+       '(("/[^/]*\\.letter.*$" . indented-text-mode))
+       '(("^.*/tmp/[^/]*\\.ed.*$" . indented-text-mode)) ; mail edit buffer
+       '(("^.*/tmp/[^/]*nf.*$" . indented-text-mode)) ; notesfile compose buffer
        auto-mode-alist))
 
 (if (elisp-file-in-loadpath-p "ksh-mode")
     (setq auto-mode-alist
 	  (append
-	   '(("\\\\.sh$" . ksh-mode))
-	   '(("\\\\.ksh$" . ksh-mode))
-	   '(("\\\\.bashrc" . ksh-mode))
-	   '(("\\\\..*profile" . ksh-mode))
+	   '(("\\.sh.[.0-9]+$" . ksh-mode))
+	   '(("\\.sh$" . ksh-mode))
+	   '(("\\.ksh.*$" . ksh-mode))
+	   '(("\\..*profile" . ksh-mode))
 	   auto-mode-alist)))
 
 (setq completion-ignored-extensions
@@ -506,6 +508,7 @@ current emacs server process..."
 		 (emacs-lisp-mode)
 	       (progn
 		 (override-default-variable-settings)
+		 (local-set-key "\e\C-h" 'backward-kill-word)
 		 (local-set-key "\eS" 'spell-buffer)
 		 (local-set-key "\e\C-e" 'compile)
 		 (setq abbrev-mode t)
@@ -699,6 +702,33 @@ feeling, but you'll get used to it."
 	     (lambda ()
 	       (setq ispell-filter-hook "deroff")
 	       (setq ispell-filter-hook-args '("-w")))))))
+
+;; From: kifer@sbkifer.cs.sunysb.edu (Michael Kifer)
+;; Subject: Re: calendar tool in Emacs?
+;; Organization: SUNY at Stony Brook
+;; Date: 15 Nov 1993 20:53:02 GMT
+;; Message-Id: <KIFER.93Nov15155303@sbkifer.cs.sunysb.edu>
+;;
+(if (= init-emacs-type '19) 
+    (progn
+      (setq 
+       view-diary-entries-initially t
+       mark-diary-entries-in-calendar t
+       mark-holidays-in-calendar t
+       diary-display-hook (list 'appt-make-list 'fancy-diary-display)
+       appt-display-duration 14		; seconds to display appointment message
+       appt-issue-message t)
+      (autoload 'appt-make-list "appt.el" nil t)
+      (add-hook 'initial-calendar-window-hook 'display-time)
+      (calendar)))
+
+; ;; Appointments every 3 minutes not every 1 minute!
+; (defadvice appt-check (around my-appt-advice activate)
+;    "Notify about appointments only if time is multiple of 3."
+;    (let ((cur-min (string-to-int 
+; 		   (substring (current-time-string) 14 16))))
+;      (if (eq 0 (mod cur-min 3))
+; 	 ad-do-it)))
 
 ;; From: nickel@cs.tu-berlin.de (Juergen Nickelsen)
 ;; Newsgroups: gnu.emacs.help,comp.emacs
