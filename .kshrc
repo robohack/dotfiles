@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	20.6	99/03/17 13:40:10 (woods)"
+#ident	"@(#)HOME:.kshrc	20.7	99/04/01 14:36:26 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -31,9 +31,9 @@ function dirappend
 		print "Usage: dirappend variable directory [...]" >&2
 		exit 2
 	fi
-	varname="$1"
+	varname=$1
 	shift
-	eval varvalue='$'$varname
+	eval varvalue='$'${varname} # XXX broken on KSH Version M-12/28/93f
 	while [ $# -gt 0 ] ; do
 		if [ -d "$1" -a $(expr ":$varvalue:" : ".*:$1:.*") -eq 0 ] ; then
 			eval $varname='$'"$varname"'":$1"'
@@ -55,7 +55,7 @@ function dirprepend
 	fi
 	varname=$1
 	shift
-	eval varvalue='$'$varname
+	eval varvalue='$'${varname} # XXX broken on KSH Version M-12/28/93f
 	while [ $# -gt 0 ] ; do
 		if [ -d "$1" -a $(expr ":$varvalue:" : ".*:$1:.*") -eq 0 ] ; then
 			eval $varname='"$1:"$'"$varname"
