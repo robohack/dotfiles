@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	21.1	99/11/18 13:12:48 (woods)"
+# ident	"@(#)HOME:.mailrc	21.2	00/01/14 15:45:23 (woods)"
 
 set keep
 set keepsave
@@ -33,11 +33,13 @@ alias info-vm		"info-vm@UUnet.UU.net (ViewMail Info Mailing List)"
 alias ipfilter		"ipfilter@postbox.anu.edu.au (IP-Filter Mailing List)"
 alias ip-filter		"ipfilter@postbox.anu.edu.au (IP-Filter Mailing List)"
 alias lout		"lout@ptc.spbu.ru (Lout mailing List)"
-alias nanog		"nanog@merit.edu (North America Network Operators Group)"
+alias mush-users	"mush-users-request@garp.mit.edu (Mush Users Mailing List)"
+alias nanog		"nanog@merit.edu (North America Network Operators Group Mailing List)"
 alias netbsd-bugs	"netbsd-bugs@NetBSD.ORG (NetBSD Bugs and PR posting List)"
 alias netbsd-current	"current-users@NetBSD.ORG (NetBSD-current Discussion List)"
+alias netbsd-help	"netbsd-help@NetBSD.ORG (NetBSD Questions List)"
+alias netbsd-source-changes	"source-changes@NetBSD.ORG (NetBSD CVS Logs)"
 alias netbsd-users	"netbsd-users@NetBSD.ORG (NetBSD User's Discussion List)"
-alias mush-users	"mush-users-request@garp.mit.edu (Mush Users)"
 alias port-alpha	"port-alpha@NetBSD.ORG (NetBSD/alpha Discussion List)"
 alias port-i386		"port-i386@NetBSD.ORG (NetBSD/i386 Discussion List)"
 alias port-pmax		"port-pmax@NetBSD.ORG (NetBSD/pmax Discussion List)"
@@ -120,5 +122,5 @@ alias strange	"strange@strange.com (Kristofer P. Cox)"
 alias woods	"woods@planix.com (Greg A. Woods)"
 
 # Local variables:
-# after-save-hook: rebuild-mail-abbrevs
+# after-save-hook: build-mail-abbrevs
 # End:
