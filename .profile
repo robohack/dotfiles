@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	5.1	94/03/31 16:05:42 (woods)"
+#ident	"@(#)HOME:.profile	5.2	94/05/10 12:28:25 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -267,9 +267,7 @@ fi
 MONTH="AIKO" ; export MONTH
 
 RNINIT="-v -M -S -T -i=8 -g2" ; export RNINIT
-TRNINIT='-v -M -S -T -i=8 -g2 -F"> " -X3 -x6"' ; export TRNINIT
-STRNINIT='-v -M -S -T -i=8 -g2 -F"> " -X3 -x6"' ; export TRNINIT
-MAILPOSTER="Rnmush -h %h" ; export MAILPOSTER
+TRNINIT="$HOME/.trninit" ; export TRNINIT
 
 # set terminal type..
 case "$UUNAME" in
@@ -292,7 +290,7 @@ toile | wombat )
 * )
 	echo "Re-setting terminal preferences...."
 	stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
-	TERM=`tset -r - -m dmd:dmd -m sun:sun -m xterm:xterm -m at386:at386 -m AT386:at386 -m :?$TERM`
+	TERM=`tset -r - -m dmd:dmd -m dmd-myx:dmd-myx -m sun:sun -m xterm:xterm -m at386:at386 -m AT386:at386 -m :?$TERM`
 	case $TTY in
 	/dev/tty[p-zP-Z]* | /dev/vt* | /dev/console )
 		echo "Setting up an 8-bit tty environment...."
@@ -370,34 +368,7 @@ if $HAVEX && [ "`tty`" = "/dev/console" ] ; then
 	trap 2
 	case "$yn" in
 	"" | [yY]*)
-		# This nasty nonsense is a kludge for handling wider windows
-		RNINIT='-v -M -S -i=8 -g2 -F"> "
-				-ERNMACRO='$LOCAL'/lib/rn/Macros
-				-ESUBJLINE="%(%[subject]                                              \
-=^\\(..............................................\\)?\
-%1:%[subject]) \
-%(%(%[lines]=^$? %z:       (%[lines]\\))=  *\\(......\\)$\\|\\(.*\\)?%0) \
-%(%(%[from]=(\\(..*\\))$?%1:%[from])                        \
-=^\\(........................\\)?%1)" 
-				-ESAVENAME="%`%X/savename %^C`"' ; export RNINIT
-		TRNINIT='-v -M -S -i=8 -g2 -F"> " -X3 -x6
-				-ERNMACRO='$LOCAL'/lib/trn/Macros
-				-ESUBJLINE="%(%[subject]                                              \
-=^\\(..............................................\\)?\
-%1:%[subject]) \
-%(%(%[lines]=^$? %z:       (%[lines]\\))=  *\\(......\\)$\\|\\(.*\\)?%0) \
-%(%(%[from]=(\\(..*\\))$?%1:%[from])                        \
-=^\\(........................\\)?%1)" 
-				-ESAVENAME="%`%X/savename %^C`"' ; export TRNINIT
-		STRNINIT='-v -M -S -i=8 -g2 -F"> " -X3 -x6
-				-ERNMACRO='$LOCAL'/lib/strn/Macros
-				-ESUBJLINE="%(%[subject]                                              \
-=^\\(..............................................\\)?\
-%1:%[subject]) \
-%(%(%[lines]=^$? %z:       (%[lines]\\))=  *\\(......\\)$\\|\\(.*\\)?%0) \
-%(%(%[from]=(\\(..*\\))$?%1:%[from])                        \
-=^\\(........................\\)?%1)" 
-				-ESAVENAME="%`%X/savename %^C`"' ; export TRNINIT
+		TRNINIT="$HOME/.trninitX" ; export TRNINIT
 		trap '' 2
 		xinit
 		tput clear
@@ -424,39 +395,14 @@ if $HAVELAYERS && [ "$TERM" = "dmd" -a "`ismpx`" != "yes" ] ; then
 		else
 			layers=layers
 		fi
-		# This nasty nonsense is a kludge for handling wider windows
-		RNINIT='-v -M -S -i=8 -g2 -F"> "
-				-ERNMACRO='$LOCAL'/lib/rn/Macros
-				-ESUBJLINE="%(%[subject]                                              \
-=^\\(..............................................\\)?\
-%1:%[subject]) \
-%(%(%[lines]=^$? %z:       (%[lines]\\))=  *\\(......\\)$\\|\\(.*\\)?%0) \
-%(%(%[from]=(\\(..*\\))$?%1:%[from])                        \
-=^\\(........................\\)?%1)" 
-				-ESAVENAME="%`%X/savename %^C`"' ; export RNINIT
-		TRNINIT='-v -M -S -i=8 -g2 -F"> " -X3 -x6
-				-ERNMACRO='$LOCAL'/lib/trn/Macros
-				-ESUBJLINE="%(%[subject]                                              \
-=^\\(..............................................\\)?\
-%1:%[subject]) \
-%(%(%[lines]=^$? %z:       (%[lines]\\))=  *\\(......\\)$\\|\\(.*\\)?%0) \
-%(%(%[from]=(\\(..*\\))$?%1:%[from])                        \
-=^\\(........................\\)?%1)" 
-				-ESAVENAME="%`%X/savename %^C`"' ; export TRNINIT
-		STRNINIT='-v -M -S -i=8 -g2 -F"> " -X3 -x6
-				-ERNMACRO='$LOCAL'/lib/strn/Macros
-				-ESUBJLINE="%(%[subject]                                              \
-=^\\(..............................................\\)?\
-%1:%[subject]) \
-%(%(%[lines]=^$? %z:       (%[lines]\\))=  *\\(......\\)$\\|\\(.*\\)?%0) \
-%(%(%[from]=(\\(..*\\))$?%1:%[from])                        \
-=^\\(........................\\)?%1)" 
-				-ESAVENAME="%`%X/savename %^C`"' ; export TRNINIT
+		TRNINIT="$HOME/.trninitdmd" ; export TRNINIT
+		if [ "$VISUAL" = "emacs" ] ; then
+			VISUAL=emacsclient ; export VISUAL
+		fi
 		LAYERSPID=$$ ; export LAYERSPID
 		rc=.${TERM}rc
 		TERM=dmd; export TERM
 		stty -ixon -ixoff -ixany
-		SHELL=/bin/sh; export SHELL
 		if [ -s $HOME/$rc ] ; then
 			exec $layers -f $rc 2>> $HOME/tmp/layers.stderr
 		else
