@@ -25,24 +25,26 @@
 # 4. This notice may not be removed or altered.
 # 
 #
-#ident	"@(#)HOME:.ashtype	26.1	03/01/05 16:26:10 (woods)"
+#ident	"@(#)HOME:.ashtype	26.2	03/03/22 15:50:15 (woods)"
 
-type () {
-	if [ $# -ne 1 ]
-	then
+type ()
+{
+	if [ $# -ne 1 ] ; then
 		echo "Usage: type command" >&2
 		return 2
 	fi
-	hashv=`hash | grep "function $1\$"`
-	if [ -n "$hashv" ]
-	then
-		echo "$hashv" | sed 's/^\([^ ]*\) \(.*\)$/\2 is a \1/'
-		unset hashv
+	functions=`hash | grep "function $1\$"`
+	if [ -n "$functions" ] ; then
+		echo "$functions" | sed 's/^\([^ ]*\) \(.*\)$/\2 is a \1/'
+		unset functions
 		return 0
 	fi
+	unset functions
+	rc=1
 	case "$1" in
-	.|bg|bltin|cd|echo|eval|exec|exit|export|fg|getopts|hash|jobid|jobs|lc|local|pwd|read|readonly|return|set|setvar|shift|trap|umask|unset|wait)
+	.|alias|bg|command|echo|eval|exec|exit|export|fg|getopts|hash|jobid|jobs|pwd|read|readonly|return|set|setvar|shift|trap|umask|unset|wait)
 		typeout="$1 is a builtin"
+		rc=0
 		;;
 	*)
 		typeout="$1 not found"
@@ -50,9 +52,9 @@ type () {
 		IFS=":"
 		for pathseg in $PATH
 		do
-			if [ -x $pathseg/$1 ]
-			then
+			if [ -x $pathseg/$1 ] ; then
 				typeout="$1 is $pathseg/$1"
+				rc=0
 				break
 			fi
 		done
@@ -62,5 +64,5 @@ type () {
 	esac
 	echo $typeout
 	unset hashv pathseg typeout
-	return 0
+	return $rc
 }
