@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	21.3	00/03/23 11:42:09 (woods)"
+#ident	"@(#)HOME:.xinitrc	21.4	01/10/17 12:03:34 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -121,7 +121,7 @@ if [ -z "$RSH" ] ; then
 	else				# TODO: also remsh?
 		RSH=/usr/bin/rsh
 	fi
-	export RSH			# used by .twmrc as well as below
+	export RSH			# used by .twmrc, .ctwmrc, as well as below
 fi
 
 if [ -r "/usr/lib/X11/Xdefaults" ] ; then
@@ -164,6 +164,7 @@ case "$VENDORSTR" in
 		esac
 	fi
 	;;
+
 esac
 
 # TODO:  this might be a mistake, but it might also save your bacon!
@@ -226,6 +227,8 @@ if [ -z "$ONX11SERVER" ] ; then
 			$RSH -n proven.weird.com /usr/pkg/bin/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-0+275 -shortnames -header 0 -acmd '"/usr/pkg/bin/auplay -audio '$AUDIOSERVER' -v 25 '$HOME'/lib/sounds/newmail"' &
 			$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 			$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+			$RSH -n proven.weird.com $HOME/lib/taglog/taglog -display $DISPLAY -geometry -30+310 &
+			$RSH -n proven.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/local/bin/emacs -display $DISPLAY -geometry 130x76+0+0" &
 			;;
 		*)
 			# not setting this just makes WM run stuff on the
@@ -239,6 +242,9 @@ fi
 
 # TODO:  think about using `type` ala .profile, but type isn't in (a)sh, etc.
 if [ -z "$WM" ] ; then
+	#
+	# XXX look for a window-manager-cooser
+	#
 	if [ \( -x $X11BIN/ctwm -o -x $HOME/bin/ctwm \) -a $HOME/.ctwmrc ] ; then
 		# NOTE: don't bother with '-v' -- it's too much and slows things!
 		if [ $SCREENDEPTH -eq 1 ] ; then
@@ -247,9 +253,17 @@ if [ -z "$WM" ] ; then
 		else
 			WM="ctwm -k -display $DISPLAY"
 		fi
+	elif [ -x $X11BIN/tvtwm -o -x $HOME/bin/tvtwm ] ; then
+		WM=tvtwm
+	elif [ -x $X11BIN/wmx -o -x $HOME/bin/wmx ] ; then
+		WM=wmx
+	elif [ -x $X11BIN/wm2 -o -x $HOME/bin/wm2 ] ; then
+		WM=wm2
+	elif [ -x $X11BIN/scwm -o -x $HOME/bin/scwm ] ; then
+		WM=scwm
 	elif [ \( -x $X11BIN/wmaker -o -x $HOME/bin/wmaker \) -a $HOME/GNUstep/Defaults/WindowMaker ] ; then
 		WM=wmaker
-	elif [ \( -x $X11BIN/fvwm -o -x $HOME/bin/fvwm \) -a $HOME/.fvwmrc ] ; then
+	elif [ -x $X11BIN/fvwm -o -x $HOME/bin/fvwm ] ; then
 		WM=fvwm
 	else
 		WM=twm					# silly assumption?
@@ -316,10 +330,16 @@ fi
 case $DISPLAY in
 very.weird.com:*)
 	xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n becoming.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n becoming.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n sometimes.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	;;
 xtremely.weird.com:*)
 	xearth -gamma 1.3 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
-	xload -geometry 120x130-200+0 -hl red &
+	xload -geometry 190x60-0+233 -hl red &
 	xclock -geometry 190x30-0+196 -digital &
 	if [ -x /usr/bin/X11/swisswatch ] ; then
 		swisswatch -name swissclock -geometry 190x190-0+0 &
@@ -327,27 +347,41 @@ xtremely.weird.com:*)
 		xclock -geometry 190x190-0+0 &
 	fi
 	xterm -display $DISPLAY -geometry 80x42-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n proven.weird.com exec /usr/pkg/bin/tkined -display $DISPLAY -geometry 1200x900+0-0 $HOME/tkined-2.tki &
-	$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY -geometry 935x990+0+0 &
-	xterm -display $DISPLAY -geometry 88x31+0+0 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn1 -T "Console-01 [DEChub 900MS]" -e telnet constantly 2001 &
-	xterm -display $DISPLAY -geometry 88x31+0+256 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn2 -T "Console-02 []" -e telnet constantly 2002 &
-	xterm -display $DISPLAY -geometry 88x31+0+512 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn3 -T "Console-02 [proven.weird.com]"  -e telnet constantly 2003 &
-	xterm -display $DISPLAY -geometry 88x31+0+768 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn4 -T "Console-02 [becoming.weird.com]"  -e telnet constantly 2004 &
-	xterm -display $DISPLAY -geometry 88x31+475+0 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn5 -T "Console-02 [always.weird.com]"  -e telnet constantly 2005 &
-	xterm -display $DISPLAY -geometry 88x31+475+256 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn6 -T "Console-02 []"  -e telnet constantly 2006 &
-#	xterm -display $DISPLAY -geometry 88x31+475+512 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn7 -T "Console-02 []"  -e telnet constantly 2007 &
-	xterm -display $DISPLAY -geometry 88x31+475+512 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Ts1 -T "Tserv-01 [EXB-210]"  -e telnet tserv 2001 &
-	$RSH -n most.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 88x31+475+768 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -T SNMP-Trap -e tail -f /var/log/snmptrap &
+	xv -owncm -iconic &
+	echo "pausing while xv starts...."
+	sleep 5
+	$RSH -n proven.weird.com exec /usr/local/bin/tkined1.5.0 -display $DISPLAY -use $(xwininfo -name "xv 3.10a(PNG) <unregistered>" | awk '/xwininfo/ {print $4}') -geometry 1200x925+0-0 $HOME/tkined-3.tki &
+	$RSH -n proven.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x60-200+233 -hl red &
+##	$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY -geometry 935x990+0+0 &
+	$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/pkg/bin/mozilla -display $DISPLAY -geometry 935x990+0+0 &
+
+	# first column....
+	xterm -display $DISPLAY -geometry 88x31+0+0   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn07 -T "Console-07 [isit.weird.com]" -e telnet tserv 2007 &
+	xterm -display $DISPLAY -geometry 88x31+0+256 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn06 -T "Console-06 [proven.weird.com]" -e telnet tserv 2006 &
+	xterm -display $DISPLAY -geometry 88x31+0+512 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn08 -T "Console-08 [becoming.weird.com]" -e telnet tserv 2008 &
+	xterm -display $DISPLAY -geometry 88x31+0+768 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n oCn1 -T "oCons-1 [DEChub 900MS]" -e telnet constantly 2001 &
+
+	# second column....
+	xterm -display $DISPLAY -geometry 88x31+475+0   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn10 -T "Console-10 [most.weird.com]" -e telnet tserv 2010 &
+	xterm -display $DISPLAY -geometry 88x31+475+256 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn03 -T "Console-03 [sometimes.weird.com]" -e telnet tserv 2003 &
+	xterm -display $DISPLAY -geometry 88x31+475+512 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn09 -T "Console-09 [always.weird.com]" -e telnet tserv 2009 &
+	xterm -display $DISPLAY -geometry 88x31+475+768 -fn 5x7 -cn -rw -sb -si -sk -sl 100  -ls -ziconbeep 1 -n oCn1 -T "Console-01 [Exabyte-210 library]" -e telnet tserv 2001 &
+
+	# right side...
+	xterm -display $DISPLAY -geometry 80x24-0-410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn02 -T "Console-02 [BEST-UPS]" -e telnet tserv 2002 &
+	xterm -display $DISPLAY -geometry 80x24-0-205 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Cn04 -T "Console-04 [RAID-00 /work]" -e telnet tserv 2004 &
+	xterm -display $DISPLAY -geometry 80x24-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Cn05 -T "Console-05 [RAID-01 /cvs]" -e telnet tserv 2005 &
 	;;
 worm.planix.com:*)
 	xearth -gamma 1.3 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
-	xload -geometry 120x130-200+0 -hl red &
+	xload -geometry 190x60-0+233 -hl red &
 	xclock -geometry 190x30-0+196 -digital &
 	if [ -x /usr/bin/X11/swisswatch ] ; then
 		swisswatch -name swissclock -geometry 190x190-0+0 &
 	else
 		xclock -geometry 190x190-0+0 &
 	fi
+	xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	xterm -display $DISPLAY -geometry 80x42-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	netscape -install -display $DISPLAY -geometry 935x990+0+0 &
 	;;
