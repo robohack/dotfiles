@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	23.2	02/03/17 15:22:21 (woods)"
+# ident	"@(#)HOME:.mailrc	23.3	02/04/12 12:44:16 (woods)"
 
 set keep
 set keepsave
@@ -99,6 +99,7 @@ alias jet-fuel	"jet-fuel@weird.com (Caffeine is fuel for your mind)"
 #	friendly aliases
 #
 alias aci-support "support@aci.on.ca (ACI Technical Support)"
+alias adb	"adb@onramp.ca (Anthony DeBoer)"
 alias alex	"alex@corelan.com (Alex von Tiesenhausen)"
 alias all-planix "all@planix.com (Those Planix Dudes)"
 alias andreas	"andreas@planix.com (Andreas Wrede)"
