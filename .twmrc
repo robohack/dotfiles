@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.22	96/05/31 20:44:38 (woods)"
+#ident	"@(#)HOME:.twmrc	2.23	96/06/08 19:27:42 (woods)"
 #
 
 AutoRelativeResize
@@ -167,6 +167,10 @@ function "start-box1-xterm" {
 	f.exec "$RSH -n box1.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
+function "start-box1-r-xterm" {
+	f.exec "$RSH -n box1-r.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
 function "start-quicksilver-xterm" {
 	f.exec "$RSH -n quicksilver.infoshare.net exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
@@ -287,6 +291,10 @@ function "start-box1-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin box1.planix.com &"
 }
 
+function "start-box1-r-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin box1-r.planix.com &"
+}
+
 #	for srlogin-planix menu
 #
 function "start-whome-slogin" {
@@ -315,6 +323,10 @@ function "start-weight-slogin" {
 
 function "start-box1-slogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin box1.planix.com &"
+}
+
+function "start-box1-r-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin box1-r.planix.com &"
 }
 
 #	for rlogin-infoshare menu
@@ -901,6 +913,7 @@ menu "xterm"
 	"Xterm @wind"			f.function "start-wind-xterm"
 	"Xterm @weight"			f.function "start-weight-xterm"
 	"Xterm @box1"			f.function "start-box1-xterm"
+	"Xterm @box1-r"			f.function "start-box1-r-xterm"
 	"    infoshare.net hosts"	f.nop
 	"Xterm @quicksilver"		f.function "start-quicksilver-xterm"
 	"    web.net hosts"		f.nop
@@ -981,6 +994,7 @@ menu "rlogin-planix"
 	"Rlogin @weight.planix.com"	f.function "start-weight-rlogin"
 	"Rlogin @worm.planix.com"	f.function "start-worm-rlogin"
 	"Rlogin @box1.planix.com"	f.function "start-box1-rlogin"
+	"Rlogin @box1-r.planix.com"	f.function "start-box1-r-rlogin"
 }
 
 menu "slogin-planix"
@@ -993,6 +1007,7 @@ menu "slogin-planix"
 	"Slogin @weight.planix.com"	f.function "start-weight-slogin"
 	"Slogin @worm.planix.com"	f.function "start-worm-slogin"
 	"Slogin @box1.planix.com"	f.function "start-box1-slogin"
+	"Slogin @box1-r.planix.com"	f.function "start-box1-r-slogin"
 }
 
 menu "rlogin-hmpg"
