@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.10	98/10/23 02:21:14 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.11	98/10/26 14:40:21 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -587,7 +587,7 @@ message/rfc822 attachments."
       vm-frame-per-help t		;
       vm-frame-per-summary nil
       vm-highlight-url-face 'bold-italic
-      vm-highlighted-header-regexp "^From:\\|^Subject:" ; highlight these headers
+      vm-highlighted-header-regexp "^From:\\|^Resent-[fF]rom:\\|^Subject:" ; highlight these headers
       vm-honor-page-delimiters nil
 ;;;   vm-image-directory "/local/gnu/share/emacs/19.34/etc/vm/"
       vm-in-reply-to-format "%F's message\n	of \"%w, %m %d, %y %h %z\"\n	regarding \"%s\"\n	id %i"
@@ -599,7 +599,32 @@ message/rfc822 attachments."
       vm-included-text-prefix "> "
       vm-inhibit-startup-message t	; don't bother me with legalese
 ;;;   vm-init-file "~/.vm"
-      vm-invisible-header-regexp nil
+      vm-invisible-header-regexp (concat "^Content-" "\\|"
+					 "^In-[rR]eply-[tT]o:" "\\|"
+					 "^Message-I[dD]:" "\\|"
+					 "^M[iI][mM][eE]-" "\\|"
+					 "^Old-Message-I[dD]:" "\\|"
+					 "^Old-Return-Path:" "\\|"
+					 "^Original-Message-I[dD]:" "\\|"
+					 "^Original-Return-Path:" "\\|"
+					 "^Received:" "\\|"
+					 "^References:" "\\|"
+					 "^Resent-Message-I[dD]:" "\\|"
+					 "^Resent-Sender:" "\\|"
+					 "^Return-Path:" "\\|"
+					 "^Sender:" "\\|"
+					 "^Status:" "\\|"
+					 "^X-[fF]ace:" "\\|"
+					 "^X-[lL]oop:" "\\|"
+					 "^X-[mM][iI][mM][eE]" "\\|"
+					 "^X-[mM][sS][mM]ail" "\\|"
+					 "^X-Original-Received:" "\\|"
+					 "^X-[pP][gG][pP]" "\\|"
+					 "^X-Received:" "\\|"
+					 "^X-Sender:" "\\|"
+					 "^X-Status:" "\\|"
+					 "^X-VM-"
+					 )	; these are ugly and meaningless
       vm-jump-to-new-messages t
       vm-jump-to-unread-messages t
       vm-keep-crash-boxes "~/tmp/"	; crash inbox saviour
@@ -797,21 +822,19 @@ message/rfc822 attachments."
 		       )
       vm-virtual-folder-case-fold-search t	; I want everything to match!
       vm-virtual-mirror t
-      vm-visible-headers '("Newsgroups:"	; better for forwarded news
-			   "X-[^VFS][^Mat]"	; try to avoid X-VM-*, X-Status, and X-Face
-			   "Resent-[^M]"	; try to avoid Resent-Message-ID:
-			   "Original-[^M]"	; try to avoid Original-Message-ID:
-			   "From:"
-			   "Reply-to:"
-			   "Sender:"
-			   "To:"
-			   "Apparently-To:"
-			   "Cc:"
-			   "Date:"
+      vm-visible-headers '("Resent-Date:" "Date:"
+			   "Newsgroups:"	; better for forwarded news
+			   "Resent-From:" "From:"
+			   "Resent-Reply-To:" "Reply-To:"
+			   "Organization:"
 			   "Subject:"
-			   "Keywords:"		; could be interesting
-			   "Summary:"		; more people should use this
-			   )
+			   "Resent-To:" "To:"
+			   "Resent-Apparently-To:" "Apparently-To:"
+			   "Resent-Cc:" "Cc:"
+			   "Resent-Bcc:" "Bcc:"
+			   "Delivered-To:"
+			   )		; vm-invisible-header-regexp is set,
+					; this defines only the display order
 ;;;   vm-visit-folder-hook nil
       vm-visit-when-saving 0
       vm-warp-mouse-to-new-frame nil
