@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	1.7	95/06/07 20:51:52 (woods)"
+#ident	"@(#)HOME:.twmrc	1.8	95/06/14 10:50:39 (woods)"
 #
 
 AutoRelativeResize
@@ -267,7 +267,7 @@ function "start-spinne-netscape" {
 }
 
 function "start-weird-netscape" {
-	f.exec "/usr/ucb/rsh -n weird.com env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
+	f.exec "/usr/ucb/rsh -n ns.weird.com env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
 }
 
 #
