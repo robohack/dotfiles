@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.24	99/08/27 20:39:52 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.25	99/08/27 20:43:46 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -976,6 +976,7 @@ message/rfc822 attachments."
 			      ("8lgm-advisories@8lgm.org" . "8lgm-l")
 			      ("admin-l@io.org" . "planix/io-admin-l")
 			      ("aegis-users@" . "aegis-users-l")
+			      ("announce-vm@" . "bug-vm") ; merging too...
 			      ("auto-net@" . "auto-net-l")
 			      ("autoconf@" . "autoconf-l")
 			      ("automake@" . "automake-l")
@@ -986,6 +987,7 @@ message/rfc822 attachments."
 			      ("bind-workers@" . "bind-workers-l")
 			      ("bitkeeper-users@" . "bitkeeper-users-l")
 			      ("bkl@" . "bitkeeper-license-l")
+			      ("bug-vm@" . "bug-vm")
 			      ("bugtraq@" . "bugtraq-l")
 			      ("com-priv@.*psi.com" . "com-priv-l")
 			      ("devel-cvs@" . "devel-cvs-l")
@@ -1141,6 +1143,7 @@ message/rfc822 attachments."
 		("VM"
 		 (("INBOX")
 		  (or (recipient "bug-vm@")
+		      (recipient "announce-vm@")
 		      (recipient "info-vm@"))))
 		("automake"
 		 (("INBOX")
