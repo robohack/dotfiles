@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	21.3	00/01/04 20:37:31 (woods)"
+;;;#ident	"@(#)HOME:.vm	21.4	00/01/15 16:25:57 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -453,6 +453,7 @@ vm-primary-inbox."
 
 (define-key vm-mode-map "q" 'my-vm-quit)
 
+(require 'ispell)
 (add-hook 'vm-mail-mode-hook
 	  (function (lambda () (local-set-key "\C-ci" 'ispell-message))))
 
