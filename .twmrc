@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.23	96/06/08 19:27:42 (woods)"
+#ident	"@(#)HOME:.twmrc	2.24	96/09/04 00:49:12 (woods)"
 #
 
 AutoRelativeResize
@@ -490,6 +490,21 @@ function "start-spinne-rlogin" {
 }
 
 
+#	for xv menu
+#
+function "start-local-xv" {
+	f.exec "$X11BIN/xv -d $DISPLAY &"
+}
+
+function "start-x11server-xv" {
+	f.exec "$ONX11SERVER $X11BIN/xv -display $DISPLAY &"
+}
+
+function "start-most-xv" {
+	f.exec "$RSH -n most.weird.com exec $X11BIN/xv -display $DISPLAY &"
+}
+
+
 #	for ghostviews menu
 #
 function "start-local-ghostview" {
@@ -789,8 +804,12 @@ menu "applications"
 	"Slogin's Everywhere..."	f.menu "slogin"
 	"GhostView Everywhere..."	f.menu "ghostviews"
 	"WWW Everywhere..."		f.menu "www"
-	"Games..."			f.menu "games"
+	"Xv Everywhere..."		f.menu "xvs"
+	"Monitors..."			f.menu "monitors"
+	"Locks..."			f.menu "locks"
+	"Backgrounds..."		f.menu "backgrounds"
 	"Miscellaneous..."		f.menu "miscapps"
+	"Games..."			f.menu "games"
 }
 
 menu "miscapps"
@@ -812,7 +831,19 @@ menu "miscapps"
 	"xditview"			!"xditview &"
 	"xfontsel"			!"xfontsel &"
 	"xcdplayer"			!"xcdplayer &"
-	"    Monitors..."		f.nop
+}
+
+menu "xvs"
+{
+	"XView"				f.title
+	"@localhost"			f.function "start-local-xv"
+	"@x11server"			f.function "start-x11server-xv"
+	"@most"				f.function "start-most-xv"
+}
+
+menu "monitors"
+{
+	"Monitors"			f.title
 	"xclock"			!"xclock -geometry 190x190-4+4 &"
 	"xclock -digital"		!"xclock -geometry 190x30-4+196 -digital &"
 	"xbiff"				!"xbiff -rv -bw 0 &"
@@ -822,11 +853,19 @@ menu "miscapps"
 	"xmailwatcher @x11server"	!"$ONX11SERVER $X11BIN/xmailwatcher -display $DISPLAY -geometry 300x100-4+235 -iconic -icongeometry -4+235 -iconic -mailbox $MAILPATH &"
 	"xload"				!"xload -geometry 120x137-205+4 -hl grey90 &"
 	"xload @x11server"		!"$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x137-205+150 -hl grey90 &"
-	"    Locks..."			f.nop
+}
+
+menu "locks"
+{
+	"Locks"				f.title
 	"xlock"				!"xlock -mode flame &"
 	"xlock remote"			!"xlock -remote -mode flame &"
 	"OpenWin-2 xlock"		!"env LD_LIBRARY_PATH=/usr/openwin/lib:/usr/lib xlock -mode qix &"
-	"    Backgrounds..."		f.nop
+}
+
+menu "backgrounds"
+{
+	"Backgrounds"			f.title
 	"xearth"			!"xearth -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth on greyscale"		!"xearth -gamma 1.6 -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xphoon"			!"xphoon -t 10 &"
