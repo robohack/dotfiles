@@ -1,7 +1,7 @@
 #
 #	.kshlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.kshlogin	2.1	94/02/16 18:17:36 (woods)"
+#ident	"@(#)HOME:.kshlogin	2.2	94/03/08 13:35:16 (woods)"
 
 set -o ignoreeof	# we only do this for our login shell....
 
@@ -39,7 +39,13 @@ tar*)
 	export WORKDIR="/kuma/big/web/work"
 	;;
 *)
-	export WORKDIR="$LOCAL/work.d"
+	if [ -d $LOCAL/work.d ] ; then
+		export WORKDIR="$LOCAL/work.d"
+	elif [ -d $HOME/src/work.d ] ; then
+		export WORKDIR="$HOME/src/work.d"
+	else
+		export WORKDIR="$HOME/work.d"
+	fi
 	;;
 esac
 
@@ -48,18 +54,12 @@ export OLDPWD=$HOME
 
 if [ -z "$MAILPATH" ] ; then
 	if [ -d /var/spool/mail ] ; then
-		MAILPATH="/var/spool/mail/$LOGNAME"
+		export MAILPATH="/var/spool/mail/$LOGNAME"
 	elif [ -d /usr/mail ] ; then
-		MAILPATH="/usr/mail/$LOGNAME"
+		export MAILPATH="/usr/mail/$LOGNAME"
 	elif [ -d /usr/spool/mail ] ; then
-		MAILPATH="/usr/spool/mail/$LOGNAME"
+		export MAILPATH="/usr/spool/mail/$LOGNAME"
 	fi		
-	if [ -n "$MAIL" ] ; then
-		MAILPATH="$MAIL:$MAILPATH"
-	fi
-fi
-if [ $(expr ":$MAILPATH:" : ".*:~nuucp/.*") -eq 0 ] ; then
-	export MAILPATH="$MAILPATH:~nuucp/$LOGNAME:~nuucp/receive/$LOGNAME"
 fi
 
 export CDPATH=":$HOME:$HOME/src:$HOME/src/lib:$HOME/src/work.d\

@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	2.1	94/02/16 18:16:37 (woods)"
+#ident	"@(#)HOME:.kshrc	2.2	94/03/08 13:35:00 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -138,15 +138,6 @@ if [ "$id" -eq 0 ] ; then
 	else
 		PS1='$TTYN:$LOGNAME@$UUNAME[$LEV.!] ${PWD#$HOME} # '
 	fi
-	if [ -d /var/spool/mail ] ; then
-		MAILPATH="/var/spool/mail/${LOGNAME}:/var/spool/mail/root\
-:/var/spool/mail/adm:/var/spool/mail/uucp:/var/spool/mail/badmail\
-:/var/spool/mail/usenet:/usr/adm/lastlog:/usr/adm/sulog"
-	else
-		MAILPATH="/usr/mail/${LOGNAME}:/usr/mail/root:/usr/mail/adm\
-:/usr/mail/uucp:/usr/mail/badmail:/usr/mail/usenet:/usr/adm/lastlog\
-:/usr/adm/sulog"
-	fi
 	# fix for ksh-11/16/88b
 	#alias passwd='/bin/passwd'
 elif [ "$uid" != "$LOGNAME" ] ; then
@@ -157,11 +148,6 @@ elif [ "$uid" != "$LOGNAME" ] ; then
 		PS1='[!] $ '
 	else
 		PS1='$TTYN:$uid($LOGNAME)@$UUNAME)[$LEV.!] ${PWD#$HOME} $ '
-	fi
-	if $ISSUN; then
-		MAILPATH="$MAILPATH:/var/spool/mail/$uid"
-	else
-		MAILPATH="$MAILPATH:/usr/mail/$uid"
 	fi
 else
 	if [ "$(ismpx)" = yes ] ; then
