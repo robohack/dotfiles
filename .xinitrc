@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	19.8	98/06/09 23:06:50 (woods)"
+#ident	"@(#)HOME:.xinitrc	19.9	98/07/17 23:48:01 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -159,6 +159,14 @@ if [ -z "$ONX11SERVER" ] ; then
 			$ONX11SERVER $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &
 			;;
 		almost.weird.com)
+			X11SERVER="most.weird.com"
+			ONX11SERVER="$RSH -n $X11SERVER exec"
+			export X11SERVER ONX11SERVER
+			echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
+			# now start special programs we like for this scenario
+			$ONX11SERVER $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/usr/local/bin/auplay -audio '$AUDIOSERVER' '$HOME'/sounds/newmail1.au"' &
+			;;
+		very.weird.com)
 			X11SERVER="most.weird.com"
 			ONX11SERVER="$RSH -n $X11SERVER exec"
 			export X11SERVER ONX11SERVER
