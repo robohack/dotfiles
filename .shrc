@@ -1,7 +1,7 @@
 #
 #	.shrc - per-shell startup stuff for /bin/sh
 #
-#ident	"@(#)HOME:.shrc	3.3	96/02/02 12:58:32 (woods)"
+#ident	"@(#)HOME:.shrc	3.4	96/02/02 13:00:20 (woods)"
 
 PATH="$PATH"
 export PATH
@@ -71,7 +71,7 @@ if [ "$id" -eq 0 ] ; then
 	dirappend PATH $HOME/bin
 	case "$TERM" in
 	xterm)
-		PS1="]0;$TTYN:<$LOGNAME@$UUNAME>$TTYN:<$LOGNAME@$UUNAME> # "
+		PS1="]0;$TTYN:<$uid($LOGNAME)@$UUNAME>#$TTYN:<$LOGNAME@$UUNAME> # "
 		;;
 	*)
 		PS1="$TTYN:<$LOGNAME@$UUNAME> # "

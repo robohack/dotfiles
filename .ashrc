@@ -1,7 +1,7 @@
 #
 #	.ashrc - per-shell startup stuff for ash via $ENV
 #
-#ident	"@(#)HOME:.ashrc	2.3	96/02/02 12:00:57 (woods)"
+#ident	"@(#)HOME:.ashrc	2.4	96/02/02 13:00:56 (woods)"
 
 case $- in *i*)
 # everything in this file is for interactive use only
@@ -80,7 +80,7 @@ if [ "$id" -eq 0 ] ; then
 	dirappend PATH $HOME/bin
 	case "$TERM" in
 	xterm)
-		PS1="]0;$TTYN:<$LOGNAME@$UUNAME>$TTYN:<$LOGNAME@$UUNAME> # "
+		PS1="]0;$TTYN:<$uid($LOGNAME)@$UUNAME>#$TTYN:<$LOGNAME@$UUNAME> # "
 		;;
 	*)
 		PS1="$TTYN:<$LOGNAME@$UUNAME> # "
