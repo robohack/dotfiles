@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.44	96/12/14 14:04:25 (woods)"
+#ident	"@(#)HOME:.twmrc	2.45	96/12/16 10:55:40 (woods)"
 #
 
 AutoRelativeResize
@@ -265,6 +265,14 @@ function "start-tar-xterm" {
 	f.exec "$RSH -n tar.web.net exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
+function "start-alphabet-xterm" {
+	f.exec "$RSH -n alphabet.web.net exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
+function "start-gryphon-xterm" {
+	f.exec "$RSH -n gryphon.to.opentext.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
 
 #	for rlogin-weird menu
 #
@@ -427,7 +435,7 @@ function "start-weight-telnet" {
 }
 
 
-#	for srlogin-planix menu
+#	for slogin-planix menu
 #
 function "start-whome-slogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C whome.planix.com &"
@@ -826,6 +834,39 @@ function "start-vexnet-telnet" {
 }
 
 
+#	for rlogin-opentext menu
+#
+function "start-alphabet-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin alphabet.web.net &"
+}
+
+function "start-gryphon-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin gryphon.to.opentext.com &"
+}
+
+
+#	for slogin-opentext menu
+#
+function "start-alphabet-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin alphabet.web.net &"
+}
+
+function "start-gryphon-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin gryphon.to.opentext.com &"
+}
+
+
+#	for telnet-opentext menu
+#
+function "start-alphabet-telnet" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet alphabet.web.net &"
+}
+
+function "start-gryphon-telnet" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet gryphon.to.opentext.com &"
+}
+
+
 #	for rlogin-web menu
 #
 function "start-araignee-rlogin" {
@@ -854,6 +895,37 @@ function "start-web-rlogin" {
 
 function "start-spinne-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin spinne.web.net &"
+}
+
+
+#	for slogin-web menu
+#
+function "start-araignee-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin araignee.web.net &"
+}
+
+function "start-jala-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin jala.web.net &"
+}
+
+function "start-kuma-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin kuma.web.net &"
+}
+
+function "start-netserver-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin netserver.web.net &"
+}
+
+function "start-tar-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin tar.web.net &"
+}
+
+function "start-web-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin web.net &"
+}
+
+function "start-spinne-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e slogin spinne.web.net &"
 }
 
 
@@ -1522,6 +1594,13 @@ menu "infoshare-xterms"
 	"Xterm @quicksilver"		f.function "start-quicksilver-xterm"
 }
 
+menu "opentext-xterms"
+{
+	"opentext.com hosts"		f.title
+	"Xterm @alphabet"		f.function "start-alphabet-xterm"
+	"Xterm @gryphon"		f.function "start-gryphon-xterm"
+}
+
 menu "web-xterms"
 {
 	"web.net hosts"			f.title
@@ -1553,6 +1632,7 @@ menu "rlogin"
 	"Rlogin's at Vex.net..."	f.menu "rlogin-vex"
 	"Rlogin's at Reptiles.org..."	f.menu "rlogin-reptiles"
 	"Rlogin's at Druid.com..."	f.menu "rlogin-druid"
+	"Rlogin's at OpenText.com..."	f.menu "rlogin-opentext"
 	"Rlogin's at Web.net..."	f.menu "rlogin-web"
 }
 
@@ -1575,6 +1655,7 @@ menu "telnet"
 	"Telnet's at Vex.net..."	f.menu "telnet-vex"
 	"Telnet's at Reptiles.org..."	f.menu "telnet-reptiles"
 	"Telnet's at Druid.com..."	f.menu "telnet-druid"
+	"Telnet's at OpenText.com..."	f.menu "telnet-opentext"
 	"Telnet's at Web.net..."	f.menu "telnet-web"
 }
 
@@ -1585,6 +1666,8 @@ menu "slogin"
 	"Slogin's at Planix.com..."	f.menu "slogin-planix"
 	"Slogin's at Infoshare.net..."	f.menu "slogin-infoshare"
 	"Slogin's at Ipass.com..."	f.menu "slogin-ipass"
+	"Slogin's at OpenText.com..."	f.menu "slogin-opentext"
+	"Slogin's at Web.net..."	f.menu "slogin-web"
 }
 
 menu "rlogin-weird"
@@ -1882,6 +1965,27 @@ menu "telnet-druid"
 	"telnet @skeptic"		f.function "start-skeptic-telnet"
 }
 
+menu "rlogin-opentext"
+{
+	"Rlogin's At OpenText.com"	f.title
+	"Rlogin @alphabet"		f.function "start-alphabet-rlogin"
+	"Rlogin @gryphon"		f.function "start-gryphon-rlogin"
+}
+
+menu "slogin-opentext"
+{
+	"Slogin's At OpenText.com"	f.title
+	"Slogin @alphabet"		f.function "start-alphabet-slogin"
+	"Slogin @gryphon"		f.function "start-gryphon-slogin"
+}
+
+menu "Telnet-opentext"
+{
+	"Telnet's At OpenText.com"	f.title
+	"Telnet @alphabet"		f.function "start-alphabet-telnet"
+	"Telnet @gryphon"		f.function "start-gryphon-telnet"
+}
+
 menu "rlogin-web"
 {
 	"Rlogin's At Web.net"		f.title
@@ -1892,6 +1996,19 @@ menu "rlogin-web"
 	"Rlogin @spinne"		f.function "start-spinne-rlogin"
 	"Rlogin @tar"			f.function "start-tar-rlogin"
 	"Rlogin @web"			f.function "start-web-rlogin"
+}
+
+
+menu "slogin-web"
+{
+	"Slogin's At Web.net"		f.title
+	"Slogin @araignee"		f.function "start-araignee-slogin"
+	"Slogin @jala"			f.function "start-jala-slogin"
+	"Slogin @kuma"			f.function "start-kuma-slogin"
+	"Slogin @netserver"		f.function "start-netserver-slogin"
+	"Slogin @spinne"		f.function "start-spinne-slogin"
+	"Slogin @tar"			f.function "start-tar-slogin"
+	"Slogin @web"			f.function "start-web-slogin"
 }
 
 menu "telnet-web"
