@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.3	95/08/11 00:15:11 (woods)"
+#ident	"@(#)HOME:.twmrc	2.4	95/08/11 00:19:35 (woods)"
 #
 
 AutoRelativeResize
@@ -181,6 +181,10 @@ function "start-sometimes-rlogin" {
 	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin sometimes.weird.com &"
 }
 
+function "start-totoro-rlogin" {
+	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin totoro.cyclic.com &"
+}
+
 function "start-araignee-rlogin" {
 	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin araignee.web.net &"
 }
@@ -223,6 +227,18 @@ function "start-woffi-rlogin" {
 
 function "start-worm-rlogin" {
 	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin worm.planix.com &"
+}
+
+function "start-druid-rlogin" {
+	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin druid.com &"
+}
+
+function "start-skeptic-rlogin" {
+	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin skeptic.druid.com &"
+}
+
+function "start-martech-rlogin" {
+	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin martech.planix.com &"
 }
 
 function "start-passport-rlogin" {
@@ -478,6 +494,8 @@ menu "rlogin"
 	"Rlogin @weird.com"		f.function "start-weird-rlogin"
 	"Rlogin @sometimes.weird.com"	f.function "start-sometimes-rlogin"
 	""				f.nop
+	"Rlogin @totoro.cyclic.com"	f.function "start-totoro-rlogin"
+	""				f.nop
 	"Rlogin @araignee.web.net"	f.function "start-araignee-rlogin"
 	"Rlogin @jala.web.net"		f.function "start-jala-rlogin"
 	"Rlogin @kuma.web.net"		f.function "start-kuma-rlogin"
@@ -490,6 +508,11 @@ menu "rlogin"
 	"Rlogin @whome.planix.com"	f.function "start-whome-rlogin"
 	"Rlogin @woffi.planix.com"	f.function "start-woffi-rlogin"
 	"Rlogin @worm.planix.com"	f.function "start-worm-rlogin"
+	""				f.nop
+	"Rlogin @druid.com"		f.function "start-druid-rlogin"
+	"Rlogin @skeptic.druid.com"	f.function "start-skeptic-rlogin"
+	""				f.nop
+	"Rlogin @martech.planix.com"	f.function "start-martech-rlogin"
 	""				f.nop
 	"Rlogin @passport.ca"		f.function "start-passport-rlogin"
 	""				f.nop
