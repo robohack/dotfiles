@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.11	98/10/26 14:40:21 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.12	98/10/28 09:16:32 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -607,12 +607,13 @@ message/rfc822 attachments."
 					 "^Old-Return-Path:" "\\|"
 					 "^Original-Message-I[dD]:" "\\|"
 					 "^Original-Return-Path:" "\\|"
+					 "^Path:" "\\|"
 					 "^Received:" "\\|"
 					 "^References:" "\\|"
 					 "^Resent-Message-I[dD]:" "\\|"
 					 "^Resent-Sender:" "\\|"
 					 "^Return-Path:" "\\|"
-					 "^Sender:" "\\|"
+					 "^Sender:" "\\|" "^SENDER:" "\\|"
 					 "^Status:" "\\|"
 					 "^X-[fF]ace:" "\\|"
 					 "^X-[lL]oop:" "\\|"
@@ -620,10 +621,12 @@ message/rfc822 attachments."
 					 "^X-[mM][sS][mM]ail" "\\|"
 					 "^X-Original-Received:" "\\|"
 					 "^X-[pP][gG][pP]" "\\|"
+					 "^X-[rR][eE][fF]" "\\|"
 					 "^X-Received:" "\\|"
 					 "^X-Sender:" "\\|"
 					 "^X-Status:" "\\|"
-					 "^X-VM-"
+					 "^X-VM-" "\\|"
+					 "^X[rR][eE][fF]:"
 					 )	; these are ugly and meaningless
       vm-jump-to-new-messages t
       vm-jump-to-unread-messages t
