@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.18	98/07/17 23:47:30 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.19	98/07/18 00:27:17 (woods)"
 #
 
 changequote([, ])
@@ -701,22 +701,22 @@ menu "emacs"
 {
 	"Emacsen"		f.title
 	"@localhost"		!"emacs -i &"
-	"@x11server"		!"$RSH -n $XDMHOST '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
+	"@x11server"		!"$RSH -n $X11SERVER '. ./.localprofile; PATH='$PATH'; export PATH; MAIL='$MAIL'; export MAIL; exec emacs -display '$DISPLAY' -i' &"
  ifelse(HOSTNAME, most.weird.com, [], [
-	"@most"			!"$RSH -n most.weird.com '. ./.localprofile; PATH='$HOME/bin:/usr/bin:/bin:/usr/bin/X11:/local/bin:/usr/pkg/bin:/usr/games:$PATH'; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /usr/pkg/bin/emacs -display '$DISPLAY' -i' &"
+	"@most"			!"$RSH -n most.weird.com '. ./.localprofile; PATH='$HOME/bin:/bin:/usr/bin:/usr/bin/X11:/usr/local/bin:/usr/pkg/bin:/usr/games:$PATH'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /usr/pkg/bin/emacs -display '$DISPLAY' -i' &"
  ])
  ifelse(HOSTNAME, whats.weird.com, [], [
-	"@whats"		!"$RSH -n whats.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
+	"@whats"		!"$RSH -n whats.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
  ])
  ifelse(HOSTNAME, woffi.planix.com, [], [
-	"@woffi"		!"$RSH -n woffi.planix.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /local/bin/emacs -display '$DISPLAY' -i' &"
+	"@woffi"		!"$RSH -n woffi.planix.com '. ./.localprofile; PATH='$PATH'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /local/bin/emacs -display '$DISPLAY' -i' &"
  ])
  ifelse(HOSTNAME, kuma.web.net, [], [
-	"@kuma"			!"$RSH -n kuma.web.net '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/spool/mail/$LOGNAME'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
+	"@kuma"			!"$RSH -n kuma.web.net '. ./.localprofile; PATH='$PATH'; export PATH; MAIL='/var/spool/mail/$LOGNAME'; export MAIL; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
  ])
  ifdef([AT_SEACHANGE], [
   ifelse(HOSTNAME, clapton.seachange.com, [], [
-	"@clapton"		!"$RSH -n clapton.seachange.com '. ./.localprofile; PATH='$PATH':/usr/contrib/bin; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /usr/contrib/bin/emacs -display '$DISPLAY' -i ' &"
+	"@clapton"		!"$RSH -n clapton.seachange.com '. ./.localprofile; PATH='$PATH':/usr/contrib/bin; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /usr/contrib/bin/emacs -display '$DISPLAY' -i ' &"
   ])
  ])
  ifdef([AT_LEITCH], [
