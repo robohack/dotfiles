@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	4.3	94/07/28 10:33:40 (woods)"
+#ident	"@(#)HOME:.kshrc	4.4	94/08/04 12:42:55 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -336,7 +336,7 @@ if [ "$TERM" = "xterm" ] ; then
 		/usr/bin/cu "$@"
 	}
 
-	if [ "$VISUAL" = emacsclient ] ; then
+	if [ "$VISUAL" = "emacsclient" -z "$DISPLAY" ] ; then
 		unalias emacs
 		alias emacs=_emacs
 		function _emacs
