@@ -1,7 +1,7 @@
 #
 #	.kshlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.kshlogin	3.1	94/03/25 18:34:32 (woods)"
+#ident	"@(#)HOME:.kshlogin	3.2	94/11/28 16:05:12 (woods)"
 
 set -o ignoreeof	# we only do this for our login shell....
 
@@ -33,10 +33,10 @@ fi
 
 case "$UUNAME" in
 kuma*)
-	export WORKDIR="/big/web/work"
+	export WORKDIR="/apcsoft/work.d/$LOGNAME"
 	;;
 tar*)
-	export WORKDIR="/kuma/big/web/work"
+	export WORKDIR="/kuma/apcsoft/work.d/$LOGNAME"
 	;;
 *)
 	if [ -d $LOCAL/work.d ] ; then
