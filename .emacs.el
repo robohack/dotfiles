@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.21	99/07/22 18:51:57 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.22	99/08/10 20:17:39 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1134,6 +1134,40 @@ file modes."
                              (logior current-mode add-mode))))))
 
 (add-hook 'after-save-hook 'make-buffer-file-executable-if-script-p)
+
+;; himark -- by Ehud Karni <ehud@unix.simonwiesel.co.il>
+;;
+;; This code is public domain.
+;;
+(defvar himark-overlay-list nil
+  "list of high-mark overlays (himark-unset deletes them).")
+(defvar himark-overlay-face 'highlight
+  "Name of face (quoted symbol) to use for himark.
+e.g. (setq himark-overlay-face 'modeline)
+Use `list-faces-display' to see all available faces")
+
+(defun himark-unset ()
+  "Remove himark overlay"
+  (interactive)
+       (while himark-overlay-list
+           (delete-overlay (car himark-overlay-list))
+           (setq himark-overlay-list (cdr himark-overlay-list))))
+
+(defun himark-set (regexp)
+  "Highlight all occurrence of REGEXP in this buffer"
+  (interactive "sEnter regexp to himark:Å†")
+  (let (oc-src ov
+	       (pos (point)))
+    (goto-char (point-min))
+    (while (re-search-forward regexp nil t)
+      (setq ov (make-overlay (match-beginning 0)
+			     (match-end 0)))
+      (overlay-put ov 'face himark-overlay-face)
+      (overlay-put ov 'priority 98)
+      (setq himark-overlay-list (append (list ov) himark-overlay-list)))
+    (goto-char pos)))
+
+;; end of himark stuff
 
 ;;;; ----------
 ;;;; some special hooks.....
