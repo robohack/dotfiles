@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	21.8	00/03/26 15:28:39 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	21.9	00/03/26 16:31:55 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -188,13 +188,12 @@ directory in the list PATHLIST, otherwise nil."
 ;; hyperbole auto-loading
 (if (elisp-file-in-loadpath-p "hyperbole")
     (progn
+      ;; XXX the load-path adjustment should be done in hyperbole.el....
+      ;; don't use add-to-list as it prepends to the list!
       (setq load-path (append load-path
 			      (list (concat (car original-load-path)
 					    "/hyperbole"))))
       (load-library "hyperbole")))
-
-(if (elisp-file-in-loadpath-p "c-boxes")
-    (autoload 'reindent-c-comment "c-boxes" "Function for boxing C comments." t))
 
 (if (and (elisp-file-in-loadpath-p "func-menu")
 	 window-system)
@@ -203,23 +202,29 @@ directory in the list PATHLIST, otherwise nil."
       (define-key global-map [S-down-mouse-2]
 	'function-menu)))
 
-(if (elisp-file-in-loadpath-p "shwtmpbuf")
-    (progn
-      (load "shwtmpbuf")
-      ;; FIXME: need an undo-temp-buffers to revert frame composition....
-      (global-set-key "\C-xH" 'hide-temp-buffers))) ; defaults to C-x t in shwtmpbuf
+;; This is an ancient hack by Joe Wells is really only necessary on emacs-18
+;; and very early versions of emacs-19 since the appearance of the new
+;; `resize-temp-buffer-window' function.
+;(if (elisp-file-in-loadpath-p "shwtmpbuf")
+;    (progn
+;      (load "shwtmpbuf")
+;      ;; FIXME: need an undo-temp-buffers to revert frame composition....
+;      (global-set-key "\C-xH" 'hide-temp-buffers))) ; defaults to C-x t in shwtmpbuf
 
+;; ksh-mode is handy if you don't have sh-script....
 (if (and (elisp-file-in-loadpath-p "ksh-mode")
 	 (not (elisp-file-in-loadpath-p "sh-script")))
     (autoload 'ksh-mode "ksh-mode" "Major mode for editing Korn Shell scripts." t))
 
-;; not autoload'ed in 19.28, but there....
+;; not autoload'ed in 19.28, but it is there....
 (if (elisp-file-in-loadpath-p "sh-script")
     (progn
       (autoload 'shell-script-mode "sh-script" "Major mode for editing shell
 scripts (alias)." t)
       (autoload 'sh-mode "sh-script" "Major mode for editing shell scripts." t)))
 
+;; This handy extension to `outline-mode' has been available in the default
+;; distribution since 19.27....
 (if (elisp-file-in-loadpath-p "foldout")
     (eval-after-load "outline" '(load "foldout")))
 
@@ -351,9 +356,7 @@ scripts (alias)." t)
 (setq list-faces-sample-text
       "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789!@\#$%^&*()_+-=\\[];'`,./|{}:\"~<>?")
 
-(setq completion-ignored-extensions
-      (append '(".out")
-	      completion-ignored-extensions))
+(add-to-list 'completion-ignored-extensions '(".out"))
 
 (setq frame-title-format
       '("" mode-line-process " %b [%f] %F@" system-name))
@@ -435,83 +438,79 @@ scripts (alias)." t)
 ;;;; ----------
 ;;;; auto-mode-alist setup
 
+(defun add-to-auto-mode-alist (element)
+  "Add ELEMENT to `auto-mode-alist' if it isn't there yet."
+  (add-to-list 'auto-mode-alist element)) ; add-to-list in 19.29 and newer
+
 ;; note: no cvs backup files listed, they match "/\\.#.*\\.[.0-9]+$"
 ;;
-(setq auto-mode-alist
-      (append
-       '(("/[Cc]onfig[^/\\.]*$" . sh-mode)) ; sh-mode, in 19.28 and newer
-       '(("[^/]*rc$" . sh-mode))
-       '(("/rc\\.[^/]*$" . sh-mode))
-       '(("/rc\\.[^/]*/[^/]*$" . sh-mode))
-       '(("[-\\.]ash[^/]*$" . sh-mode))
-       '(("[-\\.]ksh[^/]*$" . sh-mode))
-       '(("[-\\.]sh[^/]*$" . sh-mode))
-       '(("\\.[^/]*profile" . sh-mode))
-       '(("/pkg/COMMENT$" . indented-text-mode)) ; NetBSD pkgsrc
-       '(("/pkg/DEINSTALL$" . sh-mode))	; NetBSD pkgsrc
-       '(("/pkg/DESCRIPTION$" . indented-text-mode)) ; NetBSD pkgsrc
-       '(("/pkg/INSTALL$" . sh-mode))	; NetBSD pkgsrc
-       '(("/pkg/MESSAGE$" . indented-text-mode)) ; NetBSD pkgsrc
-       '(("/pkg/PLIST$" . sh-mode))	; NetBSD pkgsrc (not sh, but...)
-       '(("/pkg/REQUIRE$" . sh-mode))	; NetBSD pkgsrc
-       '(("/[^/]+\\.java$" . java-mode))	; cc-mode
-       '(("/[^/]+\\.[0-9][a-z]?$" . nroff-mode)) ; man page
-       '(("/[^/]+\\.[0-9][a-z]?\\.in$" . nroff-mode)) ; man page
-       '(("/[^/]+\\.[m]?an$" . nroff-mode))	; man page
-       '(("/[^/]+\\.t[imes]*$" . nroff-mode))	; nroff+tbl
-       '(("/[^/]+\\.t[imes]*\\.in$" . nroff-mode)) ; nroff+tbl
-       '(("[cC][hH][aA][nN][gG][eE][sS][^/\\.]*$" . indented-text-mode))
-       '(("[iI][nN][sS][tT][aA][lL][lL][^/\\.]*$" . indented-text-mode))
-       '(("[aA][uU][tT][hH][oO][rR][sS][^/\\.]*$" . indented-text-mode))
-       '(("[cC][oO][pP][yY][^/\\.]*$" . indented-text-mode))
-       '(("[nN][eE][wW][sS]$" . indented-text-mode))
-       '(("[tT][oO][dD][oO]$" . indented-text-mode))
-       '(("[tT][hH][aA][nN][kK][^/\\.]*$" . indented-text-mode))
-       '(("[rR][eE][aA][dD][^/]*[mM][eE]$" . indented-text-mode))
-       '(("MESSAGE$" . indented-text-mode))
-       '(("DESCR$" . indented-text-mode))
-       '(("COMMENT$" . indented-text-mode))
-       '(("\\.te?xt\\'" . indented-text-mode))
-       '(("\\.notes?\\'" . indented-text-mode))
-       '(("\\.vm$" . emacs-lisp-mode))		; VM init file
-       '(("\\.article[^/]*$" . indented-text-mode))
-       '(("\\.letter[^/]*$" . indented-text-mode))
-       '(("\\.mail[^/]*$" . mail-mode))
-       '(("/tmp/[^/]*\\.ed[^/]*$" . indented-text-mode)) ; mail edit buffer
-       '(("/tmp/[^/]*nf[^/]*$" . indented-text-mode)) ; notesfile compose buf
-       auto-mode-alist))
+(mapcar 'add-to-auto-mode-alist
+	(list
+	 '("/[Cc]onfig[^/\\.]*$" . sh-mode) ; sh-mode, in 19.28 and newer
+	 '("[^/]*rc$" . sh-mode)
+	 '("/rc\\.[^/]*$" . sh-mode)
+	 '("/rc\\.[^/]*/[^/]*$" . sh-mode)
+	 '("[-\\.]ash[^/]*$" . sh-mode)
+	 '("[-\\.]ksh[^/]*$" . sh-mode)
+	 '("[-\\.]sh[^/]*$" . sh-mode)
+	 '("\\.[^/]*profile" . sh-mode)
+	 '("/pkg/COMMENT$" . indented-text-mode) ; NetBSD pkgsrc
+	 '("/pkg/DEINSTALL$" . sh-mode) ; NetBSD pkgsrc
+	 '("/pkg/DESCRIPTION$" . indented-text-mode) ; NetBSD pkgsrc
+	 '("/pkg/INSTALL$" . sh-mode)	; NetBSD pkgsrc
+	 '("/pkg/MESSAGE$" . indented-text-mode) ; NetBSD pkgsrc
+	 '("/pkg/PLIST$" . sh-mode)	; NetBSD pkgsrc (not sh, but...)
+	 '("/pkg/REQUIRE$" . sh-mode)	; NetBSD pkgsrc
+	 '("/[^/]+\\.java$" . java-mode) ; cc-mode
+	 '("/[^/]+\\.[0-9][a-z]?$" . nroff-mode) ; man page
+	 '("/[^/]+\\.[0-9][a-z]?\\.in$" . nroff-mode) ; man page
+	 '("/[^/]+\\.[m]?an$" . nroff-mode) ; man page
+	 '("/[^/]+\\.t[imes]*$" . nroff-mode) ; nroff+tbl
+	 '("/[^/]+\\.t[imes]*\\.in$" . nroff-mode) ; nroff+tbl
+	 '("[cC][hH][aA][nN][gG][eE][sS][^/\\.]*$" . indented-text-mode)
+	 '("[iI][nN][sS][tT][aA][lL][lL][^/\\.]*$" . indented-text-mode)
+	 '("[aA][uU][tT][hH][oO][rR][sS][^/\\.]*$" . indented-text-mode)
+	 '("[cC][oO][pP][yY][^/\\.]*$" . indented-text-mode)
+	 '("[nN][eE][wW][sS]$" . indented-text-mode)
+	 '("[tT][oO][dD][oO]$" . indented-text-mode)
+	 '("[tT][hH][aA][nN][kK][^/\\.]*$" . indented-text-mode)
+	 '("[rR][eE][aA][dD][^/]*[mM][eE]$" . indented-text-mode)
+	 '("MESSAGE$" . indented-text-mode)
+	 '("DESCR$" . indented-text-mode)
+	 '("COMMENT$" . indented-text-mode)
+	 '("\\.te?xt\\'" . indented-text-mode)
+	 '("\\.notes?\\'" . indented-text-mode)
+	 '("\\.vm$" . emacs-lisp-mode) ; VM init file
+	 '("\\.article[^/]*$" . indented-text-mode)
+	 '("\\.letter[^/]*$" . indented-text-mode)
+	 '("\\.mail[^/]*$" . mail-mode)
+	 '("/tmp/[^/]*\\.ed[^/]*$" . indented-text-mode) ; mail edit buffer
+	 '("/tmp/[^/]*nf[^/]*$" . indented-text-mode))) ; notesfile compose buf
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "diff-mode")
-    (add-to-list 'auto-mode-alist '("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)))
+    (add-to-auto-mode-alist '("\\.\\(diffs?\\|patch\\|rej\\)" . diff-mode)))
 
 ;; assume the autoloads are done for this...
 (if (or (elisp-file-in-loadpath-p "makefile")
 	(elisp-file-in-loadpath-p "make-mode"))
-    (setq auto-mode-alist
-	  (append
-	   '(("/[Mm]ake[^/]*$" . makefile-mode))
-	   '(("/[Mm]ake[^/]*\\.am$" . makefile-mode)) ; XXX redundant?
-	   '(("/[Pp]\\.[Mm]ake[^/]*$" . makefile-mode))
-	   '(("/[Mm]\\.include$" . makefile-mode))
-	   '(("/[^/]+mk.conf[^/]*$" . makefile-mode))
-	   '(("/[^/]+\\.mk$" . makefile-mode))
-	   '(("/[^/]+\\.mk\\.in$" . makefile-mode))
-	   auto-mode-alist)))
+    (mapcar add-to-auto-mode-alist
+	    (list
+	     '("/[Mm]ake[^/]*$" . makefile-mode)
+	     '("/[Mm]ake[^/]*\\.am$" . makefile-mode)
+	     '("/[Pp]\\.[Mm]ake[^/]*$" . makefile-mode)
+	     '("/[Mm]\\.include$" . makefile-mode)
+	     '("/[^/]+mk.conf[^/]*$" . makefile-mode)
+	     '("/[^/]+\\.mk$" . makefile-mode)
+	     '("/[^/]+\\.mk\\.in$" . makefile-mode))))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "lout-mode")
-    (setq auto-mode-alist
-	  (append
-	   '(("/[^/]+\\.lout$" . lout-mode))
-	   auto-mode-alist)))
+    (add-to-auto-mode-alist '("/[^/]+\\.lout$" . lout-mode)))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "m4-mode")
-    (setq auto-mode-alist
-	  (append
-	   '(("/configure.in$" . m4-mode))
-	   auto-mode-alist)))
+    (add-to-auto-mode-alist '("/configure.in$" . m4-mode)))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "vm")
@@ -523,14 +522,13 @@ scripts (alias)." t)
 	    (defvar menu-bar-tools-menu)
 	    (define-key menu-bar-tools-menu [rmail] '("Read Mail" . vm))
 	    (define-key-after menu-bar-tools-menu [smail] '("Send Mail" . vm-mail) 'rmail)))
-      (setq auto-mode-alist
-	    (append
-	     '(("/Letter$" . vm-mode))
-	     '(("mbox$" . vm-mode))
-	     '(("/Mail/.*$" . vm-mode))
-	     '(("/News/.*$" . vm-mode))
-	     '(("\\.shar[^/]*$" . vm-mode))
-	     auto-mode-alist))))
+      (mapcar add-to-auto-mode-alist
+	      (list
+	       '("/Letter$" . vm-mode)
+	       '("mbox$" . vm-mode)
+	       '("/Mail/.*$" . vm-mode)
+	       '("/News/.*$" . vm-mode)
+	       '("\\.shar[^/]*$" . vm-mode)))))
 
 ;;;; ----------
 ;;;; special setup!
@@ -1150,7 +1148,7 @@ Use `list-faces-display' to see all available faces")
 
 (defun himark-set (regexp)
   "Highlight all occurrence of REGEXP in this buffer"
-  (interactive "sEnter regexp to himark:Å†")
+  (interactive "sEnter regexp to himark:†")
   (let (oc-src ov
 	       (pos (point)))
     (goto-char (point-min))
@@ -1159,7 +1157,7 @@ Use `list-faces-display' to see all available faces")
 			     (match-end 0)))
       (overlay-put ov 'face himark-overlay-face)
       (overlay-put ov 'priority 98)
-      (setq himark-overlay-list (append (list ov) himark-overlay-list)))
+      (add-to-list 'himark-overlay-list ov))
     (goto-char pos)))
 
 ;; end of himark stuff
