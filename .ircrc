@@ -1,0 +1,64 @@
+#
+#	greg's ~/.ircrc
+#
+#ident	"@(#)HOME:.ircrc	1.1	95/10/12 10:54:03 (woods)"
+
+set NOVICE off
+set CLOCK on
+set EIGHT_BIT_CHARACTERS on
+set TRANSLATION latin_1
+set BEEP_WHEN_AWAY 4
+set SHOW_END_OF_MSGS on
+set HISTORY 1000
+#set HISTORY_FILE ~/.irc_history
+
+nick robohack
+name "Greg A. Woods"
+
+# load some basic standard scripts
+load basical
+load window
+load cursor
+
+# this is in ~/.irc/
+load auto-op
+
+alias wjoin window new channel $0
+
+channel &internex
+window new channel #NetBSD 
+window new channel #secrets
+window balance
+
+mode #secrets +it
+
+addchan [#secrets]
+addop [*!andy@*weird.com]
+addop [*!andy@*seachange.com]
+addop [*!gegai@*io.org]
+addinv [dreamzz!*@*]
+
+mode #secrets +o dreamzz
+topic #secrets The Secrets of the *WEIRD* ....
+
+who *weird.com
+who *planix.com
+
+# /w [<nickname>]                        get info on someone
+# /q [<nickname>]                        query someone
+# /m  <nickname> <text>                  send a message
+# /n  <nickname> <text>                  send a notice
+# /r <text>                              reply to last message I got
+# /a <text>                              followup on my last message
+
+alias w whois
+alias q query
+alias m msg
+alias n notice
+alias r msg $,
+alias a msg $.
+
+alias i invite
+
+alias unset set -$*
+alias unalias alias -$*
