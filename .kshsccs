@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.UUCP> <woods@planix.com>
 #
-#ident	"@(#)HOME:.kshsccs	18.1	97/01/20 10:09:40 (woods)"
+#ident	"@(#)HOME:.kshsccs	18.2	97/01/20 11:58:51 (woods)"
 
 # These aliases and functions provide some release and configuration
 # management functions over and above sccs(1).  They are useful for small
@@ -20,7 +20,7 @@
 
 # explicitly setting this makes life easier....
 #
-if [ -n "$PROJECT" ] ; then
+if [ -z "$PROJECT" ] ; then
 	export PROJECT=SCCS
 fi
 
@@ -57,6 +57,7 @@ alias vtell='sccs -p $PROJECT tell'
 alias vunedit='sccs -p $PROJECT unedit'
 alias vunget='sccs -p $PROJECT unget'
 alias vval='sccs -p $PROJECT val'
+alias vpident='echo "#ident	\"%Z\045%Y\045:%M\045	%I\045	%E\045 %U\045 (%Q\045)\""'
 
 #
 #	vproj - set project name
@@ -155,14 +156,36 @@ function vwproj
 #	mksccs - create a new s-file with approprate flags
 #
 # based on:
-#ident	"$Id: mksccs.sh,v 1.9 1993/01/18 22:25:14 woods Exp $"
+#ident	"mksccs.sh,v 1.9 1993/01/18 22:25:14 woods Exp "
 #
 alias vmksccs=mksccs
 function mksccs
 {
+	REL="-r$(vlastrel)"
+	while getopts r: OPTCH
+	do
+	  	case $OPTCH in
+		r)
+			REL="-r${OPTARG}"
+			;;
+		*)
+			echo "Usage: $0 [-rSID] file ..." >&2
+			return 2
+			;;
+		esac
+	done
+	shift $(( $OPTIND - 1 ))
+	if [ $# -lt 1 ] ; then
+		echo "Usage: $0 [-rSID] file ..." >&2
+		return 2
+	fi
 	# we don't really use "$sdir" -- we only want to be sure it exists
 	# and if it doesn't then we'll create it now....
 	sdir="$(vwproj)"
+	if [ -z "$sdir" ] ; then
+		echo "$0: no project set!" >&2
+		return 1
+	fi
 	if [ ! -d "$sdir" ] ; then
 		mkdir $sdir
 	fi
@@ -185,7 +208,7 @@ function mksccs
 	else
 		TFLAG=$PROJECT
 	fi
-	sccs -p $PROJECT enter $*
+	sccs -p $PROJECT enter $REL $*
 	if [ $? -eq 0 ] ; then
 		sccs -p $PROJECT admin -fb -fq"$QFLAG" -ft"$TFLAG" $*
 	else
@@ -201,12 +224,16 @@ function mksccs
 		return 1
 	fi
 
+	sccs -p $PROJECT get $*
+
+	rc=$(( $rc + $/ ))
+
 	if [ $rc -eq 0 ] ; then
 		# pretty sure of ourselves!  :-)
 		/bin/rm -f ,*
 	fi
 
-	unset sdir QFLAG mksccsuid TFLAG
+	unset REL sdir QFLAG mksccsuid TFLAG
 	return $rc
 }
 
@@ -245,6 +272,14 @@ function vlist
 function vls
 {
 	ls $* $(vwproj)
+}
+
+#
+#	vfiles - generate a list of project files
+#
+function vfiles
+{
+	ls $(vwproj) | awk '/^s\./{print substr($1, 3)}'
 }
 
 #
