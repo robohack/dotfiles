@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	27.1	03/11/23 19:15:52 (woods)"
+;;;#ident	"@(#)HOME:.vm	27.2	03/11/23 19:50:40 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -1954,24 +1954,24 @@ but it's seriously brain damaged so we re-define it as nothing."
       vm-mime-8bit-composition-charset "iso-8859-1"
       vm-mime-8bit-text-transfer-encoding '8bit	; just send it, damn it!
       vm-mime-alternative-select-method 'best-internal
-      vm-mime-attachment-auto-suffix-alist (("image/jpeg" . ".jpeg") ; that's JPEG, not JPG!
-					    ("image/gif" . ".gif")
-					    ("image/png" . ".png")
-					    ("image/tiff" . ".tiff")
-					    ("image/xpm" . ".xpm")
-					    ("text/html" . ".html")
-					    ("audio/basic" . ".au")
-					    ("audio/mpeg" . ".mp3")
-					    ("audio/ogg" . ".ogg")
-					    ("audio/x-mpeg" . ".mp3")
-					    ("video/mpeg" . ".mpeg") ; and MPEG!
-					    ("video/quicktime" . ".mov")
-					    ("application/mac-binhex40" . ".hqx")
-					    ("application/postscript" . ".ps")
-					    ("application/pdf" . ".pdf")
-					    ("application/vnd.ms-excel" . ".xls")
-					    ("application/x-dvi" . ".dvi")
-					    ("application/zip" . ".zip"))
+      vm-mime-attachment-auto-suffix-alist '(("image/jpeg" . ".jpeg") ; that's JPEG, not JPG!
+					     ("image/gif" . ".gif")
+					     ("image/png" . ".png")
+					     ("image/tiff" . ".tiff")
+					     ("image/xpm" . ".xpm")
+					     ("text/html" . ".html")
+					     ("audio/basic" . ".au")
+					     ("audio/mpeg" . ".mp3")
+					     ("audio/ogg" . ".ogg")
+					     ("audio/x-mpeg" . ".mp3")
+					     ("video/mpeg" . ".mpeg") ; and MPEG!
+					     ("video/quicktime" . ".mov")
+					     ("application/mac-binhex40" . ".hqx")
+					     ("application/postscript" . ".ps")
+					     ("application/pdf" . ".pdf")
+					     ("application/vnd.ms-excel" . ".xls")
+					     ("application/x-dvi" . ".dvi")
+					     ("application/zip" . ".zip"))
       vm-mime-attachment-auto-type-alist '(("\\.jpe?g$" . "image/jpeg")
 					   ("\\.gif$" . "image/gif")
 					   ("\\.png$" . "image/png")
