@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.18	99/05/21 13:54:24 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.19	99/05/21 13:56:36 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -707,7 +707,9 @@ message/rfc822 attachments."
       vm-mime-charset-font-alist nil
       vm-mime-confirm-delete t
       vm-mime-delete-after-saving nil
-      vm-mime-default-face-charsets '("us-ascii" "iso-8859-1")
+      vm-mime-default-face-charsets '("us-ascii"
+				      "iso-8859-1"
+				      "x-unknown") ; pine sometimes uses x-unknown!
       vm-mime-default-face-charset-exceptions nil
       vm-mime-digest-discard-header-regexp "X400-"
       vm-mime-digest-headers nil
