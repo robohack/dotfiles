@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.32	96/09/07 23:54:12 (woods)"
+#ident	"@(#)HOME:.twmrc	2.33	96/09/07 23:56:25 (woods)"
 #
 
 AutoRelativeResize
@@ -531,6 +531,17 @@ function "start-quicksilver-telnet" {
 
 function "start-cyberia-telnet" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet cyberia.infoshare.net &"
+}
+
+
+#	for slogin-infoshare menu
+#
+function "start-quicksilver-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin quicksilver.infoshare.net &"
+}
+
+function "start-cyberia-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin cyberia.infoshare.net &"
 }
 
 
@@ -1402,6 +1413,7 @@ menu "slogin"
 	"Slogin's Everywhere"		f.title
 	"Slogin's at Weird.com..."	f.menu "slogin-weird"
 	"Slogin's at Planix.com..."	f.menu "slogin-planix"
+	"Slogin's at Infoshare.net..."	f.menu "slogin-infoshare"
 	"Slogin's at Ipass.com..."	f.menu "slogin-ipass"
 }
 
@@ -1537,6 +1549,13 @@ menu "telnet-infoshare"
 	"Telnet's At Infoshare.net"	f.title
 	"telnet @quicksilver"		f.function "start-quicksilver-telnet"
 	"telnet @cyberia"		f.function "start-cyberia-telnet"
+}
+
+menu "slogin-infoshare"
+{
+	"Slogin's At Infoshare.net"	f.title
+	"Slogin @quicksilver"		f.function "start-quicksilver-slogin"
+	"Slogin @cyberia"		f.function "start-cyberia-slogin"
 }
 
 menu "rlogin-aci"
