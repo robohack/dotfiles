@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.11	98/02/23 20:49:53 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.12	98/03/02 19:02:38 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -486,6 +486,7 @@ message/rfc822 attachments."
 			      ("owner-net-dist@nikhef.nl" . "nikhef.net-dist-l")
 			      ("owner-pcl-cvs@" . "pcl-cvs-l")
 			      ("owner-rs-info@internic.net" . "rs-info-l")
+			      ("owner-vmailer-testers@wzv.win.tue.nl" . "vmailer-testers-l")
 			      ("owner-\\([^@%]+\\)[@%]NetBSD.ORG" .
 			       (concat "netbsd/"
 				       (buffer-substring (match-beginning 1)
