@@ -1,0 +1,11 @@
+# setup file for kermit
+set line /dev/tty01
+set speed 38400
+set terminal bytesize 8
+set send pack 500
+set receive pack 500
+set buffer 25000 25000
+set window 15
+set file type bin
+set file display fullscreen
+set file names literal
