@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.4	95/08/11 00:19:35 (woods)"
+#ident	"@(#)HOME:.twmrc	2.5	95/08/22 19:43:03 (woods)"
 #
 
 AutoRelativeResize
@@ -280,8 +280,32 @@ function "start-kuma-emacs" {
 }
 
 
-#	for netscape menu
+#	for WWW menu
 #
+function "start-mosaic" {
+	f.exec "$LOCAL/Mosaic &"
+}
+
+function "start-x11host-mosaic" {
+	f.exec "$RSH -n $X11HOST env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
+}
+
+function "start-sometimes-mosaic" {
+	f.exec "$RSH -n sometimes.weird.com env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
+}
+
+function "start-weird-mosaic" {
+	f.exec "$RSH -n ns.weird.com env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/Mosaic &"
+}
+
+function "start-spinne-mosaic" {
+	f.exec "$RSH -n spinne.web.net env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/Mosaic &"
+}
+
+function "start-kuma-mosaic" {
+	f.exec "$RSH -n kuma.web.net env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
+}
+
 function "start-netscape" {
 	f.exec "$LOCAL/netscape -display $DISPLAY &"
 }
@@ -300,6 +324,10 @@ function "start-spinne-netscape" {
 
 function "start-weird-netscape" {
 	f.exec "$RSH -n ns.weird.com env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
+}
+
+function "start-sometimes-netscape" {
+	f.exec "$RSH -n sometimes.weird.com env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
 }
 
 #
@@ -424,7 +452,7 @@ menu "applications"
 	"Xterm's Everywhere..."		f.menu "xterm"
 	"Rlogin's Everywhere..."	f.menu "rlogin"
 	"Emacs Everywhere..."		f.menu "emacs"
-	"Netscape Everywhere..."	f.menu "netscape"
+	"WWW Everywhere..."		f.menu "www"
 	"Games Everywhere..."		f.menu "games"
 	""				f.nop
 	"xclock"			!"xclock -geometry 190x190-4+4 &"
@@ -451,14 +479,21 @@ menu "emacs"
 	"@kuma"				f.function "start-kuma-emacs"
 }
 
-menu "netscape"
+menu "www"
 {
-	"Mozzilla, i.e. NetScape"	f.title
-	"@localhost"			f.function "start-netscape"
-	"@X11-host"			f.function "start-x11host-netscape"
-	"@netserver"			f.function "start-netserver-netscape"
-	"@spinne"			f.function "start-spinne-netscape"
-	"@weird"			f.function "start-weird-netscape"
+	"WWW Browsers Everywhere!"	f.title
+	"Mosaic@localhost"		f.function "start-mosaic"
+	"Mosaic@X11-host"		f.function "start-x11host-mosaic"
+	"Mosaic@sometimes"		f.function "start-sometimes-mosaic"
+	"Mosaic@weird"			f.function "start-weird-mosaic"
+	"Mosaic@spinne"			f.function "start-spinne-mosaic"
+	"Mosaic@kuma"			f.function "start-kuma-mosaic"
+	"netscape@localhost"		f.function "start-netscape"
+	"netscape@X11-host"		f.function "start-x11host-netscape"
+	"netscape@netserver"		f.function "start-netserver-netscape"
+	"netscape@spinne"		f.function "start-spinne-netscape"
+	"netscape@weird"		f.function "start-weird-netscape"
+	"netscape@sometimes"		f.function "start-sometimes-netscape"
 }
 
 menu "games"
