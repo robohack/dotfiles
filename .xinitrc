@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file
 #
-#ident        "@(#)HOME:.xinitrc     5.6     95/03/19 11:46:44 (woods)"
+#ident        "@(#)HOME:.xinitrc     5.7     95/03/19 17:55:43 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -18,7 +18,7 @@ echo "$argv0: starting on $DISPLAY...."
 case "$DISPLAY" in
 ":0" | ":0.0" | "" )
 	# TODO: need to check existence of domainname and results
-	X11HOST="`hostname``domainname`"	# used by .twmrc
+	X11HOST="${X11HOST:-`hostname``domainname`}"	# used by .twmrc
 	DISPLAY="$X11HOST:0.0"
 	;;
 esac
