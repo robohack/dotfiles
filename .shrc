@@ -1,7 +1,7 @@
 #
 #	.shrc - per-shell startup stuff for /bin/sh
 #
-#ident	"@(#)HOME:.shrc	3.6	96/03/10 10:57:54 (woods)"
+#ident	"@(#)HOME:.shrc	3.7	97/01/19 14:05:30 (woods)"
 
 PATH="$PATH"
 export PATH
@@ -189,13 +189,9 @@ e ()
 {
 	${VISUAL:-$EDITOR} $*
 }
-ealias ()
+elc ()
 {
-	e $ENV
-}
-elisp ()
-{
-	emacs -batch -n -q -f batch-byte-compile
+	emacs -batch -q -no-site-file -f batch-byte-compile
 }
 l ()
 {
