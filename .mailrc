@@ -1,4 +1,4 @@
-#ident	"@(#)HOME:.mailrc  18.8    97/12/17 21:36:42 (woods)"
+# ident	"@(#)HOME:.mailrc  18.9    98/01/05 12:26:45 (woods)"
 #
 #	.mailrc - for mailx and emacs-VM
 #
@@ -56,7 +56,7 @@ alias me	"woods@weird.com (Greg A. Woods)"
 alias nik	"habern@caledon.org (Nik Habermel)"
 alias norman	"norman@cs.yorku.ca (Norman Wilson)"
 alias paul	"dumais@mad.scientist.com (Paul E. Dumais)"
-alias planix	"planix@planix.com (Those PlanIX Dudes)"
+alias planix	"planix@planix.com (Those planix Dudes)"
 alias peter	"peter@renzland.org (Peter Renzland)"
 alias rayan	"rayan@uunet.ca (Rayan Zachariassen)"
 alias sandu	"sandu@mail.on.rogers.wave.ca (Alexandru Sburlan)"
