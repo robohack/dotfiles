@@ -1,12 +1,22 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	18.9	97/08/01 09:28:42 (woods)"
+;;;#ident	"@(#)HOME:.vm	18.10	97/11/20 00:26:30 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
 
 (require 'sendmail)			; get this over with right away
+
+(add-hook 'mail-setup-hook 'mail-abbrevs-setup)
+(add-hook
+ 'mail-setup-hook
+ '(lambda ()
+    ;; it would be nice to have mail-abbrev-next-header and maybe
+    ;; mail-abbrev-goto-mail-text and mail-abbrev-comma too....
+    ;; mail-abbrev-end-of-buffer is useless with signature files.
+    (substitute-key-definition 'next-line 'mail-abbrev-next-line
+                               mail-mode-map global-map)))
 
 ;;; rmime.el --- read MIME messages
 ;; Author: Ray Moody <moody@cray.com>
