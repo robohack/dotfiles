@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	5.1	93/12/15 17:35:03 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	5.2	94/01/10 19:32:47 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -96,7 +96,7 @@ directory in the list PATHLIST, otherwise nil."
 (if (elisp-file-in-loadpath-p "time")
     (dont-compile
       ; display-time can't check "Status:" headers or "Forward to" files
-      (if (= init-emacs-type ' 19)
+      (if (= init-emacs-type '19)
 	  (defun display-time-file-nonempty-p (file)
 	    nil)
 	(setq display-time-mail-file "/THIS-IS-NOT-A-FILE"))
