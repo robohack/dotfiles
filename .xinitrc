@@ -4,7 +4,7 @@
 #	.xinitrc - X Window System startup file
 #
 #ident	"@(#)HOME:$Id$"
-#ident	"@(#)HOME:.xinitrc	1.1	93/11/26 13:43:34 (woods)"
+#ident	"@(#)HOME:.xinitrc	1.2	93/11/26 14:50:22 (woods)"
 #
 
 argv0="`basename $0`"
@@ -58,11 +58,15 @@ xmailwatcher -geometry 300x100-4+300 -iconic -icongeometry -140+300 -iconic -mai
 # Grrr.... xsol doesn't take standard toolkit args....
 #xsol -geometry 32x48-4+260 -iconic &
 
-xload -geometry 120x137-205+4 -hl grey90 &
-
-rsh -n kuma /usr/openwin/bin/xload -geometry 120x137-205+150 -jumpscroll 1 -hl grey90 -display $DISPLAY &
-
-#rsh -n araignee /usr/openwin/bin/xload -geometry 120x137-4+260 -hl grey90 -display $DISPLAY &
+if [ -x /usr/bin/X11/xsysstats ] ; then
+	xsysstats -geometry 120x137-205+4 -type load1 -type disk -sample 5 &
+	xsysstats -geometry 120x137-205+150 -type load1 -host kuma -type disk -host kuma -sample 5 &
+#	xsysstats -geometry 120x137-4+260 -type load1 -host araignee -type disk -host araignee -sample 5 &
+else
+	xload -geometry 120x137-205+4 -hl grey90 &
+	rsh -n kuma /usr/openwin/bin/xload -geometry 120x137-205+150 -jumpscroll 1 -hl grey90 -display $DISPLAY &
+#	rsh -n araignee /usr/openwin/bin/xload -geometry 120x137-4+260 -hl grey90 -display $DISPLAY &
+fi
 
 xterm -geometry 80x24-4+360 -sl 500 -sb -sk -si -rw  -ls -T Primary &
 
