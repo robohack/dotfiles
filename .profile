@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	19.2	98/02/01 20:36:36 (woods)"
+#ident	"@(#)HOME:.profile	19.3	98/03/04 21:59:38 (woods)"
 
 #
 # Assumptions:
@@ -147,6 +147,7 @@ else
 	PATH="/bin" ; export PATH	# otherwise start fresh...
 	dirappend PATH /usr/bin /usr/lbin
 fi
+export PATH
 
 if [ -z "$LOCAL" ] ; then
 	if [ -d /local -a -d /local/bin ] ; then
@@ -156,8 +157,8 @@ if [ -z "$LOCAL" ] ; then
 	else
 		LOCAL="/NO-local-FOUND"
 	fi
-	export LOCAL
 fi
+export LOCAL
 
 if [ -z "$CONTRIB" ] ; then
 	if [ -d /contrib -a -d /contrib/bin ] ; then
@@ -167,8 +168,8 @@ if [ -z "$CONTRIB" ] ; then
 	else
 		CONTRIB="/NO-contrib-FOUND"
 	fi
-	export CONTRIB
 fi
+export CONTRIB
 
 if [ -z "$PKG" ] ; then
 	if [ -d /pkg -a -d /pkg/bin ] ; then
@@ -178,8 +179,8 @@ if [ -z "$PKG" ] ; then
 	else
 		PKG="/NO-pkg-FOUND"
 	fi
-	export PKG
 fi
+export PKG
 
 if [ -z "$OPT" ] ; then
 	if [ -d /opt ] ; then
@@ -189,8 +190,8 @@ if [ -z "$OPT" ] ; then
 	else
 		OPT="/NO-opt-FOUND"
 	fi
-	export OPT
 fi
+export OPT
 
 if [ -z "$GNU" ] ; then
 	if [ -d /local/gnu -a -d /local/gnu/bin ] ; then
@@ -202,27 +203,14 @@ if [ -z "$GNU" ] ; then
 	else
 		GNU="/NO-gnu-FOUND"
 	fi
-	export GNU
 fi
+export GNU
 
 if [ -z "$WORKPATH" ] ; then
-	if [ -d /work -a -d /work/$LOGNAME-work.d ] ; then
-		WORKPATH="$WORKPATH:/work/$LOGNAME-work.d"
-	fi
-	if [ -d /work -a -w /work/work.d -a -x /work/work.d ] ; then
-		WORKPATH="$WORKPATH:/work/work.d"
-	fi
-	if [ -d $LOCAL/work -a -d $LOCAL/work/$LOGNAME-work.d ] ; then
-		WORKPATH="$LOCAL/work/$LOGNAME-work.d"
-	fi
-	if [ -d $LOCAL/work.d -a -w $LOCAL/work.d -a -x $LOCAL/work.d ] ; then
-		WORKPATH="$WORKPATH:/work/work.d"
-	fi
-	if [ -z "$WORKPATH" ] ; then
-		WORKPATH="/NO-work-FOUND:Rejoice!"
-	fi
-	export WORKPATH
+	WORKPATH="$HOME/work.d"
+	dirappend WORKPATH /work/$LOGNAME $LOCAL/work.d/$LOGNAME
 fi
+export WORKPATH
 
 # TODO: explore more options for this....  (xmkmf?)
 # TODO: what if there's more than one?
