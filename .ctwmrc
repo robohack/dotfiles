@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.14	98/03/04 21:29:32 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.15	98/03/23 19:46:10 (woods)"
 #
 
 changequote([, ])
@@ -162,7 +162,7 @@ IconJustification		"right"
 
 IconRegion	"500x250-0+300" North East 25 25
 
-IconDirectory		"HOME/lib/bitmaps:/usr/[include]/X11/bitmaps"
+IconDirectory		["HOME/lib/bitmaps:/usr/include/X11/bitmaps"]
 ifdef([XPM],
  [PixmapDirectory	"HOME/lib/pixmaps:/usr/lib/X11/twm/images"], [])
 
@@ -195,10 +195,14 @@ Icons {
 	"Untitled"	"xlogo16"
 	"xcmap"		"plaid"
 	"XConsole"	"terminal"
- ifdef([XPM],
-[	"auedit"	"xpm:audio_editor.xpm"
+ ifdef([XPM], [
+	"auedit"	"xpm:audio_editor.xpm"
+	"emacs"		"xpm:emacs.xpm"
 	"ghostview"	"xpm:ghostview.xpm"
-	"Mosaic"	"xpm:xmosaic.xpm"
+	"log0"		"xpm:document-simple.xpm"
+	"log1"		"xpm:document-simple.xpm"
+	"log2"		"xpm:document-simple.xpm"
+	"Mosaic"	"xpm:button-spider.xpm"
 	"spider"	"xpm:spider.xpm"
 	"xcalendar"	"xpm:datebook.xpm"
 	"xclipboard"	"xpm:clipboard.xpm"
@@ -206,8 +210,8 @@ Icons {
 	"xftp"		"xpm:xftp.xpm"
 	"xpostit"	"xpm:postit.xpm"
 	"XSm"		"xpm:xgrab.xpm"
-	"xterm"		"xpm:term.xpm"],
-[	"xterm"		"Term"])
+	"xterm"		"xpm:term.xpm"
+ ], [	"xterm"		"Term" ])
 }
 
 Cursors {
