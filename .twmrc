@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.33	96/09/07 23:56:25 (woods)"
+#ident	"@(#)HOME:.twmrc	2.34	96/09/08 00:01:45 (woods)"
 #
 
 AutoRelativeResize
@@ -1165,6 +1165,7 @@ menu "applications"
 	"Applications"			f.title
 	"Xterm's Everywhere..."		f.menu "xterm"
 	"Rlogin's Everywhere..."	f.menu "rlogin"
+	"Telnet's Everywhere..."	f.menu "telnet"
 	"Slogin's Everywhere..."	f.menu "slogin"
 	"GhostView Everywhere..."	f.menu "ghostviews"
 	"WWW Everywhere..."		f.menu "www"
