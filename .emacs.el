@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.26	99/09/13 00:34:37 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.27	99/10/12 14:57:15 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -74,7 +74,14 @@
 (if (= init-emacs-type 20)
     (setq inhibit-eol-conversion t))	; show MS crap for what it is....
 
+;; Rumour has it that in 20.4 the following will work best:
+;;
+;;  (setup-latin1-environment)
+;;  (set-language-environment "Latin-1")
+;;
 (standard-display-european 1)
+;
+; This doesn't work any better in 20.3....
 ;(set-language-environment "Latin-1")	; force the issue
 ;(set-terminal-coding-system 'iso-8859-1) ; force the issue
 
