@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.6	98/10/08 12:15:30 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.7	98/10/20 23:11:03 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -378,6 +378,13 @@ vm-virtual-folder-alist."
   (save-excursion
     ;; this is no longer necessar with newer versions of VM, eg. 6.62
     ;;(my-vm-quit-all-virtual-folders)
+    ;; instead we only need to quit the "General Delivery" folder:
+    (save-excursion
+      (condition-case error-data
+	  (let ((vm-confirm-quit nil))
+	    (set-buffer (concat "(" my-vm-virtual-leftovers-folder ")"))
+	    (vm-quit))
+	(error nil)))
     (set-buffer (vm-get-file-buffer vm-primary-inbox))
     (vm-get-new-mail)
     ;; make sure all new messages are in their target folders so that the magic
@@ -497,7 +504,7 @@ message/rfc822 attachments."
 ;;;   vm-arrived-message-hook nil
 ;;;   vm-arrived-messages-hook nil
       vm-auto-center-summary nil
-      vm-auto-decode-mime-messages nil
+      vm-auto-decode-mime-messages t
       vm-auto-displayed-mime-content-types '("text" "multipart" "message/rfc822")
       vm-auto-folder-case-fold-search t	; so that vm-auto-folder-alist is simpler
       vm-auto-get-new-mail nil		; keep this manual for now
