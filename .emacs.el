@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	12.5	94/03/31 14:48:40 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	12.6	94/03/31 15:57:39 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -888,6 +888,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 (global-set-key "\e\C-z" 'suspend-emacs)
 
 (global-set-key "\C-x?" 'describe-key-briefly)
+(global-set-key "\C-x\C-a" 'super-apropos)
 
 (global-set-key "\e," 'top-of-window)		; mirror M-<
 (global-set-key "\e." 'bottom-of-window)	; mirror M->
@@ -899,7 +900,6 @@ it could check Status: headers for O, or Forward to in mailboxes."
 
 (if window-system
     (progn
-      (global-set-key "\C-x\C-a" 'super-apropos)
       (global-set-key "\C-x5i" 'iconify-frame)
       (global-set-key "\C-x5T" 'find-tag-other-frame)))
 
