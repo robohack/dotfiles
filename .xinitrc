@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	18.3	97/01/28 23:56:35 (woods)"
+#ident	"@(#)HOME:.xinitrc	18.4	97/03/10 21:17:55 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -102,7 +102,7 @@ if [ -r $HOME/.Xmodmap ] ; then
 	# what we really need is some way to tell what type of keyboard
 	# is attached.... as this is primarily to fix dumb PC(-like) kybds
 	case "$UUNAME" in
-	very|pretty|sometimes|always)
+	very|almost|pretty|sometimes|always)
 		;;
 	*)
 		xmodmap $HOME/.Xmodmap	# Load user's keymap
