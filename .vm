@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.1	95/07/01 10:44:28 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.2	95/07/01 16:38:56 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -11,13 +11,34 @@
 ;;;
 
 (setq mail-signature t)			; auto-insert ~/.signature
-(setq mail-archive-file-name "~/Mail/.outgoing") ; for posterity
 (setq mail-default-reply-to (concat (user-login-name) "@" (vm-fqdn)
 				    " (" (user-full-name) ")"))
 (setq mail-header-separator ".")	; as close to nothing as possible
 
 (add-hook 'vm-mail-mode-hook
 	  (function (lambda () (local-set-key "\C-ci" 'ispell-message))))
+
+;;(setq mail-archive-file-name "~/Mail/.outgoing") ; for posterity
+;;
+;;; From: bhoylma@advtech.USWest.COM (Bruce W. Hoylman)
+;;; SENDER: info-vm-request@uunet.uu.net
+;;; Subject: Re: Newbie wants VM to auto-archive mail like (shudder) pine
+;;; Date: 30 May 1995 10:57:11 -0600
+(add-hook 'vm-mail-mode-hook
+	  ;; Mail archive filename defun
+	  (defun set-mail-archive-file-name ()
+	    (let ((date (current-time-string)))
+	      (string-match
+	       "^\\([A-Z][a-z][a-z]\\) \\([A-Z][a-z][a-z]\\) \\([0-9 ][0-9]\\) \\([0-9][0-9]:[0-9][0-9]\\)\\(:[0-9][0-9]\\) [0-9][0-9]\\([0-9][0-9]\\)"
+	       date)
+	      (setq mail-archive-file-name
+		    (concat vm-folder-directory
+			    ".outgoing/"
+			    (substring date (match-beginning 6)
+				       (match-end 6))
+			    "-"
+			    (substring date (match-beginning 2)
+				       (match-end 2)))))))
 
 (defvar mail-default-organization "~/.organization"
   "The default name of your organization (or filename containing a string
