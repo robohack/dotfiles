@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file
 #
-#ident	"@(#)HOME:.xinitrc	5.1	94/12/20 14:38:49 (woods)"
+#ident	"@(#)HOME:.xinitrc	5.2	95/03/11 16:40:08 (woods)"
 
 . /etc/profile
 
@@ -17,6 +17,7 @@ echo "$argv0: starting on $DISPLAY...."
 
 case "$DISPLAY" in
 ":0" | ":0.0" | "" )
+	# TODO: need to check existence of domainname and results
 	DISPLAY="`hostname``domainname`:0.0"
 	;;
 esac
@@ -39,43 +40,80 @@ elif [ -f "$OPENWINHOME/lib/Xdefaults" ] ; then
 	xrdb $OPENWINHOME/lib/Xdefaults	# Load Default X11 resource database
 fi
 
-xhost kuma.web.net araignee.web.net spinne.web.net
+# TODO: this might be a mistake, but it might also save your bacon!
+#
+xhost `hostname` localhost -
+
+if [ -s $HOME/.xhosts ]; then
+	while read HOST junk; do
+		case "$HOST" in
+		"" | '#'* )
+			;;
+		* )
+			if [ -n "$HOST" ]; then
+				xhost +$HOST			
+			fi
+			;;
+		esac
+	done < $HOME/.xhosts
+fi
 
 if [ "$argv0" = .xinitrc ] ; then
-	#xsetroot -bitmap /usr/openwin/share/include/X11/bitmaps/escherknot
-	xphoon -t 10 &
+	if [ -x /usr/bin/X11/xearth ] ; then
+		xearth &
+	elif [ -x /usr/bin/X11/xphoon ] ; then
+		xphoon -t 10 &
+	elif [ -r /usr/include/X11/bitmaps/escherknot ] ; then
+		xsetroot -bitmap /usr/include/X11/bitmaps/escherknot
+	elif [ -r /usr/openwin/share/include/X11/bitmaps/escherknot ] ; then
+		xsetroot -bitmap /usr/openwin/share/include/X11/bitmaps/escherknot
+	fi
 fi
 
-if [ "$argv0" = .xinitrc -a "$TTY" = /dev/console ] ; then
-	# if we're on the console,
-	# and only if it's not already running courtesy of xdm....
-	xconsole -geometry 500x80-4-350 &
+# if we're on the console,
+# TODO: and only if it's not already running courtesy of xdm....
+#
+if [ "$argv0" = .xinitrc -a `tty` = /dev/console ] ; then
+	xconsole -geometry 500x100-4-4 &
+	sleep 1
+
+	xclock -geometry 190x30-4+196 -digital &
+	# ensure they get overlayed in the right order
+	sleep 1
+	xclock -geometry 190x190-4+4 &
 fi
 
-xclock -geometry 190x30-4+196 -digital &
-# ensure they get overlayed in the right order
-sleep 1
-xclock -geometry 190x190-4+4 &
-
-xmailwatcher -geometry 300x100-4+240 -iconic -icongeometry -140+240 -iconic -mailbox /var/spool/mail/$LOGNAME &
-xmailwatcher -geometry 300x100-4+300 -iconic -icongeometry -140+300 -iconic -mailbox /kuma/var/spool/mail/$LOGNAME &
+if [ -x /usr/bin/X11/xmailwatcher ] ; then
+	xmailwatcher -geometry 300x100-4+240 -iconic -icongeometry -140+240 -iconic -mailbox $MAILPATH &
+	# TODO; get rid of these host name dependencies....
+	if [ -r /kuma/$MAILPATH ] ; then
+		xmailwatcher -geometry 300x100-4+300 -iconic -icongeometry -140+300 -iconic -mailbox /kuma/$MAILPATH &
+	fi
+	if [ -r /most/$MAILPATH ] ; then
+		xmailwatcher -geometry 300x100-4+300 -iconic -icongeometry -140+300 -iconic -mailbox /kuma/$MAILPATH &
+	fi
+fi
 
 # Grrr.... xsol doesn't take standard toolkit args....
 #xsol -geometry 32x48-4+260 -iconic &
 
 if [ -x /usr/bin/X11/xsysstats ] ; then
 	xsysstats -geometry 120x137-205+4 -type load1 -type disk -sample 5 &
-	xsysstats -geometry 120x137-205+150 -type load1 -host kuma -type disk -host kuma -sample 5 &
-	#rsh -n kuma /usr/openwin/bin/perfmeter -geometry 148x330-355+4 -display $DISPLAY tar.web.net &
-	#rsh -n kuma /usr/openwin/bin/perfmeter -geometry 148x330-200+4 -display $DISPLAY kuma.web.net &
+	case "$DOMAINNAME" in
+	web.net)
+		xsysstats -geometry 120x137-205+150 -type load1 -host kuma -type disk -host kuma -sample 5 &
+		;;
+	esac
 else
+	# it's in the MIT distribution....
 	xload -geometry 120x137-205+4 -hl grey90 &
-#	rsh -n kuma /usr/openwin/bin/xload -geometry 120x137-205+150 -jumpscroll 1 -hl grey90 -display $DISPLAY &
 fi
 
 sleep 1
 
-xterm -geometry 80x24-4+360 -sl 500 -sb -sk -si -rw  -ls -T Primary &
+# Ah!  Your Free localhost Window!
+xterm -geometry 80x24-4-110 -sl 500 -sb -sk -si -rw  -ls -T Primary &
 
 # when the window manager exits so shall we...
+#
 twm
