@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.12	96/03/22 15:38:25 (woods)"
+#ident	"@(#)HOME:.twmrc	2.13	96/03/25 08:47:31 (woods)"
 #
 
 AutoRelativeResize
@@ -164,6 +164,10 @@ function "start-weight-xterm" {
 	f.exec "$RSH -n weight.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
+function "start-quicksilver-xterm" {
+	f.exec "$RSH -n quicksilver.infoshare.net exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
 function "start-araignee-xterm" {
 	f.exec "$RSH -n araignee.web.net exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
@@ -245,6 +249,10 @@ function "start-worm-rlogin" {
 
 function "start-martech-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin martech.planix.com &"
+}
+
+function "start-quicksilver-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin quicksilver.infoshare.net &"
 }
 
 function "start-aci-rlogin" {
@@ -737,6 +745,8 @@ menu "xterm"
 	"Xterm @woffi"			f.function "start-woffi-xterm"
 	"Xterm @wind"			f.function "start-wind-xterm"
 	"Xterm @weight"			f.function "start-weight-xterm"
+	"    infoshare.net hosts"	f.nop
+	"Xterm @quicksilver"		f.function "start-quicksilver-xterm"
 	"    web.net hosts"		f.nop
 	"Xterm @araignee"		f.function "start-araignee-xterm"
 	"Xterm @jala"			f.function "start-jala-xterm"
@@ -766,6 +776,8 @@ menu "rlogin"
 	"Rlogin @worm.planix.com"	f.function "start-worm-rlogin"
 	""				f.nop
 	"Rlogin @martech.planix.com"	f.function "start-martech-rlogin"
+	""				f.nop
+	"Rlogin @quicksilver"		f.function "start-quicksilver-rlogin"
 	""				f.nop
 	"Rlogin @aci.on.ca"		f.function "start-aci-rlogin"
 	"Rlogin @log.on.ca"		f.function "start-logon-rlogin"
