@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	19.1	98/01/11 20:58:48 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	19.2	98/02/01 20:38:17 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1746,6 +1746,7 @@ current emacs server process..."
 	(holiday-fixed 12 26 "Boxing Day (Canada & UK)")
 	;; the rest are pseudo-holidays or non-local holidays...
 	(holiday-fixed 1 11 "Sir John A. Macdonald's birthday")
+	(holiday-fixed 1 25 "Robby Burns Day")
 	(holiday-float 2 1 3 "Heritage Day") ; (unoff.) third Monday
 	(holiday-fixed 4 1 "April Fool's Day")
 	(holiday-fixed 4 21 "Queen Elizabeth's birthday")
