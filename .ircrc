@@ -1,7 +1,7 @@
 #
 #	greg's ~/.ircrc
 #
-#ident	"@(#)HOME:.ircrc	20.1	98/07/20 11:23:45 (woods)"
+#ident	"@(#)HOME:.ircrc	20.2	98/10/23 02:20:42 (woods)"
 
 set NOVICE off
 set CLOCK on
@@ -12,7 +12,7 @@ set SHOW_END_OF_MSGS on
 set HISTORY 1000
 #set HISTORY_FILE ~/.irc_history
 
-nick robohack
+#nick robohack
 name "Greg A. Woods"
 
 # load some basic standard scripts
@@ -38,12 +38,22 @@ window new channel #secrets
 mode #secrets +it
 
 addchan [#secrets]
+addop [*!woods@*weird.com]
+addop [*!woods@*planix.com]
 addop [*!andy@*weird.com]
-addop [*!andy@*seachange.com]
-addop [*!gegai@*io.org]
+addop [*!andy@*passport.ca]
+addop [*!andy@*ftn.net]
+addop [*!gegai@*passport.ca]
+addop [*!gegai@*ftn.net]
+addinv [robohack!*@*]
 addinv [dreamzz!*@*]
+addinv [*!woods@*weird.com]
+addinv [*!woods@*planix.com]
 addinv [*!andy@*weird.com]
-addinv [*!andy@*seachange.com]
+addinv [*!andy@*passport.ca]
+addinv [*!andy@*ftn.net]
+addinv [*!gegai@*passport.ca]
+addinv [*!gegai@*ftn.net]
 
 mode #secrets +o dreamzz
 topic #secrets The Secrets of the *WEIRD* ....
