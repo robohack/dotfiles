@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	4.1	94/06/17 22:17:51 (woods)"
+;;;#ident	"@(#)HOME:.vm	4.2	94/10/26 17:19:36 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -80,6 +80,77 @@ ORGANIZATION.  If not nil, takes precedence over the file
      vm-arrived-message-hook nil
 ;;;  vm-auto-center-summary 1		; only if not the only existing window
      vm-auto-center-summary nil
+     vm-auto-folder-alist '(
+			    ;; To: & Cc: entries here.
+			    ("^\\(to\\|cc\\)"
+			     ("source-changes@NetBSD.ORG" .
+			      (concat vm-folder-directory
+				      "netbsd/source-changes"))
+			     ("\\(current-users@NetBSD.ORG\\|apana-lists-os-netbsd-general@\||source@NetBSD.ORG\\)" .
+			      (concat vm-folder-directory
+				      "netbsd/current-users"))
+			     ("\\(tech-[^@%]+\\)[@%]NetBSD.ORG" .
+			      (concat vm-folder-directory
+				      "netbsd/"
+				      (buffer-substring (match-beginning 1)
+							(match-end 1))))
+			     ("hyperbole@" .
+			      (concat vm-folder-directory
+				      "hyperbole"))
+			     ("bind@" .
+			      (concat vm-folder-directory
+				      "bind"))
+			     ("\\(bug-[^@%]+\\)[@%]" .
+			      (concat vm-folder-directory
+				      (buffer-substring (match-beginning 1)
+							(match-end 1))))
+			     ("\\(gnu-[^@%]+\\)[@%]" .
+			      (concat vm-folder-directory
+				      (buffer-substring (match-beginning 1)
+							(match-end 1))))
+			     ("\\(info-[^@%]+\\)[@%]" .
+			      (concat vm-folder-directory
+				      (buffer-substring (match-beginning 1)
+							(match-end 1))))
+			     )
+			    ;; Sender: entries here.
+			    ("sender"
+			     ("owner-\\([^@%]+\\)[@%]NetBSD.ORG" .
+			      (concat vm-folder-directory
+				      "netbsd/"
+				      (buffer-substring (match-beginning 1)
+							(match-end 1))))
+			     )
+			    ;; From: entries here.
+			    ("from"
+			     ("gegai@.*\\.io\\.org"
+			      (concat vm-folder-directory
+				      "from/andy"))
+			     ("<\\([^>@%]+\\)" . ;; first last <thing@domain> returns thing
+			      (concat vm-folder-directory
+				      "from/"
+				      (buffer-substring (match-beginning 1)
+							(match-end 1))))
+			     ;; match id with @
+			     ("\\([^@%]+\\)[@%]" . ;; thing@domain (first last) returns thing
+			      (concat vm-folder-directory
+				      "from/"
+				      (buffer-substring (match-beginning 1)
+							(match-end 1))))
+			     ;; match first word
+			     ("\\(\\w+\\) " . ;; gives up and returns first word
+			      (concat vm-folder-directory
+				      "from/"
+				      (buffer-substring (match-beginning 1)
+							(match-end 1))))
+			     )
+;			    ;; Last case.  
+;			    (".*"
+;			     (".*" . (let ((name (vm-su-interesting-full-name (car mp))))
+;				       (if (string-equal (substring name 0 4) "To: ")
+;					   (setq name (substring name 4)))
+;				       (concat (downcase (substring name 0 1)) "/" name))))
+			    )
      vm-auto-folder-case-fold-search nil
      vm-auto-get-new-mail t		; don't go to next msg unless I say so!
      vm-auto-next-message nil
