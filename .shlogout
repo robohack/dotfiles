@@ -1,13 +1,13 @@
 #
 #	.shlogout - logout script for sh
 #
-#ident	"@(#)HOME:.shlogout	2.1	95/02/15 11:08:08 (woods)"
+#ident	"@(#)HOME:.shlogout	2.2	96/01/15 18:11:43 (woods)"
 
 trap "" 1 2 3 4 5 6 7 8 10 12 13 14 15
 trap "" 0
 echo ""
 echo "| Logging $LOGNAME out of $UUNAME at `date`."
-if expr `tty` : "/dev/tty[ab0]" >/dev/null; then
+if expr "`tty`" : "/dev/tty[ab0]" >/dev/null; then
 	sleep 2
 	tput clear
 fi
