@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	14.1	94/06/17 22:17:46 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	14.2	94/06/20 22:39:03 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -63,11 +63,8 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 		      (t
 		       "/gnu")))
 
+(defvar original-load-path load-path)
 (setq load-path (cons (expand-file-name "~/lib/elisp") load-path))
-
-(setq load-path (append load-path
-			(list (concat local-gnu-path
-				      "/lib/emacs/site-lisp/hyperbole"))))
 
 ;;; This could probably be rewritten to use mapcar
 (defun elisp-file-in-loadpath-p (file-name)
@@ -103,6 +100,14 @@ directory in the list PATHLIST, otherwise nil."
 
 ;;;; ----------
 ;;;; some default packages we'd like...
+
+;; hyperbole auto-loading
+(if (elisp-file-in-loadpath-p "hyperbole")
+    (progn
+      (setq load-path (append load-path
+			      (list (concat (car original-load-path)
+					    "/hyperbole"))))
+      (load-library "hyperbole")))
 
 (if (elisp-file-in-loadpath-p "c-boxes")
     (autoload 'reindent-c-comment "c-boxes" "Function for boxing C comments." t))
@@ -211,12 +216,6 @@ directory in the list PATHLIST, otherwise nil."
        '(("^.*/tmp/[^/]*nf.*$" . indented-text-mode)) ; notesfile compose buffer
        '(("/tmp/\.mail.*$" . mail-mode))
        auto-mode-alist))
-
-(if (elisp-file-in-loadpath-p "hyperbole")
-    (setq auto-mode-alist
-	  (append
-	   '(("/[^/]+\\.kotl$" . kotl-mode)) ; outline mode
-	   auto-mode-alist)))
 
 (if (elisp-file-in-loadpath-p "ksh-mode")
     (setq auto-mode-alist
@@ -622,11 +621,6 @@ suffixes `.elc' or `.el' to the specified name FILE."
 	  "Mark BUFFER as \"done\" for its client(s)."
 	  nil nil))
       (require 'server)
-      ;; I *USUALLY* EXPECT THE BACKSPACE KEY TO GENERATE AN ASCII BACKSPACE!
-      (define-key function-key-map [backspace] [8])
-      (define-key function-key-map [backspace] [?\C-h])
-      (define-key function-key-map [C-backspace] [?\C-h])
-      (define-key function-key-map [M-backspace] [?\M-\C-h])
       (setq server-temp-file-regexp
 	    "/tmp/Re\\|/draft$\\|/\\.letter$\\|/\\.article$/\\|/tmp/[^/]*\\.ed\\|/tmp/[^/]*nf")
       ;; From: qhslali@aom.ericsson.se (Lars Lindberg EHS/PBE 80455 2122 { tom
@@ -777,15 +771,6 @@ it could check Status: headers for O, or Forward to in mailboxes."
 ;;;; ----------
 ;;;; more hooks for non-default packages
 
-(if (elisp-file-in-loadpath-p "hyperbole")
-    (progn
-      ;; to quiet the v19 vyte compiler
-      (defvar smart-scroll-proportional)
-      (add-hook 'hyperb:init-hook
-		(function
-		 (lambda ()
-		   (setq smart-scroll-proportional t))))))
-
 (if (elisp-file-in-loadpath-p "pcl-cvs")
     (progn
       ;; to quiet the v19 byte compiler
@@ -849,6 +834,12 @@ it could check Status: headers for O, or Forward to in mailboxes."
 (global-set-key "\e\C-h" 'backward-kill-word)
 (global-set-key "\e\C-?" 'kill-word)
 (global-set-key "\e?" 'help-command)		; smart enough to set itself up
+
+;; I *USUALLY* EXPECT THE BACKSPACE KEY TO GENERATE AN ASCII BACKSPACE!
+(define-key function-key-map [backspace] [8])
+(define-key function-key-map [backspace] [?\C-h])
+(define-key function-key-map [C-backspace] [?\C-h])
+(define-key function-key-map [M-backspace] [?\M-\C-h])
 
 ;;; for fingers that forget....
 (global-set-key "\C-\\" 'search-forward)
