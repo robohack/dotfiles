@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.12	99/03/18 23:04:46 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.13	99/04/05 19:13:35 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -460,8 +460,8 @@ scripts (alias)." t)
 	    (append
 	     '(("/[Cc]onfig[^/\\.]*$" . sh-mode))
 	     '(("[^/]*rc$" . sh-mode))
-	     '(("^rc\\.[^/]*$" . sh-mode))
-	     '(("^rc\\.[^/]*/[^/]*$" . sh-mode))
+	     '(("/rc\\.[^/]*$" . sh-mode))
+	     '(("/rc\\.[^/]*/[^/]*$" . sh-mode))
 	     '(("[-\\.]ash[^/]*$" . sh-mode))
 	     '(("[-\\.]ksh[^/]*$" . sh-mode))
 	     '(("[-\\.]sh[^/]*$" . sh-mode))
