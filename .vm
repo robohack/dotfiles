@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.29	99/11/17 21:51:35 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.30	99/11/17 21:59:59 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -734,8 +734,13 @@ message/rfc822 attachments."
 ;;;   vm-arrived-messages-hook nil
       vm-auto-center-summary nil
       vm-auto-decode-mime-messages nil	; might miss text in preamble otherwise!
-      vm-auto-displayed-mime-content-type-exceptions nil
-      vm-auto-displayed-mime-content-types '("text" "multipart" "message/rfc822")
+      vm-auto-displayed-mime-content-type-exceptions '("text/x-vcard"
+						       "text/html"
+						       ) ; vcard is *UGLY*
+      vm-auto-displayed-mime-content-types '("text" ; all sub-parts implied
+					     "multipart" ; all sub-parts implied
+					     "message/rfc822"
+					     ) ; we like text!
       vm-auto-folder-case-fold-search t	; so that vm-auto-folder-alist is simpler
       vm-auto-get-new-mail nil		; keep this manual for now
       vm-auto-next-message nil		; when you're at the bottom of the msg, stay there!
@@ -1450,6 +1455,7 @@ message/rfc822 attachments."
 		      (recipient "postfix-testers@")
 		      (recipient "postfix-users@")
 		      (recipient "vmailer-testers@")))))))
+
 ;;;
 ;;;	End Of File
 ;;;
