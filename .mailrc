@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	21.4	00/02/08 14:16:05 (woods)"
+# ident	"@(#)HOME:.mailrc	21.5	00/03/06 22:08:36 (woods)"
 
 set keep
 set keepsave
@@ -22,6 +22,7 @@ alias bug-cvs		"bug-cvs@gnu.org (CVS-II Bugs Mailing List)"
 alias bug-gnu-emacs	"bug-gnu-emacs@gnu.org (GNU Emacs Bugs Mailing List)"
 alias bug-vm		"bug-vm@UUnet.UU.net (ViewMail Bugs Mailing List)"
 alias bugtraq		"BUGTRAQ@SECURITYFOCUS.COM (BUGTRAQ: Full Disclosure Security Mailing List)
+alias cricket-users     "cricket-users@lists.sourceforge.net (Cricket Users Mailing List)"
 alias current-users	"current-users@NetBSD.ORG (NetBSD-current Discussion List)"
 alias datacenter	"datacenter@shorty.com (Data Centre Discussion List)"
 alias devel-cvs		"devel-cvs@cyclic.com (CVS Developers)"
