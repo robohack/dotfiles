@@ -4,24 +4,30 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	18.19	97/09/24 21:26:59 (woods)"
+#ident	"@(#)HOME:.twmrc	18.20	97/10/15 02:47:52 (woods)"
 #
 
 AutoRelativeResize
 DecorateTransients
 NoGrabServer
 NoRaiseOnMove
-# RandomPlacement
+NoRaiseOnResize
+
 RestartPreviousState
-SortIconManager
+
+IconRegion	"500x250-0+300" NORTH EAST 25 25
+
+IconDirectory   "/usr/include/X11/bitmaps"
+
 Zoom 12
 
-TitleFont "-adobe-helvetica-bold-r-normal--*-100-*-*-*-*-*-*"
-ResizeFont "-adobe-helvetica-bold-r-normal--*-180-*-*-*-*-*-*"
-MenuFont "-adobe-helvetica-medium-r-normal--*-100-*-*-*-*-*-*"
-IconFont "-adobe-helvetica-medium-r-normal--*-80-*-*-*-*-*-*"
-IconManagerFont "-adobe-helvetica-bold-r-normal--*-100-*-*-*"
+TitleFont	"-*-courier-bold-o-normal-*-*-100-100-100-*-*-*-*"
+ResizeFont	"-*-courier-bold-r-normal-*-*-180-100-100-*-*-*-*"
+MenuFont	"-*-clean-bold-r-normal-*-*-90-100-100-*-*-*-*"
+IconFont	"-*-courier-bold-o-normal-*-*-80-100-100-*-*-*-*"
+IconManagerFont	"-*-helvetica-bold-r-normal-*-*-80-100-100-*-*-*-*"
 
+# DefaultFunction must come after fonts....
 DefaultFunction f.beep
 
 Monochrome {
@@ -33,30 +39,34 @@ Monochrome {
 
 # some older versions don't support this:
 #
-Grayscale {
-	BorderColor		"grey50"
-	DefaultBackground	"grey98"
-	DefaultForeground	"grey6"
-	TitleBackground		"white"
-	TitleForeground		"gray95"
-	MenuBackground		"white"
-	MenuForeground		"grey95"
-	MenuTitleBackground	"grey70"
-	MenuTitleForeground	"white"
-	IconBackground		"grey25"
-	IconForeground		"grey85"
-	IconBorderColor		"grey50"
-	IconManagerBackground	"white"
-	IconManagerForeground	"grey95"
-}
+#Grayscale {
+#	BorderColor		"grey70"
+#	DefaultBackground	"grey98"
+#	DefaultForeground	"grey6"
+#	TitleBackground		"white"
+#	TitleForeground		"gray95"
+#	MenuBackground		"white"
+#	MenuForeground		"grey95"
+#	MenuTitleBackground	"grey70"
+#	MenuTitleForeground	"white"
+#	IconBackground		"grey25"
+#	IconForeground		"grey85"
+#	IconBorderColor		"grey50"
+#	IconManagerBackground	"white"
+#	IconManagerForeground	"grey95"
+#	IconManagerHighlight	"grey25"
+#}
 
-Color
-{
+Color {
 # some older versions don't have these...
 #	PointerForeground	"black"
 #	PointerBackground	"white"
-	BorderColor		"LightBlue" {
+	BorderColor		"grey70" {
 		"xload" "red"
+		"xnetload" "red"
+		"xcpustate" "red"
+		"XSysStats" "red"
+		"xosview" "red"
 		"xclock" "orange"
 		"xcpustate" "yellow"
 	}
@@ -74,14 +84,41 @@ Color
 	MenuShadowColor		"gray50"
 	IconBackground		"blue4"
 	IconForeground		"yellow"
-	IconBorderColor		"gray95"
-	IconManagerBackground	"blue"
-	IconManagerForeground	"lightblue"
+	IconBorderColor		"gray50"
+	IconManagerBackground	"blue4"
+	IconManagerForeground	"white"
 	IconManagerHighlight	"yellow"
 }
 
-Cursors
-{
+IconManagers	{ "XTerm" "=305x100-200+4" 1 }
+
+IconifyByUnmapping {
+	"XTerm"
+}
+
+IconManagerDontShow {
+	"oclock"
+	"xclock"
+	"xcpustate"
+	"xeyes"
+	"xload"
+	"xnetload"
+	"xlogo"
+	"xbiff"
+	"xbuffy"
+	"XSysStats"
+	"xosview"
+}
+
+UnknownIcon "star"
+
+Icons {
+	"Untitled"	"xlogo16"
+	"xcmap"		"plaid"
+	"XConsole"	"terminal"
+}
+
+Cursors {
 	Frame		"top_left_arrow"
 	Title		"top_left_arrow"
 	Icon		"top_left_arrow"
@@ -91,36 +128,40 @@ Cursors
 	Menu		"sb_left_arrow"
 	Button		"hand2"
 	Wait		"watch"
-	Select		"dot"
+	Select		"target"
 	Destroy		"pirate"
 }
 
 NoTitle {
+	"oclock"
 	"xclock"
 	"xcpustate"
 	"xeyes"
 	"xload"
+	"xnetload"
 	"xlogo"
 	"xbiff"
 	"xbuffy"
 	"XSysStats"
+	"xosview"
 }
 
 NoHighlight {
 	"xclock"
 	"xeyes"
 	"xload"
+	"xnetload"
 	"xlogo"
 	"xbiff"
 	"xbuffy"
 	"XSysStats"
+	"xosview"
 }
 
 WarpCursor {
 	"emacs"		# damn thing gets a resource name based on argv[0]!
 	"xterm"
 }
-
 
 # Define some useful functions for motion-based actions.
 #
@@ -148,8 +189,8 @@ Button1 = : icon : f.function "move-or-iconify"
 Button2 = : icon : f.iconify
 Button3 = : icon : f.lower
 
-Button1 = : iconmgr : f.raise
-Button2 = : iconmgr : f.iconify
+Button1 = : iconmgr : f.iconify
+Button2 = : iconmgr : f.raise
 Button3 = : iconmgr : f.lower
 
 
@@ -660,6 +701,10 @@ function "start-most-xv" {
 	f.exec "$RSH -n most.weird.com exec $X11BIN/xv -display $DISPLAY &"
 }
 
+function "start-whats-xv" {
+	f.exec "$RSH -n whats.weird.com exec $X11BIN/xv -display $DISPLAY &"
+}
+
 
 #       for emacs menu
 #
@@ -674,22 +719,22 @@ function "start-x11server-emacs" {
 
 # note this uses the local path, etc....
 function "start-most-emacs" {
-	f.exec "$RSH -n most.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
+	f.exec "$RSH -n most.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
 }
 
 # note this uses the local path, etc....
 function "start-whats-emacs" {
-	f.exec "$RSH -n whats.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
+	f.exec "$RSH -n whats.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
 }
 
 # note this uses the local path, etc....
 function "start-woffi-emacs" {
-	f.exec "$RSH -n woffi.planix.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec '$LOCAL'/bin/emacs -display '$DISPLAY' -i' &"
+	f.exec "$RSH -n woffi.planix.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec /local/bin/emacs -display '$DISPLAY' -i' &"
 }
 
 # note this uses the local path, etc....
 function "start-kuma-emacs" {
-	f.exec "$RSH -n kuma.web.net '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
+	f.exec "$RSH -n kuma.web.net '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
 }
 
 # note this uses the local path, etc....
@@ -968,6 +1013,7 @@ menu "preferences"
 	"Viewres"		!"viewres &"
 	"Editres"		!"editres &"
 	"Query"			!"xset q"
+	"Xkeycaps"		!"xkeycaps &"
 	"Auto Repeat On"	!"xset r on"
 	"Auto Repeat Off"	!"xset r off"
 	"Bell On"		!"xset b 100 800"
@@ -1081,14 +1127,29 @@ menu "applications"
 	"Monitors..."			f.menu "monitors"
 	"Locks..."			f.menu "locks"
 	"Backgrounds..."		f.menu "backgrounds"
+	"Audio Tools..."		f.menu "audios"
 	"Miscellaneous..."		f.menu "miscapps"
 	"Games..."			f.menu "games"
+}
+
+menu "audios"
+{
+	"Audio Tools"			f.title
+	"audemo"			!"cd /local/audio; audemo &"
+	"auedit"			!"auedit &"
+	"aupanel"			!"aupanel &"
+	"auphone"			!"auphone &"
+	"auwave"			!"auwave &"
+	""				f.nop
+	"xcdplayer"			!"xcdplayer &"
+	"xmcd"				!"xmcd &"
 }
 
 menu "miscapps"
 {
 	"Miscellaneous Applications"	f.title
 	"xhelp"				!"xhelp &"
+	"xpaint"			!"xpaint &"
 	"xshell"			!"xshell &"
 	"xedit"				!"xedit &"
 	"xmail"				!"xmail &"
@@ -1104,7 +1165,8 @@ menu "miscapps"
 	"xmag"				!"xmag &"
 	"xditview"			!"xditview &"
 	"xfontsel"			!"xfontsel &"
-	"xcdplayer"			!"xcdplayer &"
+	"xcmap"				!"xcmap &"
+	"xkeycaps"			!"xkeycaps &"
 }
 
 menu "xvs"
@@ -1113,6 +1175,7 @@ menu "xvs"
 	"@localhost"			f.function "start-local-xv"
 	"@x11server"			f.function "start-x11server-xv"
 	"@most"				f.function "start-most-xv"
+	"@whats"			f.function "start-whats-xv"
 }
 
 menu "emacs"
@@ -1144,8 +1207,16 @@ menu "monitors"
 	""				f.nop
 	"xload"				!"xload -geometry 120x137-205+4 -hl grey90 &"
 	"xload @x11server"		!"$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x137-205+150 -hl grey90 &"
+	"xosview"			!"xosview -geometry 120x137-205+4 &"
+	"xosview @x11server"		!"$ONX11SERVER $X11BIN/xosview -display $DISPLAY -hl grey90 &"
 	"xcpustate"			!"xcpustate -geometry 190x20-4+230 -shorten 1 -wait -cpu -disk &"
 	"xcpustate @x11server"		!"$ONX11SERVER $X11BIN/xcpustate -display $DISPLAY -geometry 190x20-4+230 -shorten 1 -wait -cpu -disk &"
+	""				f.nop
+	"xnetload localhost"		!"xnetload -hl grey90 -scale 0 -label 'local netload' localhost &"
+	"xnetload @xdmhost"		!"xnetload -hl grey90 -scale 0 -label ${XDMHOST}-net $XDMHOST &"
+	""				f.nop
+	"tkined"			!"tkined &"
+	"tkined in /local/monitor"	!"cd $LOCAL/monitor ; tkined &"
 }
 
 menu "locks"
@@ -1160,9 +1231,13 @@ menu "backgrounds"
 {
 	"Backgrounds"			f.title
 	"xearth"			!"xearth -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
+	"xearth nogrid"			!"xearth -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -wait 900 -nice 10 &"
 	"xearth orbiting"		!"xearth -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
+	"xearth orbiting fast"		!"xearth -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -nice 10 &"
 	"xearth -gamma 1.7"		!"xearth -gamma 1.7 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
+	"xearth -gamma 1.7 nogrid"	!"xearth -gamma 1.7 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -wait 900 -nice 10 &"
 	"xearth -gamma 1.7 orbiting"	!"xearth -gamma 1.7 -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
+	"xearth -gamma 1.7 orbiting fast" !"xearth -gamma 1.7 -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -nice 10 &"
 	"xearth on greyscale"		!"xearth -gamma 1.6 -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth on mono"		!"xearth -mono -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xphoon"			!"xphoon -t 10 &"
@@ -1258,6 +1333,7 @@ menu "games"
 	"Xtetris for colour"		!"xtetris -color &"
 	"vine"				!"vine -e &"
 	"vine -w"			!"vine -w &"
+	"xminesweep"			!"xminesweep &"
 	""				f.nop
 	"Xeyes"				!"xeyes &"
 	"Xgc"				!"xgc &"
