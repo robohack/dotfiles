@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.11	96/03/14 16:51:21 (woods)"
+#ident	"@(#)HOME:.twmrc	2.12	96/03/22 15:38:25 (woods)"
 #
 
 AutoRelativeResize
@@ -196,135 +196,135 @@ function "start-tar-xterm" {
 #	for rlogins menu
 #
 function "start-weird-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin ns.weird.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin ns.weird.com &"
 }
 
 function "start-most-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin most.weird.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin most.weird.com &"
 }
 
 function "start-very-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin very.weird.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin very.weird.com &"
 }
 
 function "start-sometimes-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin sometimes.weird.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin sometimes.weird.com &"
 }
 
 function "start-always-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin always.weird.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin always.weird.com &"
 }
 
 function "start-pretty-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin pretty.weird.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin pretty.weird.com &"
 }
 
 function "start-totoro-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin totoro.cyclic.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin totoro.cyclic.com &"
 }
 
 function "start-whome-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin whome.planix.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin whome.planix.com &"
 }
 
 function "start-woffi-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin woffi.planix.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin woffi.planix.com &"
 }
 
 function "start-wind-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin wind.planix.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin wind.planix.com &"
 }
 
 function "start-weight-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin weight.planix.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin weight.planix.com &"
 }
 
 function "start-worm-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin worm.planix.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin worm.planix.com &"
 }
 
 function "start-martech-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin martech.planix.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin martech.planix.com &"
 }
 
 function "start-aci-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin aci.on.ca &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin aci.on.ca &"
 }
 
 function "start-logon-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin log.on.ca &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin log.on.ca &"
 }
 
 function "start-fgsc-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin mailgate.fgsc.ca &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin mailgate.fgsc.ca &"
 }
 
 function "start-cancom-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin cancom.net &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin cancom.net &"
 }
 
 function "start-newscancom-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin news.cancom.net &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin news.cancom.net &"
 }
 
 function "start-pageactive-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin pageactive.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin pageactive.com &"
 }
 
 function "start-passport-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin passport.ca &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin passport.ca &"
 }
 
 function "start-solsinfo-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin solsinfo.sols.on.ca &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin solsinfo.sols.on.ca &"
 }
 
 function "start-lsuc-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin news.lsuc.on.ca &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin news.lsuc.on.ca &"
 }
 
 function "start-iguana-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin iguana.reptiles.org &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin iguana.reptiles.org &"
 }
 
 function "start-tuatara-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin tuatara.reptiles.org &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin tuatara.reptiles.org &"
 }
 
 function "start-druid-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin druid.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin druid.com &"
 }
 
 function "start-skeptic-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin skeptic.druid.com &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin skeptic.druid.com &"
 }
 
 function "start-araignee-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin araignee.web.net &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin araignee.web.net &"
 }
 
 function "start-jala-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin jala.web.net &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin jala.web.net &"
 }
 
 function "start-kuma-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin kuma.web.net &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin kuma.web.net &"
 }
 
 function "start-netserver-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin netserver.web.net &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin netserver.web.net &"
 }
 
 function "start-tar-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin tar.web.net &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin tar.web.net &"
 }
 
 function "start-web-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin web.net &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin web.net &"
 }
 
 function "start-spinne-rlogin" {
-	f.exec "$X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin spinne.web.net &"
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin spinne.web.net &"
 }
 
 
@@ -641,12 +641,12 @@ menu "miscapps"
 	"xclock"			!"xclock -geometry 190x190-4+4 &"
 	"xclock -digital"		!"xclock -geometry 190x30-4+196 -digital &"
 	"xbiff"				!"xbiff -rv -bw 0 &"
-	"xbiff @most"			!"$RSH -n most.weird.com exec xbiff -rv -bw 0 -display $DISPLAY &"
+	"xbiff @x11server"		!"$ONX11SERVER $X11BIN/xbiff -rv -bw 0 -display $DISPLAY &"
 	"xlbiff"			!"xlbiff &"
 	"xmailwatcher"			!"xmailwatcher -geometry 300x100-4+240 -iconic -icongeometry -4+240 -iconic -mailbox $MAILPATH &"
-	"xmailwatcher @most"		!"$RSH -n most.weird.com exec $X11BIN/xmailwatcher -display $DISPLAY -geometry 300x100-4+235 -iconic -icongeometry -4+235 -iconic -mailbox $MAILPATH &"
+	"xmailwatcher @x11server"	!"$ONX11SERVER $X11BIN/xmailwatcher -display $DISPLAY -geometry 300x100-4+235 -iconic -icongeometry -4+235 -iconic -mailbox $MAILPATH &"
 	"xload"				!"xload -geometry 120x137-205+4 -hl grey90 &"
-	"xload @most"			!"$RSH -n most.weird.com exec $X11BIN/xload -display $DISPLAY -geometry 120x137-205+150 -hl grey90 &"
+	"xload @x11server"		!"$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x137-205+150 -hl grey90 &"
 	"    Locks..."			f.nop
 	"xlock"				!"xlock -mode flame &"
 	"xlock remote"			!"xlock -remote -mode flame &"
