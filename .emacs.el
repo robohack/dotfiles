@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.30	96/11/08 00:14:55 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.31	96/11/25 16:00:51 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -265,6 +265,10 @@ scripts (alias)." t)
 (if (and (string-match "-sunos4" system-configuration)
 	 (string-match "/bin/sh$" shell-file-name))
     (setq cannot-suspend t))		; no jobs support!  ;-)
+
+;; Format string for PR summary text.
+(setq gnats::format-string
+      "%5n %-14,14c %,1e%,1p %-12,12r %,6L %,4s %-10*10S %-10*-10R %j\n")
 
 ;;;; ----------
 ;;;; auto-mode-alist setup
@@ -1117,6 +1121,13 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	   (lambda ()
 	     "Private nroff-mode stuff."
 	     (run-hooks 'text-mode-hook))))
+
+(require 'view)
+(add-hook 'view-mode-hook
+	  (function
+	   (lambda ()
+	     "Private view-mode stuff."
+	     (define-key view-mode-map "\C-h" 'View-scroll-lines-backward))))
 
 ;; the real thing, in 19.30(?) and above
 (if (elisp-file-in-loadpath-p "sh-script")
