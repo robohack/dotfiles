@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.12	98/10/28 09:16:32 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.13	99/01/27 18:51:30 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -1117,7 +1117,10 @@ message/rfc822 attachments."
 		  (recipient "tkined@")))
 		("vmailer"
 		 (("INBOX")
-		  (recipient "vmailer-testers@"))))))
+		  (or (recipient "postfix-announce@")
+		      (recipient "postfix-testers@")
+		      (recipient "postfix-users@")
+		      (recipient "vmailer-testers@")))))))
 ;;;
 ;;;	End Of File
 ;;;
