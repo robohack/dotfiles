@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	3.1	93/12/13 11:57:29 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	3.2	93/12/15 14:57:45 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -34,6 +34,12 @@
 				    ((getenv "LOCAL")
 				     (concat (getenv "LOCAL") "/gnu")))
 				   "/lib/emacs/site-lisp")))))
+
+(if (= init-emacs-type '18)
+    (defmacro dont-compile (&rest body)
+      "Like `progn', but the body always runs interpreted (not compiled).
+If you think you need this, you're probably making a mistake somewhere."
+      (list 'eval (list 'quote (if (cdr body) (cons 'progn body) (car body))))))
 
 ;; This could probably be rewritten to use mapcar
 (defun elisp-file-in-loadpath-p (file-name)
