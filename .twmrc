@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.2	95/07/01 16:36:56 (woods)"
+#ident	"@(#)HOME:.twmrc	2.3	95/08/11 00:15:11 (woods)"
 #
 
 AutoRelativeResize
@@ -175,6 +175,10 @@ function "start-most-rlogin" {
 
 function "start-very-rlogin" {
 	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin very.weird.com &"
+}
+
+function "start-sometimes-rlogin" {
+	f.exec "$RSH -n $X11HOST $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin sometimes.weird.com &"
 }
 
 function "start-araignee-rlogin" {
@@ -417,6 +421,7 @@ menu "applications"
 	"xman"				!"xman &"
 	"xphoon"			!"xphoon -t 10 &"
 	"xsetroot eschernknot"		!"xsetroot -bitmap $X11PATH/include/X11/bitmaps/escherknot"
+	"xsetroot xsnow"		!"xsetroot -bitmap $X11PATH/include/X11/bitmaps/snow"
 	"xshell"			!"xshell &"
 	"OpenWin-2 xlock"		!"env LD_LIBRARY_PATH=/usr/openwin/lib:/usr/lib xlock -mode qix &"
 }
@@ -452,6 +457,9 @@ menu "xterm"
 	"Xterm's Everywhere"		f.title
 	"Xterm @localhost"		f.function "start-xterm"
 	"Xterm @X11-host"		f.function "start-x11host-xterm"
+	"    weird.com hosts"		f.nop
+	"Xterm @most"			f.function "start-most-xterm"
+	"Xterm @very"			f.function "start-very-xterm"
 	"    web.net hosts"		f.nop
 	"Xterm @araignee"		f.function "start-araignee-xterm"
 	"Xterm @jala"			f.function "start-jala-xterm"
@@ -460,9 +468,6 @@ menu "xterm"
 	"Xterm @spinne"			f.function "start-spinne-xterm"
 	"Xterm @tar"			f.function "start-tar-xterm"
 	"Xterm @web"			f.function "start-web-xterm"
-	"    weird.com hosts"		f.nop
-	"Xterm @most"			f.function "start-most-xterm"
-	"Xterm @very"			f.function "start-very-xterm"
 }
 
 menu "rlogin"
@@ -471,6 +476,7 @@ menu "rlogin"
 	"Rlogin @most.weird.com"	f.function "start-most-rlogin"
 	"Rlogin @very.weird.com"	f.function "start-very-rlogin"
 	"Rlogin @weird.com"		f.function "start-weird-rlogin"
+	"Rlogin @sometimes.weird.com"	f.function "start-sometimes-rlogin"
 	""				f.nop
 	"Rlogin @araignee.web.net"	f.function "start-araignee-rlogin"
 	"Rlogin @jala.web.net"		f.function "start-jala-rlogin"
