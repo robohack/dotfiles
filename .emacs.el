@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	15.1	94/12/20 14:38:46 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	15.2	95/02/10 12:46:27 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -829,6 +829,11 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	     (setq c-indent-level 8)
 	     (setq c-label-offset -8)
 	     (setq c-tab-always-indent nil))))
+
+;;; GNU-Emacs' (Stallman's?) ideas about formatting C code suck!  Let's stick to
+;;; doing things the good old K&R standard way!!!!
+;;;
+(add-hook 'awk-mode-hook c-mode-hook)
 
 ;; to quiet the v19 byte compiler
 (defvar vc-command-messages)
