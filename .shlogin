@@ -1,9 +1,7 @@
 #
-#	.kshlogin - login shell startup for ksh
+#	.shlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.shlogin	1.1	94/12/20 14:15:39 (woods)"
-
-set -o ignoreeof	# we only do this for our login shell....
+#ident	"@(#)HOME:.shlogin	1.2	95/03/08 15:31:32 (woods)"
 
 ENV=$HOME/.shrc ; export ENV
 
