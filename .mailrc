@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	21.5	00/03/06 22:08:36 (woods)"
+# ident	"@(#)HOME:.mailrc	21.6	00/03/13 16:19:38 (woods)"
 
 set keep
 set keepsave
@@ -112,6 +112,7 @@ alias jeff	"jeff@aci.on.ca (Jeff Royle)"
 alias jerqs	"jerqs@clsc.utoronto.ca (jerq users)"
 alias jim	"jim@reptiles.org (Jim Mercer)"
 alias jmm	"jmm@Elegant.COM (John Macdonald)"
+alias lcis	"professionals@bookclubservices.com (Library of Computer and Information Sciences)"
 alias me	"woods@weird.com (Greg A. Woods)"
 alias nik	"habern@caledon.org (Nik Habermel)"
 alias norman	"norman@cs.yorku.ca (Norman Wilson)"
