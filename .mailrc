@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	21.8	00/07/13 14:41:55 (woods)"
+# ident	"@(#)HOME:.mailrc	21.9	00/07/13 14:42:53 (woods)"
 
 set keep
 set keepsave
@@ -106,6 +106,7 @@ alias dwm	"david@fundy.ca (David Maxwell)"
 alias ecarroll	"ecarroll@rogers.wave.ca (Eric M. Carroll)"
 alias eric.carroll "eric.carroll@acm.org (Eric M. Carroll)"
 alias evan	"evan@telly.on.ca (Evan Leibovitch)"
+alias heison	"heison@somanetworks.com (Heison Chak)"
 alias henry	"henry@utzoo.cs.utoronto.ca (Henry Spencer)"
 alias hugh	"Hugh_Gamble@iceinc.com"
 alias jeff	"jeff@aci.on.ca (Jeff Royle)"
