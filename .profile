@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	21.5	00/03/23 11:43:02 (woods)"
+#ident	"@(#)HOME:.profile	21.6	00/05/26 10:02:01 (woods)"
 
 #
 # Assumptions that may cause breakage:
@@ -77,8 +77,8 @@ if [ -z "$DOMAINNAME" ] ; then
 		eval `sed -n 's/domain[ 	]*/DOMAINNAME=./p' /etc/resolv.conf`
 	elif expr "`type domainname`" : '.* is .*/domainname$' >/dev/null 2>&1 ; then
 		DOMAINNAME="`domainname`"
-	elif expr "$HOSTNAME" : '^[^\.]*\.' >/dev/null 2>&1 ; then
-		DOMAINNAME="."`expr "$HOSTNAME" : '^[^\.]*\.\(.*\)$'`
+	elif expr "$HOSTNAME" : '[^\.]*\.' >/dev/null 2>&1 ; then
+		DOMAINNAME="."`expr "$HOSTNAME" : '[^\.]*\.\(.*\)$'`
 	else
 		# these cases for machines without domainname,
 		# and a short hostname....
@@ -355,11 +355,11 @@ fi
 export MAILLOG
 
 HAVEPRINT=false ; export HAVEPRINT
-if expr "`type print`" : '^print is a shell builtin$' >/dev/null 2>&1 ; then
+if expr "`type print`" : 'print is a shell builtin$' >/dev/null 2>&1 ; then
 	HAVEPRINT=true
 fi
 HAVEPRINTF=false ; export HAVEPRINTF
-if expr "`type printf`" : '^printf is a shell builtin$' >/dev/null 2>&1 ; then
+if expr "`type printf`" : 'printf is a shell builtin$' >/dev/null 2>&1 ; then
 	HAVEPRINTF=true
 elif expr "`type printf`" : '.* is .*/printf$' >/dev/null 2>&1 ; then
 	HAVEPRINTF=true
@@ -536,7 +536,7 @@ elif expr "`type more`" : '.* is .*/more$' >/dev/null 2>&1 ; then
 else
 	PAGER="`type cat`"
 fi
-PAGER="`expr "$PAGER" : '^.*/\([^/]*\)$'`"; export PAGER
+PAGER="`expr "$PAGER" : '.*/\([^/]*\)$'`"; export PAGER
 MANPAGER="$PAGER -s"; export MANPAGER
 
 if [ -s "$HOME/.editor" ] ; then
@@ -600,8 +600,8 @@ vi )
 		VISUAL="`type $EDPREF`"
 	fi
 esac
-EDITOR="`expr "$EDITOR" : '^.*/\([^/]*\)$'`"; export EDITOR
-VISUAL="`expr "$VISUAL" : '^.*/\([^/]*\)$'`"; export VISUAL
+EDITOR="`expr "$EDITOR" : '.*/\([^/]*\)$'`"; export EDITOR
+VISUAL="`expr "$VISUAL" : '.*/\([^/]*\)$'`"; export VISUAL
 EXINIT="set sm" ; export EXINIT
 
 if [ -z "$CVSROOT" ] ; then
@@ -624,7 +624,7 @@ if [ -n "$AUDIOPLAYER" ] ; then
 		AUDIOPLAYER="`type audioplay`"
 	fi
 	if [ -n "$AUDIOPLAYER" ] ; then
-		AUDIOPLAYER="`expr "$AUDIOPLAYER" : '^.*/\([^/]*\)$'`"; export AUDIOPLAYER
+		AUDIOPLAYER="`expr "$AUDIOPLAYER" : '.*/\([^/]*\)$'`"; export AUDIOPLAYER
 	fi
 fi
 
@@ -856,7 +856,7 @@ if $HAVELAYERS && [ "X$TERM" = "Xdmd" -a "`ismpx`" != "yes" ] ; then
 	trap 2
 	case "$yn" in
 	"" | [yY]* | d*)
-		if expr "$yn" : '^d.*' >/dev/null ; then
+		if expr "$yn" : 'd.*' >/dev/null ; then
 			layers=layers-DEBUG
 		else
 			layers=layers

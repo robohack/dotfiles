@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	21.4	00/03/20 14:16:35 (woods)"
+#ident	"@(#)HOME:.kshrc	21.5	00/05/26 09:59:40 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -341,7 +341,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	}
 
 	if expr "$(type rlogin)" : '.* is .*/rlogin$' >/dev/null 2>&1 ; then
-		RLOGIN="$(expr "$(type rlogin)" : '^.*/\([^/]*\)$')"; export RLOGIN
+		RLOGIN="$(expr "$(type rlogin)" : '.*/\([^/]*\)$')"; export RLOGIN
 		unalias rlogin
 		alias rlogin=_rlogin
 		function _rlogin
@@ -356,7 +356,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	fi
 
 	if expr "$(type slogin)" : '.* is .*/slogin$' >/dev/null 2>&1 ; then
-		SLOGIN="$(expr "$(type slogin)" : '^.*/\([^/]*\)$')"; export SLOGIN
+		SLOGIN="$(expr "$(type slogin)" : '.*/\([^/]*\)$')"; export SLOGIN
 		unalias slogin
 		alias slogin=_slogin
 		function _slogin
@@ -371,7 +371,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	fi
 
 	if expr "$(type telnet)" : '.* is .*/telnet$' >/dev/null 2>&1 ; then
-		TELNET="$(expr "$(type telnet)" : '^.*/\([^/]*\)$')" ; export TELNET
+		TELNET="$(expr "$(type telnet)" : '.*/\([^/]*\)$')" ; export TELNET
 		unalias telnet
 		alias telnet=_telnet
 		function _telnet
@@ -629,7 +629,7 @@ function kall
 
 function lastcmd
 {
-	tr '[\001-\007]' '[\012*]' < .sh_history | tr '[\176-\377]' '[ *]' | egrep -v '^[	 }#]|^$' | tail ${1+"$@"}
+	tr '[\001-\007]' '[\012*]' < .sh_history | tr '[\176-\377]' '[ *]' | egrep -v '[	 }#]|^$' | tail ${1+"$@"}
 }
 
 function signm
