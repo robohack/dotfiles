@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file
 #
-#ident        "@(#)HOME:.xinitrc     6.3     95/08/11 00:24:40 (woods)"
+#ident        "@(#)HOME:.xinitrc     6.4     95/11/30 11:06:33 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -69,11 +69,15 @@ if [ -s $HOME/.xhosts ] ; then
 	done < $HOME/.xhosts
 fi
 
-# argv0 is .xinitrc if called by xinit or startc
+# argv0 is .xinitrc if called by xinit or startx
 #
 if [ "$argv0" = .xinitrc ] ; then
 	if [ -x $X11BIN/xearth ] ; then
-		xearth &
+		DEPTHSTR="`xdpyinfo | fgrep 'depth of root window'`"
+		if [ `expr "$DEPTHSTR" : '[ ]*depth of root window:[ ]*\([0-9]*\) '` -ne 1 ] ; then
+			XEGAMMA="-gamma 1.6 -night 15"		# for Sun CG3
+		fi
+		xearth $XEGAMMA -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
 	elif [ -x $X11BIN/xphoon ] ; then
 		xphoon -t 10 &
 	elif [ -r /usr/include/X11/bitmaps/escherknot ] ; then
@@ -83,7 +87,7 @@ if [ "$argv0" = .xinitrc ] ; then
 	fi
 fi
 
-# TODO: always if we're not on the console....
+# TODO: always only if we're not on the console....
 #
 if [ "$argv0" = ".xinitrc" ] ; then
 	xconsole -geometry 500x100-4-4 &
@@ -130,4 +134,4 @@ xterm -geometry 80x24-4-195 -sl 500 -sb -sk -si -rw  -ls -T Primary &
 
 # when the window manager exits so shall we...
 #
-twm
+exec twm
