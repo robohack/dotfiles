@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.16	98/04/25 22:58:18 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.17	98/04/28 11:14:48 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -971,6 +971,7 @@ message/rfc822 attachments."
 		("gnu-emacs"
 		 (("INBOX")
 		  (or (recipient "bug-gnu-emacs@")
+		      (recipient "bugs-gnu-emacs@") ; every damn spelling????
 		      (recipient "gnu-emacs-sources@")
 		      (recipient "info-gnu-emacs@")
 		      (recipient "gnu-emacs-bug@"))))
