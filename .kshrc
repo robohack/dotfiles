@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	25.1	02/11/25 16:09:47 (woods)"
+#ident	"@(#)HOME:.kshrc	25.2	02/11/26 17:27:45 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -660,7 +660,7 @@ alias rblstats='fgrep " matched " $MAILLOG | cut -d " " -f 10- | sort | uniq -c 
 alias realias='let LEV=$LEV-1;exec ksh'		# useless?
 alias rehash='_SV_PATH=$PATH; PATH=$_SV_PATH; unset _SV_PATH'
 alias rstty='stty $SANE'
-alias scvs='export CVSROOT="$(cat CVS/Root)"; print "CVSROOT=$CVSROOT"'
+alias scvs='export CVSROOT="$(< CVS/Root)"; print "CVSROOT=$CVSROOT"'
 alias wcvs='print $CVSROOT'
 alias zds='zmore'
 
