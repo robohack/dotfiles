@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.32	96/12/02 10:22:13 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.33	96/12/14 14:08:39 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -316,6 +316,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      )
 			     ;; Sender: entries here.
 			     ("^\\(sender\\|resent-sender\\)"
+			      ("ciac-bulletin@" . "ciac-l")
 			      ("ciac-notes@" . "ciac-l")
 			      ("iap@vma.cc.nd.edu" . "iap-l")
 			      ("owner-admin-l@io.org" . "planix/io-admin-l")
