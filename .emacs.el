@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.36	96/12/10 14:28:44 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.37	96/12/10 14:38:08 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1210,7 +1210,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	  (function
 	   (lambda ()
 	     "Private nroff-mode stuff."
-	     (run-hooks 'text-mode-hook))))
+	     (define-key "\e?" 'help-command)))) ; argh!
 
 (require 'view)
 (add-hook 'view-mode-hook
