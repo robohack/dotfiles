@@ -1,7 +1,7 @@
 #
 #	.kshlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.kshlogin	27.1	03/11/23 19:15:51 (woods)"
+#ident	"@(#)HOME:.kshlogin	27.2	05/01/08 19:47:04 (woods)"
 
 set -o ignoreeof	# we only do this for our login shell....
 
@@ -18,20 +18,126 @@ export FCEDIT="$(whence ed)"
 export ENVFILE=$HOME/.kshrc
 
 if [ -n "$ENVFILE" -a -r "$ENVFILE" ] ; then
-	# the one in the book says....
+	#
+	# This magic expression prevents a non-interactive Ksh
+	# instance from even trying to open and read any file.
+	#
+	# The original Korn & Bolsky book [1989] suggests....
 	#
 	#export ENV='${ENVFILE[(_$-=0)+(_=1)-_${-%%*i*}]}'
 	#
-	# this one seems more correct, and I think was what Korn posted
-	# to Usenet once upon a time (it also works with all the
-	# versions of ksh I've run across, including ksh-85 and AIX-3.2)
+	# However the expression below is better as it handles the
+	# empty $- case, which the one above fails on (0+1-1 = 0).
+	#
+	# According to a post by Jon H. LaBadie to comp.unix.questions
+	# on 1989/12/06 (with the Message-ID <826@jonlab.UUCP>) the
+	# one below is what David Korn actually suggested to him.  I'm
+	# reasonably certain I read a post by Korn suggesting this
+	# expression as well, but I may simply have read Jon's post.
+	#
+	# It does work with all the versions of Ksh I've run across,
+	# including ksh-85 and the one AIX-3.2, as well as pdksh.
 	#
 	export ENV='${ENVFILE[(_$-=1)+(_=0)-(_$-!=_${-%%*i*})]}'
+
+	# The following explanation is derived from a Usenet post by
+	# David Young to comp.sys.apollo (of all places) 1992/10/21:
+	#
+	# The idea behind this scheme is to set up an array (ENVFILE)
+	# whose first element is the file we want executed at startup,
+	# and whose second element is empty.  Note that any string
+	# variable can be accessed as an array with one element in the
+	# first (zero) position and any attempt to access other
+	# elements will result in an empty value.
+	#
+	#	$ export ENVFILE='~/.envfile'
+	#	$ echo $ENVFILE[0]
+	#	~/.envfile
+	#	$ echo $ENVFILE[1]
+	#	
+	#	$ 
+	#
+	# So, we want to expand $ENV, when it is referenced by the
+	# shell during startup, to ENVFILE[0] for interactive shells
+	# and to ENVFILE[1] for non-interactive shells.  To do this we
+	# need an expression that will evaluate to "0" for an
+	# interactive shell but which will evaluate to "1" for a
+	# non-interactive shell.
+	#
+	# Keep in mind the two environment variables ENV and PS1 are
+	# special in Ksh insofar as they get evaluated when they are
+	# used!  So if we assign the value of ENV using single quotes
+	# as a fixed string it will only be evaluated when it is used
+	# by the shell.
+	#
+	# Also remember that arithmetic expressions are evaluated
+	# inside array index references (i.e. inside the square
+	# brackets), but only after '$' variable refs are expanded.
+	#
+	# The flags variable ($-) is the key to forming our magic
+	# expression.  If the shell is interactive, the flags will
+	# contain an 'i'.  The expression used as the index consists
+	# of three parts that are combined using normal arithmetic
+	# operators to form the final index value:
+	#
+	#	(_$-=1) + (_=0) - (_$- != _${-%%*i*})
+	#
+	# (_$-=1)	This creates a variable named "_BLAH", where
+	#		"BLAH" is the value of the variable "$-", and
+	#		assigns it the value "1".  The expression has
+	#		the result "1" as well.
+	#
+	# (_=0)		This creates a variable named "_" and assigns
+	#		it the value "0".  The expression has the result
+	#		"0" as well.
+	#
+	# (_$- != _${-%%*i*})	This compares the value of _BLAH with
+	#			the value of another variable that
+	#			will either have the same name (and
+	#			thus the same value), or the name "_".
+	#
+	# For an interactive shell these variables will be guaranteed
+	# to have different names, i.e. the first variable will have
+	# the name of the variable created in the first expression
+	# ("_BLAH") and the second will have name of the variable
+	# created in the second expression ("_"), respectively.  Since
+	# the first variable has been assigned the value "1" and the
+	# second one has the value "0", result of this last expression
+	# will always be 1 for any interactive shell.
+	#
+	# For a non-interactive shell this last expression will have
+	# the value 0 because both parameters will have the same name
+	# (there was no "i" to match when forming the name of the
+	# second var, regardless of whether $- is empty or not).
+	#
+	# So for an interactive shell, e.g. when $- is "i", the index is:
+	#
+	#	(_i=1) + (_=0) - (_i != _)
+	#	 1     +  0    - (1 != 0)
+	#	i.e. 0, thus $ENV[0], for the first and only element
+	#
+	# and for a non-interactive shell (e.g. $i is "BLAH") the index is:
+	#
+	#	(_BLAH=1) + (_=0) - (_BLAH != _BLAH)
+	#	 1        +  0    - (0 != 0)
+	#	i.e. 1, thus $ENV[1], for the second, empty, element
+	#
+	# or for a non-interactive shell where $i is "", the index is:
+	#
+	#	(_=1) + (_=0) - (_ != _)
+	#	 1     +  0   - (0 != 0)
+	#	i.e. 1, thus $ENV[1], for the second, empty, element
+	#
+	# Remember class, the test is tomorrow!
 fi
 
 export HISTSIZE=2000
 
-# if we wanted persistent history, we may only want it for login shells....
+# we could set HISTFILE if we wanted persistent history, but we may
+# only want it for login shells....
+#
+# NOTE:  many implementations have HISTFILE inter-locking bugs!
+#
 #HISTFILE=$HOME/.ksh_history
 
 if [ -z "$LOGNAME" ] ; then
