@@ -1,13 +1,12 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	2.3	94/03/16 11:38:55 (woods)"
+#ident	"@(#)HOME:.kshrc	2.4	94/03/25 18:23:04 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
 
 #set -o nolog		# no functions in $HISTFILE
-set -o gmacs
 set -o monitor
 set -o trackall
 
@@ -434,12 +433,6 @@ if [ "$uid" = usenet -o "$uid" = news ] ; then
 	dirprepend PATH $LOCAL/lib/newsbin $LOCAL/lib/newsbin/maint $LOCAL/lib/newsbin/input
 fi
 
-alias __A=''		# up arrow
-alias __B=''		# down arrow
-alias __C=''		# right arrow
-alias __D=''		# left arrow
-alias __H=''		# beginning of line, HOME key
-
 if $ISSUN; then
 	alias df="/usr/bin/df"
 fi
@@ -486,6 +479,9 @@ else
 	alias uufollow='xtail /usr/spool/uucp/.[AL]*/*'
 fi
 
+if [ -x /usr/ucb/rsh -a -x /bin/rsh ] ; then
+	alias rsh=/usr/ucb/rsh
+fi
 
 if [ -n "$X11HOME" -a "$TERM" != xterm ] ; then
 	alias X='xinit -a 2 -p 1 -s 15'
@@ -499,6 +495,17 @@ fi
 if [ -r $HOME/.kshpwd ] ; then
 	. $HOME/.kshpwd
 	cd $(pwd)
+fi
+
+if [ -r $HOME/.kshedit ] ; then
+	. $HOME/.kshedit
+else
+	set -o gmacs
+	alias __A=''		# up arrow
+	alias __B=''		# down arrow
+	alias __C=''		# right arrow
+	alias __D=''		# left arrow
+	alias __H=''		# beginning of line, HOME key
 fi
 
 #
