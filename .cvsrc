@@ -1,4 +1,7 @@
 checkout	-P
 diff	-N -c
 export	-kv
+log	-N
+rdiff	-u -N
+release	-d
 update	-d -P
