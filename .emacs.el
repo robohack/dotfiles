@@ -1,15 +1,22 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	6.4	94/02/02 12:31:45 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	6.5	94/02/02 22:51:56 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
 
-; to debug, eval these after "emacs -q":
+;; to debug, eval (^X^E) these after "emacs -q":
+;;
 ; (setq debug-on-error t)
 ; (load-file "~/.emacs.el")
+;;
+;; more goodies for debug:
+;;
+; (setq stack-trace-on-error t)
+; (setq debug-on-quit t)
 
+;; I don't want that annoying startup message.
 (setq inhibit-startup-message t)
 
 ;; ----------
@@ -144,6 +151,12 @@ directory in the list PATHLIST, otherwise nil."
 (if (elisp-file-in-loadpath-p "ksh-mode")
     (autoload 'ksh-mode "ksh-mode" "Major mode for editing sh Scripts." t))
 
+(if (elisp-file-in-loadpath-p "func-menu")
+    (and window-system
+	 (require 'func-menu)
+	 (define-key global-map [S-down-mouse-1]
+	   'function-menu)))
+
 ; must appear after display-time is invoked (thus after time.el is loaded)
 ; [only called on emacs-19(?)]
 ; 
@@ -180,6 +193,21 @@ Status: headers for O, or Forward to in mailboxes."
 
 ;; ----------
 ;; some new global variable settings...
+
+;;;Date: Wed, 2 Feb 1994 12:49:31 GMT
+;;;Message-Id: <1994Feb2.124931.19715@nessie.mcc.ac.uk>
+;;;Organization: Manchester Computing Centre, Manchester, England
+;;;From: ehgasm2@uts.mcc.ac.uk (Simon Marshall)
+;;;Subject: Re: Quick routine to BOLDFACE directories in DIRED buffers
+;;
+(defvar dired-font-lock-keywords
+      '(("\\S +\\([~%#]\\)$" . font-lock-doc-string-face)
+	("\\S +\\.\\([oszZ]\\|elc\\|gz\\)$" . font-lock-string-face)
+	("^  \\(/.+\\)$" 1 font-lock-type-face)
+	("[^ ]+ -> [^ ]+$" . font-lock-function-name-face)
+	("^..\\(.....w....\\|........w.\\)" 1 font-lock-comment-face)
+	("^[^ ].*$" 0 font-lock-comment-face t)
+	("^..d.* \\([^ ]+\\)$" 1 font-lock-keyword-face)))
 
 (dont-compile
   (if (= init-emacs-type 18)
@@ -226,8 +254,15 @@ Status: headers for O, or Forward to in mailboxes."
        '(("^.*/tmp/[^/]*nf.*$" . indented-text-mode)) ; notesfile compose buffer
        auto-mode-alist))
 
-(setq hyperb:init-hook
-      (list (function (lambda () (setq smart-scroll-proportional t)))))
+(if (elisp-file-in-loadpath-p "hyperbole")
+    (setq hyperb:init-hook
+	  (list (function (lambda () (setq smart-scroll-proportional t))))))
+
+(if (elisp-file-in-loadpath-p "hyperbole")
+    (setq auto-mode-alist
+	  (append
+	   '(("/[^/]+\\.kotl$" . kotl-mode))	; outline mode
+	   auto-mode-alist)))
 
 (if (elisp-file-in-loadpath-p "ksh-mode")
     (setq auto-mode-alist
@@ -254,6 +289,9 @@ Status: headers for O, or Forward to in mailboxes."
        ;; So that subprocesses will use emacs for editing. 
        (setenv "EDITOR" "emacsclient")
        (setenv "VISUAL" "emacsclient")))
+
+(if (elisp-file-in-loadpath-p "foldout")
+    (eval-after-load "outline" '(load "foldout")))
 
 ;; unix "spell" knows to use "deroff", so only use this if you use a speller
 ;; other than it.
@@ -539,6 +577,17 @@ current emacs server process..."
 
 ;; ----------
 ;; some major-mode hooks...
+
+;;;Date: Wed, 2 Feb 1994 12:49:31 GMT
+;;;Message-Id: <1994Feb2.124931.19715@nessie.mcc.ac.uk>
+;;;Organization: Manchester Computing Centre, Manchester, England
+;;;From: ehgasm2@uts.mcc.ac.uk (Simon Marshall)
+;;;Subject: Re: Quick routine to BOLDFACE directories in DIRED buffers
+;;
+(add-hook 'dired-mode-hook
+	  (function (lambda ()
+		      (font-lock-mode t)
+		      (setq font-lock-keywords dired-font-lock-keywords))))
 
 (add-hook 'lisp-interaction-mode-hook
 	  (function 
