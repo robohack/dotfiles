@@ -1,7 +1,7 @@
 ;;;;
-;;;;	.vm.el
+;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	3.1	94/03/31 16:05:10 (woods)"
+;;;#ident	"@(#)HOME:.vm	3.2	94/04/11 10:35:56 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -12,6 +12,9 @@
 
 (setq mail-signature t)			; auto-insert ~/.signature
 (setq mail-archive-file-name "~/Mail/.outgoing") ; for posterity
+(setq mail-default-reply-to (concat (user-login-name) "@" (vm-fqdn)
+				    " (" (user-full-name) ")"))
+(setq mail-header-separator ".")	; as close to nothing as possible
 
 (defvar mail-default-organization "~/.organization"
   "The default name of your organization (or filename containing a string
@@ -101,7 +104,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
      vm-forwarding-subject-format "forwarded message from %F"
 ;;;  vm-highlighted-header-regexp "^From:\\|^Subject:" ; highlight these headers
      vm-honor-page-delimiters t		; honour page marks in message
-     vm-in-reply-to-format "Your message of \"%w, %m %d, %y %h %z\"\n	\"%s\"\n	id %i" ; this is the way I like it
+     vm-in-reply-to-format "%F's message\n	of \"%w, %m %d, %y %h %z\"\n	regarding \"%s\"\n	id %i" ; this is the way I like it
      vm-included-text-attribution-format "[ On %w, %m %d, %y at %h (%z), %F wrote: ]\n> Subject: %s\n>\n" ; this is the way I like it
      vm-included-text-discard-header-regexp nil
      vm-included-text-headers nil
@@ -136,7 +139,9 @@ ORGANIZATION.  If not nil, takes precedence over the file
      vm-reply-ignored-reply-tos nil
      vm-reply-subject-prefix "Re: "	; do the right thing!
      vm-resend-bounced-discard-header-regexp nil
-     vm-resend-bounced-headers '("Resent-" "From:" "Sender:" "To:" "Cc:" "Subject:" "Newsgroups:" "In-Reply-To:" "References:" "Keywords:" "X-")
+     vm-resend-bounced-headers '("Resent-" "From:" "To:" "Cc:" "Subject:"
+				 "Newsgroups:" "In-Reply-To:" "References:"
+				 "Keywords:" "X-") ; we can't allow "Sender:"
      vm-resend-bounced-message-hook nil
      vm-resend-discard-header-regexp "\\(\\(X400-\\)?Received:\\|Resent-\\)"
      vm-resend-headers nil
@@ -155,7 +160,9 @@ ORGANIZATION.  If not nil, takes precedence over the file
      vm-skip-read-messages nil
      vm-startup-with-summary 1		; pop up summary window right away
      vm-strip-reply-headers nil
-     vm-summary-format "%n %*%a %-20.20F %-3.3m %2d/%y %4l/%-5c %I\"%s\"\n"
+     vm-summary-format "%3n%*%A %-18.18F %4y/%02M/%02d-%H %4l/%-5c %I\"%s\"\n"
+					; ah, that's better! (except %02d
+					; doesn't put leading zeros out)
      vm-summary-highlight-face nil
      vm-summary-mode-hook nil
      vm-summary-mode-hooks nil
