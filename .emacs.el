@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	18.13	97/10/16 01:21:54 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	18.14	97/11/20 00:18:06 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -294,6 +294,8 @@ scripts (alias)." t)
        '(("/[^/]+\\.t[imes]*\\.in$" . nroff-mode)) ; nroff+tbl
        '(("[cC][hH][aA][nN][gG][eE][sS][^/chsly]*$" . indented-text-mode))
        '(("[iI][nN][sS][tT][aA][lL][lL][^/chsly]*$" . indented-text-mode))
+       '(("[aA][uU][tT][hH][oO][rR][sS][^/chsly]*$" . indented-text-mode))
+       '(("[cC][oO][pP][yY][iI][nN][gG][^/chsly]*$" . indented-text-mode))
        '(("[nN][eE][wW][sS]$" . indented-text-mode))
        '(("[tT][oO][dD][oO]$" . indented-text-mode))
        '(("[rR][eE][aA][dD][^/chsly]*$" . indented-text-mode))
@@ -995,19 +997,6 @@ overridden without consideration by the major mode."
 ;;;				(server-buffer-done
 ;;;				 (current-buffer))))))))
       (server-start)))
-
-;;; Reset mail-aliases to t when ~/.mailrc is written, so that mail-aliases
-;;; will get updated before next send."
-;;; From: mike@inform.co.nz (Mike Williams)From: mike@inform.co.nz (Mike Williams)
-(defvar mail-aliases)
-(add-hook 'write-file-hooks
-	  (function
-	   (lambda ()
-	     (if (string-equal (buffer-file-name)
-			       (expand-file-name "~/.mailrc"))
-		 (setq mail-aliases t))
-	     nil)			; Must return nil for file to be written
-	   ))
 
 ;;;; ----------
 ;;;; some major-mode hooks...
