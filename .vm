@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	25.1	02/11/25 16:09:46 (woods)"
+;;;#ident	"@(#)HOME:.vm	25.2	03/01/02 14:16:57 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -1498,6 +1498,7 @@ every line, with a trailing newline).")
 			      ("owner-fwtk-users@" . "fwtk-l")
 			      ("owner-namedroppers@internic.net" . "namedroppers-l")
 			      ("mw-wod@" . "mw-wod-l")
+			      ("word@m-w.com" . "mw-wod-l")
 			      ("owner-net-dist@nikhef.nl" . "nikhef.net-dist-l")
 			      ("owner-pcl-cvs@" . "pcl-cvs-l")
 			      ("owner-rs-info@internic.net" . "rs-info-l")
