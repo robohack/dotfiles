@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	18.8	97/04/17 12:39:14 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	18.9	97/05/18 14:06:12 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -235,7 +235,7 @@ scripts (alias)." t)
 ;;;
 (if window-system
     (defvar dired-font-lock-keywords
-      '(("\\S +\\([~%#]\\)$" . font-lock-doc-string-face)
+      '(("\\S +\\([~%#]\\)$" . font-lock-variable-name-face) ; font-lock-doc-string-face
 	("\\S +\\.\\([oszZ]\\|elc\\|gz\\)$" . font-lock-string-face)
 	("^  \\(/.+\\)$" 1 font-lock-type-face)
 	("[^ ]+ -> [^ ]+$" . font-lock-function-name-face)
