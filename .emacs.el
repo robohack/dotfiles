@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.28	96/10/30 09:14:08 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.29	96/11/04 10:14:15 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -357,8 +357,8 @@ scripts (alias)." t)
 
 (eval-and-compile
   (progn
-    ;; Set the PATH environment variable from the exec-path so
-    ;; that child processes will inherit anything emacs uses.
+    ;; Set the PATH environment variable from the exec-path so that child
+    ;; processes will inherit anything emacs uses.
     (setenv "PATH"
 	    (mapconcat
 	     '(lambda (string) string)
@@ -889,10 +889,9 @@ overridden without consideration by the major mode."
 	     (if (elisp-file-in-loadpath-p "vm")
 		 nil			; we want mail checking....
 	       (progn
-		 ;; display-time can't check "Status:" headers or "Forward
-		 ;; to" files so if not running vm or something else that
-		 ;; cleans out the spool files, disable the mail checking
-		 ;; feature
+		 ;; display-time can't check "Status:" headers or "Forward to"
+		 ;; files so if not running vm or something else that cleans
+		 ;; out the spool files, disable the mail checking feature
 		 ;;
 		 ;; must appear after display-time is invoked (thus after
 		 ;; time.el is loaded)
@@ -907,7 +906,8 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	   (lambda ()
 	     "Private emacs-lisp-mode-hook."
 	     (override-local-key-settings)
-	     (override-default-variable-settings))))
+	     (override-default-variable-settings)
+	     (local-set-key "\ej" 'lisp-fill-paragraph))))
 
 (add-hook 'lisp-interaction-mode-hook
 	  (function
@@ -917,8 +917,8 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	     (override-local-key-settings)
 	     (override-default-variable-settings))))
 
-;;; GNU-Emacs' (Stallman's?) ideas about formatting C code suck!  Let's stick to
-;;; doing things the good old K&R standard way!!!!
+;;; GNU-Emacs' (Stallman's?) ideas about formatting C code suck!  Let's stick
+;;; to doing things the good old K&R standard way!!!!
 ;;;
 (if (elisp-file-in-loadpath-p "cc-mode")
     ;; the real thing, in 19.30(?) and above
@@ -941,8 +941,9 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		(function
 		 (lambda ()
 		   "Private c-mode stuff."
-		   ;; damn c-mode is too over-bearing!  It seems to insist re-setting
-		   ;; these key bindings without regard to the global key map.
+		   ;; damn c-mode is too over-bearing!  It seems to insist
+		   ;; re-setting these key bindings without regard to the
+		   ;; global key map.
 		   (override-local-key-settings)
 		   ;; try this on for size...
 		   (local-set-key "\C-x\e\C-e" 'recompile)
@@ -1031,8 +1032,9 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	      (function
 	       (lambda ()
 		 "Private c-mode stuff."
-		 ;; damn c-mode is too over-bearing!  It seems to insist re-setting
-		 ;; these bindings without regard to the global key map.
+		 ;; damn c-mode is too over-bearing!  It seems to insist
+		 ;; re-setting these bindings without regard to the global key
+		 ;; map.
 		 (override-local-key-settings)
 		 ;; try this on for size...
 		 (local-set-key "\C-x\e\C-e" 'recompile)
@@ -1105,7 +1107,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		 (local-set-key "\e\C-e" 'compile)
 		 (setq abbrev-mode t)
 		 (setq fill-column 72)
-		 (setq require-final-newline t)		; needed by some unix programs
+		 (setq require-final-newline t)	; needed by some unix programs
 		 (turn-on-auto-fill))))))
 
 (add-hook 'nroff-mode-hook
@@ -1180,7 +1182,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		(function
 		 (lambda ()
 		   "Private c-boxes stuff."
-		   (local-set-key "\eq" 'reindent-c-comment)
+		   (local-set-key "\ej" 'reindent-c-comment)
 		   (setq c-comment-starting-blank t))))))
 
 ;;;; ----------
