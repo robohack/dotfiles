@@ -1,7 +1,7 @@
 #
 #	.kshpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.kshpwd	2.1	94/02/16 18:17:39 (woods)"
+#ident	"@(#)HOME:.kshpwd	2.2	94/11/18 00:18:45 (woods)"
 
 if [ "$PWD" = "$HOME" ] ; then
 	PWD='~'
@@ -12,26 +12,6 @@ function _cd
 {
 	\cd $*
 	case "$PWD" in
-	/kuma/*)
-		PWD="${PWD#/kuma}"
-		PWDREMHOST=kuma
-		;;
-	/araignee/*)
-		PWD="${PWD#/araignee}"
-		PWDREMHOST=araignee
-		;;
-	/tar/*)
-		PWD="${PWD#/tar}"
-		PWDREMHOST=tar
-		;;
-	*)
-		PWDREMHOST=""
-		;;
-	esac
-	case "$PWD" in
-	$HOME/src/*)
-		PWD="${PWD#$HOME/src/}"
-		;;
 	${HOME})
 		PWD='~'
 		;;
@@ -41,25 +21,10 @@ function _cd
 	/home/*)
 		PWD='~'"${PWD#/home/}"
 		;;
-	/usr/local/src/*)
-		PWD="${PWD#/usr/local/src/}"
-		;;
-	/big/web/work.d/${LOGNAME}/*)
-		PWD="${PWD#/big/web/work.d/${LOGNAME}/}"
-		;;
-	/big/web/work/*)
-		PWD="${PWD#/big/web/work/}"
-		;;
-	/big/local/src/*)
-		PWD="${PWD#/big/local/src/}"
-		;;
 	/apc/usr/web/webadmin/*)
 		PWD='~'"${PWD#/apc/usr/web/webadmin/}"
 		;;
 	esac
-	if [ -n "$PWDREMHOST" ] ; then
-		PWD="$PWDREMHOST:$PWD"
-	fi
 	if [ "`ismpx`" = yes ] ; then
 		eval myxban -l "\"$MYXBAN_L\""
 	fi
