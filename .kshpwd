@@ -1,7 +1,7 @@
 #
 #	.kshpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.kshpwd	3.1	94/12/20 14:38:52 (woods)"
+#ident	"@(#)HOME:.kshpwd	18.1	97/01/20 10:09:35 (woods)"
 
 if [ "$PWD" = "$HOME" ] ; then
 	PWD='~'
