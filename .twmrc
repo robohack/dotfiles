@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.42	96/12/11 12:01:25 (woods)"
+#ident	"@(#)HOME:.twmrc	2.43	96/12/14 13:47:09 (woods)"
 #
 
 AutoRelativeResize
@@ -169,6 +169,10 @@ function "start-very-xterm" {
 	f.exec "$RSH -n very.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
+function "start-whats-xterm" {
+	f.exec "$RSH -n whats.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+}
+
 function "start-sometimes-xterm" {
 	f.exec "$RSH -n sometimes.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
@@ -276,6 +280,10 @@ function "start-very-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin very.weird.com &"
 }
 
+function "start-whats-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin whats.weird.com &"
+}
+
 function "start-sometimes-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin sometimes.weird.com &"
 }
@@ -303,6 +311,10 @@ function "start-very-telnet" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet very.weird.com &"
 }
 
+function "start-whats-telnet" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet whats.weird.com &"
+}
+
 function "start-sometimes-telnet" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e telnet sometimes.weird.com &"
 }
@@ -328,6 +340,10 @@ function "start-most-slogin" {
 
 function "start-very-slogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C very.weird.com &"
+}
+
+function "start-whats-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C whats.weird.com &"
 }
 
 function "start-sometimes-slogin" {
@@ -1428,6 +1444,7 @@ menu "weird-xterms"
 	"Xterm @isit"			f.function "start-isit-xterm"
 	"Xterm @most"			f.function "start-most-xterm"
 	"Xterm @very"			f.function "start-very-xterm"
+	"Xterm @whats"			f.function "start-whats-xterm"
 	"Xterm @pretty"			f.function "start-pretty-xterm"
 	"Xterm @sometimes"		f.function "start-sometimes-xterm"
 	"Xterm @always"			f.function "start-always-xterm"
@@ -1531,6 +1548,7 @@ menu "rlogin-weird"
 	"Rlogin's At Weird.com"		f.title
 	"Rlogin @most"			f.function "start-most-rlogin"
 	"Rlogin @very"			f.function "start-very-rlogin"
+	"Rlogin @whats"			f.function "start-whats-rlogin"
 	"Rlogin @pretty"		f.function "start-pretty-rlogin"
 	"Rlogin @weirdo"		f.function "start-weird-rlogin"
 	"Rlogin @sometimes"		f.function "start-sometimes-rlogin"
@@ -1542,6 +1560,7 @@ menu "telnet-weird"
 	"Telnet's At Weird.com"		f.title
 	"telnet @most"			f.function "start-most-telnet"
 	"telnet @very"			f.function "start-very-telnet"
+	"telnet @whats"			f.function "start-whats-telnet"
 	"telnet @pretty"		f.function "start-pretty-telnet"
 	"telnet @weirdo"		f.function "start-weird-telnet"
 	"telnet @sometimes"		f.function "start-sometimes-telnet"
@@ -1553,6 +1572,7 @@ menu "slogin-weird"
 	"Slogin's At Weird.com"		f.title
 	"Slogin @most"			f.function "start-most-slogin"
 	"Slogin @very"			f.function "start-very-slogin"
+	"Slogin @whats"			f.function "start-whats-slogin"
 	"Slogin @pretty"		f.function "start-pretty-slogin"
 	"Slogin @weirdo"		f.function "start-weird-slogin"
 	"Slogin @sometimes"		f.function "start-sometimes-slogin"
