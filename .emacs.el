@@ -1,11 +1,11 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.25	99/08/10 23:30:21 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.26	99/09/13 00:34:37 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
-;;;; primarily tested on v19.28 and v19.34, and a wee bit on v20.2.
+;;;; primarily tested on v20.3.
 ;;;;
 
 ;;; This file should be stored in "~/.emacs.el".
@@ -903,25 +903,6 @@ BUFFER-NAME.  Optional command args to process supplied by ARGS"
 ;	))
 ;    (fset symbol func)))
 
-;;; From: simonm@plod.ai.mit.edu (Simon Marshall)
-;;; Reply-To: Simon.Marshall@mail.esrin.esa.it
-;;; Date: Fri, 21 Jan 94 08:54:28 GMT
-;;; To: bug-gnu-emacs@prep.ai.mit.edu
-;;; Subject: [19.22]: `match-string': Short but sweet function
-;;;
-;;; In GNU Emacs 19.22.1 of Tue Nov 30 1993 on tracy (berkeley-unix)
-;;;
-;;; I think I got some version from someone else, but here's a nice function
-;;; to alleviate the (substring string (match-beginning 1) (match-end 1))
-;;; blues.  Now you can just (match-string 1 string) to your heart's delight...
-;;;
-(defun match-string (n &optional string)
-  "Return the matched grouping N from STRING.
-If STRING is not given, use the current buffer.  See `string-match'."
-  (if (stringp string)
-      (substring string (match-beginning n) (match-end n))
-    (buffer-substring (match-beginning n) (match-end n))))
-
 ;; These ones I dreampt up myself!
 ;;
 ;; (I would also like to have a similar function that deletes all the trailing
@@ -1487,28 +1468,6 @@ it could check Status: headers for O, or Forward to in mailboxes."
 
 ;;;; ----------
 ;;;; more hooks for non-default packages
-
-(if (elisp-file-in-loadpath-p "pcl-cvs")
-    (progn
-      ;; to quiet the v19 byte compiler
-      (defvar cvs-diff-flags)
-      (defvar cvs-status-flags)
-      (defvar cvs-update-optional-flags)
-      (defvar cvs-diff-ignore-marks)
-      (add-hook 'cvs-mode-hook
-		(function
-		 (lambda ()
-		   "Private cvs-mode stuff.  Only works with PCL-CVS-v2.0."
-		   ;; List of strings to use as  flags to pass to
-		   ;; ``diff'' and ``cvs diff''.
-		   (setq cvs-diff-flags '("-c"))
-		   ;; List of strings to pass to ``cvs status''
-		   (setq cvs-status-flags '("-v"))
-		   ;; List of strings to pass to ``cvs update''
-		   (setq cvs-update-optional-flags '("-d" "-P"))
-		   ;; Non-nil if cvs-diff and cvs-mode-diff-backup
-		   ;; should ignore any marked files.
-		   (setq cvs-diff-ignore-marks t))))))
 
 (if (elisp-file-in-loadpath-p "ksh-mode")
     (progn
