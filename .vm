@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.21	99/07/22 18:52:36 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.22	99/07/22 23:52:31 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -993,6 +993,8 @@ message/rfc822 attachments."
 			      ("smail3-maintainers@" . "smail3-maintainers-l")
 			      ("smail3-users@" . "smail3-users-l")
 			      ("smail3-wizards@" . "smail3-wizards-l")
+			      ("spamtools@" . "spamtools-l")
+			      ("sparcbook-owners@" . "sparcbook-owners-l")
 			      ("ssh@" . "ssh-l")
 			      ("stk@" . "stk-l")
 			      ("tkined@" . "tkined-l")
@@ -1212,6 +1214,12 @@ message/rfc822 attachments."
 		("smail3"
 		 (("INBOX")
 		  (recipient "smail3")))
+		("spam-stuff"
+		 (("INBOX")
+		  (recipient "spamtools@")))
+		("sparcbook-owners"
+		 (("INBOX")
+		  (recipient "sparcbook-owners@")))
 		("tkined"
 		 (("INBOX")
 		  (recipient "tkined@")))
