@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	18.7	97/04/08 11:18:05 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	18.8	97/04/17 12:39:14 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -295,6 +295,7 @@ scripts (alias)." t)
        '(("[cC][hH][aA][nN][gG][eE][sS][^/chsly]*$" . indented-text-mode))
        '(("[iI][nN][sS][tT][aA][lL][lL][^/chsly]*$" . indented-text-mode))
        '(("[nN][eE][wW][sS]$" . indented-text-mode))
+       '(("[tT][oO][dD][oO]$" . indented-text-mode))
        '(("[rR][eE][aA][dD][^/chsly]*$" . indented-text-mode))
        '(("\\.vm$" . emacs-lisp-mode))		; VM init file
        '(("\\.article[^/]*$" . indented-text-mode))
