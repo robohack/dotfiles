@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	21.7	00/03/20 23:22:06 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	21.8	00/03/26 15:28:39 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -482,6 +482,10 @@ scripts (alias)." t)
        auto-mode-alist))
 
 ;; assume the autoloads are done for this...
+(if (elisp-file-in-loadpath-p "diff-mode")
+    (add-to-list 'auto-mode-alist '("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)))
+
+;; assume the autoloads are done for this...
 (if (or (elisp-file-in-loadpath-p "makefile")
 	(elisp-file-in-loadpath-p "make-mode"))
     (setq auto-mode-alist
@@ -497,12 +501,10 @@ scripts (alias)." t)
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "lout-mode")
-    (progn
-      (autoload 'lout-mode "lout-mode" "Major mode for editing Lout text" t)
-      (setq auto-mode-alist
-	    (append
-	     '(("/[^/]+\\.lout$" . lout-mode))
-	     auto-mode-alist))))
+    (setq auto-mode-alist
+	  (append
+	   '(("/[^/]+\\.lout$" . lout-mode))
+	   auto-mode-alist)))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "m4-mode")
