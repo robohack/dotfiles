@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	21.2	00/01/14 15:45:23 (woods)"
+# ident	"@(#)HOME:.mailrc	21.3	00/02/06 09:39:39 (woods)"
 
 set keep
 set keepsave
@@ -36,6 +36,7 @@ alias lout		"lout@ptc.spbu.ru (Lout mailing List)"
 alias mush-users	"mush-users-request@garp.mit.edu (Mush Users Mailing List)"
 alias nanog		"nanog@merit.edu (North America Network Operators Group Mailing List)"
 alias netbsd-bugs	"netbsd-bugs@NetBSD.ORG (NetBSD Bugs and PR posting List)"
+alias netbsd-gnats	"gnats-bugs@gnats.netbsd.org (NetBSD GNATS submissions and followups)"
 alias netbsd-current	"current-users@NetBSD.ORG (NetBSD-current Discussion List)"
 alias netbsd-help	"netbsd-help@NetBSD.ORG (NetBSD Questions List)"
 alias netbsd-source-changes	"source-changes@NetBSD.ORG (NetBSD CVS Logs)"
