@@ -1,7 +1,7 @@
 #
 #	.ashrc - per-shell startup stuff for ash
 #
-#ident	"@(#)HOME:.ashrc	1.1	94/12/20 14:15:37 (woods)"
+#ident	"@(#)HOME:.ashrc	1.2	95/03/08 17:20:33 (woods)"
 
 set -o monitor
 set -o emacs
@@ -105,11 +105,32 @@ if [ "$id" -eq 0 ] ; then
 	fi
 	dirappend PATH /usr/lib/uucp /usr/lib
 	dirappend PATH $HOME/bin
-	PS1="$TTYN:<$LOGNAME@$UUNAME> # "
+	case "$TERM" in
+	xterm)
+		PS1="]0;$TTYN:<$LOGNAME@$UUNAME>$TTYN:<$LOGNAME@$UUNAME> # "
+		;;
+	*)
+		PS1="$TTYN:<$LOGNAME@$UUNAME> # "
+		;;
+	esac
 elif [ "$uid" != "$LOGNAME" ] ; then
-	PS1="$TTYN:<$uid($LOGNAME)@$UUNAME)> $ "
+	case "$TERM" in
+	xterm)
+		PS1="]0;$TTYN:<$uid($LOGNAME)@$UUNAME)>$TTYN:<$uid($LOGNAME)@$UUNAME)> $ "
+		;;
+	*)
+		PS1="$TTYN:<$uid($LOGNAME)@$UUNAME)> $ "
+		;;
+	esac
 else
-	PS1="$TTYN:<$LOGNAME@$UUNAME> $ "
+	case "$TERM" in
+	xterm)
+		PS1="]0;$TTYN:<$LOGNAME@$UUNAME>$TTYN:<$LOGNAME@$UUNAME> $ "
+		;;
+	*)
+		PS1="$TTYN:<$LOGNAME@$UUNAME> $ "
+		;;
+	esac
 fi
 
 if type ismpx 2>&1 >/dev/null ; then
