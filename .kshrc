@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	8.6	96/02/06 22:54:07 (woods)"
+#ident	"@(#)HOME:.kshrc	8.7	96/03/08 09:42:18 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -478,6 +478,7 @@ alias blstrip='sed "/./,/^$/!d"'
 alias ds='$PAGER'
 alias e='${VISUAL:-$EDITOR}'
 alias ealias='e $ENV'
+alias elisp='emacs -batch -n -q -f batch-byte-compile'
 alias f='finger'
 alias fw='who -HurTbA'
 alias h='fc -l | tail'
