@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.9	95/09/25 12:25:23 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.10	95/09/25 12:51:13 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -109,6 +109,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-auto-folder-alist '(
 			     ;; To: & Cc: entries here.
 			     ("^\\(to\\|cc\\|resent-to\\|apparently-to\\)"
+			      ("8lgm-advisories@8lgm.org" . "8lgm-l")
 			      ("admin-l@io.org" . "planix/io-admin-l")
 			      ("aegis-users@" . "aegis-users-l")
 			      ("auto-net@" . "auto-net-l")
