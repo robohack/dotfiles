@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	24.1	02/07/04 17:19:32 (woods)"
+#ident	"@(#)HOME:.xinitrc	24.2	02/09/15 12:10:51 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -204,7 +204,7 @@ if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
 		export X11SERVER ONX11SERVER
 		echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
 		# now start server programs we like for this scenario
-		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x64-200+72 -hl grey90 &
+		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x50-200+58 -hl grey90 &
 		;;
 	very.weird.com)
 		X11SERVER=${X11SERVER:-"sometimes.weird.com"}
@@ -212,7 +212,7 @@ if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
 		export X11SERVER ONX11SERVER
 		echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
 		# now start server programs we like for this scenario
-		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x64-200+72 -hl grey90 &
+		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x50-200+58 -hl grey90 &
 		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 		;;
@@ -280,11 +280,10 @@ if [ "$argv0" = .xinitrc ] ; then
 	xconsole -geometry 500x130-0-0 -notify -verbose &
 	# wait a wee bit in hopes xconsole gets running to display any errors....
 	sleep 1
-	xload -geometry 120x64-200+0 -hl grey90 &
+	xload -geometry 120x50-200+0 -hl grey90 &
 	case $DISPLAY in
 	very.weird.com:*)
-		$RSH -n sometimes.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x64-200+72 -hl grey90 &
-		$RSH -n most.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x50-200+58 -hl grey90 &
 		# for the "Main" workspace...
 		xterm -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
 		;;
@@ -330,6 +329,8 @@ else
 	fi
 fi
 
+# run localhost mailbox monitor of some sort...
+#
 if $HAVEXBUFFY ; then
 	if [ -n "$AUDIOPLAYER" -a -r $HOME/lib/sounds/newmail ] ; then
 		xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd "$AUDIOPLAYER $HOME/lib/sounds/newmail" &
@@ -345,11 +346,15 @@ case $DISPLAY in
 very.weird.com:*)
 	# this is a large, hi-res, display with an optical mouse....
 	xset m 10 5
-	$RSH -n proven.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x64-200+144 -hl grey90 &
-	$RSH -n starting-out.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x64-200+216 -hl grey90 &
-	xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	# local server performance levels we want to be aware of
+	$RSH -n proven.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x50-200+116 -hl grey90 &
+	$RSH -n starting-out.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x50-200+174 -hl grey90 &
+	$RSH -n most.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x50-200+232 -hl grey90 &
+	# mailbox monitors....
 #	$RSH -n mail.weird.com $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/usr/X11/bin/auplay -audio '$AUDIOSERVER' -v 25 '$HOME'/lib/sounds/newmail"' &
 	$RSH -n mail.weird.com $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/usr/X11/bin/auplay -audio tcp/xtremely.weird.com:8000 -v 25 '$HOME'/lib/sounds/newmail"' &
+	# All the small lower-right command terminals (starting with our own first one)
+	xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
 	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x41-0+545 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
