@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.5	98/10/20 23:34:20 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.6	98/10/23 02:17:43 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -392,6 +392,7 @@ scripts (alias)." t)
        '(("[nN][eE][wW][sS]$" . indented-text-mode))
        '(("[tT][oO][dD][oO]$" . indented-text-mode))
        '(("[rR][eE][aA][dD][^/chsly]*$" . indented-text-mode))
+       '(("R[eE][aA][dD]M[eE][^/]*$" . indented-text-mode))
        '(("\\.vm$" . emacs-lisp-mode))		; VM init file
        '(("\\.article[^/]*$" . indented-text-mode))
        '(("\\.letter[^/]*$" . indented-text-mode))
@@ -1107,6 +1108,11 @@ overridden without consideration by the major mode."
 ;;;; ----------
 ;;;; some major-mode hooks...
 
+;;; gdb (aka gud -- Grand Unified Debugger mode) wants to use ^X^A as a key-map
+;;; prefix, but since we do that in here, it just doesn't work!
+(defvar gud-key-prefix)
+(setq gud-key-prefix "\C-x\C-g")	; this makes more sense anyway....
+
 ;;; Date: Wed, 2 Feb 1994 12:49:31 GMT
 ;;; Message-Id: <1994Feb2.124931.19715@nessie.mcc.ac.uk>
 ;;; Organization: Manchester Computing Centre, Manchester, England
@@ -1291,8 +1297,6 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		 (setq c-label-offset -8)
 		 (setq c-tab-always-indent nil)
 		 )))))
-
-(add-hook 'awk-mode-hook 'c-mode-hook)
 
 ;; to quiet the v19 byte compiler
 (defvar vc-command-messages)
