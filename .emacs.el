@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	13.1	94/03/31 16:05:08 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	13.2	94/05/24 11:07:50 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -171,6 +171,7 @@ directory in the list PATHLIST, otherwise nil."
 	("^[^ ].*$" 0 font-lock-comment-face t)
 	("^..d.* \\([^ ]+\\)$" 1 font-lock-keyword-face))))
 
+(setq auto-save-timeout 600)		; 30 seconds is insane!
 (setq backup-by-copying t)		; copy, thus preserving modes and owner
 (setq compilation-window-height 10)	; default height for a compile window
 (setq default-tab-width 8)		; a tab is a tab is a tab is a tab....
