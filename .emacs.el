@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.3	93/11/01 13:15:09 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	1.4	93/11/01 13:32:34 (woods)"
 ;;;
 ;;; per-user start-up functions
 ;;;
@@ -591,7 +591,12 @@ current emacs server process..."
 
 (global-set-key "\eS" 'spell-buffer)
 
-;; Bindings to make it look like Jove (or old Emacs:-)
+(if (= init-emacs-type '19)
+    (progn
+      (global-set-key "\C-x\C-a" 'super-apropos)
+      (global-set-key "\C-x5T" 'find-tag-other-frame)))
+
+;; Bindings to make it look like Jove (or old Emacs :-)
 ;; (courtesy Mark Moraes)
 ;(defun prev-window ()
 ;  (interactive)(other-window -1)) ; this does not deal with argument
@@ -617,7 +622,6 @@ current emacs server process..."
 ;(define-key global-map "\eC-M" 'set-mark-command)
 
 ;; more goodies
-
 
 ;; From: kfogel@occs.cs.oberlin.edu (Karl Fogel)
 ;; Date: Mon, 1 Nov 1993 10:23:04 -0500
