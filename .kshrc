@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	18.5	97/01/25 18:03:12 (woods)"
+#ident	"@(#)HOME:.kshrc	18.6	97/01/25 18:09:10 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -381,6 +381,40 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			REMESG=`mesg | sed 's/is/mesg/'`
 			mesg n
 			mush -C "$@"
+			setban
+			$REMESG
+			unset REMESG
+		}
+	fi
+
+	if expr "`type irc`" : '.* is .*/irc$' >/dev/null 2>&1 ; then
+		unalias irc
+		alias irc=_irc
+		function _irc
+		{
+			trap "trap 1 2 3 15; setban" 1 2 3 15
+			WBANNER="IRC $*"
+			setban
+			REMESG=`mesg | sed 's/is/mesg/'`
+			mesg n
+			irc "$@"
+			setban
+			$REMESG
+			unset REMESG
+		}
+	fi
+
+	if expr "`type trn`" : '.* is .*/trn$' >/dev/null 2>&1 ; then
+		unalias trn
+		alias trn=_trn
+		function _tr
+		{
+			trap "trap 1 2 3 15; setban" 1 2 3 15
+			WBANNER="TRN $*"
+			setban
+			REMESG=`mesg | sed 's/is/mesg/'`
+			mesg n
+			trn "$@"
 			setban
 			$REMESG
 			unset REMESG
