@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	22.1	01/10/17 12:09:45 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	22.2	02/01/10 15:14:23 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -82,11 +82,9 @@
 (if (>= init-emacs-type 20)
     (setq inhibit-eol-conversion t))	; show MS crap for what it is....
 
-(cond ((>= init-emacs-type 20)
-       (let ((default-enable-multibyte-characters nil))
-	 (set-language-environment "Latin-1")))
-      (t
-       (standard-display-european 1)))
+(if (>= init-emacs-type 20)
+    (set-language-environment "Latin-1")
+  (standard-display-european 1))
 
 (if (and (>= init-emacs-type 20)
 	 (not window-system))
@@ -133,7 +131,17 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 ;;;; get ready to load stuff
 
 (defvar original-load-path load-path "The value of load-path at startup")
+
+;; prepend our private (even if it does not exist!) elisp library
 (setq load-path (cons (expand-file-name "~/lib/elisp") load-path))
+
+;; append the $PKG version's site-lisp dir if we're running the local version.
+(if (and (file-exists-p (concat (getenv "PKG")
+				"/share/emacs/site-lisp/default.el"))
+	 (not (fboundp 'local-site-lisp-dir)))
+    (progn
+      (defvar pkg-site-lisp-dir (concat (getenv "PKG") "/share/emacs/site-lisp/"))
+      (setq load-path (append load-path (list pkg-site-lisp-dir)))))
 
 (defvar original-vc-path vc-path "The value of vc-path at startup")
 (setq vc-path
@@ -141,7 +149,9 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 	  '("/usr/sccs")
 	(if (file-directory-p "/usr/local/libexec/cssc")
 	    '("/usr/local/libexec/cssc")
-	  nil)))
+	  (if (file-directory-p "/usr/pkg/libexec/cssc")
+	      '("/usr/pkg/libexec/cssc")
+	    nil))))
 
 ;;; This could probably be rewritten to use mapcar
 (defun elisp-file-in-loadpath-p (file-name)
@@ -171,7 +181,7 @@ directory in the list PATHLIST, otherwise nil."
     (while (not (or file-found-in-path-p (null path-list)))
       (setq try-path (car path-list)
             path-list (cdr path-list))
-      (if (file-exists-p (concat try-path "/" file-name))
+      (if (file-exists-p (concat try-path "/" file-name)) ; path-separator :-)
           (setq file-found-in-path-p t)))
     (eval 'file-found-in-path-p)))
 
@@ -379,8 +389,19 @@ scripts (alias)." t)
 (if (fboundp 'column-number-mode)
     (column-number-mode 1))		; XXX does this stick?  I hope so!
 
-(if (fboundp 'tool-bar-mode)
-    (tool-bar-mode -1))			; major space waster!
+;; note the v20.* compiler will bitch about tool-bar-mode being undefined...
+(if (elisp-file-in-loadpath-p "tool-bar")
+    (progn
+      (require 'tool-bar)
+      (if (fboundp 'tool-bar-mode)
+	  (tool-bar-mode -1))))		; major space waster!
+
+(if window-system
+    (setq baud-rate 153600))		; let's make things more efficient
+
+(if (and (string-match "-sunos4" system-configuration)
+	 (string-match "/bin/sh$" shell-file-name))
+    (setq cannot-suspend t))		; no jobs support!  ;-)
 
 ;; Something more detailed like this really should be the default!
 ;;
@@ -456,17 +477,6 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 	(height . 12)
 	(width . 80)
 	(unsplittable . t)))
-
-;; GNUS specific stuff
-(defvar gnus-read-active-file)
-(setq gnus-read-active-file t)		; default of 'some causes it to hang
-
-(if window-system
-    (setq baud-rate 153600))		; let's make things more efficient
-
-(if (and (string-match "-sunos4" system-configuration)
-	 (string-match "/bin/sh$" shell-file-name))
-    (setq cannot-suspend t))		; no jobs support!  ;-)
 
 ;; Format string for PR summary text.
 (defvar gnats::format-string)
@@ -1214,23 +1224,33 @@ overridden without consideration by the major mode."
 ;; Public domain
 ;;
 (defun make-buffer-file-executable-if-script-p ()
-  "Make file executable according to umask if not already executable.
-If file already has any execute bits set at all, do not change existing
-file modes."
-  (and (save-excursion
+  "If a file looks like it is an executable script then add execute bits
+according to umask if it is not already executable.  If file already has any
+execute bits set at all, do not change existing file modes."
+  (if (save-excursion
          (save-restriction
            (widen)
            (goto-char (point-min))
            (save-match-data
              (looking-at "^#!"))))
-       (let* ((current-mode (file-modes (buffer-file-name)))
-              (add-mode (logand ?\111 (default-file-modes))))
-         (or (/= (logand ?\111 current-mode) 0)
-             (zerop add-mode)
-             (set-file-modes (buffer-file-name)
-                             (logior current-mode add-mode))))))
+      (make-buffer-file-executable)))
 
+(defun make-buffer-file-executable ()
+  "Make file executable according to umask if not already executable.
+If file already has any execute bits set at all, do not change existing
+file modes."
+  (let* ((current-mode (file-modes (buffer-file-name)))
+	 (add-mode (logand ?\111 (default-file-modes))))
+    (or (/= (logand ?\111 current-mode) 0)
+	(zerop add-mode)
+	(set-file-modes (buffer-file-name)
+			(logior current-mode add-mode)))))
+
+;; these are always a good idea....
+;;
 (add-hook 'after-save-hook 'make-buffer-file-executable-if-script-p)
+(add-hook 'vc-checkout-hook 'make-buffer-file-executable-if-script-p)
+(add-hook 'vc-checkin-hook 'make-buffer-file-executable-if-script-p)
 
 ;; himark -- by Ehud Karni <ehud@unix.simonwiesel.co.il>
 ;;
@@ -2085,6 +2105,111 @@ current emacs server process..."
 ;;; 		   (substring (current-time-string) 14 16))))
 ;;;      (if (eq 0 (mod cur-min 3))
 ;;; 	 ad-do-it)))
+
+
+;;;;
+;;;; mail-mode stuff....
+;;;;
+
+(require 'sendmail)
+
+(define-key mail-mode-map "\C-ci" 'ispell-message)
+(define-key mail-mode-map "\C-i" 'mail-goto-next-header-or-insert)
+(define-key mail-mode-map "\M-S" 'ispell-message)
+
+(define-key mail-mode-map [S-tab] 'mail-goto-previous-header)
+
+(defun mail-goto-previous-header (&optional count)
+  "Call mail-goto-next-header-or-insert with (- COUNT)"
+  (interactive "p")
+  (mail-goto-next-header-or-insert (- count)))
+
+(defun mail-goto-next-header-or-insert (&optional count)
+  "If in header area, go to beginning of next header.
+If point is not in the header area, just insert the character which
+invoked this command.
+
+With numeric prefix arg, skip forward that many headers.
+If prefix arg is negative, skip backward that many headers.
+
+If either the head or tail of the headers are reached, wrap around
+to the other end and continue."
+  (interactive "p")
+  (let* ((headers-end
+	  (save-excursion
+	    (goto-char (point-min))
+	    (re-search-forward
+	     (concat "^" (regexp-quote mail-header-separator) "$"))
+	    (match-beginning 0)))
+	 (forwardp (or (null count) (> count 0)))
+	 (fn (if forwardp 're-search-forward 're-search-backward))
+	 (la (if forwardp 2 1))
+	 (nla (if forwardp 1 2))
+	 (re "^[^:\n\t ]+:")
+	 (i (abs count)))
+    (cond ((>= (point) headers-end)
+	   (call-interactively 'self-insert-command))
+	  (t
+	   (save-restriction
+	     (narrow-to-region (point-min) headers-end)
+	     (while (not (zerop i))
+	       (cond
+		((funcall fn re nil t (if (looking-at re) la nla)))
+		(t
+		 (goto-char (point-min))
+		 (funcall fn re nil t)))
+	       (setq i (1- i)))
+	     (goto-char (match-end 0))
+	     (and (looking-at "[ \t]")
+		  (forward-char 1)))))))
+
+;; mail-x-face-file thanks to John Owens <owens@graphics.stanford.edu>
+;;
+(defvar mail-x-face-file "~/.face"
+  "Name of file containing contents for X-Face header")
+
+(defun mail-insert-x-face ()
+  "Insert an X-Face header containing the contents of mail-x-face-file."
+  (if (file-exists-p mail-x-face-file)
+      (save-excursion 
+	(goto-char (point-min))
+	(search-forward mail-header-separator)
+	(beginning-of-line nil)
+	(insert "X-Face:")
+	(insert-file mail-x-face-file))))
+
+(add-hook 'mail-setup-hook 'mail-insert-x-face)
+
+(add-hook 'mail-setup-hook 'mail-abbrevs-setup)
+
+;; it would be nice to have mail-abbrev-next-header and maybe
+;; mail-abbrev-goto-mail-text and mail-abbrev-comma too....
+;; mail-abbrev-end-of-buffer is useless with signature files.
+
+(defun my-mail-abbrevs-fix-next-line ()
+  "Substitute the mail-abbrev-next-line for next-line in mail-mode-map wherever
+the same key is used in global-map."
+  (substitute-key-definition 'next-line 'mail-abbrev-next-line
+			     mail-mode-map global-map))
+(add-hook 'mail-setup-hook 'my-mail-abbrevs-fix-next-line)
+
+;;;;
+;;;; message.el stuff....
+;;;;
+
+(require 'message)
+
+(setq message-user-organization t)
+(if (file-exists-p "~/.organization")
+    (setq message-user-organization-file "~/.organization"))
+
+;;;
+;;; GNUS specific stuff
+;;;
+
+(defvar gnus-read-active-file)
+(setq gnus-read-active-file t)		; default of 'some causes it to hang
+
 
 ;;;;-------
 ;;;; the closing comments.....
