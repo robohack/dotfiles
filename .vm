@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	18.5	97/04/04 09:09:45 (woods)"
+;;;#ident	"@(#)HOME:.vm	18.6	97/04/04 18:07:53 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -260,6 +260,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("djb-qmail@" . "djb-qmail-l")
 			      ("domain-policy@" . "domain-policy-l")
 			      ("exim-users@" . "exim-users-l")
+			      ("freenrg-l@" . "freenrg-l")
 			      ("\\(hyperbole\\|hyperbole-announce\\)@" . "hyperbole-l")
 			      ("iap@" . "iap-l")
 			      ("info-vm@" . "bug-vm") ; just merge these....
