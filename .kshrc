@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	7.2	95/03/03 16:44:59 (woods)"
+#ident	"@(#)HOME:.kshrc	7.3	95/06/07 21:09:19 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -167,19 +167,6 @@ if [ "$id" -eq 0 ] ; then
 	fi
 	dirappend PATH /usr/lib/uucp /usr/lib
 	dirappend PATH /usr/ot/bin
-	case "$UUNAME" in
-	web )
-		dirappend PATH /etc/apc/bin $APCBIN/xbin
-		dirappend PATH $APCCONFIG/bin /apc/bin /apc/xbin /apc/lbin
-		dirappend PATH /usr/local/apc/bin /usr/local/apc/xbin
-		dirappend MANPATH /apc/man
-		;;
-	sunweb )
-		dirappend PATH $APCBIN/xbin $APCCONFIG/bin
-		dirappend PATH /apc/xbin /apc/bin
-		dirappend MANPATH /apc/man
-		;;
-	esac
 	dirappend PATH $HOME/bin
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		MYXBAN_R='$uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN'
@@ -244,8 +231,6 @@ if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		eval myxban -r "\"$MYXBAN_R\""
 	}
 
-	alias umenu="echo 'cat /usr/spool/news/out.going/*/batchlog' | mkmenu NewsChkBatch ; echo 'uustat -m' | mkmenu UUSTAT"
-
 	unalias cd
 	alias cd='_cd'
 	function _cd
@@ -285,25 +270,6 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			setban
 			mesg n
 			emacs "$@"
-		}
-	fi
-
-	if expr "$(type pnerun)" : '.* is .*/pnerun$' >/dev/null 2>&1 ; then
-		unalias pnotes
-		alias pnotes=_pnotes
-		function _pnotes
-		{
-			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
-			WBANNER="PNotes $*"
-			setban
-			if [ ! -d $HOME/.pn ] ; then
-				mkdir $HOME/.pn
-			fi
-			if [ -f $HOME/.emacs_server ] ; then
-				rm -f $HOME/.pn/.emacs_server
-				ln -f $HOME/.emacs_server $HOME/.pn
-			fi
-			pnerun pnotes "$@"
 		}
 	fi
 
@@ -554,35 +520,6 @@ fi
 #
 #	more functions
 #
-
-case "$UUNAME" in
-web )
-	APCCONFIG=/etc/apc ; export APCCONFIG
-	;;
-* )
-	# APCCONFIG and APCSRCDIR might be set in /etc/profile
-	#
-	if [ -z "$APCSRCDIR" -a -d /apcsoft/work.d/$LOGNAME ] ; then
-		APCSRCDIR=/apcsoft/work.d/$LOGNAME/apc ; export APCSRCDIR
-	fi
-	#
-	# have to force this, since we don't want the installed configs
-	# when building new stuff (not sure it should even be conditional
-	# on the existence of the directory)
-	#
-	if [ -d $APCSRCDIR/configure ] ; then
-		APCCONFIG=$APCSRCDIR/configure ; export APCCONFIG
-	fi
-	apcmake ()
-	{
-		gmake -I $APCCONFIG APCSRCDIR=$APCSRCDIR APCCONFIG=$APCCONFIG APCINCDIR=$APCSRCDIR/include APCLIBDIR=$APCSRCDIR/lib ${1+"$@"}
-	}
-	if [ -d /apc ] ; then
-		alias apcsh='stty -g > $PNHOME/SANE; /apc/etc/bin/apcsh; stty $(cat $PNHOME/SANE)'
-		alias xapcsh='stty -g > $PNHOME/SANE; /apc/etc/bin/xapcsh; stty $(cat $PNHOME/SANE)'
-	fi
-	;;
-esac
 
 function errno
 {
