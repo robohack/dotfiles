@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file
 #
-#ident        "@(#)HOME:.xinitrc     6.2     95/07/01 16:41:35 (woods)"
+#ident        "@(#)HOME:.xinitrc     6.3     95/08/11 00:24:40 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -93,6 +93,8 @@ if [ "$argv0" = ".xinitrc" ] ; then
 	# ensure they get overlayed in the right order
 	sleep 1
 	xclock -geometry 190x190-4+4 &
+else
+	xterm -geometry 80x12-4-4 -cn -rw -sb -si -sk -sl 200 -e tail -f $HOME/.xsession-errors &
 fi
 
 if [ -x $X11BIN/xmailwatcher ] ; then
