@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.2	98/07/25 13:23:56 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.3	98/09/15 02:26:59 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -9,6 +9,9 @@
 (require 'sendmail)			; get this over with right away
 
 (setq vm-version-number (string-to-number vm-version))
+
+(defvar my-vm-netscape-display "xtremely:0"
+  "Display name to pass to netscape in vm-netscape-program-switches.")
 
 (add-hook 'mail-setup-hook 'mail-abbrevs-setup)
 (add-hook
@@ -434,12 +437,15 @@ message/rfc822 attachments."
   (interactive)
   (save-excursion
     (goto-char (point-max))
-    (search-backward-regexp "^-- ?$" 1 t) 
+    (search-backward-regexp "^-- $" 1 t)
     (let ((top-of-my-sig (point)))
       (search-backward-regexp 
-       (concat "^" vm-included-text-prefix "-- ?$") 1 t)
+       (concat "^" vm-included-text-prefix "-- $") 1 t)
       (delete-region (point) top-of-my-sig)
       )))
+
+(add-hook 'vm-reply-hook
+	  'citation-kill-sig)
 
 ;;; more from: edwinh@primenet.com (Edwin Huffstutler)
 ;;; 
@@ -471,10 +477,12 @@ message/rfc822 attachments."
     ;;         "^" vm-included-text-prefix ".*wrote:\n") "")
     ))
 
+(defun citation-set-kill-double-binding ()
+  "Set the binding for citation-kill-double"
+  (local-set-key "\C-c\C-d" 'citation-kill-double))
+
 (add-hook 'vm-reply-hook
-	  '(lambda ()
-	     (citation-kill-sig)
-	     (local-set-key "\C-c\C-d" 'citation-kill-double)))
+	  'citation-set-kill-double-binding)
 
 ;; commented lines indicate changed values....  (from v5.72)
 ;;
@@ -687,7 +695,7 @@ message/rfc822 attachments."
 ;; 	rsh $NETSCAPEHOST $NETSCAPEPATH -display $DISPLAY 
 ;; fi
       vm-netscape-program "netscape"
-      vm-netscape-program-switches nil
+      vm-netscape-program-switches '("-display" my-vm-netscape-display "-install")
 ;;; shouldn't mess with this
 ;;;   vm-options-file "~/.vm.options"
       vm-pop-bytes-per-session nil
@@ -828,6 +836,7 @@ message/rfc822 attachments."
 			      ("admin-l@io.org" . "planix/io-admin-l")
 			      ("aegis-users@" . "aegis-users-l")
 			      ("auto-net@" . "auto-net-l")
+			      ("autoconf@" . "autoconf-l")
 			      ("automake@" . "automake-l")
 			      ("cssc-users@gnu.org" . "cssc-users-l")
 			      ("best-of-security@cyber.com.au" . "best-of-security-l")
@@ -984,7 +993,8 @@ message/rfc822 attachments."
 		      (recipient "info-vm@"))))
 		("automake"
 		 (("INBOX")
-		  (recipient "automake@")))
+		  (or (recipient "automake@")
+		      (recipient "autoconf@"))))
 		("cvs"
 		 (("INBOX")
 		  (or (recipient "bug-cvs@")
