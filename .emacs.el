@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	12.1	94/03/31 14:24:03 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	12.2	94/03/31 14:34:25 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -33,6 +33,25 @@
     (message "Not running emacs v19 I see -- you'll have trouble with this .emacs!")) 
 
 ;;;; ----------
+;;;; What to do after this file has been loaded...
+;; to quiet the v19 byte compiler
+(defvar display-time-24hr-format)
+(defvar display-time-interval)
+(add-hook 'after-init-hook
+	  (function
+	   (lambda ()
+	     "Functions to call after loading the init file (`~/.emacs').
+The call is not protected by a condition-case, so you can set `debug-on-error'
+in `.emacs', and put all the actual code on `after-init-hook'."
+,	     (progn
+	       ;; (require 'time)	; this isn't provided by time.el!
+	       (setq display-time-day-and-date t) ; autoload'ed though
+	       (setq display-time-24hr-format t)
+	       (if (string-equal (system-name) "robohack")
+		   (setq display-time-interval 300)) ; poor little machine....
+	       (display-time)))))	; also autoload'ed
+
+;;;; ----------
 ;;;; get ready to load stuff
 
 (defvar local-gnu-path (cond
@@ -47,8 +66,6 @@
 
 (setq load-path (append load-path
 			(list (concat local-gnu-path
-				      "/lib/emacs/site-lisp")
-			      (concat local-gnu-path
 				      "/lib/emacs/site-lisp/hyperbole"))))
 
 ;;; This could probably be rewritten to use mapcar
@@ -86,21 +103,12 @@ directory in the list PATHLIST, otherwise nil."
 ;;;; ----------
 ;;;; some default packages we'd like...
 
-(if (elisp-file-in-loadpath-p "time")
-    (dont-compile
-      (setq display-time-day-and-date t)
-      (setq display-time-24hr-format t))
-      (display-time))			; also enabled by mode-line, if avail.
-
 (if (elisp-file-in-loadpath-p "c-boxes")
     (autoload 'reindent-c-comment "c-boxes" "Function for boxing C comments." t))
 
-(if (elisp-file-in-loadpath-p "ksh-mode")
-    (autoload 'ksh-mode "ksh-mode" "Major mode for editing sh Scripts." t))
-
 (if (and (elisp-file-in-loadpath-p "func-menu")
 	 window-system)
-    (dont-compile
+    (progn
       (require 'func-menu)
       (define-key global-map [S-down-mouse-1]
 	'function-menu)))
@@ -110,25 +118,11 @@ directory in the list PATHLIST, otherwise nil."
       (load "shwtmpbuf")
       (global-set-key "\C-xH" 'hide-temp-buffers))) ; defaults to C-x t in shwtmpbuf
 
-(if (elisp-file-in-loadpath-p "vm")
-    (progn
-      (autoload 'vm "vm" "Start VM on your primary inbox." t)
-      (autoload 'vm-visit-folder "vm" "Start VM on an arbitrary folder." t)
-      (autoload 'vm-visit-virtual-folder "vm" "Visit a VM virtual folder." t)
-      (autoload 'vm-mode "vm" "Run VM major mode on a buffer" t)
-      (autoload 'vm-mail "vm" "Send a mail message using VM." t)
-      (autoload 'vm-submit-bug-report "vm" "Send a bug report about VM." t))
-  (progn
-    ;; display-time can't check "Status:" headers or "Forward to" files
-    ;; so if not running vm or something else that cleans out the spool
-    ;; files, disable the mail checking feature
-    ;;
-    ;; must appear after display-time is invoked (thus after time.el is loaded)
-    ;; 
-    (defun display-time-file-nonempty-p (file)
-      "This function returns 'nil, as it would only be useful if it could check
-Status: headers for O, or Forward to in mailboxes."
-      nil)))
+(if (elisp-file-in-loadpath-p "ksh-mode")
+    (autoload 'ksh-mode "ksh-mode" "Major mode for editing sh Scripts." t))
+
+(if (elisp-file-in-loadpath-p "foldout")
+    (eval-after-load "outline" '(load "foldout")))
 
 ;;;; ----------
 ;;;; some property defintions...
@@ -181,15 +175,19 @@ Status: headers for O, or Forward to in mailboxes."
 (setq compilation-window-height 10)	; default height for a compile window
 (setq default-tab-width 8)		; a tab is a tab is a tab is a tab....
 (setq delete-auto-save-files t)		; delete auto-save file when saved
-(setq enable-local-variables t)		; (is this the default in v19?)
-(setq make-backup-files nil)		; too much clutter
-(setq next-line-add-newlines nil)	; I hate it when it does that!  ;-)
-(setq track-eol nil)			; too hard to control (it's sticky!)
-(setq window-min-height 1)		; don't be snobbish
-(setq window-min-width 1)
-
 (if window-system
     (setq search-highlight t))		; i-search hightlight match
+(setq enable-local-variables t)		; (is this the default in v19?)
+(setq make-backup-files nil)		; too much clutter
+(setq track-eol nil)			; too hard to control (it's sticky!)
+(setq window-min-height 1)
+(setq window-min-width 1)
+(setq completion-ignored-extensions
+      (append '(".out")
+	      completion-ignored-extensions))
+
+;;;; ----------
+;;;; auto-mode-alist setup
 
 (setq auto-mode-alist
       (append
@@ -207,17 +205,13 @@ Status: headers for O, or Forward to in mailboxes."
        '(("/[^/]*\\.letter.*$" . indented-text-mode))
        '(("^.*/tmp/[^/]*\\.ed.*$" . indented-text-mode)) ; mail edit buffer
        '(("^.*/tmp/[^/]*nf.*$" . indented-text-mode)) ; notesfile compose buffer
+       '(("/tmp/\.mail.*$" . mail-mode))
        auto-mode-alist))
-
-(if (elisp-file-in-loadpath-p "hyperbole")
-    (dont-compile
-      (setq hyperb:init-hook
-	    (list (function (lambda () (setq smart-scroll-proportional t)))))))
 
 (if (elisp-file-in-loadpath-p "hyperbole")
     (setq auto-mode-alist
 	  (append
-	   '(("/[^/]+\\.kotl$" . kotl-mode))	; outline mode
+	   '(("/[^/]+\\.kotl$" . kotl-mode)) ; outline mode
 	   auto-mode-alist)))
 
 (if (elisp-file-in-loadpath-p "ksh-mode")
@@ -238,9 +232,8 @@ Status: headers for O, or Forward to in mailboxes."
 	   '(("/News/.*$" . vm-mode))
 	   auto-mode-alist)))
 
-(setq completion-ignored-extensions
-      (append '(".out")
-	      completion-ignored-extensions))
+;;;; ----------
+;;;; special setup!
 
 (eval-and-compile
   (and (fboundp 'setenv)
@@ -255,18 +248,15 @@ Status: headers for O, or Forward to in mailboxes."
        (setenv "EDITOR" "emacsclient")
        (setenv "VISUAL" "emacsclient")))
 
-(if (elisp-file-in-loadpath-p "foldout")
-    (eval-after-load "outline" '(load "foldout")))
-
-;;; unix "spell" knows to use "deroff", so only use this if you use a speller
-;;; other than it.
-;;;
-;;;(defun filter-through-deroff ()
-;;;  "Magic!"
-;;;  (setq spell-command (concat "deroff | " spell-command)))
-
 ;;;; ----------
 ;;;; some useful functions....
+
+;;; I hate it running away off the end of the file - next line should stop at
+;;; the end of the file  (courtesy Mark Moraes)
+;;; [I wish they'd both ring the bell when the run into BOF or EOF....]
+(defun next-line (count)
+  (interactive "p")
+  (previous-line (- count)))
 
 ;;;; For mail reading or looking at man pages (courtesy Mark Moraes)
 (defun remove-nroff-bs ()
@@ -456,12 +446,10 @@ might have been overridden by the major mode."
         indent-tabs-mode t		; allow tabs in indentation
         selective-display nil))		; don't allow selective display
 
-;;; From gnu@ai.mit.edu Sat Jan 22 01:37:54 1994
-;;; Date: Fri, 21 Jan 94 08:54:28 GMT
 ;;; From: simonm@plod.ai.mit.edu (Simon Marshall)
-;;; Message-Id: <9401210854.AA22319@plod.esrin.esa.it>
-;;; To: bug-gnu-emacs@prep.ai.mit.edu
 ;;; Reply-To: Simon.Marshall@mail.esrin.esa.it
+;;; Date: Fri, 21 Jan 94 08:54:28 GMT
+;;; To: bug-gnu-emacs@prep.ai.mit.edu
 ;;; Subject: [19.22]: `match-string': Short but sweet function
 ;;; 
 ;;; In GNU Emacs 19.22.1 of Tue Nov 30 1993 on tracy (berkeley-unix)
@@ -477,33 +465,7 @@ If STRING is not given, use the current buffer.  See `string-match'."
       (substring string (match-beginning n) (match-end n))
     (buffer-substring (match-beginning n) (match-end n))))
 
-;; These ones I dreampt up myself!
-;;
-;; (I would also like to have a similar function that deletes all the trailing
-;; whitespace from every line in a buffer.)
-;;
-(defun buffer-trim-trailing-whitespace (&optional buff-nm)
-  "Trim the trailing whitespace a buffer.
-If BUFF-NM is not given, use the current buffer."
-  (interactive)
-  (if (not (bufferp buff-nm))
-      (setq buff-nm (read-buffer "Buffer to trim: "
-				 (buffer-name (current-buffer)))))
-  (buffer-trim-trailing-chars buff-nm))
-
-(defun buffer-trim-trailing-chars (buff-nm &optional chars-to-trim)
-  "Trim trailing characters from a buffer.
-If CHARS-TO-TRIM is not given, default to ``\ \t\n'' (i.e. whitespace)."
-  (save-window-excursion
-    (set-buffer buff-nm)
-    (goto-char (point-max))
-    (let ((end-pt (point)))
-      (skip-chars-backward (or chars-to-trim
-			       "\ \t\n"))
-      (delete-region (point) end-pt))))
-
 ;;; From: terra@diku.dk (Morten Welinder)
-;;; Sender: gnu-emacs-sources-request@prep.ai.mit.edu
 ;;; To: gnu-emacs-sources@prep.ai.mit.edu
 ;;; Subject: Making TAB scroll completions
 ;;; Date: Sat, 12 Mar 1994 12:43:48 GMT
@@ -540,23 +502,12 @@ the window showing completions."
 ;;; Author: Jim Blandy <jimb@gnu.ai.mit.edu>
 ;;; Created: 18 Mar 1994
 ;;; Keywords: lisp
-;;;
+
 (defun load-file-defining-function (function)
   "Return the name of the source file from which FUNCTION was loaded.
 If FUNCTION was defined by reading from a buffer, return 'buffer.
 If FUNCTION is a subr, or a lisp function dumped with Emacs, return nil."
-  (interactive
-   (let ((fn (function-called-at-point)) ; note, this requires help.el to have
-					 ; been loaded!
-	 (enable-recursive-minibuffers t)	     
-	 val)
-     (setq val (completing-read (if fn
-				    (format "Find function (default %s): " fn)
-				  "Find function: ")
-				obarray 'fboundp t))
-     (list (if (equal val "")
-	       fn
-	     (intern val)))))
+  (interactive "aFunction: ")
   (symbol-function function)
   (let ((hist load-history)
         (file nil))
@@ -567,8 +518,7 @@ If FUNCTION is a subr, or a lisp function dumped with Emacs, return nil."
             (setq file (if name name 'buffer)
                   hist nil)
           (setq hist (cdr hist)))))
-    (if file
-	(setq file (load-file-name file)))
+    (setq file (load-file-name file))
     (if (interactive-p)
         (message
          (cond
@@ -581,8 +531,6 @@ If FUNCTION is a subr, or a lisp function dumped with Emacs, return nil."
            (format "Function %s loaded when Emacs was built."
                    function)))))
     file))
-
-(define-key help-map "F" 'load-file-defining-function)
 
 (defun load-file-name (filename &optional nosuffix)
   "Expand FILENAME, searching in the directories listed in `load-path'.
@@ -627,19 +575,21 @@ suffixes `.elc' or `.el' to the specified name FILE."
 ;;;; ----------
 ;;;; some special hooks.....
 
-(if (or (string-equal (getenv "EDITOR") "emacsclient")
-	(string-equal (getenv "VISUAL") "emacsclient"))
+(if (string-equal (getenv "VISUAL") "emacsclient")
     (progn
+      ;; to quiet the v19 byte compiler
+      (defvar server-process)
+      (eval-and-compile
+	(autoload 'server-buffer-done "server"
+	  "Mark BUFFER as \"done\" for its client(s)."
+	  nil nil))
       (require 'server)
       ;; I *USUALLY* EXPECT THE BACKSPACE KEY TO GENERATE AN ASCII BACKSPACE!
       (define-key function-key-map [backspace] [8])
       (define-key function-key-map [backspace] [?\C-h])
       (define-key function-key-map [C-backspace] [?\C-h])
       (define-key function-key-map [M-backspace] [?\M-\C-h])
-      (setq server-temp-file-regexp
-	    "/tmp/Re\\|/draft$\\|/\\.letter$\\|/\\.article$/\\|/tmp/[^/]*\\.ed\\|/tmp/[^/]*nf")
-      ;; From: qhslali@aom.ericsson.se (Lars Lindberg EHS/PBE 80455 2122 { tom
-      ;;	-> 940531  ansv. EHS/PBE Christer Nilsson }) 
+      ;; From: qhslali@aom.ericsson.se (Lars Lindberg EHS/PBE 80455 2122 { tom -> 940531  ansv. EHS/PBE Christer Nilsson })
       ;; Message-Id: <9402170914.AA18291@aom.ericsson.se>
       ;; Subject: [19.22] emacsclient server should have a hook for kill-buffer
       (add-hook 'server-visit-hook
@@ -648,13 +598,15 @@ suffixes `.elc' or `.el' to the specified name FILE."
 		   (add-hook 'kill-buffer-hook
 			     (function
 			      (lambda ()
-				(server-buffer-done (current-buffer))))))))
+				(server-buffer-done
+				 (current-buffer))))))))
       (defun server-really-exit ()	; for those times we forget
 	"Query user if he really wants to exit since this will destroy the
 current emacs server process..."
 	(interactive)
 	(if server-process
-	    (if (yes-or-no-p "Are you sure you *really* want to exit? ")
+	    (if (yes-or-no-p
+		 "Are you sure you *really* want to exit? ")
 		(save-buffers-kill-emacs))))
       (global-set-key "\C-x\C-c" 'server-really-exit)
       (server-start)))
@@ -670,12 +622,34 @@ current emacs server process..."
 ;;;
 (if window-system
     (progn
+      ;; to quiet the v19 byte compiler
+      (defvar font-lock-keywords)
       (require 'font-lock)
       (add-hook 'dired-mode-hook
-		(function (lambda ()
-			    (font-lock-mode t)
-			    (setq font-lock-keywords
-				  dired-font-lock-keywords))))))
+		(function
+		 (lambda ()
+		   (font-lock-mode t)
+		   (setq font-lock-keywords
+			 dired-font-lock-keywords))))))
+
+(add-hook 'display-time-hook
+	  (function
+	   (lambda ()
+	     (if (elisp-file-in-loadpath-p "vm")
+		 nil			; we want mail checking....
+	       (progn
+		 ;; display-time can't check "Status:" headers or "Forward
+		 ;; to" files so if not running vm or something else that
+		 ;; cleans out the spool files, disable the mail checking
+		 ;; feature
+		 ;;
+		 ;; must appear after display-time is invoked (thus after
+		 ;; time.el is loaded)
+		 ;; 
+		 (defun display-time-file-nonempty-p (file)
+		   "This function returns 'nil, as it would only be useful if
+it could check Status: headers for O, or Forward to in mailboxes."
+		   nil))))))
 
 (add-hook 'lisp-interaction-mode-hook
 	  (function 
@@ -713,32 +687,17 @@ current emacs server process..."
 	     (setq c-label-offset -8)
 	     (setq c-tab-always-indent nil))))
 
-(if (elisp-file-in-loadpath-p "vc")
-    (dont-compile
-      (add-hook 'vc-mode-hook
-		(function
-		 (lambda ()
-		   "Private vc-mode stuff."
-		   (setq vc-command-messages t)
-		   (setq vc-initial-comment t)
-		   (add-hook 'vc-checkin-hook vc-comment-to-change-log))))))
-
-(if (elisp-file-in-loadpath-p "pcl-cvs")
-    (dont-compile
-      (add-hook 'cvs-mode-hook
-		(function
-		 (lambda ()
-		   "Private cvs-mode stuff."
-		   (setq cvs-diff-flags '("-u")) ; List of strings to use as
-						 ; flags to pass to ``diff''
-						 ; and ``cvs diff''.
-		   (setq cvs-status-flags '("-Q")) ; List of strings to pass to
-						   ; ``cvs status''
-		   (setq cvs-diff-ignore-marks t)))))) ; Non-nil if cvs-diff
-						       ; and
-						       ; cvs-mode-diff-backup
-						       ; should ignore any
-						       ; marked files.
+;; to quiet the v19 byte compiler
+(defvar vc-command-messages)
+(defvar vc-initial-comment)
+(add-hook 'vc-mode-hook
+	  (function
+	   (lambda ()
+	     "Private vc-mode stuff."
+	     (setq vc-command-messages t)
+	     (setq vc-initial-comment t)
+	     (add-hook 'vc-checkin-hook
+		       'vc-comment-to-change-log))))
 
 (add-hook 'emacs-lisp-mode-hook
 	  (function
@@ -774,8 +733,46 @@ current emacs server process..."
 	     "Private nroff-mode stuff."
 	     (run-hooks 'text-mode-hook))))
 
+;;;; ----------
+;;;; more hooks for non-default packages
+
+(if (elisp-file-in-loadpath-p "hyperbole")
+    (progn
+      ;; to quiet the v19 vyte compiler
+      (defvar smart-scroll-proportional)
+      (add-hook 'hyperb:init-hook
+		(function
+		 (lambda ()
+		   (setq smart-scroll-proportional t))))))
+
+(if (elisp-file-in-loadpath-p "pcl-cvs")
+    (progn
+      ;; to quiet the v19 byte compiler
+      (defvar cvs-diff-flags)
+      (defvar cvs-status-flags)
+      (defvar cvs-diff-ignore-marks)
+      (add-hook 'cvs-mode-hook
+		(function
+		 (lambda ()
+		   "Private cvs-mode stuff."
+		   ;; List of strings to use as  flags to pass to
+		   ;; ``diff'' and ``cvs diff''.
+		   (setq cvs-diff-flags '("-u"))
+		   ;; List of strings to pass to ``cvs status''
+		   (setq cvs-status-flags '("-Q"))
+		   ;; Non-nil if cvs-diff and cvs-mode-diff-backup
+		   ;; should ignore any marked files.
+		   (setq cvs-diff-ignore-marks t))))))
+
 (if (elisp-file-in-loadpath-p "ksh-mode")
-    (dont-compile
+    (progn
+      ;; to quiet the v19 byte compiler
+      (defvar ksh-indent)
+      (defvar ksh-group-indent)
+      (defvar ksh-brace-indent)   
+      (defvar ksh-case-item-indent)
+      (defvar ksh-case-indent)
+      (defvar ksh-match-and-tell)
       (add-hook 'ksh-mode-hook
 		(function
 		 (lambda ()
@@ -788,13 +785,15 @@ current emacs server process..."
 		   (setq ksh-match-and-tell t))))))
 
 (if (elisp-file-in-loadpath-p "c-boxes")
-      (dont-compile
-	(add-hook 'c-mode-hook
-		  (function
-		   (lambda ()
-		     "Private c-boxes stuff."
-		     (local-set-key "\eq" 'reindent-c-comment)
-		     (setq c-comment-starting-blank t))))))
+    (progn
+      ;; to quiet the v19 byte compiler
+      (defvar c-comment-starting-blank)
+      (add-hook 'c-mode-hook
+		(function
+		 (lambda ()
+		   "Private c-boxes stuff."
+		   (local-set-key "\eq" 'reindent-c-comment)
+		   (setq c-comment-starting-blank t))))))
 
 ;;;; ----------
 ;;;; some default key re-binding....
@@ -939,10 +938,19 @@ current emacs server process..."
 ;;; 
 (if (and (elisp-file-in-loadpath-p "compile-frame")
 	 window-system)
-    (dont-compile
+    (progn
+      ;; to quiet the v19 byte compiler
+      (defvar compilation-frame-id)
       (require 'compile-frame)
+      (eval-and-compile
+	(autoload 'raise-frame "frame"	; actually in frame.c
+	  "Bring FRAME to the front, so it occludes any frames it overlaps."
+	  nil nil))
       (add-hook 'compilation-frame-selected-hook
-		'(lambda () (raise-frame compilation-frame-id)))))
+		(function
+		 (lambda ()
+		   "Private compilation-frame stuff."
+		   (raise-frame compilation-frame-id))))))
 
 ;;; From: kfogel@occs.cs.oberlin.edu (Karl Fogel)
 ;;; Date: Mon, 1 Nov 1993 10:23:04 -0500
@@ -990,7 +998,13 @@ current emacs server process..."
 ;;; -l means force LaTeX mode.
 ;;;
 (if (elisp-file-in-loadpath-p "ispell")
-    (dont-compile
+    (progn
+      ;; to quiet the v19 byte compiler
+      (defvar ispell-filter-hook)
+      (defvar ispell-filter-hook-args)
+      (defvar plain-TeX-mode-hook)
+      (defvar LaTeX-mode-hook)
+      (defvar nroff-mode-hook)
       (require 'ispell)
       (define-key global-map "\M-S" 'ispell-buffer)
       (setq plain-TeX-mode-hook
@@ -1008,6 +1022,13 @@ current emacs server process..."
 	     (lambda ()
 	       (setq ispell-filter-hook "deroff")
 	       (setq ispell-filter-hook-args '("-w")))))))
+
+;;; unix "spell" knows to use "deroff", so only use this if you use a speller
+;;; other than it.
+;;;
+;;;(defun filter-through-deroff ()
+;;;  "Magic!"
+;;;  (setq spell-command (concat "deroff | " spell-command)))
 
 ;;; From: kifer@sbkifer.cs.sunysb.edu (Michael Kifer)
 ;;; Subject: Re: calendar tool in Emacs?
