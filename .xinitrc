@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	20.4	98/08/04 00:50:24 (woods)"
+#ident	"@(#)HOME:.xinitrc	20.5	99/01/27 19:58:20 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -15,12 +15,12 @@ XODISPLAY=$DISPLAY
 echo "$argv0: starting up with DISPLAY='$DISPLAY'"
 
 if [ -r /etc/profile ] ; then
-	. /etc/profile
+	. /etc/profile < /dev/null
 else
 	echo "$argv0: no /etc/profile on this host!"
 fi
 if [ -r $HOME/.profile ] ; then
-	. $HOME/.profile
+	. $HOME/.profile < /dev/null
 else
 	echo "$argv0: no $HOME/.profile on this host!"
 fi
@@ -62,7 +62,7 @@ esac
 # may be things that depend on DISPLAY in here, so source again....
 #
 if [ -r $HOME/.localprofile ] ; then
-	. $HOME/.localprofile
+	. $HOME/.localprofile < /dev/null
 fi
 
 VENDORSTR="`xdpyinfo | sed -n 's/^vendor string:[ ]*\(.*\)$/\1/p'`"
