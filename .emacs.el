@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	19.5	98/03/23 19:50:35 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	19.6	98/03/23 19:52:01 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -97,14 +97,6 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 
 ;;;; ----------
 ;;;; get ready to load stuff
-
-(defvar local-gnu-path (cond
-		      ((getenv "GNU")
-		       (getenv "GNU"))
-		      ((getenv "LOCAL")
-		       (concat (getenv "LOCAL") "/gnu"))
-		      (t
-		       "/gnu")))
 
 (defvar original-load-path load-path "The value of load-path at startup")
 (setq load-path (cons (expand-file-name "~/lib/elisp") load-path))
