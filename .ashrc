@@ -1,13 +1,26 @@
 #
 #	.ashrc - per-shell startup stuff for ash via $ENV
 #
-#ident	"@(#)HOME:.ashrc	2.6	96/03/08 09:42:54 (woods)"
+#ident	"@(#)HOME:.ashrc	2.7	97/01/19 14:01:05 (woods)"
+
+# Assumptions:
+#	- chdir must be synonymous with cd, and cd can be reset to a function
+
+# Files referenced:
+#
+#	$HOME/.ashsccs		- sourced, if it is readable
+#	$HOME/.ashedit		- sourced, if it is readable else emacs editing set
+#	$HOME/.ashlocal		- sourced, if it is readable
 
 case $- in *i*)
 # everything in this file is for interactive use only
 
 set -o monitor
-set -o emacs
+if [ -r $HOME/.ashedit ] ; then
+	. $HOME/.ashedit
+else
+	set -o emacs
+fi
 
 export PATH="$PATH"
 
@@ -82,7 +95,7 @@ if [ "$id" -eq 0 ] ; then
 	dirappend PATH $HOME/bin
 	case "$TERM" in
 	xterm)
-		PS1="]0;$TTYN:<$uid($LOGNAME)@$UUNAME>#$TTYN:<$LOGNAME@$UUNAME> # "
+		PS1="$UUNAME # "
 		;;
 	*)
 		PS1="$TTYN:<$LOGNAME@$UUNAME> # "
@@ -91,7 +104,7 @@ if [ "$id" -eq 0 ] ; then
 elif [ "$uid" != "$LOGNAME" ] ; then
 	case "$TERM" in
 	xterm)
-		PS1="]0;$TTYN:<$uid($LOGNAME)@$UUNAME)>$TTYN:<$uid($LOGNAME)@$UUNAME)> $ "
+		PS1="$UUNAME $ "
 		;;
 	*)
 		PS1="$TTYN:<$uid($LOGNAME)@$UUNAME)> $ "
@@ -100,7 +113,7 @@ elif [ "$uid" != "$LOGNAME" ] ; then
 else
 	case "$TERM" in
 	xterm)
-		PS1="]0;$TTYN:<$LOGNAME@$UUNAME>$TTYN:<$LOGNAME@$UUNAME> $ "
+		PS1="$UUNAME $ "
 		;;
 	*)
 		PS1="$TTYN:<$LOGNAME@$UUNAME> $ "
@@ -118,6 +131,74 @@ else
 	}
 fi
 
+if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
+	if [ "$LEV" -eq 0 ] ; then
+		do_first_time	# in xterms, we are a login shell, but not in layers
+	fi
+	MYXCLR_L="$(myxban -l)"
+	MYXCLR_C="$(myxban -c)"
+	MYXCLR_R="$(myxban -r)"
+	MYXCLR="${MYXCLR_L}${MYXCLR_C}${MYXCLR_R}"
+	MYXBAN_L='`pwd`'
+
+	alias clearban='print "${MYXCLR}\c"'
+
+	setban ()
+	{
+		clearban
+		eval myxban -l "\"$MYXBAN_L\""
+		myxban -c "${WBANNER}"
+		eval myxban -r "\"$MYXBAN_R\""
+	}
+
+	cd ()
+	{
+		chdir $*
+		eval myxban -l "\"$MYXBAN_L\""
+	}
+
+	setban
+fi
+
+if [ "$TERM" = "xterm" ] ; then
+	alias clearban='WBANNER=""; setban'
+
+	setban ()
+	{
+		eval TBANNER='"${WBANNER:+$WBANNER | }${BANNERWD} | $uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN"'
+		echo -n "]0;$TBANNER"
+		WBANNER=""
+	}
+
+	cd ()
+	{
+		chdir $*
+		BANNERWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;'`
+# not yet implemented in 4.4BSD ash...
+#		BANNERWD=`pwd`
+#		case "$BANNERWD" in
+#		*/work.d/*)
+#			PWD='work.d:'"${BANNERWD#*/work.d/}"
+#			;;
+#		${HOME})
+#			BANNERWD='~'
+#			;;
+#		`dirname ${HOME}`/*)
+#			PWD='~'"${BANNERWD#`dirname $HOME`/}"
+#			;;
+#		/home/*)
+#			PWD='~'"${BANNERWD#/home/}"
+#			;;
+#		*/src/*)
+#			PWD='src:'"${BANNERWD#*/src/}"
+#			;;
+#		esac
+		setban 
+	}
+
+	setban
+fi
+
 if $ISSUN; then
 	alias df="/usr/bin/df"
 fi
@@ -131,8 +212,12 @@ if [ -x /usr/ucb/rsh -a -x /bin/rsh ] ; then
 	alias rsh=/usr/ucb/rsh
 fi
 
-if [ -r $HOME/.shsccs ] ; then
-	. $HOME/.shsccs
+if [ -r $HOME/.ashsccs ] ; then
+	. $HOME/.ashsccs
+fi
+
+if [ -r $HOME/.ashlocal ] ; then
+	. $HOME/.ashlocal
 fi
 
 errno ()
@@ -181,7 +266,7 @@ alias clear='tput clear'
 alias ds='$PAGER'
 alias e='${VISUAL:-$EDITOR}'
 alias ealias='e $ENV'
-alias elisp='emacs -batch -n -q -f batch-byte-compile'
+alias elc='emacs -batch -q -no-site-file -f batch-byte-compile'
 alias h='fc -l | tail'
 alias j='jobs -l'
 alias l='/bin/ls -CF'
