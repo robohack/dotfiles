@@ -2,7 +2,7 @@
 ;;;	~/.zenirc.el -- stuff for ZenIRC
 ;;;
 
-;;;#ident	"@(#)HOME:.zenirc.el	21.1	99/11/18 13:13:04 (woods)"
+;;;#ident	"@(#)HOME:.zenirc.el	21.2	01/10/17 12:01:25 (woods)"
 
 ;; A good way to use this is to add something like to .emacs(.el)
 ;;(autoload 'zenirc (expand-file-name "~/.zenirc") "Major mode to waste time" t nil)
@@ -20,6 +20,7 @@
 (defvar zenirc-startup-channels nil
   "*Comma separated string of channels to join during startup")
 
+;; Use "/query <channel>" to switch between these ones...
 (setq zenirc-startup-channels "#srh,&internex,#NetBSD,#secrets,#Planix")
 
 (defun zenirc-startup-join (proc parsedmsg)
@@ -133,7 +134,7 @@
   ;; WARNING: not also that if zenirc-server-alist is not set then it will be
   ;; set from this variable and further attempts to change it must set that
   ;; variable instead.
-  (setq zenirc-server-default "irc.sdsc.edu")
+  (setq zenirc-server-default "irc.srh.org")
 
   (setq case-fold-search t)		; K.I.S.S.
 
