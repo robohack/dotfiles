@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	13.2	94/05/24 11:07:50 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	13.3	94/06/13 19:18:53 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -47,8 +47,9 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 	       ;; (require 'time)	; this isn't provided by time.el!
 	       (setq display-time-day-and-date t) ; autoload'ed though
 	       (setq display-time-24hr-format t)
-	       (if (string-equal (system-name) "robohack")
-		   (setq display-time-interval 300)) ; poor little machine....
+	       (if (or (string-equal (system-name) "robohack")
+		       (string-equal (system-name) "web"))
+		   (setq display-time-interval 300)) ; poor little machines....
 	       (display-time)))))	; also autoload'ed
 
 ;;;; ----------
