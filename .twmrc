@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.35	96/09/08 00:04:27 (woods)"
+#ident	"@(#)HOME:.twmrc	2.36	96/09/08 00:40:13 (woods)"
 #
 
 AutoRelativeResize
@@ -982,6 +982,7 @@ function "start-woffi-netscape-gold" {
 #
 menu "quickies"
 {
+	"Short Cuts"		f.title
 	"Move"			f.move
 	"Resize"		f.resize
 	""			f.nop
