@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.24	96/10/08 14:09:35 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.25	96/10/08 23:38:21 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -122,6 +122,21 @@ directory in the list PATHLIST, otherwise nil."
 
 ;;;; ----------
 ;;;; some default packages we'd like...
+
+;; cc-mode (shipped with 19.27 and newer)
+(if (and (= init-emacs-type '19)
+	 (elisp-file-in-loadpath-p "cc-mode"))
+    (progn
+      ;; emacs was (probably) dumped with c-mode, but we have cc-mode
+      (fmakunbound 'c-mode)
+      (makunbound 'c-mode-map)
+      (fmakunbound 'c++-mode)
+      (makunbound 'c++-mode-map)
+      (makunbound 'c-style-alist)
+      (autoload 'c++-mode  "cc-mode" "C++ Editing Mode" t)
+      (autoload 'c-mode    "cc-mode" "C Editing Mode" t)
+      (autoload 'objc-mode "cc-mode" "Objective-C Editing Mode" t)
+      (autoload 'java-mode "cc-mode" "Java Editing Mode" t)))
 
 ;; hyperbole auto-loading
 (if (elisp-file-in-loadpath-p "hyperbole")
@@ -252,6 +267,12 @@ directory in the list PATHLIST, otherwise nil."
        '(("/[^/]+\.vm$" . emacs-lisp-mode))	; VM customisation file
        '(("/\.vm$" . emacs-lisp-mode))		; VM init file
        '(("/[^/]+\\.[chtly].[.0-9]+$" . c-mode)) ; cvs backup file
+       '(("\\.C$" . c++-mode))			; cc-mode
+       '(("\\.H$" . c++-mode))			; cc-mode
+       '(("\\.cc$" . c++-mode))			; cc-mode
+       '(("\\.hh$" . c++-mode))			; cc-mode
+       '(("\\.m$" . objc-mode))			; cc-mode
+       '(("\\.java$" . java-mode))		; cc-mode
        '(("/[^/chtly]+\\.[0-9][a-z]?$" . nroff-mode)) ; man page
        '(("/[^/]+\\.an$" . nroff-mode))		; man page
        '(("/[^/]+\\.d.[.0-9]+$" . nroff-mode))	; cvs backup file
@@ -921,7 +942,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		 (lambda ()
 		   "Private c-mode stuff."
 		   ;; damn c-mode is too over-bearing!  It seems to insist re-setting
-		   ;; these bindings without regard to the global key map.
+		   ;; these key bindings without regard to the global key map.
 		   (override-local-key-settings)
 		   ;; try this on for size...
 		   (local-set-key "\C-x\e\C-e" 'recompile)
@@ -985,9 +1006,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		   (setq c-comment-only-line-offset '(0 . 0))
 		   (setq c-backslash-column 48)
 		   (setq c-delete-function 'backward-delete-char-untabify)
-		   (setq c-electric-pound-behavior nil) ; 'alignleft would be
-							; nice but it seem to
-							; be broken....
+		   (setq c-electric-pound-behavior '(alignleft)) ; nil
 		   (setq c-hanging-braces-alist '((brace-list-open)
 						  (substatement-open after)
 						  (block-close . c-snug-do-while)))
