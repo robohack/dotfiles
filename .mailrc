@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	20.19	99/09/11 15:45:05 (woods)"
+# ident	"@(#)HOME:.mailrc	20.20	99/09/11 15:46:54 (woods)"
 
 set keep
 set keepsave
@@ -111,6 +111,7 @@ alias planix	"planix@planix.com (Those planix Dudes)"
 alias peter	"peter@renzland.org (Peter Renzland)"
 alias rayan	"rayan@uunet.ca (Rayan Zachariassen)"
 alias sandu	"sandu@mail.on.rogers.wave.ca (Alexandru Sburlan)"
+alias stever	"steve@petabit.com (Steve Rapaport)"
 alias strange	"strange@strange.com (Kristofer P. Cox)"
 alias woods	"woods@planix.com (Greg A. Woods)"
 
