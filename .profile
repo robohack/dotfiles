@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	20.6	99/04/06 13:33:30 (woods)"
+#ident	"@(#)HOME:.profile	20.7	99/04/29 13:21:36 (woods)"
 
 #
 # Assumptions that may cause breakage:
@@ -242,6 +242,8 @@ if [ -z "$X11PATH" ] ; then
 		X11PATH="/NO-X11-FOUND"
 	fi
 	export X11PATH
+fi
+if [ -z "$X11BIN" ] ; then
 	# TODO: this is a best guess that might fail for remote hosts
 	if [ -d /usr/bin/X11 -a ! -h /usr/bin/X11 ] ; then
 		X11BIN=/usr/bin/X11
