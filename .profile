@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	2.1	94/02/03 19:40:51 (woods)"
+#ident	"@(#)HOME:.profile	2.2	94/02/03 20:24:36 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -135,8 +135,10 @@ if [ -d $LOCAL/dmdlayers/bin -a "$TERM" = "dmd" ] ; then
 	dirprepend MANPATH $DMD/man $TOOLS/man
 fi
 
-dirprepend PATH $HOME/bin
-PATH="${PATH}:"
+if [ "$HOME" != "/" ] ; then
+	dirprepend PATH $HOME/bin
+	PATH="${PATH}:"
+fi
 
 HAVEMONTH=false ; export HAVEMONTH
 if expr "`type month`" : '.* is .*/month$' >/dev/null 2>&1 ; then
@@ -240,14 +242,15 @@ MAILPOSTER="Rnmush -h %h" ; export MAILPOSTER
 
 # set terminal type..
 if [ "$UUNAME" != "robohack" ] ; then
+	echo "Re-setting terminal preferences...."
+	stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
 	TERM=`tset -r - -m dmd:dmd -m sun:sun -m xterm:xterm -m at386:at386 -m AT386:at386 -m :?$TERM`
-	stty erase '^h' intr '^?' -ixany
 	case $TTY in
-	/dev/tty[p-zP-Z]* | /dev/vt* )
+	/dev/tty[p-zP-Z]* | /dev/vt* | /dev/console )
+		echo "Setting up an 8-bit tty environment...."
 		stty cs8 -istrip
 		;;
 	esac
-	SANE="`stty -g`" ; export SANE
 	if [ -d $HOME/lib/terminfo ] ; then
 		case $TERM in
 		at386*|AT386*|386AT*|386at*)
@@ -402,3 +405,5 @@ if $HAVELAYERS && [ "$TERM" = "dmd" -a "`ismpx`" != "yes" ] ; then
 		;;
 	esac
 fi
+
+# End Of File
