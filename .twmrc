@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.20	96/05/28 15:08:03 (woods)"
+#ident	"@(#)HOME:.twmrc	2.21	96/05/28 16:32:58 (woods)"
 #
 
 AutoRelativeResize
@@ -965,6 +965,20 @@ menu "slogin-planix"
 	"Slogin @weight.planix.com"	f.function "start-weight-slogin"
 	"Slogin @worm.planix.com"	f.function "start-worm-slogin"
 	"Slogin @box1.planix.com"	f.function "start-box1-slogin"
+}
+
+menu "rlogin-hmpg"
+{
+	"Rlogin's At HmPg.com"		f.title
+	"Rlogin @box.HmPg.com"		f.function "start-box-rlogin"
+	"Rlogin @box-r.HmPg.com"	f.function "start-box-r-rlogin"
+}
+
+menu "slogin-hmpg"
+{
+	"Slogin's At HmPg.com"		f.title
+	"Slogin @box.HmPg.com"		f.function "start-box-slogin"
+	"Slogin @box-r.HmPg.com"	f.function "start-box-r-slogin"
 }
 
 menu "rlogin-infoshare"
