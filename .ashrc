@@ -1,0 +1,204 @@
+#
+#	.ashrc - per-shell startup stuff for ash
+#
+#ident	"@(#)HOME:.ashrc	1.1	94/12/20 14:15:37 (woods)"
+
+set -o monitor
+set -o emacs
+
+export PATH="$PATH"
+
+
+# This should be, but is not, a builtin in /bin/ash
+#
+type () {
+	if [ $# -ne 1 ]
+	then
+		echo "Usage: type command" >&2
+		return 2
+	fi
+	hashv=`hash | grep "function $1\$"`
+	if [ -n "$hashv" ]
+	then
+		echo "$hashv" | sed 's/^\([^ ]*\) \(.*\)$/\2 is a \1/'
+		unset hashv
+		return 0
+	fi
+	case "$1" in
+	.|bg|bltin|cd|echo|eval|exec|exit|export|fg|getopts|hash|jobid|jobs|lc|local|pwd|read|readonly|return|set|setvar|shift|trap|umask|unset|wait)
+		typeout="$1 is a builtin"
+		;;
+	*)
+		typeout="$1 not found"
+		oifs="$IFS"
+		IFS=":"
+		for pathseg in $PATH
+		do
+			if [ -x $pathseg/$1 ]
+			then
+				typeout="$1 is $pathseg/$1"
+				break
+			fi
+		done
+		IFS="$oifs"
+		unset oifs
+		;;
+	esac
+	echo $typeout
+	unset hashv pathseg typeout
+	return 0
+}
+
+dirappend ()
+{
+	if [ $# -le 1 ] ; then
+		echo "Usage: dirappend variable directory [...]" >&2
+		exit 2
+	fi
+	varname=$1
+	shift
+	eval varvalue='$'$varname
+	while [ $# -gt 0 ] ; do
+		if [ -d "$1" -a `expr ":$varvalue:" : ".*:$1:.*"` -eq 0 ] ; then
+			eval $varname='$'"$varname"'":$1"'
+		fi
+		shift
+	done
+	unset varname varvalue
+}
+
+dirprepend ()
+{
+	if [ $# -le 1 ] ; then
+		echo "Usage: dirprepend variable directory [...]" >&2
+		exit 2
+	fi
+	varname=$1
+	shift
+	eval varvalue='$'$varname
+	while [ $# -gt 0 ] ; do
+		if [ -d "$1" -a `expr ":$varvalue:" : ".*:$1:.*"` -eq 0 ] ; then
+			eval $varname='"$1:"$'"$varname"
+		fi
+		shift
+	done
+	unset varname varvalue
+}
+
+# UGLY, but it works
+#
+eval "$(id|sed -e 's/^uid=\([0-9]*\)(\(..*\)) gid=[0-9]*(\([^) ]*\)).*$/id=\1 uid=\2 gid=\3/')"
+
+if [ "$id" -eq 0 ] ; then
+	# got to get rid of lone ":" in PATH
+	PATH="`echo $PATH | sed -e 's/::/:/g' -e 's/^://' -e 's/:$//'`"
+	dirprepend PATH /sbin /usr/sbin
+	dirappend PATH /usr/etc /usr/lbin /usr/ucb /usr/bin/X11
+	if [ -n "$LOCAL" ] ; then
+		dirappend PATH $LOCAL/etc $LOCAL/sbin $LOCAL/bin $LOCAL/lib
+	fi
+	if [ -n "$GNU" ] ; then
+		dirappend PATH $GNU/etc $GNU/sbin $GNU/bin $GNU/lib
+	fi
+	if [ -n "$CONTRIB" ] ; then
+		dirappend PATH $CONTRIB/etc $CONTRIB/sbin $CONTRIB/bin $CONTRIB/lib
+	fi
+	dirappend PATH /usr/lib/uucp /usr/lib
+	dirappend PATH $HOME/bin
+	PS1="$TTYN:<$LOGNAME@$UUNAME> # "
+elif [ "$uid" != "$LOGNAME" ] ; then
+	PS1="$TTYN:<$uid($LOGNAME)@$UUNAME)> $ "
+else
+	PS1="$TTYN:<$LOGNAME@$UUNAME> $ "
+fi
+
+if type ismpx 2>&1 >/dev/null ; then
+	: might just be running layers
+else
+	# otherwise it's just not possible....
+	ismpx ()
+	{
+		false
+	}
+fi
+
+if $ISSUN; then
+	alias df="/usr/bin/df"
+fi
+if [ -d /var/spool/uucp ] ; then
+	alias uufollow='xtail /var/spool/uucp/.[AL]*/*'
+else
+	alias uufollow='xtail /usr/spool/uucp/.[AL]*/*'
+fi
+
+if [ -x /usr/ucb/rsh -a -x /bin/rsh ] ; then
+	alias rsh=/usr/ucb/rsh
+fi
+
+if [ -r $HOME/.shsccs ] ; then
+	. $HOME/.shsccs
+fi
+
+errno ()
+{
+	grep "^#define[ 	]*[A-Z][A-Z]*[ 	]*$1[ 	]" /usr/include/sys/errno.h
+}
+
+lastcmd ()
+{
+	tr '[\001-\007]' '[\012*]' < .sh_history | \
+		tr '[\176-\377]' '[ *]' | \
+		egrep -v '^[	 }#]|^$' | \
+		tail ${1+"$@"}
+}
+
+malias ()
+{
+	grep "alias[ 	]$*" $LOCAL/lib/mush/Mail.rc ~/.mushrc
+}
+
+signm ()
+{
+	grep "^#define[ 	]*SIG.*[ 	]*${1}[ 	]" /usr/include/sys/signal.h
+}
+
+signo ()
+{
+	grep -i "^#define[ 	]*.*${1}[ 	]*[0-9]" /usr/include/sys/signal.h
+}
+
+typeof ()
+{
+	if $ISSUN; then
+		LLIBDIR=/usr/lib/lint
+	else
+		LLIBDIR=/usr/lib
+	fi
+	# should expand to allow '-l{lib}'
+	egrep -i "$1" $LLIBDIR/llib-lc $LLIBDIR/llib-lm $LLIBDIR/llib-lcurses
+	unset LLIBDIR
+}
+
+alias blstrip='sed "/./,/^$/!d"'
+alias c='tput clear'
+alias clear='tput clear'
+alias ds='$PAGER'
+alias e='${VISUAL:-$EDITOR}'
+alias ealias='e $ENV'
+alias h='fc -l | tail'
+alias j='jobs -l'
+alias l='/bin/ls -CF'
+alias la='/bin/ls -CFa'
+alias ll='/bin/ls -lis'
+alias lla='/bin/ls -lisa'
+alias llr='/bin/ls -lisR'
+alias llra='/bin/ls -lisaR'
+alias lr='/bin/ls -CFR'
+alias lra='/bin/ls -CFRa'
+alias lsa='/bin/ls -a'
+alias logout='exit 0'
+alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok'
+alias maillog='$PAGER -e +G $MAILLOG'
+alias rstty='stty $SANE'
+alias uuq='uusnap -av'
+alias wcvs='echo $CVSROOT'
