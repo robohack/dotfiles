@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	14.5	94/11/01 11:16:57 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	14.6	94/12/12 16:43:05 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -652,6 +652,7 @@ current emacs server process..."
 ;;; Reset mail-aliases to t when ~/.mailrc is written, so that mail-aliases
 ;;; will get updated before next send."
 ;;; From: mike@inform.co.nz (Mike Williams)From: mike@inform.co.nz (Mike Williams)
+(defvar mail-aliases)
 (add-hook 'write-file-hooks
 	  (function
 	   (lambda ()
