@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	21.5	00/01/07 01:26:10 (woods)"
+#ident	"@(#)HOME:.ctwmrc	21.6	00/01/07 01:31:51 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -62,14 +62,13 @@ DontMoveOff
 DontPaintRootWindow
 DontSqueezeTitle
 NoGrabServer
-OpaqueResize
-OpaqueMove
 NoRaiseOnMove
 NoRaiseOnResize
 NoMenuShadows
 RestartPreviousState
 ReallyMoveInWorkspaceManager
 #ReverseCurrentWorkspace
+NoShowOccupyAll
 ShowWorkSpaceManager
 # spello:
 SchrinkIconTitles
@@ -284,6 +283,7 @@ Cursors {
 }
 
 OccupyAll {
+	"OccupyAll"
 	"oclock"
 	"swisswatch"
 	"swissclock"
@@ -332,6 +332,11 @@ WarpCursor {
 	"emacs"		# damn thing gets a resource name based on argv[0]!
 	"xterm"
 }
+
+# These have an optional window list parameter
+#
+OpaqueResize
+OpaqueMove
 
 Function "forcemove-or-lower"	{ f.forcemove f.deltastop f.lower }
 Function "forcemove-or-raise"	{ f.forcemove f.deltastop f.raise }
