@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	18.2	97/01/20 12:04:10 (woods)"
+#ident	"@(#)HOME:.profile	18.3	97/01/20 19:53:11 (woods)"
 
 #
 # Assumptions:
@@ -130,12 +130,12 @@ dirprepend ()
 }
 
 case "$UUNAME" in
-robohack | kuma | araignee | tar | spinne | toile | wombat | weirdo | most | very | isit | pretty | whats | tugboat )
+robohack | kuma | araignee | tar | spinne | toile | wombat | weirdo | most | very | isit | pretty | whats )
 	# we trust $PATH has been initialized correctly on these machines....
 	;;
 * )
 	OPATH=$PATH
-	PATH="/bin" ; export PATH	# start fresh...
+	PATH="/bin" ; export PATH	# otherwise start fresh...
 	dirappend PATH /usr/bin /usr/lbin
 	;;
 esac
