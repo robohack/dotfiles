@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	18.2	97/01/25 17:01:08 (woods)"
+#ident	"@(#)HOME:.kshrc	18.3	97/01/25 17:04:18 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -364,6 +364,8 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		mesg n
 		if [ -x /usr/5bin/su ] ; then
 			/usr/5bin/su "$@"
+		elif [ -x /usr/bin/su ] ; then
+			/usr/bin/su "$@"
 		else
 			/bin/su "$@"
 		fi
