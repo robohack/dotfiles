@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	22.3	01/10/26 21:35:10 (woods)"
+#ident	"@(#)HOME:.xinitrc	22.4	01/11/05 15:44:48 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -341,8 +341,6 @@ very.weird.com:*)
 	;;
 
 xtremely.weird.com:*)
-	# start xv first -- it needs to be running before we try our tkined trick...
-	xv -owncm -iconic &
 	xearth -gamma 1.3 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
 	xload -geometry 190x60-0+233 -hl red &
 	xclock -geometry 190x30-0+196 -digital &
@@ -372,8 +370,12 @@ xtremely.weird.com:*)
 	xterm -display $DISPLAY -geometry 80x24-0-205 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Cn04 -T "Console-04 [RAID-00 /work]" -e telnet tserv 2004 &
 	xterm -display $DISPLAY -geometry 80x24-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Cn05 -T "Console-05 [RAID-01 /cvs]" -e telnet tserv 2005 &
 
-	# start tkined last -- hoping xv above is running already
-	$RSH -n proven.weird.com exec /usr/local/bin/tkined1.5.0 -display $DISPLAY -use $(xwininfo -name "xv 3.10a(PNG) <unregistered>" | awk '/xwininfo/ {print $4}') -geometry 1200x925+0-0 $HOME/tkined-3.tki &
+	# start xv first, in a subshell that sleeps first for a bit
+	# -- it needs to be running before we try our tkined trick, but after the window manager
+	( sleep 20; xv -owncm -iconic & ) &
+	# start tkined last, in a subshell that sleeps first for a bit
+	# -- hoping xv (from above) and the window manager are running already
+	( sleep 30; $RSH -n proven.weird.com exec /usr/local/bin/tkined1.5.0 -display $DISPLAY -use $(xwininfo -name "xv 3.10a(PNG) <unregistered>" | awk '/xwininfo/ {print $4}') -geometry 1200x925+0-0 $HOME/tkined-3.tki & ) &
 	;;
 
 worm.planix.com:*)
