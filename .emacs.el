@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.37	96/12/10 14:38:08 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.38	97/01/04 13:52:55 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -246,8 +246,9 @@ scripts (alias)." t)
 ;; choose the same font as x-fixed-font-alist "Courier"-"10"
 (if window-system
     (progn
-      (setq preferred-x-font
-	    "-adobe-courier-medium-r-normal--*-100-*-*-m-*-iso8859-1")
+      (defvar preferred-x-font
+	"-adobe-courier-medium-r-normal--*-100-*-*-m-*-iso8859-1"
+	"The best choice font for X11 screens")
       (set-default-font preferred-x-font)))
 
 (setq auto-save-timeout 300)		; 30 seconds is insane!
@@ -286,18 +287,12 @@ scripts (alias)." t)
        '(("/[^/]+\.vm$" . emacs-lisp-mode))	; VM customisation file
        '(("/\.vm$" . emacs-lisp-mode))		; VM init file
        '(("/[^/]+\\.[chtly].[.0-9]+$" . c-mode)) ; cvs backup file
-       '(("\\.C$" . c++-mode))			; cc-mode
-       '(("\\.H$" . c++-mode))			; cc-mode
-       '(("\\.cc$" . c++-mode))			; cc-mode
-       '(("\\.hh$" . c++-mode))			; cc-mode
-;;;    '(("\\.m$" . objc-mode))			; cc-mode
        '(("\\.java$" . java-mode))		; cc-mode
        '(("/[^/chtly]+\\.[0-9][a-z]?$" . nroff-mode)) ; man page
        '(("/[^/]+\\.an$" . nroff-mode))		; man page
        '(("/[^/]+\\.d.[.0-9]+$" . nroff-mode))	; cvs backup file
        '(("/[^/]+\\.d$" . nroff-mode))		; documentation file
-       '(("/[^/]+\\.m[mes]?$" . nroff-mode))	; mm, me, ms docs
-       '(("/[^/]+\\.t[imes]*$" . nroff-mode))	; as above, but w/leading 't'
+       '(("/[^/]+\\.t[imes]*$" . nroff-mode))	; nroff+tbl
        '(("/[^/]*[rR][eE][aA][dD][^/]*$" . indented-text-mode))
        '(("/[^/]*[iI][nN][sS][tT][aA][lL][lL][^/]*$" . indented-text-mode))
        '(("/[^/]*\\.article.*$" . indented-text-mode))
@@ -330,7 +325,7 @@ scripts (alias)." t)
 	 (not (elisp-file-in-loadpath-p "sh-script")))
     (setq auto-mode-alist
 	  (append
-	   '(("/[Cc]onfig[^/]*$" . ksh-mode))
+	   '(("/[Cc]onfig[^/h]*$" . ksh-mode))
 	   '(("[^/]*rc$" . ksh-mode))
 	   '(("^rc\\.[^/]*$" . ksh-mode))
 	   '(("^rc\\.[^/]*/[^/]*$" . ksh-mode))
@@ -344,7 +339,7 @@ scripts (alias)." t)
 (if (elisp-file-in-loadpath-p "sh-script")
       (setq auto-mode-alist
 	    (append
-	     '(("/[Cc]onfig[^/]*$" . sh-mode))
+	     '(("/[Cc]onfig[^/h]*$" . sh-mode))
 	     '(("[^/]*rc$" . sh-mode))
 	     '(("^rc\\.[^/]*$" . sh-mode))
 	     '(("^rc\\.[^/]*/[^/]*$" . sh-mode))
@@ -907,9 +902,12 @@ overridden without consideration by the major mode."
   (local-set-key "\C-?" 'delete-char)	; many modes
   ;; the rest are *not* overridden by cc-mode, but are by c-mode
   (local-set-key "\e\C-h" 'backward-kill-word) ; text-mode
+  (local-set-key "\e?" 'help-command)	; nroff-mode
   (local-set-key "\eh" 'mark-c-function)
   (local-set-key "\e\C-?" 'kill-word)
   (local-set-key "\e\C-e" 'compile)
+  ;; try this on for size...
+  (local-set-key "\C-x\e\C-e" 'recompile)
   )
 
 ;;;; ----------
@@ -1041,8 +1039,6 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		   ;; re-setting these key bindings without regard to the
 		   ;; global key map.
 		   (override-local-key-settings)
-		   ;; try this on for size...
-		   (local-set-key "\C-x\e\C-e" 'recompile)
 		   (override-default-variable-settings)
 		   (setq fill-column 79)
 		   (setq comment-column 40)
@@ -1132,8 +1128,6 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		 ;; re-setting these bindings without regard to the global key
 		 ;; map.
 		 (override-local-key-settings)
-		 ;; try this on for size...
-		 (local-set-key "\C-x\e\C-e" 'recompile)
 		 (override-default-variable-settings)
 		 (setq fill-column 79)
 		 (setq comment-column 40)
@@ -1200,17 +1194,17 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		 (if (elisp-file-in-loadpath-p "ispell")
 		     (local-set-key "\eS" 'ispell-buffer)
 		   (local-set-key "\eS" 'spell-buffer))
-		 (local-set-key "\e\C-e" 'compile)
 		 (setq abbrev-mode t)
 		 (setq fill-column 72)
 		 (setq require-final-newline t)	; needed by some unix programs
 		 (turn-on-auto-fill))))))
 
-(add-hook 'nroff-mode-hook
-	  (function
-	   (lambda ()
-	     "Private nroff-mode stuff."
-	     (define-key "\e?" 'help-command)))) ; argh!
+;; dont' need this now...
+;;(add-hook 'nroff-mode-hook
+;;	  (function
+;;	   (lambda ()
+;;	     "Private nroff-mode stuff."
+;;	     (local-set--key "\e?" 'help-command)))) ; argh!
 
 (require 'view)
 (add-hook 'view-mode-hook
@@ -1319,8 +1313,10 @@ it could check Status: headers for O, or Forward to in mailboxes."
 ;; Remember to call override-local-key-settings in the appropriate hooks to fix
 ;; up modes which violate global user preferences....
 ;;
-(global-set-key "\e?" 'help-command)	; this is the first step
+(global-set-key [f1] 'help-command)	; first do this for 19.28.
+(global-set-key "\e?" 'help-command)	; this is the first step to set up help
 (global-set-key "\e?F" 'view-emacs-FAQ)	; in 19.34 it needs more help...
+;; should help-char be just ? instead?
 (setq help-char ?\M-?)			; this should "fix" the rest.
 
 ;;; I USUALLY EXPECT THE BACKSPACE KEY TO WORK LIKE AN ASCII BACKSPACE!
