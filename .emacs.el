@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	26.2	03/01/05 17:14:42 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	26.3	03/11/23 13:13:06 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -24,6 +24,14 @@
 ;;; (setq stack-trace-on-error nil)
 ;;; (setq debug-on-quit t)
 ;;; (setq debug-on-quit nil)
+
+;;; helpers for calendar session
+;;;
+;;; eval this to stop appt-check:
+;;; (cancel-timer appt-timer)
+;;;
+;;; eval this to re-start appt-check:
+;;; (setq appt-timer (run-at-time t 60 'appt-check))
 
 ;; I don't want that annoying startup message.
 (setq inhibit-startup-message t)
@@ -80,7 +88,7 @@
 ;;;; things to do for coding systems, MULE, etc.
 
 (if (>= init-emacs-type 20)
-    (setq inhibit-eol-conversion t))	; show MS crap for what it is....
+    (setq inhibit-eol-conversion t))	; show M$ crap for what it is....
 
 (if (>= init-emacs-type 20)
     (set-language-environment "Latin-1")
@@ -271,18 +279,14 @@ scripts (alias)." t)
   (file-error nil))
 
 ;;;; ----------
-;;;; If running as root, don't make backup files.  This should be default!!!
-
-(cond ((= (user-uid) 0)
-       (setq make-backup-files nil)
-       (setq auto-save-default nil)))
-
-;;;; ----------
 ;;;; Set defaults of other buffer-local variables
 
 (setq-default case-fold-search nil)	; unless set, don't ignore case
 (setq-default indent-tabs-mode t)	; allow tabs in indentation
 (setq-default require-final-newline 1)	; needed by some unix programs
+(if (< init-emacs-type 21)
+    (defvar indicate-empty-lines))
+(setq-default indicate-empty-lines t)	; show which lines are past the EOF
 
 ;;;; ----------
 ;;;; some new global variable settings...
@@ -387,16 +391,17 @@ when our preferred font is not available."
 (global-font-lock-mode t)
 
 (setq auto-save-timeout 300)		; 30 seconds is insane!
-(setq backup-by-copying t)		; copy, thus preserving modes and owner
+(setq backup-by-copying nil)		; rename is safer and faster...
+(setq backup-by-copying-when-linked t)	; ... but when files are linked...
+(if (= (user-uid) 0)
+    (setq backup-by-copying-when-mismatch t)) ; also if root and not owner so
+					      ; as not to change the ownership
 (setq colon-double-space t)		; ah ha!  this should mirror sentence-end-double-space!
 (setq default-tab-width 8)		; a tab is a tab is a tab is a tab....
 (setq delete-auto-save-files t)		; delete auto-save file when saved
-(setq enable-local-variables 1)		; non-nil, non-t means query...
+(setq enable-local-variables 1)		; non-nil & non-t means query...
 (setq file-name-handler-alist nil)	; turn off ange-ftp entirely
-(if (< init-emacs-type 21)
-    (defvar indicate-empty-lines))
-(setq indicate-empty-lines t)		; show which window lines are past the EOF
-(setq make-backup-files nil)		; too much clutter
+(setq make-backup-files t)		; better safe than sorry!
 (setq message-log-max 1000)		; default of 50 loses too much!
 (setq next-line-add-newlines nil)	; I hate it when it does that!  ;-)
 (setq search-highlight 1)		; not sure when this begins to work
@@ -410,7 +415,6 @@ when our preferred font is not available."
 
 (setq sentence-end
       "[.?!][]\"')}]*\\($\\| $\\|\t\\|  \\)[ \t\n]*") ; also to make sure!
-
 
 (require 'compile)
 (setq compilation-window-height 10)	; default height for a compile window
@@ -444,7 +448,8 @@ when our preferred font is not available."
     (setq baud-rate 153600))		; let's make things more efficient
 
 (if (and (string-match "-sunos4" system-configuration)
-	 (string-match "/bin/sh$" shell-file-name))
+	 (or (string-match "^/bin/sh$" shell-file-name)
+	     (string-match "^/usr/bin/sh$" shell-file-name)))
     (setq cannot-suspend t))		; no jobs support!  ;-)
 
 ;; Something more detailed, like this, really should be the default!
@@ -562,50 +567,53 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 
 (defun add-to-auto-mode-alist (element)
   "Add ELEMENT to `auto-mode-alist' if it isn't there yet."
-  (add-to-list 'auto-mode-alist element)) ; add-to-list in 19.29 and newer
+  (add-to-list 'auto-mode-alist element t)) ; add-to-list in 19.29 and newer
 
-;; note: no cvs backup files listed, they match "/\\.#.*\\.[.0-9]+$"
+;; The REs in each element of `auto-mode-alist' match the visited file name so
+;; you normally only want to match names at the end and not include any
+;; directory portion unless you always visit the file using the directory
+;; pathname explicitly.
+;;
+;; note: no cvs backup files listed, they match "\\.#.*\\.[.0-9]+$"
 ;;
 (mapcar 'add-to-auto-mode-alist
 	(list
-	 '("/[Cc]onfig[^/\\.]*$" . sh-mode) ; sh-mode, in 19.28 and newer
+	 '("[Cc]onfig[^/\\.]*$" . sh-mode)	; sh-mode, in 19.28 and newer
 	 '("[^/]*rc$" . sh-mode)
 	 '("/rc\\.[^/]*$" . sh-mode)
-	 '("/rc\\.[^/]*/[^/]*$" . sh-mode)
-	 '("[-\\.]ash[^/]*$" . sh-mode)
-	 '("[-\\.]ksh[^/]*$" . sh-mode)
-	 '("[-\\.]sh[^/]*$" . sh-mode)
+	 '("/rc\\.[^/]+/[^/]*$" . sh-mode)	; anything in an rc.* directory
+	 '("[-\\.]ash[^/\\.]*$" . sh-mode)
+	 '("[-\\.]ksh[^/\\.]*$" . sh-mode)
+	 '("[-\\.]sh[^/\\.]*$" . sh-mode)
 	 '("\\.[^/]*profile" . sh-mode)
-	 '("/pkg/COMMENT$" . indented-text-mode) ; NetBSD pkgsrc
-	 '("/pkg/DEINSTALL$" . sh-mode) ; NetBSD pkgsrc
-	 '("/pkg/DESCRIPTION$" . indented-text-mode) ; NetBSD pkgsrc
-	 '("/pkg/INSTALL$" . sh-mode)	; NetBSD pkgsrc
-	 '("/pkg/MESSAGE$" . indented-text-mode) ; NetBSD pkgsrc
-	 '("/pkg/PLIST$" . sh-mode)	; NetBSD pkgsrc (not sh, but...)
-	 '("/pkg/REQUIRE$" . sh-mode)	; NetBSD pkgsrc
-	 '("/[^/]+\\.java$" . java-mode) ; cc-mode
-	 '("/[^/]+\\.[0-9][a-z]?$" . nroff-mode) ; man page
-	 '("/[^/]+\\.[0-9][a-z]?\\.in$" . nroff-mode) ; man page
-	 '("/[^/]+\\.[m]?an$" . nroff-mode) ; man page
-	 '("/[^/]+\\.t[imes]*$" . nroff-mode) ; nroff+tbl
-	 '("/[^/]+\\.t[imes]*\\.in$" . nroff-mode) ; nroff+tbl
+	 '("DEINSTALL$" . sh-mode)		; NetBSD pkgsrc
+	 '("DESCR$" . indented-text-mode)	; NetBSD pkgsrc
+	 '("INSTALL$" . sh-mode)		; NetBSD pkgsrc (clashes with
+						;   GNU standard INSTALL doc)
+	 '("MESSAGE$" . indented-text-mode)	; NetBSD pkgsrc
+	 '("PLIST$" . sh-mode)			; NetBSD pkgsrc (not sh, but...)
+	 '("REQUIRE$" . sh-mode)		; NetBSD pkgsrc
+	 '("\\.java$" . java-mode)		; cc-mode
+	 '("\\.[0-9][a-z]?$" . nroff-mode)	; man page
+	 '("\\.[0-9][a-z]?\\.in$" . nroff-mode) ; man page
+	 '("\\.[m]?an$" . nroff-mode)		; man page
+	 '("\\.t[imes]*$" . nroff-mode)		; nroff+tbl
+	 '("\\.t[imes]*\\.in$" . nroff-mode)	; nroff+tbl
 	 '("[cC][hH][aA][nN][gG][eE][sS][^/\\.]*$" . indented-text-mode)
 	 '("[iI][nN][sS][tT][aA][lL][lL][^/\\.]*$" . indented-text-mode)
 	 '("[aA][uU][tT][hH][oO][rR][sS][^/\\.]*$" . indented-text-mode)
 	 '("[cC][oO][pP][yY][^/\\.]*$" . indented-text-mode)
-	 '("[nN][eE][wW][sS]$" . indented-text-mode)
-	 '("[tT][oO][dD][oO]$" . indented-text-mode)
+	 '("[nN][eE][wW][sS][^/\\.]*$" . indented-text-mode)
+	 '("[tT][oO][dD][oO][^/\\.]*$" . indented-text-mode)
 	 '("[tT][hH][aA][nN][kK][^/\\.]*$" . indented-text-mode)
-	 '("[rR][eE][aA][dD][^/]*[mM][eE]$" . indented-text-mode)
-	 '("MESSAGE$" . indented-text-mode)
-	 '("DESCR$" . indented-text-mode)
-	 '("COMMENT$" . indented-text-mode)
-	 '("\\.te?xt\\'" . indented-text-mode)
-	 '("\\.notes?\\'" . indented-text-mode)
-	 '("\\.vm$" . emacs-lisp-mode) ; VM init file
-	 '("\\.article[^/]*$" . indented-text-mode)
-	 '("\\.letter[^/]*$" . indented-text-mode)
+	 '("[rR][eE][aA][dD][^/]*[mM][eE][^/\\.]*$" . indented-text-mode)
+	 '("\\.te?xt$" . indented-text-mode)
+	 '("\\.notes?$" . indented-text-mode)
+	 '("\\.article$" . indented-text-mode)
+	 '("\\.letter$" . indented-text-mode)
 	 '("\\.mail[^/]*$" . mail-mode)
+	 '("\\.vm$" . emacs-lisp-mode)		; VM init file
+	 '("notes/.+$" . indented-text-mode)	; for ~/notes/*, but must not use "^/"
 	 '("/tmp/[^/]*\\.ed[^/]*$" . indented-text-mode) ; mail edit buffer
 	 '("/tmp/[^/]*nf[^/]*$" . indented-text-mode))) ; notesfile compose buf
 
@@ -672,6 +680,11 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 
 ;;;; ----------
 ;;;; some useful functions....
+
+(defun show-text-prop ()
+  (interactive)
+  (princ (text-properties-at (point))))
+(global-set-key "\C-xP" 'show-text-prop)
 
 ;;; I prefer if already capitalized characters stay that way....
 ;;;
@@ -1365,15 +1378,16 @@ overridden without consideration by the major mode."
 ;; Public domain
 ;;
 (defun make-buffer-file-executable-if-script-p ()
-  "If a file looks like it is an executable script then add execute bits
-according to umask if it is not already executable.  If file already has any
-execute bits set at all, do not change existing file modes."
-  (if (save-excursion
-         (save-restriction
-           (widen)
-           (goto-char (point-min))
-           (save-match-data
-             (looking-at "^#!"))))
+  "If a file looks like it is an executable script, and not a source file (has
+no `.'-separated extension), then make it executable with
+`make-buffer-file-executable'."
+  (if (and (save-excursion
+	     (save-restriction
+	       (widen)
+	       (goto-char (point-min))
+	       (save-match-data
+		 (looking-at "^#!"))))
+	   (string-match "/[^/.]+$" (buffer-file-name)))
       (make-buffer-file-executable)))
 
 (defun make-buffer-file-executable ()
@@ -1387,7 +1401,7 @@ file modes."
 	(set-file-modes (buffer-file-name)
 			(logior current-mode add-mode)))))
 
-;; these are always a good idea....
+;; these are probably always a good idea....
 ;;
 (add-hook 'after-save-hook 'make-buffer-file-executable-if-script-p)
 (add-hook 'vc-checkout-hook 'make-buffer-file-executable-if-script-p)
@@ -1512,6 +1526,15 @@ Use `list-faces-display' to see all available faces")
 	     (override-local-key-settings)
 	     (override-default-variable-settings))))
 
+;; note that once upon a time this hook variable was called `pcl-cvs-load-hook'
+;;
+(add-hook 'cvs-mode-hook
+	  (function
+	   (lambda ()
+	     "Private cvs-mode hook to get rid of that horrid `z' key binding!"
+	     (defvar cvs-mode-map)
+	     (define-key cvs-mode-map "z" 'nil))))
+
 ;;; GNU-Emacs' ideas about formatting C code really suck!  Let's stick to doing
 ;;; things the good old standard K&R way!!!!
 ;;;
@@ -1548,7 +1571,7 @@ Use `list-faces-display' to see all available faces")
 	"ushort"))
 
 (defconst my-c-style
-  '((c-backslash-column . 72)
+  '((c-backslash-column . 78)
     (c-basic-offset . 8)
     (c-block-comment-prefix . "* ")
     (c-cleanup-list . (brace-else-brace
@@ -1556,20 +1579,23 @@ Use `list-faces-display' to see all available faces")
 		       scope-operator)) ; (scope-operator)
     (c-comment-continuation-stars . "* ")
     (c-comment-only-line-offset . (0 . 0))
-    (c-hanging-braces-alist . ((defun-open . (before after))
-			       (defun-close . (before))
-			       (class-open . (after))
-			       (class-close . nil)
-			       (inline-open . nil)
-			       (inline-close . nil)
-			       (block-open . (after))
+    ;; ACTION can be either a function symbol or a list containing any
+    ;; combination of the symbols `before' or `after'.  If the list is empty,
+    ;; no newlines are inserted either before or after the brace.
+    (c-hanging-braces-alist . ((block-open . (after))
 			       (block-close . (before))
-			       (substatement-open . nil)
-			       (statement-case-open . nil)
 			       (brace-list-open . nil)
 			       (brace-list-close . nil)
 			       (brace-list-intro . nil)
-			       (brace-list-entry . nil)))
+			       (brace-list-entry . nil)
+			       (class-open . (after))
+			       (class-close . nil)
+			       (defun-open . (before after))
+			       (defun-close . (before))
+			       (inline-open . nil)
+			       (inline-close . nil)
+			       (statement-case-open . nil)
+			       (substatement-open . nil)))
     (c-hanging-colons-alist . ((member-init-intro before)
 			       (inher-intro)
 			       (case-label after)
@@ -1591,6 +1617,62 @@ Use `list-faces-display' to see all available faces")
 			(substatement-open . 0)))) ; +
   "My PERSONAL C Style, similar to NetBSD KNF.")
 (c-add-style "PERSONAL" my-c-style nil)
+
+(defconst smail-c-style
+  (append my-c-style '((c-basic-offset . 4)))
+  "Smail C Style; my personal style, but at offset 4.")
+(c-add-style "SMAIL" smail-c-style nil)
+
+(defconst my-awk-style
+  '((c-backslash-column . 78)
+    (c-basic-offset . 8)
+    (c-block-comment-prefix . "# ")
+    (c-cleanup-list . (brace-else-brace
+		       brace-elseif-brace
+		       scope-operator)) ; (scope-operator)
+    (c-comment-continuation-stars . "# ")
+    (c-comment-only-line-offset . (0 . 0))
+    (c-comment-prefix-regexp . "#*")
+    (c-comment-start-regexp . "#[ 	]*")
+    ;; ACTION can be either a function symbol or a list containing any
+    ;; combination of the symbols `before' or `after'.  If the list is empty,
+    ;; no newlines are inserted either before or after the brace.
+    (c-hanging-braces-alist . ((block-open . nil)
+			       (block-close . (before))
+			       (brace-list-open . nil)
+			       (brace-list-close . nil)
+			       (brace-list-intro . nil)
+			       (brace-list-entry . nil)
+			       (class-open . (after))
+			       (class-close . nil)
+			       (defun-open . (after))
+			       (defun-close . (before))
+			       (defun-block-intro . (after))
+			       (inline-open . nil)
+			       (inline-close . nil)
+			       (statement-case-open . nil)
+			       (substatement-open . nil)))
+    (c-hanging-colons-alist . ((member-init-intro before)
+			       (inher-intro)
+			       (case-label after)
+			       (label after)
+			       (access-label after)))
+    (c-label-minimum-indentation . 0)
+    ;; an OFFSET is nil; an inteter (usually zero); one of the symbols:  `+',
+    ;; `-', `++', `--', `*', or `/' (a positive or negative multiple of
+    ;; `c-basic-offset' is added; 1, -1, 2, -2, 0.5, and -0.5, respectively); a
+    ;; vector; a function; or a list.
+    (c-offsets-alist . ((arglist-close . c-lineup-close-paren) ; +
+			(arglist-cont-nonempty . c-lineup-arglist) ; +
+			(arglist-intro . c-lineup-arglist-intro-after-paren) ; +
+			(block-open . -) ; 0
+			(func-decl-cont . 0) ; +
+			(inline-open . 0) ; +
+                        (statement-case-open . *) ; 0
+			(statement-cont . c-lineup-math) ; +
+			(substatement-open . 0)))) ; +
+  "My PERSONAL AWK Style, similar to my-c-style.")
+(c-add-style "PERSONAL-AWK" my-awk-style nil)
 
 ;; This is how Dave Mills likes to see the code formatted.
 ;;
@@ -1648,8 +1730,13 @@ Use `list-faces-display' to see all available faces")
   (setq tab-width 8
 	indent-tabs-mode t))
 
+;; XXX c-default-style does not work properly for awk-mode in cc-mode 5.28
+;; (e.g. in 21.3) because awk-mode is just a derived mode.  See
+;; my-awk-mode-hook below for the hack around this bug.
+;;
 (setq c-default-style
-      '((awk-mode . "PERSONAL")
+      '((awk-mode . "PERSONAL-AWK")
+	(c-mode . "PERSONAL")
 	(other . "PERSONAL")))
 
 (defun my-c-mode-common-hook ()
@@ -1658,7 +1745,7 @@ Use `list-faces-display' to see all available faces")
   ;; other customizations
   (setq tab-width 8)			; normal, standard, default TAB chars
   (setq fill-column 79)
-  (setq comment-column 48)
+  (setq comment-column 40)
   (if (< init-emacs-type 21)
     (defvar comment-style))
   (setq comment-style 'extra-line)	; not used, but maybe someday?
@@ -1680,11 +1767,13 @@ Use `list-faces-display' to see all available faces")
 
   (c-toggle-auto-state 1)		; try this on for size!
 
-  ;; keybindings for all supported languages.  We can put these in
-  ;; c-mode-base-map because c-mode-map, c++-mode-map, objc-mode-map,
-  ;; java-mode-map, idl-mode-map, and pike-mode-map inherit from it.
+  ;; keybindings for all of the supported languages.  We can put these in
+  ;; c-mode-base-map because awk-mode-map, c-mode-map, c++-mode-map,
+  ;; objc-mode-map, java-mode-map, idl-mode-map, pike-mode-map, and so on
+  ;; inherit from it.
   (define-key c-mode-base-map "\C-m" 'c-context-line-break)
   (define-key c-mode-base-map "\ej" 'c-fill-paragraph)
+
   ;; even cc-mode is sometimes too over-bearing.  It seems to
   ;; insist re-setting some key bindings without regard to the
   ;; global key map.
@@ -1692,6 +1781,25 @@ Use `list-faces-display' to see all available faces")
   (override-default-variable-settings))
 
 (add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
+
+;; Derived modes don't have their major-mode (or mode-name) set until after the
+;; parent mode has been initialized.  For example this causes c-default-style
+;; to be useless with any modes derived from c-mode.  This silly function works
+;; around that bug and can be used in the child mode initialization hook for
+;; any such mode derived from c-mode.
+;;
+(defun my-derived-c-mode-hook ()
+  "Silly setup hook to be called by modes derived from c-mode."
+  (let ((style (if (stringp c-default-style)
+		   c-default-style
+		 (or (cdr (assq major-mode c-default-style))
+		     (cdr (assq 'other c-default-style))
+		     "gnu"))))
+    (c-set-style style 't)))
+
+;; In 21.3 awk-mode is a derived mode of c-mode.
+;;
+(add-hook 'awk-mode-hook 'my-derived-c-mode-hook)
 
 ;;;
 ;;; version-control (VC) stuff....
@@ -2227,6 +2335,10 @@ current emacs server process..."
 
 (require 'calendar)
 (require 'appt)
+(cancel-timer appt-timer)		; turn off appt-check immediately
+
+;;; eval this to re-start appt-check:
+;;; (setq appt-timer (run-at-time t 60 'appt-check))
 
 ;; For 61 Lorraine Drive:
 ;; This is according to mapblast.com: 43.77681 N  79.420865 W
@@ -2268,27 +2380,25 @@ current emacs server process..."
 					; (NOTE: must be less than appt-display-interval!)
 (setq appt-display-interval 2)		; minutes between checks of appointment list (def. 3)
 
-(if (<= (safe-length command-line-args) 1)
-    (progn
-      ;; only if we're running a long-term session....
-      (setq appt-display-diary t)	; display diary at midnight (want?)
-      (setq appt-issue-message t))	; enable appt msgs
-  (progn
-    (setq appt-display-diary nil)
-    (setq appt-issue-message nil)))
-
 ;; NOTE: this is really also the minimum interval allowed between appointments.
 ;; If appointments are made any more dense than this interval then they will
 ;; clobber each other as only one can be shown at a time.
 (setq appt-message-warning-time 15)	; minutes of warning prior to appt
 
-(setq appt-msg-window nil)		; do not show appt message in a separate window!
+(setq appt-msg-window t)		; do not show appt message in a separate window!
 (setq appt-visible t)			; show appt msg in echo area (only if appt-msg-window is nil)
 
-;; This would help appointment messages stay visible in their wee window.
-;; if we had appt-msg-window set, that is....
+;; keep appointment messages visible in their wee window.
 ;;
-;;(setq appt-delete-window-function 'ignore) ; never delete the window automatically
+(setq appt-delete-window-function 'ignore) ; never delete the window automatically
+
+;; Theory has it that you can re-define (appt-disp-window) to have it create
+;; pop-up frames, but so long as we run a separate emacs for calendaring then
+;; appts will cause it's frame to be raised.
+
+;; In theory we could also (setq calendar-setup 'one-frame) to have it
+;; automaticaly open a dedicated frame when it starts; however if we run a
+;; separate emacs for calendaring then we can use it's main frame.
 
 (add-hook 'today-visible-calendar-hook 'calendar-mark-today)
 (add-hook 'diary-display-hook 'fancy-diary-display)
@@ -2298,14 +2408,22 @@ current emacs server process..."
 
 (if (<= (safe-length command-line-args) 1)
     (progn
-      ;; only if we're running a long-term session....
-      (setq view-diary-entries-initially t) ; do diary-display on first invocation
-      (add-hook 'diary-display-hook 'appt-make-list)
-      (add-hook 'diary-display-hook 'diary-mail-entries)))
+      ;; rebuild appt-time-msg-list every time the diary display is rebuilt
+      ;; NOTE: this has to be appended after fancy-diary-display so that
+      ;; it is executed last
+      (add-hook 'diary-display-hook 'appt-make-list t)
+      ;; only do appt stuff if we're running a long-term session....
+      (setq appt-display-diary t)	; display diary at midnight
+      (setq appt-issue-message t))	; enable appt msgs
+  (progn
+    (setq appt-display-diary nil)
+    (setq appt-issue-message nil)))
 
 (setq mark-diary-entries-in-calendar t) ; quite CPU expensive....
 (setq mark-holidays-in-calendar t)
 
+(setq view-diary-entries-initially t)	; do diary-display on first invocation
+					; and at midnight....
 (setq diary-list-include-blanks t)	; include holidays in diary even if
 					; there is no diary entry for that day
 
@@ -2359,6 +2477,18 @@ current emacs server process..."
 	(holiday-float 10 1 -1 "Labour Day (N.Z.)") ; last Monday
 	(holiday-fixed 11 11 "Remembrance Day (Canada)")
 	(holiday-fixed 12 6 "National Day of Remembrance and Action on Violence Against Women")))
+
+(defadvice calendar (before calendar-toggle-appt-check-advice activate)
+  "Ask if `appt-check' should be run every sixty seconds."
+  (if (y-or-n-p "Enable 60-sec timer for `appt-check'? ")
+      (setq appt-timer (run-at-time t 60 'appt-check))
+    ad-do-it))
+
+;; this may not be necessary when view-diary-entries-initially is not nil
+;;
+(defadvice calendar (after calendar-do-diary-advice activate)
+  "Run `diary' every time `calendar' is started."
+  (diary))
 
 ;;;;
 ;;;; timeclock.el stuff
