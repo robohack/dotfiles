@@ -1,12 +1,16 @@
 #
 #	.shlogout - logout script for sh
 #
-#ident	"@(#)HOME:.shlogout	2.2	96/01/15 18:11:43 (woods)"
+#ident	"@(#)HOME:.shlogout	2.3	96/03/22 15:43:03 (woods)"
 
 trap "" 1 2 3 4 5 6 7 8 10 12 13 14 15
 trap "" 0
 echo ""
 echo "| Logging $LOGNAME out of $UUNAME at `date`."
+if [ -r $HOME/.xinitrc -a ! -x $HOME/.xinitrc ] ; then
+	chmod +x $HOME/.xinitrc
+	echo "| WARNING:  ~/.xinitrc was not executable!  Fixed."
+fi
 if expr "`tty`" : "/dev/tty[ab0]" >/dev/null; then
 	sleep 2
 	tput clear

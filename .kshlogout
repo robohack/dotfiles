@@ -1,11 +1,15 @@
 #
 #	.kshlogout - logout script for ksh
 #
-#ident	"@(#)HOME:.kshlogout	2.1	94/02/16 18:17:37 (woods)"
+#ident	"@(#)HOME:.kshlogout	2.2	96/03/22 15:44:02 (woods)"
 
 trap "" 1 2 3 4 5 6 7 8 9 10 12 13 14 15
 trap "" 0
 echo "\n| Logging $LOGNAME out of $UUNAME at `date`."
+if [ -r $HOME/.xinitrc -a ! -x $HOME/.xinitrc ] ; then
+	chmod +x $HOME/.xinitrc
+	echo "| WARNING:  ~/.xinitrc was not executable!  Fixed."
+fi
 if expr `tty` : "/dev/tty[ab0]" >/dev/null; then
 	sleep 2
 	tput clear
