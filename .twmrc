@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.26	96/09/07 20:45:13 (woods)"
+#ident	"@(#)HOME:.twmrc	2.27	96/09/07 20:50:12 (woods)"
 #
 
 AutoRelativeResize
@@ -421,26 +421,6 @@ function "start-quicksilver-rlogin" {
 
 function "start-cyberia-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin cyberia.infoshare.net &"
-}
-
-#	for rlogin-hmpg menu
-#
-function "start-box-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin 199.246.214.50 &"
-}
-
-function "start-box-r-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin 199.246.214.17 &"
-}
-
-#	for slogin-hmpg menu
-#
-function "start-box-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin 199.246.214.50 &"
-}
-
-function "start-box-r-slogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin 199.246.214.17 &"
 }
 
 #	for rlogin-aci menu
@@ -1066,6 +1046,7 @@ menu "planix-xterms"
 	"Xterm @whome"			f.function "start-whome-xterm"
 	"Xterm @woffi"			f.function "start-woffi-xterm"
 	"Xterm @wind"			f.function "start-wind-xterm"
+	"Xterm @wish"			f.function "start-wish-xterm"
 	"Xterm @weight"			f.function "start-weight-xterm"
 	"Xterm @box1"			f.function "start-box1-xterm"
 	"Xterm @box1-r"			f.function "start-box1-r-xterm"
@@ -1107,7 +1088,6 @@ menu "rlogin"
 	"Rlogin's at Cyclic.com..."	f.menu "rlogin-cyclic"
 	"Rlogin's at Planix.com..."	f.menu "rlogin-planix"
 	"Rlogin's at Ipass.com..."	f.menu "rlogin-ipass"
-	"Rlogin's at HmPg.com..."	f.menu "rlogin-hmpg"
 	"Rlogin's at Infoshare.net..."	f.menu "rlogin-infoshare"
 	"Rlogin's at ACI.on.ca..."	f.menu "rlogin-aci"
 	"Rlogin's at Log.on.ca..."	f.menu "rlogin-logon"
@@ -1129,7 +1109,6 @@ menu "slogin"
 	"Slogin's at Weird.com..."	f.menu "slogin-weird"
 	"Slogin's at Planix.com..."	f.menu "slogin-planix"
 	"Slogin's at Ipass.com..."	f.menu "slogin-ipass"
-	"Slogin's at HmPg.com..."	f.menu "slogin-hmpg"
 }
 
 menu "rlogin-weird"
@@ -1157,33 +1136,29 @@ menu "slogin-weird"
 menu "rlogin-cyclic"
 {
 	"Rlogin's At Cyclic.com"	f.title
-	"Rlogin @totoro.cyclic.com"	f.function "start-totoro-rlogin"
+	"Rlogin @totoro"		f.function "start-totoro-rlogin"
 }
 
 menu "rlogin-planix"
 {
 	"Rlogin's At Planix.com"	f.title
-	"Rlogin @whome.planix.com"	f.function "start-whome-rlogin"
-	"Rlogin @woffi.planix.com"	f.function "start-woffi-rlogin"
-	"Rlogin @wind.planix.com"	f.function "start-wind-rlogin"
-	"Rlogin @wish.planix.com"	f.function "start-wish-rlogin"
-	"Rlogin @weight.planix.com"	f.function "start-weight-rlogin"
-	"Rlogin @worm.planix.com"	f.function "start-worm-rlogin"
-	"Rlogin @box1.planix.com"	f.function "start-box1-rlogin"
-	"Rlogin @box1-r.planix.com"	f.function "start-box1-r-rlogin"
+	"Rlogin @whome"			f.function "start-whome-rlogin"
+	"Rlogin @woffi"			f.function "start-woffi-rlogin"
+	"Rlogin @wind"			f.function "start-wind-rlogin"
+	"Rlogin @wish"			f.function "start-wish-rlogin"
+	"Rlogin @weight"		f.function "start-weight-rlogin"
+	"Rlogin @worm"			f.function "start-worm-rlogin"
 }
 
 menu "slogin-planix"
 {
 	"Slogin's At Planix.com"	f.title
-	"Slogin @whome.planix.com"	f.function "start-whome-slogin"
-	"Slogin @woffi.planix.com"	f.function "start-woffi-slogin"
-	"Slogin @wind.planix.com"	f.function "start-wind-slogin"
-	"Slogin @wish.planix.com"	f.function "start-wish-slogin"
-	"Slogin @weight.planix.com"	f.function "start-weight-slogin"
-	"Slogin @worm.planix.com"	f.function "start-worm-slogin"
-	"Slogin @box1.planix.com"	f.function "start-box1-slogin"
-	"Slogin @box1-r.planix.com"	f.function "start-box1-r-slogin"
+	"Slogin @whome"			f.function "start-whome-slogin"
+	"Slogin @woffi"			f.function "start-woffi-slogin"
+	"Slogin @wind"			f.function "start-wind-slogin"
+	"Slogin @wish"			f.function "start-wish-slogin"
+	"Slogin @weight"		f.function "start-weight-slogin"
+	"Slogin @worm"			f.function "start-worm-slogin"
 }
 
 menu "rlogin-ipass"
@@ -1206,20 +1181,6 @@ menu "slogin-ipass"
 	"Slogin @hamlet"		f.function "start-hamlet-slogin"
 	"Slogin @bsdibox"		f.function "start-bsdibox-slogin"
 	"Slogin @rock"			f.function "start-rock-slogin"
-}
-
-menu "rlogin-hmpg"
-{
-	"Rlogin's At HmPg.com"		f.title
-	"Rlogin @box.HmPg.com"		f.function "start-box-rlogin"
-	"Rlogin @box-r.HmPg.com"	f.function "start-box-r-rlogin"
-}
-
-menu "slogin-hmpg"
-{
-	"Slogin's At HmPg.com"		f.title
-	"Slogin @box.HmPg.com"		f.function "start-box-slogin"
-	"Slogin @box-r.HmPg.com"	f.function "start-box-r-slogin"
 }
 
 menu "rlogin-infoshare"
