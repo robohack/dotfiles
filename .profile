@@ -1,7 +1,7 @@
 #
-#	.profile - for either sh, ksh, or ash (if type is defined).
+#	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	18.1	97/01/20 10:09:54 (woods)"
+#ident	"@(#)HOME:.profile	18.2	97/01/20 12:04:10 (woods)"
 
 #
 # Assumptions:
@@ -14,19 +14,22 @@
 #
 #	$HOME/.ashtype	- sourced once, if readable and if running ash(1)
 #	$HOME/.ashlogin	- sourced once, if running ash(1)
+#	$HOME/.bashlogin - sourced once, if running bash(1)
 #	$HOME/.editor	- name of prefered text editor command
-#	$HOME/.kshlogin	- sourced once, if running ksh(1)[, or bash(1)?]
+#	$HOME/.kshlogin	- sourced once, if running ksh(1)
 #	$HOME/.kshlogout - set on trap 0, if running ksh(1)[, or bash(1)?]
 #	$HOME/.localprofile - sourced once, near end of this file
 #	$HOME/.mailer	- name of prefered MUA command
 #	$HOME/.shell	- mktable'd and exec'ed as shell (see end of this file)
 #	$HOME/.shlogin	- sourced once
-#	$HOME/.shlogout	- set on trap 0
+#	$HOME/.shlogout	- set on trap 0, if running sh(1) or ash(1)
 #	$HOME/.shrc	- sourced once from .shlogin, and pathname used in $ENV
 #	$HOME/.stty	- sourced for stty command(s), etc. just before tset(1)
 #	$HOME/.trninit	- pathname set as value for $TRNINIT
 
-if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
+if [ -r $HOME/.bashlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} -a -n "${BASH}" ] ; then
+	trap '. $HOME/.bashlogout ; exit $?' 0
+elif [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} -a -z "${BASH}" ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
 elif [ -r $HOME/.shlogout ] ; then
 	trap '. $HOME/.shlogout ; exit $?' 0
@@ -127,7 +130,7 @@ dirprepend ()
 }
 
 case "$UUNAME" in
-robohack | kuma | araignee | tar | spinne | toile | wombat | weirdo | most | very | isit | pretty | whats )
+robohack | kuma | araignee | tar | spinne | toile | wombat | weirdo | most | very | isit | pretty | whats | tugboat )
 	# we trust $PATH has been initialized correctly on these machines....
 	;;
 * )
@@ -178,12 +181,15 @@ fi
 # don't worry about openwin -- it's handled in the ISSUN case below
 #
 if [ -z "$X11PATH" ] ; then
+	# FIXME: this won't work very well if X11R? is multiple names....
 	if [ -d /local/X11R? ] ; then
 		X11PATH="`echo /local/X11R?`"
+	elif [ -d /usr/X11 ] ; then
+		X11PATH="/usr/X11"
 	elif [ -d /usr/X11R? ] ; then
 		X11PATH="`echo /usr/X11R?`"
-	elif [ -d /usr/X? ] ; then
-		X11PATH="`echo /usr/X11R?`"
+	elif [ -d /usr/X??? ] ; then
+		X11PATH="`echo /usr/X???`"
 	elif [ -d /usr/local/X11R? ] ; then
 		X11PATH="`echo /usr/local/X11R?`"
 	else
@@ -201,6 +207,11 @@ fi
 
 dirappend PATH /usr/ccs/bin $X11BIN $LOCAL/bin $GNU/bin $CONTRIB/bin /usr/ucb /usr/bsd
 dirappend PATH /usr/games $LOCAL/games
+case "$UUNAME" in
+web | robohack )
+	dirprepend MANPATH $LOCAL/man
+	;;
+esac
 
 # don't set MANPATH with 4.4BSD man....
 #
@@ -602,7 +613,7 @@ fi
 
 # one thing we assume here is that PS1 will be set in .*login or $ENV
 #
-if [ ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
+if [ ${RANDOM:-0} -ne ${RANDOM:-0} -a -z "${BASH}" ] ; then
 	# TODO: try to remember why we don't trust this...
 	SHELL=""
 	[ -x $LOCAL/bin/ksh ] && export SHELL="$LOCAL/bin/ksh"
@@ -611,7 +622,12 @@ if [ ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	if [ -r $HOME/.kshlogin ] ; then
 		. $HOME/.kshlogin
 	fi
+elif [ ${RANDOM:-0} -ne ${RANDOM:-0} -a -n "${BASH}" ] ; then
+	if [ -r $HOME/.bashlogin ] ; then
+		. $HOME/.bashlogin
+	fi
 elif [ "`echo ~`" = "$HOME" ] ; then
+	# this will only be modern ash (eg. from 4.4BSD or newer)
 	# TODO: actually, maybe this should be a Posix shell environment...
 	if [ -r $HOME/.ashlogin ] ; then
 		. $HOME/.ashlogin
