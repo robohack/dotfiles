@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	18.1	97/01/20 10:10:03 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	18.2	97/01/22 12:35:55 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1227,6 +1227,15 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		   ;;(override-local-key-settings)
 		   (override-default-variable-settings)
 		   (setq sh-indentation 8))))))
+
+(if (elisp-file-in-loadpath-p "perl-mode")
+    (progn
+      (add-hook 'perl-mode-hook
+		(funtion
+		 (lambda ()
+		   "Private perl-mode-hook."
+		   (override-default-variable-settings)
+		   (override-local-key-settings))))))
 
 ;;;; ----------
 ;;;; more hooks for non-default packages
