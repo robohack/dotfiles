@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	19.3	98/02/23 21:27:34 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	19.4	98/03/08 18:44:47 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -41,7 +41,7 @@
 	(t 19))				; what else could it be?
   "Emacs major version for testing compatibility.")
 
-(if (/= init-emacs-type 19)
+(if (<= init-emacs-type 19)
     (progn
       (message "Not running emacs v19 I see -- you'll have trouble with this .emacs!")
       (sit-for 5)))
@@ -104,8 +104,16 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 		      (t
 		       "/gnu")))
 
-(defvar original-load-path load-path)
+(defvar original-load-path load-path "The value of load-path at startup")
 (setq load-path (cons (expand-file-name "~/lib/elisp") load-path))
+
+(defvar original-vc-path vc-path "The value of vc-path at startup")
+(setq vc-path
+      (if (file-directory-p "/usr/sccs")
+	  '("/usr/sccs")
+	(if (file-directory-p "/usr/local/libexec/cssc")
+	    '("/usr/local/libexec/cssc")
+	  nil)))
 
 ;;; This could probably be rewritten to use mapcar
 (defun elisp-file-in-loadpath-p (file-name)
@@ -260,13 +268,36 @@ scripts (alias)." t)
 	("^[^ ].*$" 0 font-lock-comment-face t)
 	("^..d.* \\([^ ]+\\)$" 1 font-lock-keyword-face))))
 
-;; choose the same font as x-fixed-font-alist "Courier"-"10"
-(if window-system
-    (progn
-      (defvar preferred-x-font
-	"-adobe-courier-medium-r-normal--*-100-*-*-m-*-iso8859-1"
-	"The best choice font for X11 screens")
-      (set-default-font preferred-x-font)))
+(defvar preferred-frame-font
+  "fixed"
+  "My preferred font")
+
+;; The pxlsz of '0' forces use of the type-1 fonts.
+;;
+;; Unfortunately the cleaner Bitstream Courier doesn't seem to have a matching
+;; size italic (and has no oblique) fonts
+;;
+;; assuming it's X, that is!  ;-)
+;;
+(if (eq window-system 'x)
+    (setq preferred-frame-font
+	  "-adobe-*-medium-r-normal--0-110-*-*-m-100-iso8859-1"))
+
+(require 'frame)
+(defun set-frame-face-to-preferred-frame-font (frame)
+  "Set FRAME's faces to those for preferred-frame-font"
+  ;; this is sthe equivalent of the following, but with a FRAME arg.
+  ;;(set-frame-font preferred-frame-font)
+  (modify-frame-parameters frame
+			   (list (cons 'font preferred-frame-font)))
+  ;; Update faces that want a bold or italic version of the default font.
+  (frame-update-faces frame))
+(add-hook 'after-make-frame-functions 'set-frame-face-to-preferred-frame-font)
+
+;; this gets the current frame, which already exists....
+(set-frame-font preferred-frame-font)
+
+(standard-display-european)		; This forces iso8859-1
 
 (setq auto-save-timeout 300)		; 30 seconds is insane!
 (setq backup-by-copying t)		; copy, thus preserving modes and owner
