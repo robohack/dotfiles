@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	18.18	97/08/29 13:01:39 (woods)"
+#ident	"@(#)HOME:.twmrc	18.19	97/09/24 21:26:59 (woods)"
 #
 
 AutoRelativeResize
@@ -454,8 +454,30 @@ function "start-logon-rlogin" {
 
 #	for slogin-logon menu
 #
-function "start-sogon-rlogin" {
+function "start-logon-slogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin log.on.ca &"
+}
+
+
+#	for telnet-rogers menu
+#
+function "start-nds-net-telnet" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet nds.net.rogers.wave.ca &"
+}
+
+function "start-captive-net-telnet" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet captive.net.rogers.wave.ca &"
+}
+
+
+#	for slogin-rogers menu
+#
+function "start-nds-net-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -l gwoods nds.net.rogers.wave.ca &"
+}
+
+function "start-captive-net-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e $LOCAL/bin/slogin -l gwoods captive.net.rogers.wave.ca &"
 }
 
 
@@ -713,16 +735,24 @@ function "start-local-mosaic" {
 	f.exec "$LOCAL/bin/Mosaic &"
 }
 
+function "start-local-mosaic-mono" {
+	f.exec "$LOCAL/bin/Mosaic -mono &"
+}
+
 function "start-x11server-mosaic" {
 	f.exec "$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
 }
 
-function "start-most-mosaic" {
-	f.exec "$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
+function "start-x11server-mosaic-mono" {
+	f.exec "$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic -mono &"
 }
 
-function "start-weirdo-mosaic" {
-	f.exec "$RSH -n ns.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/Mosaic &"
+function "start-most-mosaic" {
+	f.exec "$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY XKEYSYMDB=/usr/lib/X11/XKeysymDB XNLSPATH=/usr/lib/X11/nls /local/bin/Mosaic &"
+}
+
+function "start-most-mosaic-mono" {
+	f.exec "$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY XKEYSYMDB=/usr/lib/X11/XKeysymDB XNLSPATH=/usr/lib/X11/nls /local/bin/Mosaic -mono &"
 }
 
 function "start-sometimes-mosaic" {
@@ -762,6 +792,60 @@ function "start-always-netscape" {
 
 function "start-woffi-netscape" {
 	f.exec "$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
+}
+
+
+#	for www-netscape-96 menu
+#
+function "start-local-netscape-96" {
+	f.exec "$LOCAL/bin/netscape -ncol 96 -display $DISPLAY &"
+}
+
+function "start-x11server-netscape-96" {
+	f.exec "$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -ncol 96 -display $DISPLAY &"
+}
+
+function "start-weirdo-netscape-96" {
+	f.exec "$RSH -n ns.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -ncol 96 -display $DISPLAY &"
+}
+
+function "start-sometimes-netscape-96" {
+	f.exec "$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -ncol 96 -display $DISPLAY &"
+}
+
+function "start-always-netscape-96" {
+	f.exec "$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -ncol 96 -display $DISPLAY &"
+}
+
+function "start-woffi-netscape-96" {
+	f.exec "$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -ncol 96 -display $DISPLAY &"
+}
+
+
+#	for www-netscape-cmap menu
+#
+function "start-local-netscape-cmap" {
+	f.exec "$LOCAL/bin/netscape -install -display $DISPLAY &"
+}
+
+function "start-x11server-netscape-cmap" {
+	f.exec "$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -install -display $DISPLAY &"
+}
+
+function "start-weirdo-netscape-cmap" {
+	f.exec "$RSH -n ns.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
+}
+
+function "start-sometimes-netscape-cmap" {
+	f.exec "$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -install -display $DISPLAY &"
+}
+
+function "start-always-netscape-cmap" {
+	f.exec "$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -install -display $DISPLAY &"
+}
+
+function "start-woffi-netscape-cmap" {
+	f.exec "$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
 }
 
 
@@ -1102,7 +1186,11 @@ menu "www"
 {
 	"WWW Browsers Everywhere!"	f.title
 	"Mosaic..."			f.menu "www-mosaic"
+	"Mosaic Monochrome..."		f.menu "www-mosaic-mono"
+	""				f.nop
 	"Netscape..."			f.menu "www-netscape"
+	"Netscape -ncol 96..."		f.menu "www-netscape-96"
+	"Netscape -install cmap..."	f.menu "www-netscape-cmap"
 }
 
 menu "www-mosaic"
@@ -1111,10 +1199,17 @@ menu "www-mosaic"
 	"@localhost"			f.function "start-local-mosaic"
 	"@x11server"			f.function "start-x11server-mosaic"
 	"@most"				f.function "start-most-mosaic"
-	"@weirdo"			f.function "start-weirdo-mosaic"
 	"@sometimes"			f.function "start-sometimes-mosaic"
 	"@always"			f.function "start-always-mosaic"
 	"@woffi"			f.function "start-woffi-mosaic"
+}
+
+menu "www-mosaic-mono"
+{
+	"Mosaic Monochrome WWW Browsers Everywhere!"	f.title
+	"@localhost"			f.function "start-local-mosaic-mono"
+	"@x11server"			f.function "start-x11server-mosaic-mono"
+	"@most"				f.function "start-most-mosaic-mono"
 }
 
 menu "www-netscape"
@@ -1126,6 +1221,28 @@ menu "www-netscape"
 	"@sometimes"			f.function "start-sometimes-netscape"
 	"@always"			f.function "start-always-netscape"
 	"@woffi"			f.function "start-woffi-netscape"
+}
+
+menu "www-netscape-96"
+{
+	"Netscape WWW Browsers for 8-bit displays."	f.title
+	"@localhost"			f.function "start-local-netscape-96"
+	"@x11server"			f.function "start-x11server-netscape-96"
+	"@weirdo"			f.function "start-weirdo-netscape-96"
+	"@sometimes"			f.function "start-sometimes-netscape-96"
+	"@always"			f.function "start-always-netscape-96"
+	"@woffi"			f.function "start-woffi-netscape-96"
+}
+
+menu "www-netscape-cmap"
+{
+	"Netscape WWW Browsers with their own colour map."	f.title
+	"@localhost"			f.function "start-local-netscape-cmap"
+	"@x11server"			f.function "start-x11server-netscape-cmap"
+	"@weirdo"			f.function "start-weirdo-netscape-cmap"
+	"@sometimes"			f.function "start-sometimes-netscape-cmap"
+	"@always"			f.function "start-always-netscape-cmap"
+	"@woffi"			f.function "start-woffi-netscape-cmap"
 }
 
 menu "games"
@@ -1207,6 +1324,7 @@ menu "telnet"
 	"Telnet's Everywhere"		f.title
 	"Telnet's at Weird.com..."	f.menu "telnet-weird"
 	"Telnet's at Planix.com..."	f.menu "telnet-planix"
+	"Telnet's at Rogers.WAVE.ca..."	f.menu "telnet-rogers"
 }
 
 menu "slogin"
@@ -1221,7 +1339,7 @@ menu "slogin"
 	"Slogin's at SOLS.on.ca..."	f.menu "slogin-sols"
 	"Slogin's at ACI.on.ca..."	f.menu "slogin-aci"
 	"Slogin's at Log.on.ca..."	f.menu "slogin-logon"
-	"Slogin's at Rogers.wave.ca..." f.nop
+	"Slogin's at Rogers.WAVE.ca..." f.menu "slogin-rogers"
 	"Slogin's at OpenText.com..."	f.menu "slogin-opentext"
 	"Slogin's at Web.net..."	f.menu "slogin-web"
 }
@@ -1351,6 +1469,20 @@ menu "slogin-logon"
 {
 	"Slogin's At Log.on.ca"		f.title
 	"Slogin @log.on.ca"		f.function "start-logon-slogin"
+}
+
+menu "telnet-rogers"
+{
+	"Telnets's At Rogers.WAVE.ca"	f.title
+	"Telnet @nds.net"		f.function "start-nds-net-telnet"
+	"Telnet @captive.net"		f.function "start-captive-net-telnet"
+}
+
+menu "slogin-rogers"
+{
+	"Slogin's At Rogers.WAVE.ca"	f.title
+	"Slogin @nds.net"		f.function "start-nds-net-slogin"
+	"Slogin @captive.net"		f.function "start-captive-net-slogin"
 }
 
 menu "rlogin-fgsc"
