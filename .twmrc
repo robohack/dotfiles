@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.43	96/12/14 13:47:09 (woods)"
+#ident	"@(#)HOME:.twmrc	2.44	96/12/14 14:04:25 (woods)"
 #
 
 AutoRelativeResize
@@ -903,6 +903,38 @@ function "start-most-xv" {
 }
 
 
+#       for emacs menu
+#
+function "start-local-emacs" {
+	f.exec "$GNU/bin/emacs &"
+}
+
+# note this uses the local path, etc....
+function "start-x11server-emacs" {
+	f.exec "$RSH -n $X11SERVER '. ./.localprofile; PATH='$PATH'; export PATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
+}
+
+# note this uses the local path, etc....
+function "start-most-emacs" {
+	f.exec "$RSH -n most.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
+}
+
+# note this uses the local path, etc....
+function "start-whats-emacs" {
+	f.exec "$RSH -n whats.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
+}
+
+# note this uses the local path, etc....
+function "start-woffi-emacs" {
+	f.exec "$RSH -n woffi.planix.com '. ./.localprofile; PATH='$PATH'; export PATH; exec '$LOCAL'/bin/emacs -display '$DISPLAY' -i' &"
+}
+
+# note this uses the local path, etc....
+function "start-clapton-emacs" {
+	f.exec "$RSH -n clapton.seachange.com '. ./.localprofile; PATH=/usr/contrib/bin:'$PATH'; export PATH; exec /usr/contrib/bin/emacs -display '$DISPLAY' -i ' &"
+}
+
+
 #	for ghostviews menu
 #
 function "start-local-ghostview" {
@@ -1281,6 +1313,7 @@ menu "applications"
 	"GhostView Everywhere..."	f.menu "ghostviews"
 	"WWW Everywhere..."		f.menu "www"
 	"Xv Everywhere..."		f.menu "xvs"
+	"Emacs Everywhere..."		f.menu "emacs"
 	"Monitors..."			f.menu "monitors"
 	"Locks..."			f.menu "locks"
 	"Backgrounds..."		f.menu "backgrounds"
@@ -1316,6 +1349,17 @@ menu "xvs"
 	"@localhost"			f.function "start-local-xv"
 	"@x11server"			f.function "start-x11server-xv"
 	"@most"				f.function "start-most-xv"
+}
+
+menu "emacs"
+{
+	"Emacsen"			f.title
+	"@localhost"			f.function "start-local-emacs"
+	"@x11server"			f.function "start-x11server-emacs"
+	"@most"				f.function "start-most-emacs"
+	"@whats"			f.function "start-whats-emacs"
+	"@woffi"			f.function "start-woffi-emacs"
+	"@clapton"			f.function "start-clapton-emacs"
 }
 
 menu "monitors"
