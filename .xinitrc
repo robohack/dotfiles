@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	18.1	97/01/20 10:09:45 (woods)"
+#ident	"@(#)HOME:.xinitrc	18.2	97/01/27 14:45:19 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -82,7 +82,10 @@ elif [ -f "$OPENWINHOME/lib/Xdefaults" ] ; then
 	xrdb $OPENWINHOME/lib/Xdefaults	# Load Default X11 resource database
 fi
 if [ -f $HOME/.Xdefaults ] ; then
-	xrdb $HOME/.Xdefaults		# Load Users X11 resource database
+	xrdb $HOME/.Xdefaults		# Load user's X11 resource database
+fi
+if [ -f $HOME/.Xmodmap ] ; then
+	xmodmap $HOME/.Xmodmap		# Load user's keymap
 fi
 
 # TODO: this might be a mistake, but it might also save your bacon!
