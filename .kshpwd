@@ -1,7 +1,7 @@
 #
 #	.kshpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.kshpwd	21.1	99/11/18 13:12:49 (woods)"
+#ident	"@(#)HOME:.kshpwd	21.2	01/10/17 11:52:15 (woods)"
 
 if [ "$PWD" = "$HOME" ] ; then
 	PWD='~'
@@ -37,7 +37,7 @@ function _cd
 	if [ "`ismpx`" = yes ] ; then
 		eval myxban -l "\"$MYXBAN_L\""
 	fi
-	if [ "$TERM" = "xterm" ] ; then
+	if type setban > /dev/null ; then
 		setban
 	fi
 }
