@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	6.10	94/12/03 20:36:48 (woods)"
+#ident	"@(#)HOME:.profile	6.11	94/12/03 20:42:54 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -389,7 +389,6 @@ if [ ${RANDOM:-0} -ne 0 ] ; then
 		. $HOME/.kshlogin
 	fi
 elif [ `echo ~` = $HOME ] ; then
-	# Ah Ha!  A semi-smart shell, such as BSDI
 	if [ -r $HOME/.shlogin ] ; then
 		. $HOME/.shlogin
 	fi
@@ -499,7 +498,6 @@ if $HAVELAYERS && [ "$TERM" = "dmd" -a "`ismpx`" != "yes" ] ; then
 fi
 
 if [ -s $HOME/.shell ] ; then
-	SHELL=`mktable $HOME/.shell` ; export SHELL
 	exec $SHELL
 fi
 
