@@ -1,19 +1,18 @@
 #
-#	.profile - for either sh, ksh, bash, or ash (if type is defined).
+#	.profile - for either SysV sh, 4BSD sh, any ksh, some bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	26.1	03/01/05 16:26:10 (woods)"
+#ident	"@(#)HOME:.profile	26.2	03/11/23 14:25:36 (woods)"
 
-#
 # Assumptions that may cause breakage:
 #
+#	- the shell supports functions
 #	- standard environment has been set by login(1)
 #	- $argv0 is `basename $0` from .xinitrc or .xsession
 #	- test(1), aka "[", supports '-h' for testing symlinks
-#
 
 # Files referenced [all optional]:
 #
-#	$HOME/.ashtype	- sourced once, if running ash(1)
+#	$HOME/.ashtype	- sourced once, if 'type' command fails
 #	$HOME/.ashlogin	- sourced once, if running ash(1)
 #	$HOME/.bashlogin - sourced once, if running bash(1)
 #	$HOME/.editor	- name of prefered text editor command
@@ -31,10 +30,9 @@
 # Notes:
 #
 #	.localprofile may set $PATH_IS_OKAY to "true" if it is so.
-#
 
 umask 022
-ulimit -S -p 99999		# make it equal the hard limit
+ulimit -S -p 99999 2> /dev/null		# force it equal to the hard limit
 
 if [ -r $HOME/.bashlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} -a -n "${BASH}" ] ; then
 	trap '. $HOME/.bashlogout ; exit $?' 0
@@ -44,9 +42,17 @@ elif [ -r $HOME/.shlogout ] ; then
 	trap '. $HOME/.shlogout ; exit $?' 0
 fi
 
-if [ "`echo ~`" = "$HOME" -a -r $HOME/.ashtype -a ${RANDOM:-0} -eq ${RANDOM:-0} ] ; then
-	# TODO: actually, maybe this should be considered a Posix shell environment...
+# the I/O re-direction doesn't actually get rid of the "type: not
+# found" message from the old Ash implementation...
+#
+if type > /dev/null 2>&1 ; then
+	:
+elif [ -r $HOME/.ashtype ]; then
 	. $HOME/.ashtype
+fi
+
+if [ "`echo ~`" = "$HOME" -a ${RANDOM:-0} -eq ${RANDOM:-0} ] ; then
+	: apparently a POSIX capable shell
 fi
 
 if [ -z "$LOGNAME" ] ; then
@@ -95,12 +101,8 @@ if [ -z "$DOMAINNAME" ] ; then
 	export DOMAINNAME
 fi
 
-if [ -z "$TTY" ] ; then
-	TTY="`tty`" ; export TTY
-fi
-if [ -z "$TTYN" ] ; then
-	TTYN="`basename "$TTY"`" ; export TTYN
-fi
+TTY="`tty`" ; export TTY
+TTYN="`basename "$TTY"`" ; export TTYN
 
 dirappend ()
 {
@@ -136,6 +138,25 @@ dirprepend ()
 		shift
 	done
 	unset varname varvalue
+}
+
+dirremove ()
+{
+	if [ $# -le 1 ] ; then
+		echo "Usage: dirremove variable directory [...]" >&2
+		exit 2
+	fi
+	varname=$1
+	shift
+	while [ $# -gt 0 ] ; do
+		if [ "$1" = ":" -o -z "$1" ] ; then
+			eval $varname=`eval echo '$'$varname | sed -e 's|::||g' -e 's|:$||'`
+		else
+			eval $varname=`eval echo '$'$varname | sed 's|\(:*\)'$1':*|\1|'`
+		fi
+		shift
+	done
+	unset varname
 }
 
 # system-local user preferences go in here
@@ -272,10 +293,10 @@ dirappend PATH /usr/games $LOCAL/games $OPT/games/bin
 CDPATH=":$HOME:$WORKPATH:$HOME/src:$HOME/src/lib:$HOME/lib"
 
 dirappend CDPATH /usr/src /usr/src/lib /usr/src/cmd /usr/src/add-on /usr/src/uts
-dirappend CDPATH /usr/src/bin /usr/src/distrib /usr/src/domestic /usr/src/etc
+dirappend CDPATH /usr/src/bin /usr/src/etc
 dirappend CDPATH /usr/src/games /usr/src/gnu /usr/src/include /usr/src/lib
 dirappend CDPATH /usr/src/libexec /usr/src/regress /usr/src/sbin /usr/src/share
-dirappend CDPATH /usr/src/sys /usr/src/usr.bin /usr/src/usr.sbin
+dirappend CDPATH /usr/src/sys /usr/src/sys/arch /usr/src/usr.bin /usr/src/usr.sbin
 dirappend CDPATH /usr/src/local /usr/src/local/lib /usr/src/local/cmd
 dirappend CDPATH /usr/src/gnu/usr.bin /usr/src/gnu/lib /usr/src/gnu/libexec
 dirappend CDPATH /usr/xsrc/xc/programs
@@ -378,7 +399,9 @@ fi
 mesg n
 
 case "$TERM" in
-xterm*)
+xterm*|wsvt25*)
+	# this lets those pesky high-bit chars show through....
+	LESSCHARSET=iso8859; export LESSCHARSET
 	;;
 esac
 
@@ -398,15 +421,21 @@ fi
 export MAILLOG
 
 HAVEPRINT=false ; export HAVEPRINT
-if expr "`type print`" : 'print is a shell builtin$' >/dev/null 2>&1 ; then
+if expr "`type print 2> /dev/null`" : 'print is a shell builtin$' > /dev/null 2>&1 ; then
 	HAVEPRINT=true
 fi
 HAVEPRINTF=false ; export HAVEPRINTF
-if expr "`type printf`" : 'printf is a shell builtin$' >/dev/null 2>&1 ; then
-	HAVEPRINTF=true
-elif expr "`type printf`" : '.* is .*/printf$' >/dev/null 2>&1 ; then
+if expr "`type printf 2> /dev/null`" : 'printf is a shell builtin$' > /dev/null 2>&1 ; then
 	HAVEPRINTF=true
 fi
+###
+### NOTE: we assume "echo" is builtin and we do not want to prefer an
+### external $echo even if it is more capable
+###
+###elif expr "`type printf`" : '.* is .*/printf$' >/dev/null 2>&1 ; then
+###	HAVEPRINTF=true
+###fi
+#
 # always use ``$echo'' if any of the other variables are used...
 #	$nl - print a newline (always required at end of line if desired)
 #	$n - option to turn off final newline
@@ -482,9 +511,8 @@ fi
 HAVETPUT=false ; export HAVETPUT
 if expr "`type tput`" : '.* is .*/tput$' >/dev/null 2>&1 ; then
 	HAVETPUT=true
-	# WARNING: this only works with SysV compatible tput.
-	# Try without the "cr" for NetBSD's tput.
-	TERMTESTCMD='tput -T"$ttytype" cr >/dev/null 2>&1'
+	# WARNING: this may only work with a SysV compatible tput.
+	TERMTESTCMD='tput -T"$ttytype" init >/dev/null 2>&1'
 else
 	# WARNING: some tset(1)'s, esp. ULTRIX, fail if stderr is not a tty
 	TERMTESTCMD='tset -I -Q "$ttytype" >/dev/null'
@@ -734,7 +762,7 @@ if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 	fi
 
 	case "$UUNAME" in
-	robohack | toile | wombat | spinne | tar | web | weirdo | most | very | isit | pretty )
+	robohack | weirdo | most | very | isit )
 		# we trust that everything is all set up as it should be on
 		# sites we know, except for personal preferences set above...
 		:
@@ -771,10 +799,27 @@ if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 			;;
 		esac
 
+		export TERM
+
+		case "$TERM" in
+		vt220)
+			if [ ! -r $HOME/.stty ] ; then
+				stty intr '^C' erase '^?'
+			fi
+			;;
+		esac
+
+		case $TTYN in
+		tty[p-zP-Z]*|vt*|vg*|console)
+			echo "Setting TTY modes for 8-bit transparency...."
+			stty cs8 -istrip -parenb
+			;;
+		esac
+
 		if $HAVETPUT ; then
-			# TODO: we could use 'tput init' on some systems, no?
-			:
+			tput init
 		else
+			# Note: in other places we assume tset is avaliable....
 			if expr "`type tset`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
 				# On BSD, without the "-I" it uses /etc/termcap....
 				tset -I -r
@@ -782,13 +827,6 @@ if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 				echo "NOTICE:  I don't know how to set up your terminal."
 			fi
 		fi
-
-		case $TTYN in
-		tty[p-zP-Z]*|vt*|vg*|console)
-			echo "Setting terminal for 8-bit transparency...."
-			stty cs8 -istrip -parenb
-			;;
-		esac
 
 		# try setting up for X11 if possible....
 		case "$TERM" in
@@ -802,10 +840,18 @@ if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 		if [ -z "$SSH_TTY" ]; then
 			echo "Your terminal is port $TTY."
 		else
-			echo "Secure connection from $SSH_CLIENT on $SSH_TTY (tty $TTY)\n"
+			echo "Secure connection from $SSH_CLIENT on $SSH_TTY (tty $TTY)"
+			if [ -n "$DISPLAY" ] ; then
+				echo "Secure X11 connections forwarded via $DISPLAY"
+			fi
+			echo ""
 		fi
 
-		export TERM
+		# normally the message from "tset -s" on stderr will
+		# tell us what our current erase and interrupt chars are
+		#
+		tset -s > /dev/null
+
 		;;
 	esac
 fi
@@ -1007,7 +1053,7 @@ if [ -d $HOME/notes ] ; then
 		cd $HOME/notes
 		echo ""
 		echo "You have notes on:"
-		ls -C
+		ls -C *[!~]
 	)
 fi
 if [ -r $HOME/.trninit$TERM ] ; then
