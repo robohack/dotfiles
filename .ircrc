@@ -1,7 +1,7 @@
 #
 #	greg's ~/.ircrc
 #
-#ident	"@(#)HOME:.ircrc	1.1	95/10/12 10:54:03 (woods)"
+#ident	"@(#)HOME:.ircrc	1.2	95/11/30 11:01:44 (woods)"
 
 set NOVICE off
 set CLOCK on
@@ -26,9 +26,14 @@ load auto-op
 alias wjoin window new channel $0
 
 channel &internex
+
+away Sleeping, working, playing, eating, drinking, whatever....
+
 window new channel #NetBSD 
+
 window new channel #secrets
-window balance
+
+#window balance
 
 mode #secrets +it
 
