@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.6	95/08/07 12:50:09 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.7	95/10/04 08:46:37 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -209,6 +209,7 @@ directory in the list PATHLIST, otherwise nil."
        '(("/[^/]+\\.[chtly].[.0-9]+$" . c-mode)) ; cvs backup file
        '(("/[^/]+\\.t$" . c-mode))		; APC "ling" file
        '(("/[^/chtly]+\\.[0-9][a-z]?$" . nroff-mode)) ; man page
+       '(("/[^/+\\.an$" . nroff-mode))		; man page
        '(("/[^/]+\\.d.[.0-9]+$" . nroff-mode))	; cvs backup file
        '(("/[^/]+\\.d$" . nroff-mode))		; documentation file
        '(("/[^/]+\\.m[mes]?$" . nroff-mode))	; mm, me, ms docs
