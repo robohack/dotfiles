@@ -1,7 +1,7 @@
 #-*-m4-*-
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	23.4	02/07/04 17:07:50 (woods)"
+#ident	"@(#)HOME:.ctwmrc	24.1	02/07/04 17:19:31 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #

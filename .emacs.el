@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	23.3	02/06/03 23:00:45 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	24.1	02/07/04 17:19:31 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
