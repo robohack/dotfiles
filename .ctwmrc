@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.2	98/01/30 01:40:13 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.3	98/01/31 00:03:04 (woods)"
 #
 
 # Ideas on how to use more powerful M4 processing on this file:
@@ -482,8 +482,8 @@ menu "preferences"
 	"Bug Compat Off"	!"xset -bc"
 	"ReHash FP"		!"xset fp rehash"
 	"Reset FP Default"	!"xset fp default"
-	"Prefer 75dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/75dpi/,/usr/lib/X11/fonts/100dpi/"
-	"Prefer 100dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/100dpi/,/usr/lib/X11/fonts/75dpi/"
+	"Prefer 75dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Type1/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/75dpi/,/usr/lib/X11/fonts/100dpi/,/usr/lib/X11/fonts/PEX/"
+	"Prefer 100dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Type1/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/100dpi/,/usr/lib/X11/fonts/75dpi/,/usr/lib/X11/fonts/PEX/"
 ##	"Video Inverse"		!"xset p 1 0"
 ##	"Video Normal"		!"xset p 0 1"
 	"Colour Map Ctl..."	f.menu "cmap"
