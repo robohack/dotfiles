@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	7.1	95/02/15 11:08:06 (woods)"
+;;;#ident	"@(#)HOME:.vm	7.2	95/02/15 11:43:47 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -92,6 +92,10 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("\\(current-users@NetBSD.ORG\\|apana-lists-os-netbsd-general@\\|source@NetBSD.ORG\\)" .
 			       "netbsd/current-users")
 			      ("\\(tech-[^@%]+\\)[@%]NetBSD.ORG" .
+			       (concat "netbsd/"
+				       (buffer-substring (match-beginning 1)
+							 (match-end 1))))
+			      ("\\(netbsd-[^@%]+\\)[@%]" .
 			       (concat "netbsd/"
 				       (buffer-substring (match-beginning 1)
 							 (match-end 1))))
