@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	8.1	94/02/16 18:18:33 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	8.2	94/02/18 11:03:51 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -568,6 +568,16 @@ If STRING is not given, use the current buffer.  See `string-match'."
 	(define-key function-key-map [backspace] [?\C-h])
 	(define-key function-key-map [C-backspace] [?\C-h])
 	(define-key function-key-map [M-backspace] [?\M-\C-h])
+	;; From: qhslali@aom.ericsson.se (Lars Lindberg EHS/PBE 80455 2122 { tom -> 940531  ansv. EHS/PBE Christer Nilsson })
+	;; Message-Id: <9402170914.AA18291@aom.ericsson.se>
+	;; Subject: [19.22] emacsclient server should have a hook for kill-buffer
+	(add-hook 'server-visit-hook
+		  (function
+		   (lambda ()
+		     (add-hook 'kill-buffer-hook
+			       (function
+				(lambda ()
+				  (server-buffer-done (current-buffer))))))))
 	(defun server-really-exit ()	; for those times we forget
 	  "Query user if he really wants to exit since this will destroy the
 current emacs server process..."
