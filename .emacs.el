@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.8	98/11/11 12:16:09 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.9	99/01/27 18:46:51 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -391,14 +391,17 @@ scripts (alias)." t)
        '(("/[^/]+\\.[m]?an$" . nroff-mode))	; man page
        '(("/[^/]+\\.t[imes]*$" . nroff-mode))	; nroff+tbl
        '(("/[^/]+\\.t[imes]*\\.in$" . nroff-mode)) ; nroff+tbl
-       '(("[cC][hH][aA][nN][gG][eE][sS][^/chsly]*$" . indented-text-mode))
-       '(("[iI][nN][sS][tT][aA][lL][lL][^/chsly]*$" . indented-text-mode))
-       '(("[aA][uU][tT][hH][oO][rR][sS][^/chsly]*$" . indented-text-mode))
-       '(("[cC][oO][pP][yY][iI][nN][gG][^/chsly]*$" . indented-text-mode))
+       '(("[cC][hH][aA][nN][gG][eE][sS][^/\\.]*$" . indented-text-mode))
+       '(("[iI][nN][sS][tT][aA][lL][lL][^/\\.]*$" . indented-text-mode))
+       '(("[aA][uU][tT][hH][oO][rR][sS][^/\\.]*$" . indented-text-mode))
+       '(("[cC][oO][pP][yY][^/.\\.]*$" . indented-text-mode))
        '(("[nN][eE][wW][sS]$" . indented-text-mode))
        '(("[tT][oO][dD][oO]$" . indented-text-mode))
+       '(("[tT][hH][aA][nN][kK][^/]*$" . indented-text-mode))
        '(("[rR][eE][aA][dD][^/chsly]*$" . indented-text-mode))
-       '(("R[eE][aA][dD]M[eE][^/]*$" . indented-text-mode))
+       '(("[rR][eE][aA][dD][mM][eE][^/]*$" . indented-text-mode))
+       '(("\\.te?xt\\'" . indented-text-mode))
+       '(("\\.notes?\\'" . indented-text-mode))
        '(("\\.vm$" . emacs-lisp-mode))		; VM init file
        '(("\\.article[^/]*$" . indented-text-mode))
        '(("\\.letter[^/]*$" . indented-text-mode))
@@ -425,6 +428,13 @@ scripts (alias)." t)
     (setq auto-mode-alist
 	  (append
 	   '(("/[^/]+\\.lout$" . lout-mode))
+	   auto-mode-alist)))
+
+;; assume the autoloads are done for this...
+(if (elisp-file-in-loadpath-p "m4-mode")
+    (setq auto-mode-alist
+	  (append
+	   '(("/configure.in$" . m4-mode))
 	   auto-mode-alist)))
 
 ;; assume the autoloads are done for this...
