@@ -1,0 +1,31 @@
+!
+! This is an `xmodmap' input file for NCD N108 (US) keyboards.
+! Automatically generated on Sun Oct  5 22:15:50 1997 by woods with
+! XKeyCaps 2.38; Copyright (c) 1997 Jamie Zawinski <jwz@netscape.com>.
+! http://people.netscape.com/jwz/xkeycaps/
+!
+! This file presupposes that the keyboard is in the default state, and
+! may malfunction if it is not.
+!
+remove Lock    = Caps_Lock
+remove Control = Control_L
+
+keycode 0x0A =	F11	Escape	Escape
+keycode 0x0B =	F12	BackSpace	BackSpace
+keycode 0x0C =	F13	Linefeed	Linefeed
+keycode 0x0E =	Escape	asciitilde
+keycode 0x66 =	BackSpace	Delete	Delete
+keycode 0x64 =	apLineDel
+keycode 0x0D =	Tab	osfBackTab
+keycode 0x5A =	Return	Linefeed	Linefeed
+keycode 0x65 =	Delete	Select
+keycode 0x11 =	Caps_Lock
+keycode 0x14 =	Control_L
+keycode 0x09 =	grave	asciitilde
+keycode 0x19 =	Alt_L	Meta_L
+keycode 0x39 =	Alt_R	Meta_R
+keycode 0x78 =	Control_R
+
+add    Lock    = Caps_Lock
+add    Control = Control_L Control_R
+add    Mod2    = Multi_key
