@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.27	99/10/24 01:44:45 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.28	99/10/24 01:50:06 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -667,8 +667,7 @@ message/rfc822 attachments."
       vm-imap-max-message-size nil
       vm-imap-messages-per-session nil
       vm-imap-session-preauth-hook nil
-      vm-in-reply-to-format "%F's message\n	of \"%w, %m %d, %y %h %z\"\n	regarding \"%s\"\n	id %i"
-					; just the way I like it!
+      vm-in-reply-to-format "%i"
       vm-included-text-attribution-format "[ On %w, %m %d, %y at %h (%z), %F wrote: ]\n> Subject: %s\n>\n"
 					; just the way I like it!
       vm-included-text-discard-header-regexp nil
