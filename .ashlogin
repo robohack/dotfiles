@@ -1,7 +1,7 @@
 #
 #	.ashlogin - login shell startup for ash
 #
-#ident	"@(#)HOME:.ashlogin	19.4	98/04/26 16:15:15 (woods)"
+#ident	"@(#)HOME:.ashlogin	20.1	98/07/20 11:23:44 (woods)"
 
 set -o ignoreeof	# we only do this for our login shell....
 
