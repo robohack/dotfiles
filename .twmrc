@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	1.6	95/04/01 10:53:38 (woods)"
+#ident	"@(#)HOME:.twmrc	1.7	95/06/07 20:51:52 (woods)"
 #
 
 AutoRelativeResize
@@ -122,6 +122,10 @@ function "start-xterm" {
 	f.exec "/usr/bin/X11/xterm -cn -rw -sb -si -sk -sl 2048 -ls &"
 }
 
+function "start-x11host-xterm" {
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -cn -rw -sb -si -sk -sl 2048 -ls &"
+}
+
 function "start-most-xterm" {
 	f.exec "/usr/ucb/rsh -n most /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
 }
@@ -134,8 +138,8 @@ function "start-kuma-xterm" {
 	f.exec "/usr/ucb/rsh -n kuma /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
 }
 
-function "start-sunweb-xterm" {
-	f.exec "/usr/ucb/rsh -n sunweb /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+function "start-web-xterm" {
+	f.exec "/usr/ucb/rsh -n web /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
 }
 
 function "start-araignee-xterm" {
@@ -173,6 +177,14 @@ function "start-kuma-rlogin" {
 	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin kuma.web.net &"
 }
 
+function "start-netserver-rlogin" {
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin netserver.web.net &"
+}
+
+function "start-oldweb-rlogin" {
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin oldweb.web.net &"
+}
+
 function "start-tar-rlogin" {
 	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin tar.web.net &"
 }
@@ -183,10 +195,6 @@ function "start-web-rlogin" {
 
 function "start-spinne-rlogin" {
 	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin spinne.web.net &"
-}
-
-function "start-sunweb-rlogin" {
-	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin sunweb.web.net &"
 }
 
 function "start-whome-rlogin" {
@@ -203,6 +211,10 @@ function "start-worm-rlogin" {
 
 function "start-passport-rlogin" {
 	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin passport.ca &"
+}
+
+function "start-solsinfo-rlogin" {
+	f.exec "/usr/ucb/rsh -n $X11HOST /usr/bin/X11/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin solsinfo.sols.on.ca &"
 }
 
 function "start-lsuc-rlogin" {
@@ -242,12 +254,20 @@ function "start-netscape" {
 	f.exec "$LOCAL/netscape -display $DISPLAY &"
 }
 
-function "start-x11-netscape" {
+function "start-x11host-netscape" {
 	f.exec "/usr/ucb/rsh -n $X11HOST env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
 }
 
+function "start-netserver-netscape" {
+	f.exec "/usr/ucb/rsh -n netserver.web.net env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
+}
+
+function "start-spinne-netscape" {
+	f.exec "/usr/ucb/rsh -n spinne.web.net env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
+}
+
 function "start-weird-netscape" {
-	f.exec "/usr/ucb/rsh -n weird env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
+	f.exec "/usr/ucb/rsh -n weird.com env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
 }
 
 #
@@ -398,7 +418,9 @@ menu "netscape"
 {
 	"Mozzilla, i.e. NetScape"	f.title
 	"@localhost"			f.function "start-netscape"
-	"@X11-host"			f.function "start-x11-netscape"
+	"@X11-host"			f.function "start-x11host-netscape"
+	"@netserver"			f.function "start-netserver-netscape"
+	"@spinne"			f.function "start-spinne-netscape"
 	"@weird"			f.function "start-weird-netscape"
 }
 
@@ -413,12 +435,13 @@ menu "xterm"
 {
 	"Xterm's Everywhere"		f.title
 	"Xterm @localhost"		f.function "start-xterm"
+	"Xterm @X11-host"		f.function "start-x11host-xterm"
 	"    web.net hosts"		f.nop
 	"Xterm @araignee"		f.function "start-araignee-xterm"
 	"Xterm @kuma"			f.function "start-kuma-xterm"
 	"Xterm @spinne"			f.function "start-spinne-xterm"
-	"Xterm @sunweb"			f.function "start-sunweb-xterm"
 	"Xterm @tar"			f.function "start-tar-xterm"
+	"Xterm @web"			f.function "start-web-xterm"
 	"    weird.com hosts"		f.nop
 	"Xterm @most"			f.function "start-most-xterm"
 	"Xterm @very"			f.function "start-very-xterm"
@@ -433,8 +456,9 @@ menu "rlogin"
 	""				f.nop
 	"Rlogin @araignee.web.net"	f.function "start-araignee-rlogin"
 	"Rlogin @kuma.web.net"		f.function "start-kuma-rlogin"
+	"Rlogin @netserver.web.net"	f.function "start-netserver-rlogin"
+	"Rlogin @oldweb.web.net"	f.function "start-oldweb-rlogin"
 	"Rlogin @spinne.web.net"	f.function "start-spinne-rlogin"
-	"Rlogin @sunweb.web.net"	f.function "start-sunweb-rlogin"
 	"Rlogin @tar.web.net"		f.function "start-tar-rlogin"
 	"Rlogin @web.net"		f.function "start-web-rlogin"
 	""				f.nop
@@ -443,6 +467,8 @@ menu "rlogin"
 	"Rlogin @worm.planix.com"	f.function "start-worm-rlogin"
 	""				f.nop
 	"Rlogin @passport.ca"		f.function "start-passport-rlogin"
+	""				f.nop
+	"Rlogin @solsinfo.sols.on.ca"	f.function "start-solsinfo-rlogin"
 	""				f.nop
 	"Rlogin @news.lsuc.on.ca"	f.function "start-lsuc-rlogin"
 	""				f.nop
