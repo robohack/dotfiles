@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	26.1	03/01/05 16:26:10 (woods)"
+# ident	"@(#)HOME:.mailrc	26.2	03/01/06 18:23:13 (woods)"
 
 # NOTE: Comments (lines with a leading '#') must have whitespace after the '#'
 
@@ -135,6 +135,7 @@ alias eric.carroll "eric.carroll@acm.org (Eric M. Carroll)"
 alias evan	"evan@telly.ca (Evan Leibovitch)"
 alias georgn    "georgn@somanetworks.com (Georg Nikodym)"
 alias gil	"gilh@somanetworks.com (Gil Hauer)"
+alias grant	"Grant Officer <grant@slick.net>"
 alias heison	"heison@somanetworks.com (Heison Chak)"
 alias henry	"henry@utzoo.cs.utoronto.ca (Henry Spencer)"
 alias hughg	"hugh@phaedrav.com (Hugh Gamble)"
