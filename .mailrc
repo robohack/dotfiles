@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc  20.7    98/11/02 13:04:40 (woods)"
+# ident	"@(#)HOME:.mailrc  20.8    98/11/24 11:45:12 (woods)"
 
 set keep
 set keepsave
@@ -91,3 +91,7 @@ alias peter	"peter@renzland.org (Peter Renzland)"
 alias rayan	"rayan@uunet.ca (Rayan Zachariassen)"
 alias sandu	"sandu@mail.on.rogers.wave.ca (Alexandru Sburlan)"
 alias woods	"woods@planix.com (Greg A. Woods)"
+
+# Local variables:
+# after-save-hook: rebuild-mail-abbrevs
+# End:
