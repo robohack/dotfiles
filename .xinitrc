@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	21.1	99/11/18 13:13:01 (woods)"
+#ident	"@(#)HOME:.xinitrc	21.2	00/01/04 20:40:53 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -219,7 +219,8 @@ if [ -z "$ONX11SERVER" ] ; then
 			export X11SERVER ONX11SERVER
 			echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
 			# now start special programs we like for this scenario
-			$ONX11SERVER $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/usr/X11/bin/auplay -audio '$AUDIOSERVER' '$HOME'/lib/sounds/newmail"' &
+			$ONX11SERVER $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/usr/X11/bin/auplay -audio '$AUDIOSERVER' -v 25 '$HOME'/lib/sounds/newmail"' &
+			$RSH -n proven.weird.com /usr/pkg/bin/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-0+275 -shortnames -header 0 -acmd '"/usr/pkg/bin/auplay -audio '$AUDIOSERVER' -v 25 '$HOME'/lib/sounds/newmail"' &
 			;;
 		*)
 			# not setting this just makes WM run stuff on the

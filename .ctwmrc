@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	21.1	99/11/18 13:12:52 (woods)"
+#ident	"@(#)HOME:.ctwmrc	21.2	00/01/04 20:40:18 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -47,14 +47,6 @@ ifelse(HOSTNAME, most.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
     )]
    )]
   )]
- )]
-)
-
-# I guess this should really be done with an environment variable too.
-#
-ifdef([AT_WEIRD], [define(AUPLAY, [auplay])],
- [ifdef([AT_PLANIX], [define(AUPLAY, [audioplay -i -q])],
-  [define(AUPLAY, [:])]
  )]
 )
 
@@ -118,10 +110,10 @@ IconManagerFont	"-*-helvetica-bold-r-normal-*-*-80-100-100-*-*-*-*"
 # Define some useful functions for motion-based actions.
 # DefaultFunction must come after fonts....
 #
-ChangeWorkspaceFunction		!"AUPLAY HOME/lib/sounds/wschange &"
-IconifyFunction			!"AUPLAY HOME/lib/sounds/iconify &"
-DeIconifyFunction		!"AUPLAY HOME/lib/sounds/deiconify &"
-DefaultFunction			!"AUPLAY HOME/lib/sounds/default &"
+ChangeWorkspaceFunction		!"$AUDIOPLAYER HOME/lib/sounds/wschange &"
+IconifyFunction			!"$AUDIOPLAYER HOME/lib/sounds/iconify &"
+DeIconifyFunction		!"$AUDIOPLAYER HOME/lib/sounds/deiconify &"
+DefaultFunction			!"$AUDIOPLAYER HOME/lib/sounds/default &"
 
 # this really means if screen is >= 1600x1200
 ifelse(HOSTNAME, very.weird.com,
@@ -831,8 +823,9 @@ menu "monitors"
 
   ifdef([AT_WEIRD], [
     ifelse(HOSTNAME, most.weird.com, [], [
-	"xbuffy @most w/-acmd"		!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"'$X11BIN'/auplay -audio '$AUDIOSERVER' /home/most/woods/lib/sounds/newmail\"' &"
-	"xbuffy @proven w-acmd"	!"$RSH -n proven.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"'$X11BIN'/auplay -audio '$AUDIOSERVER' /home/most/woods/lib/sounds/newmail\"' &"
+	"xbuffy @most w/-acmd"		!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"'$X11BIN'/auplay -audio '$AUDIOSERVER' -v 25 /home/most/woods/lib/sounds/newmail\"' &"
+	"xbuffy @proven w-acmd"	!"$RSH -n proven.weird.com exec /usr/pkg/bin/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"/usr/pkg/bin/auplay -audio '$AUDIOSERVER' -v 25 /home/most/woods/lib/sounds/newmail\"' &"
+	"xbuffy @becoming w-acmd" !"$RSH -n becoming.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"'$X11BIN'/auplay -audio '$AUDIOSERVER' -v 25 /home/most/woods/lib/sounds/newmail\"' &"
     ])
   ])
   ifdef([AT_LEITCH], [
