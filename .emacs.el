@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.34	96/11/26 20:27:01 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.35	96/12/05 12:44:07 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -376,6 +376,88 @@ scripts (alias)." t)
 
 ;;;; ----------
 ;;;; some useful functions....
+
+;; Message-ID: <1996Nov14.092737.1@psiclu.psi.ch>
+;; From: badii@cvax.psi.ch
+;; Organization: Paul Scherrer Institute
+;; Reply-To: badii@psi.ch
+;; To: gnu-emacs-sources@prep.ai.mit.edu
+;; Date: 14 Nov 96 09:27:37 +0200
+;; Subject: Improved, fast page-up page-down
+;; 
+;; Dear (X)emacs users,
+;; 
+;; The three functions below (a basic one and two which call it to perform
+;; different actions) allow page-down, page-up movement in such a way that the
+;; original line is always recovered when inverting the action and the cursor
+;; remains all the time at the same line on the screen (window): that is, no
+;; automatic recentering is performed.
+;; 
+;; In my opinion, recentering is annoying in a few occasions. For example, when
+;; the current line is close to the bottom of the window and page-down is
+;; pressed, because of the recentering, the lines which were visible at the
+;; bottom of the window are scrolled up outside of the user's view.  The
+;; default mapping of the pg-up, pg-dn keys with scroll-down scroll-up, on the
+;; other hand, has the problem of the noninvertibility of the action mentioned
+;; above (i.e., after a pg-dn, pg-up, the current line may be changed).
+;; 
+;; Those who are interested in trying this simple variant should assign the
+;; keys pg-dn, pg-up in .emacs to the functions rb-page-down, rb-page-up. The
+;; code is for (X)emacs-19.14: slight modifications for Emacs are necessary.
+;; 
+;; Remo Badii
+;; Paul Scherrer Institute
+;; Nonlinear dynamics and
+;; stochastic processes
+;; CH-5232 Villigen
+;; Switzerland
+;; badii @ psi.ch
+;; 
+; (defvar rb-up nil
+;   "Set true by rb-page-up and false by rb-page-down.")
+; 
+; (defun rb-page-move ()
+;   "Called by rb-page-down (up).  Moves the current line down (up)
+; window-displayed-height lines, depending on whether rb-up is nil or t. 
+; The inverse operation brings back to the previous line.
+; No recentering takes place, except close to the end of the buffer, 
+; so that the cursor remains on the same displayed line on the screen."
+;   (interactive "_")
+;   (let ((wdh (window-displayed-height))  ; Variables: window-start, current
+; 	  ws curr sh trgt)                 ; line, shift, target line
+;     (if rb-up (setq wdh (- wdh)))
+;     (setq curr (count-lines 1 (point)))  ; Get current line
+;     (if (bolp) (setq curr (1+ curr)))    ; Correct for beg-of-line
+;     (setq ws (window-start))
+;     (save-excursion
+; 	(goto-char ws)                     ; Go to beg of window
+; 	(setq ws (count-lines 1 (point)))  ; and evaluate line number
+; 	(if (bolp) (setq ws (1+ ws)))      ; Correct for beg-of-line
+; 	)
+;     (setq sh (- curr ws))                  ; Compute the shift
+;     (save-excursion
+; 	(forward-line (- wdh sh))          ; Compute target point
+; 	(beginning-of-line)
+; 	(setq trgt (point))
+; 	)
+;     (forward-line wdh)                        ; Move and
+;     (set-window-start (selected-window) trgt) ; reposition.
+;     (if (> (point) (- (point-max) 20))        ; If close to end
+; 	  (progn                              ; of buffer, recenter.
+; 	    (setq wdh (abs wdh))              ; Take abs(wdh)
+; 	    (recenter (/ wdh 2))))))
+; 
+; (defun rb-page-up ()
+;   "Moves the text up window-displayed-height lines."
+;   (interactive "_")
+;   (setq rb-up t)
+;   (rb-page-move))
+; 
+; (defun rb-page-down ()
+;   "Moves the text up window-displayed-height lines."
+;   (interactive "_")
+;   (setq rb-up nil)
+;   (rb-page-move))
 
 ;;Message-Id: <9507291206.AA01499@owl.hq.ileaf.com>
 ;;From: karl@owl.hq.ileaf.com (Karl Berry)
