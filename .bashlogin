@@ -1,7 +1,7 @@
 #
 #	.bashlogin - login shell startup for bash
 #
-#ident	"@(#)HOME:.bashlogin	19.3	98/04/26 16:01:52 (woods)"
+#ident	"@(#)HOME:.bashlogin	19.4	98/04/26 16:15:06 (woods)"
 
 set -o ignoreeof	# we only do this for our login shell....
 
@@ -24,44 +24,5 @@ if [ -z "$LOGNAME" ] ; then
 	export LOGNAME=${HOME##*/}
 fi
 
-if [ -z "$PROJECT" ] ; then
-	export PROJECT="SCCS"
-fi
-
-case "$UUNAME" in
-kuma*)
-	export WORKDIR="/apcsoft/work.d/$LOGNAME"
-	;;
-tar*)
-	export WORKDIR="/kuma/apcsoft/work.d/$LOGNAME"
-	;;
-*)
-	if [ -d $LOCAL/work.d ] ; then
-		export WORKDIR="$LOCAL/work.d"
-	elif [ -d $HOME/src/work.d ] ; then
-		export WORKDIR="$HOME/src/work.d"
-	else
-		export WORKDIR="$HOME/work.d"
-	fi
-	;;
-esac
-
 export PWD=$HOME
 export OLDPWD=$HOME
-
-# use MAIL instead of MAILPATH, primarily to avoid the clash of using
-# a POP specification in MAILPATH for emacs VM
-# 
-unset MAILPATH
-if [ -z "$MAIL" ] ; then
-	if [ -d /var/mail ] ; then
-		MAIL="/var/mail/$LOGNAME"
-	elif [ -d /var/spool/mail ] ; then
-		MAIL="/var/spool/mail/$LOGNAME"
-	elif [ -d /usr/mail ] ; then
-		MAIL="/usr/mail/$LOGNAME"
-	elif [ -d /usr/spool/mail ] ; then
-		MAIL="/usr/spool/mail/$LOGNAME"
-	fi
-fi
-export MAIL

@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	19.4	98/04/26 16:04:05 (woods)"
+#ident	"@(#)HOME:.profile	19.5	98/04/26 16:14:51 (woods)"
 
 #
 # Assumptions:
@@ -205,6 +205,10 @@ if [ -z "$GNU" ] ; then
 	fi
 fi
 export GNU
+
+if [ -z "$PROJECT" ] ; then
+	export PROJECT="SCCS"
+fi
 
 if [ -z "$WORKPATH" ] ; then
 	WORKPATH="$HOME/work.d"
@@ -462,6 +466,23 @@ nmh )
 	fi
 	;;
 esac
+
+# use MAIL instead of MAILPATH, primarily to avoid the clash of using
+# a POP specification in MAILPATH for emacs VM
+# 
+unset MAILPATH
+if [ -z "$MAIL" ] ; then
+	if [ -d /var/mail ] ; then
+		MAIL="/var/mail/$LOGNAME"
+	elif [ -d /var/spool/mail ] ; then
+		MAIL="/var/spool/mail/$LOGNAME"
+	elif [ -d /usr/mail ] ; then
+		MAIL="/usr/mail/$LOGNAME"
+	elif [ -d /usr/spool/mail ] ; then
+		MAIL="/usr/spool/mail/$LOGNAME"
+	fi
+fi
+export MAIL
 
 HAVECALENDAR=false ; export HAVECALENDAR
 if expr "`type calendar`" : '.* is .*/calendar$' >/dev/null 2>&1 ; then

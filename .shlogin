@@ -1,7 +1,7 @@
 #
 #	.shlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.shlogin	19.2	98/04/26 16:01:09 (woods)"
+#ident	"@(#)HOME:.shlogin	19.3	98/04/26 16:15:32 (woods)"
 
 # this doesn't do anything but let you type '. $ENV'
 ENV=$HOME/.shrc ; export ENV
@@ -16,43 +16,3 @@ if [ "$LOGNAME" = root ] ; then
 else
 	PS1="[$TTYN]<$LOGNAME@$UUNAME> $ "
 fi
-
-if [ -z "$PROJECT" ] ; then
-	PROJECT="SCCS" ; export PROJECT
-fi
-
-case "$UUNAME" in
-kuma*)
-	WORKDIR="/apcsoft/work.d/$LOGNAME"
-	;;
-tar*)
-	WORKDIR="/kuma/apcsoft/work.d/$LOGNAME"
-	;;
-*)
-	if [ -d $LOCAL/work.d ] ; then
-		WORKDIR="$LOCAL/work.d"
-	elif [ -d $HOME/src/work.d ] ; then
-		WORKDIR="$HOME/src/work.d"
-	else
-		WORKDIR="$HOME/work.d"
-	fi
-	;;
-esac
-export WORKDIR
-
-# use MAIL instead of MAILPATH, primarily to avoid the clash of using
-# a POP specification in MAILPATH for emacs VM
-# 
-unset MAILPATH
-if [ -z "$MAIL" ] ; then
-	if [ -d /var/mail ] ; then
-		MAIL="/var/mail/$LOGNAME"
-	elif [ -d /var/spool/mail ] ; then
-		MAIL="/var/spool/mail/$LOGNAME"
-	elif [ -d /usr/mail ] ; then
-		MAIL="/usr/mail/$LOGNAME"
-	elif [ -d /usr/spool/mail ] ; then
-		MAIL="/usr/spool/mail/$LOGNAME"
-	fi
-fi
-export MAIL

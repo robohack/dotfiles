@@ -1,7 +1,7 @@
 #
 #	.kshlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.kshlogin	19.3	98/04/26 16:02:32 (woods)"
+#ident	"@(#)HOME:.kshlogin	19.4	98/04/26 16:15:46 (woods)"
 
 set -o ignoreeof	# we only do this for our login shell....
 
@@ -29,26 +29,5 @@ if [ -z "$LOGNAME" ] ; then
 	export LOGNAME=${HOME##*/}
 fi
 
-if [ -z "$PROJECT" ] ; then
-	export PROJECT="SCCS"
-fi
-
 export PWD=$HOME
 export OLDPWD=$HOME
-
-# use MAIL instead of MAILPATH, primarily to avoid the clash of using
-# a POP specification in MAILPATH for emacs VM
-# 
-unset MAILPATH
-if [ -z "$MAIL" ] ; then
-	if [ -d /var/mail ] ; then
-		MAIL="/var/mail/$LOGNAME"
-	elif [ -d /var/spool/mail ] ; then
-		MAIL="/var/spool/mail/$LOGNAME"
-	elif [ -d /usr/mail ] ; then
-		MAIL="/usr/mail/$LOGNAME"
-	elif [ -d /usr/spool/mail ] ; then
-		MAIL="/usr/spool/mail/$LOGNAME"
-	fi
-fi
-export MAIL
