@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.6	98/02/07 00:23:56 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.7	98/02/08 15:30:31 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -530,7 +530,8 @@ buffer is not not a composition preview buffer"
 ;;;   vm-folder-read-only nil		; don't set this (becomes buffer local!)
       vm-follow-summary-cursor t
 ;;;   vm-forward-message-hook nil
-      vm-forwarded-headers nil
+      vm-forwarded-headers nil		; vm-unforwarded-headers is an
+					; impossible value so all included
       vm-forwarding-digest-type "rfc934" ; Pine 3.96 cannot show headers in
 					 ; MIME message/rfc822 attachments
       vm-forwarding-subject-format "%s (forwarded)\nSummary: forwarded message from %F"
@@ -588,20 +589,8 @@ buffer is not not a composition preview buffer"
       vm-mime-button-face 'gui-button-face
       vm-mime-charset-font-alist nil
       vm-mime-default-face-charsets '("us-ascii" "iso-8859-1")
-      vm-mime-digest-discard-header-regexp nil
-      vm-mime-digest-headers '("Resent-"
-			       "From:"
-			       "Sender:"
-			       "To:"
-			       "Cc:"
-			       "Subject:"
-			       "Summary:"
-			       "Date:"
-			       "Message-ID:"
-			       "Keywords:"
-			       "Newsgroups:"
-			       "MIME-Version:"
-			       "Content-")
+      vm-mime-digest-discard-header-regexp "X400-"
+      vm-mime-digest-headers nil
       vm-mime-display-function nil
       vm-mime-external-content-types-alist nil
       vm-mime-ignore-mime-version t
@@ -680,69 +669,17 @@ buffer is not not a composition preview buffer"
 					; just me!
       vm-reply-ignored-reply-tos nil
       vm-reply-subject-prefix "Re: "	; please do the standard thing!
-      vm-resend-bounced-discard-header-regexp nil
-      vm-resend-bounced-headers '("Resent-"
-				  "Original-"
-				  "MIME-"
-				  "Content-"
-				  "Date:"
-				  "From:"
-				  "To:"
-				  "Cc:"
-				  "Subject:"
-				  "Summary:"
-				  "Message-ID:"
-				  "In-Reply-To:"
-				  "Newsgroups:"
-				  "References:"
-				  "Reply-to:"
-				  "Keywords:"
-				  "X-"
-				  )	; keep MIME stuff and Original-'s too!
+      vm-resend-bounced-discard-header-regexp "\\(X400-\\)?Received:"
+      vm-resend-bounced-headers nil
 ;;;   vm-resend-bounced-message-hook nil
       vm-resend-discard-header-regexp "\\(\\(X400-\\)?Received:\\|Resent-\\)"
       vm-resend-headers nil
 ;;;   vm-resend-message-hook nil
 ;;;   vm-retrieved-spooled-mail-hook nil
-      vm-rfc1153-digest-discard-header-regexp "\\(X400-\\)?Received:"
-      vm-rfc1153-digest-headers '("Resent-"
-				  "Original-"
-				  "MIME-"
-				  "Content-"
-				  "Date:"
-				  "From:"
-				  "Sender:"
-				  "To:"
-				  "Cc:"
-				  "Subject:"
-				  "Summary:"
-				  "Message-ID:"
-				  "In-Reply-To:"
-				  "Newsgroups:"
-				  "References:"
-				  "Reply-to:"
-				  "Keywords:"
-				  "X-"
-				  )	; keep MIME stuff and Original-'s too!
-      vm-rfc934-digest-discard-header-regexp nil
-      vm-rfc934-digest-headers '("Resent-"
-				 "Original-"
-				 "MIME-"
-				 "Content-"
-				 "Date:"
-				 "From:"
-				 "Sender:"
-				 "To:"
-				 "Cc:"
-				 "Subject:"
-				 "Message-ID:"
-				 "In-Reply-To:"
-				 "Newsgroups:"
-				 "References:"
-				 "Reply-to:"
-				 "Keywords:"
-				 "X-"
-				 )	; keep MIME stuff and Original-'s too!
+      vm-rfc1153-digest-discard-header-regexp "X400-"
+      vm-rfc1153-digest-headers nil
+      vm-rfc934-digest-discard-header-regexp "X400-"
+      vm-rfc934-digest-headers nil
       vm-search-using-regexps nil
 ;;;   vm-select-message-hook nil
 ;;;   vm-select-new-message-hook nil
