@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	8.13	95/06/07 22:04:56 (woods)"
+#ident	"@(#)HOME:.profile	8.14	95/06/07 22:39:47 (woods)"
 
 #
 # Assumptions:
@@ -117,15 +117,16 @@ robohack | kuma | araignee | tar | spinne | toile | wombat | weirdo | most | ver
 	# we trust $PATH has been initialized correctly on these machines....
 	;;
 * )
+	OPATH=$PATH
 	PATH="/bin" ; export PATH	# start fresh...
 	dirappend PATH /usr/bin /usr/lbin
 	;;
 esac
 
 if [ -z "$LOCAL" ] ; then
-	if [ -d /local ] ; then
+	if [ -d /local -a -d /local/bin ] ; then
 		LOCAL="/local" ; export LOCAL
-	elif [ -d /usr/local ] ; then
+	elif [ -d /usr/local -a -d /usr/local/bin ] ; then
 		LOCAL="/usr/local" ; export LOCAL
 	else
 		LOCAL="/NO-local-FOUND" ; export LOCAL
@@ -133,9 +134,9 @@ if [ -z "$LOCAL" ] ; then
 fi
 
 if [ -z "$CONTRIB" ] ; then
-	if [ -d /contrib ] ; then
+	if [ -d /contrib -a -d /contrib/bin ] ; then
 		CONTRIB="/contrib" ; export CONTRIB
-	elif [ -d /usr/contrib ] ; then
+	elif [ -d /usr/contrib -a -d /usr/contrib/bin ] ; then
 		CONTRIB="/usr/contrib" ; export CONTRIB
 	else
 		CONTRIB="/NO-contrib-FOUND" ; export CONTRIB
@@ -143,11 +144,11 @@ if [ -z "$CONTRIB" ] ; then
 fi
 
 if [ -z "$GNU" ] ; then
-	if [ -d /local/gnu ] ; then
+	if [ -d /local/gnu -a -d /local/gnu/bin ] ; then
 		GNU="/local/gnu" ; export GNU
-	elif [ -d /usr/gnu ] ; then
+	elif [ -d /usr/gnu -a -d /usr/gnu/bin ] ; then
 		GNU="/usr/gnu" ; export GNU
-	elif [ -d /usr/local/gnu ] ; then
+	elif [ -d /usr/local/gnu -a -d /usr/local/gnu/bin ] ; then
 		GNU="/usr/local/gnu" ; export GNU
 	else
 		GNU="/NO-gnu-FOUND" ; export GNU
@@ -155,6 +156,7 @@ if [ -z "$GNU" ] ; then
 fi
 
 # TODO: explore more options for this....  (xmkmf?)
+# TODO: what if there's more than one?
 #
 if [ -z "$X11PATH" ] ; then
 	if [ -d /local/X11R? ] ; then
