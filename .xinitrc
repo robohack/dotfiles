@@ -3,12 +3,14 @@
 #
 #	.xinitrc - X Window System startup file
 #
-#ident        "@(#)HOME:.xinitrc     5.4     95/03/16 22:11:31 (woods)"
+#ident        "@(#)HOME:.xinitrc     5.5     95/03/19 11:38:25 (woods)"
+
+# argv0 must be set before sourcing .profile, else we'll loop!
+#
+argv0="`basename $0`"
 
 . /etc/profile
 . $HOME/.profile
-
-argv0="`basename $0`"
 
 echo "$0: current PATH='$PATH'"
 echo "$argv0: starting on $DISPLAY...."
