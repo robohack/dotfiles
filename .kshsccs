@@ -1,0 +1,806 @@
+#
+#	.kshsccs - ksh SCCS helpers
+#
+# Written by Greg A. Woods <woods@robohack.UUCP>
+# Last updated:  Sun Apr 11 21:54:19 EDT 1993
+#
+# These aliases and functions provide some release and configuration
+# management functions over and above sccs(1).  They are useful for small
+# single-directory projects, but do not yet incorporate any recursive
+# directory traversal functionality.
+#
+# WARNING:  There are some non-obvious caveats, assumptions, and limitations!
+#
+# For example, branches are not really supported, other than by careful
+# use of '-t' to the right commands, though not all functions accept this
+# option.
+#
+# Automatic patch file generation (and ChangeLog file generation) will be
+# wrong if you delete or rename any files.
+#
+# The patchlevel.h format is frozen by virtue that it's always generated
+# on the fly, and old copies are not also stored using SCCS.
+#
+# Similarly the ChangeLog files are somewhat less dynamic than they could be
+# in order to make release generation bearable.
+#
+# Many of things should probably be separate scripts.....
+#
+# No status data is stored in the working directory (eg. .vcsinfo), and as
+# such the name of the release manifest file must always be specified, and
+# the user must always set $PROJECT and $PROJECTDIR.
+#
+alias vadmin='sccs -p $PROJECT admin'
+alias vcdc='sccs -p $PROJECT cdc'
+alias vcheck='sccs -p $PROJECT check'
+alias vclean='sccs -p $PROJECT clean'
+alias vdeled='sccs -p $PROJECT deledit'
+alias vdeledit='sccs -p $PROJECT deledit'
+alias vdelget='sccs -p $PROJECT delget'
+alias vdelta='sccs -p $PROJECT delta'
+alias vdiff='sccs -p $PROJECT diffs'
+alias vedit='sccs -p $PROJECT edit'
+alias venter='sccs -p $PROJECT enter'
+alias vfix='sccs -p $PROJECT fix'
+alias vget='sccs -p $PROJECT get'
+alias vgeted='sccs -p $PROJECT edit'
+alias vgetedit='sccs -p $PROJECT edit'
+alias vhelp='sccs help'
+alias vinfo='sccs -p $PROJECT info'
+alias vlog='sccs -p $PROJECT prs'
+alias vnoproj='unset PROJECTDIR; vproj SCCS'
+alias vprint='sccs -p $PROJECT print'
+alias vprs='sccs -p $PROJECT prs'
+alias vrdiff='sccs -p $PROJECT sccsdiff'
+alias vrmdel='sccs -p $PROJECT rmdel'
+alias vsact='sccs -p $PROJECT sact'
+alias vsccsdiff='sccs -p $PROJECT sccsdiff'
+alias vtell='sccs -p $PROJECT tell'
+alias vunedit='sccs -p $PROJECT unedit'
+alias vunget='sccs -p $PROJECT unget'
+alias vval='sccs -p $PROJECT val'
+
+# NOTE: mksccs is installed as a separate script....
+#
+# and some of the rest should be too! (except vcd, vproj, vprojdir)
+#
+# based on:
+#ident	"$Id: mksccs.sh,v 1.9 1993/01/18 22:25:14 woods Exp $"
+#
+#	mksccs - create a new s-file with approprate flags
+#
+# we don't really use "$sdir" -- we only want to be sure it exists
+# else we'll create it now....
+#
+function mksccs
+{
+	if [ -n "${PROJECTDIR}" ] ; then
+		eval TRYHOME="`filexp ~${PROJECTDIR}`"
+		if [ -d ${TRYHOME}/src/${PROJECT}/SCCS ] ; then
+			sdir="${TRYHOME}/src/${PROJECT}/SCCS"
+		elif [ -d ${TRYHOME}/source/${PROJECT}/SCCS ] ; then
+			sdir="${TRYHOME}/source/${PROJECT}/SCCS"
+		elif [ -d ${TRYHOME}/src/${PROJECT} ] ; then
+			sdir="${TRYHOME}/src/${PROJECT}"
+		elif [ -d ${TRYHOME}/source/${PROJECT} ] ; then
+			sdir="${TRYHOME}/source/${PROJECT}"
+		else
+			sdir="${PROJECTDIR}/${PROJECT}"
+			if [ ! -d "$sdir" ] ; then
+				mkdir $sdir
+			fi
+		fi
+		unset TRYHOME
+	else
+		sdir="$PROJECT"
+		if [ ! -d "$sdir" ] ; then
+			mkdir $sdir
+		fi
+		if [ ! -d "$sdir" ] ; then
+			return 1
+		fi
+	fi
+
+	# safer than $LOGNAME or $USER, so long as you have id(1)...
+	mksccsuid=`id | sed -e 's/^uid=[0-9]*(\(.*\)) gid=.*/\1/'`
+
+	if [ -z "$PROJOWNER" ] ; then
+		qflag="$uid"
+	else
+		qflag="$PROJOWNER"
+	fi
+
+	if [ "$PROJECT" = "SCCS" ] ; then
+		MYPWD=`pwd`
+		sccs -p $PROJECT enter $*
+		if [ $? -eq 0 ] ; then
+			sccs -p $PROJECT admin -fb -fq"$qflag" -ft"`basename $MYPWD`" $*
+		else
+			return 1
+		fi
+	else
+		sccs -p $PROJECT enter $*
+		if [ $? -eq 0 ] ; then
+			sccs -p $PROJECT admin -fb -fq"$qflag" -ft"$PROJECT" $*
+		else
+			return 1
+		fi
+	fi
+
+	rc=$?
+
+	if sccs -p $PROJECT val $* ; then
+		: # It's OK Jim....
+	else
+		echo "$0: failed to enter one or more files (try vval...)" >&2
+		return 1
+	fi
+
+	if [ $rc -eq 0 ] ; then
+		# pretty sure of ourselves!  :-)
+		/bin/rm -f ,*
+	fi
+
+	unset sdir qflag mksccsuid MYPWD
+	return $rc
+}
+
+#
+#	vcd - go to your working directory
+#
+function vcd
+{
+	if [ -n "${PROJECTDIR}" ] ; then
+		eval TRYHOME="~${PROJECTDIR}"
+		if [ -d ${TRYHOME}/work.d ] ; then
+			if [ ! -d ${TRYHOME}/work.d/$LOGNAME/${PROJECT} ] ; then
+				mkdir ${TRYHOME}/work.d/$LOGNAME 2>/dev/null
+				mkdir ${TRYHOME}/work.d/$LOGNAME/${PROJECT}
+			fi
+			cd ${TRYHOME}/work.d/$LOGNAME/${PROJECT}
+		elif [ -d ${PROJECTDIR}/work.d ] ; then
+			if [ ! -d ${PROJECTDIR}/work.d/$LOGNAME/${PROJECT} ] ; then
+				mkdir ${PROJECTDIR}/work.d/$LOGNAME 2>/dev/null
+				mkdir ${PROJECTDIR}/work.d/$LOGNAME/${PROJECT}
+			fi
+			cd ${PROJECTDIR}/work.d/$LOGNAME/${PROJECT}
+		else
+			echo "$0: this is not a working directory!" 1>&2
+			cd $PROJECTDIR
+		fi
+		unset TRYHOME
+	elif [ ! -d $PROJECT ] ; then
+		echo "$0: don't know where to cd to!" 1>&2
+		return 1
+	fi
+}
+
+#
+#	vchangelog - print a CHANGELOG for changes since last release
+#
+function vchangelog
+{
+	PRSLIST=":Z::Y:\::M:\t:Dt:\t:DI: :DL:\n:C:"
+	RELSID=""
+	CUR=0
+	VERBOSE=0
+	while getopts cmr:v OPTCH
+	do
+	  	case $OPTCH in
+		r)
+			RELSID="-r${OPTARG}"
+			;;
+		c)
+			CUR=1
+			;;
+		m)
+			PRSLIST="$PRSLIST MRs:\n:M:"
+			;;
+		v)
+			VERBOSE=1
+			;;
+		*)
+			echo "Usage: $0 [-rSID [-c]] [-v] [-m] release-manifest [module ...]" >&2
+			return 2
+			;;
+		esac
+	done
+	shift `expr $OPTIND - 1`
+	if [ $CUR -eq 1 -a -z "$RELSID" ] ; then
+		echo "Usage: $0 [-rSID [-c]] [-v] [-m] release-manifest [module ...]" >&2
+		return 2
+	fi
+	if [ $# -lt 1 ] ; then
+		echo "Usage: $0 [-rSID [-c]] [-v] [-m] release-manifest [module ...]" >&2
+		return 2
+	fi
+	RELMAN=${1}
+	shift
+	MODLIST=""
+	FILEGREP=""
+	DOGREP="-n -e p"
+	while [ $# -gt 0 ] ; do
+		FILEGREP="$FILEGREP -e /${1}/p"
+		MODLIST="$MODLIST ${1}"
+		shift
+	done
+	if [ -n "$FILEGREP" ] ; then
+		DOGREP="-n"
+	fi
+	if sccs -p $PROJECT val $RELMAN ; then
+		: # it's OK Jim....
+	else
+		echo "$0: $RELMAN is not a valid SCCS file." >&2
+		return 1
+	fi
+	# assume there's nothing newer out there than what's in $RELMAN
+	if [ $CUR -eq 1 ] ; then
+		LASTRELSID=$RELSID
+		RELSID="-r`sccs -p $PROJECT prs -l -d:I: $RELMAN`"
+		sccs -p $PROJECT get -s -p $RELSID $RELMAN |
+			sed -e '/^[ 	]*#/d' -e '/^[ 	]*$/d' | sort > /tmp/vwn.$$
+		sccs -p $PROJECT get -s -p $LASTRELSID $RELMAN |
+			sed -e '/^[ 	]*#/d' -e '/^[ 	]*$/d' | sort > /tmp/vwo.$$
+	else
+		LASTRELSID="-r`sccs -p $PROJECT prs -e $RELSID -d:I: $RELMAN | sed -n -e 2p`"
+		if [ -z "$RELSID" ] ; then
+			RELSID="-r`sccs -p $PROJECT prs -l -d:I: $RELMAN`"
+		fi
+		sccs -p $PROJECT get -s -p $RELSID $RELMAN |
+			sed -e '/^[ 	]*#/d' -e '/^[ 	]*$/d' | sort > /tmp/vwn.$$
+		sccs -p $PROJECT get -s -p $LASTRELSID $RELMAN |
+			sed -e '/^[ 	]*#/d' -e '/^[ 	]*$/d' | sort > /tmp/vwo.$$
+	fi
+	LSID="`expr X$LASTRELSID : 'X-r\(.*\)$'`"
+	CSID="`expr X$RELSID : 'X-r\(.*\)$'`"
+	if [ $VERBOSE -eq 1 ] ; then
+		echo ""
+		echo "Changes between release $LSID and ${CSID}:"
+		if [ -n "$MODLIST" ] ; then
+			echo "NOTE: log information restricted to: $MODLIST"
+		fi
+		echo ""
+	fi
+	# the awk is just sillyness to get $RELMAN out last....
+	join -a2 -e "1.1" -j 3 -o 2.3 1.4 2.4 /tmp/vwo.$$ /tmp/vwn.$$ |
+		awk '{
+			if ($1 == "'"$RELMAN"'")
+				rline = $0
+			else
+				print $0
+		}
+		END {
+			print rline
+		} ' > /tmp/vwj.$$
+	sed $DOGREP $FILEGREP < /tmp/vwj.$$ |
+		while read name oldsid newsid junk; do
+			sedsid="`echo $oldsid | sed 's/\\./\\\./g'`"
+			sccs -p $PROJECT prs -e -r$newsid -d"$PRSLIST" $name |
+				sed -n -e "/	[DR] $sedsid /q" -e p
+		done
+	rm -f /tmp/vw?.$$
+	unset OPTCH COMPLETE PRSLIST RELSID LASTRELSID RELMAN LSID CSID CUR FILEGREP DOGREP MODLIST VERBOSE name oldsid newsid sedsid junk
+}
+
+#
+#	vdorelease - cut a new release (the easy way)
+#
+function vdorelease
+{
+	LOG="ChangeLog"
+	DOPATCH=0
+	while getopts c:pr:s: OPTCH
+	do
+		case $OPTCH in
+		c)
+			LOG="${OPTARG}"
+			;;
+		p)
+			DOPATCH=1
+			;;
+		r)
+			RELSID="-r${OPTARG}"	# for "get -e" of $RELMAN
+			;;
+		s)
+			STATE="${OPTARG}"	# value for the 'q' flag
+			;;
+		*)
+			echo "Usage: $0 [-c] [-p] [-rSID] [-s STATE] release-manifest [module ...]" >&2
+			return 2
+			;;
+		esac
+	done
+	shift `expr $OPTIND - 1`
+	if [ $# -lt 1 ] ; then
+		echo "Usage: $0 [-c] [-p] [-rSID] [-s STATE] release-manifest [module ...]" >&2
+		return 2
+	fi
+	RELMAN=${1}
+	shift
+	if sccs -p $PROJECT val $RELMAN ; then
+		: # it's OK Jim....
+	else
+		echo "$0: $RELMAN is not a valid SCCS file (try vmkrelman)." >&2
+		return 1
+	fi
+	if [ -n "`sccs -p $PROJECT tell`" ] ; then
+		echo "$0: files are being edited!" >&2
+	fi
+	if [ -n "$STATE" ] ; then
+		sccs -p $PROJECT admin -fq"${STATE}" $RELMAN
+	fi
+	sccs -p $PROJECT edit $RELSID $RELMAN
+	( vmkrelman $RELMAN $* > $RELMAN )
+	sccs -p $PROJECT diffs $RELMAN
+	echo "Is this OK? [y] \c"
+	read ans
+	case "$ans" in
+	[nN]*)
+		sccs -p $PROJECT unedit $RELMAN
+		return 1
+		;;
+	esac
+	sccs -p $PROJECT delget $RELMAN
+	if [ -r patchlevel.h ] ; then
+		echo "$0: generating new patchlevel.h ..."
+		mv patchlevel.h patchlevel.old || return 1
+		( vpatchlevel $RELMAN > patchlevel.h )
+		chmod -w patchlevel.h
+	else
+		echo "$0: NOTICE: no 'patchlevel.h' file here...." >&2
+	fi
+	echo "$0: updating ${LOG} ..."
+	( vchangelog -v $RELMAN > ${LOG}.new )
+	if [ -r ${LOG} ] ; then
+		mv ${LOG} ${LOG}.old || return 1
+		cat ${LOG}.new ${LOG}.old > ${LOG}
+	else
+		mv ${LOG}.new ${LOG}
+	fi
+	chmod -w ${LOG}
+	if [ $DOPATCH -eq 1 ] ; then
+		NEWREL="`sccs -p $PROJECT prs -l -d:I: $RELMAN`"
+		echo "$0: generating Patch-$NEWREL ..."
+		( vmkpatch -v $RELMAN > Patch-$NEWREL )
+	fi
+	unset OPTCH RELSID RELMAN NEWREL LOG DOPATCH
+}
+
+#
+#	vgetrel - get all the files as specified in a release manifest
+#
+function vgetrel
+{
+	RELSID=""
+	PRINTIT=""
+	while getopts Ppr: OPTCH
+	do
+	  	case $OPTCH in
+		r)
+			RELSID="-r${OPTARG}"
+			;;
+		p)
+			PRINTIT="-p"
+			;;
+		*)
+			echo "Usage: $0 [-p] [-rSID] release-manifest [module ...]" >&2
+			return 2
+			;;
+		esac
+	done
+	shift `expr $OPTIND - 1`
+	if [ $# -lt 1 ] ; then
+		echo "Usage: $0 [-p] [-rSID] release-manifest [module ...]" >&2
+		return 2
+	fi
+	RELMAN=${1}
+	shift
+	FILEGREP=""
+	DOGREP=""
+	while [ $# -gt 0 ] ; do
+		FILEGREP="$FILEGREP -e /${1}/p"
+		shift
+	done
+	if [ -n "$FILEGREP" ] ; then
+		DOGREP="-n"
+	fi
+	if sccs -p $PROJECT val $RELMAN ; then
+		: # it's OK Jim....
+	else
+		echo "$0: $RELMAN is not a valid SCCS file." >&2
+		return 1
+	fi
+	# hope it doesn't wipe out something important!
+	sccs -p $PROJECT get -s -p $RELSID $RELMAN |
+		sed $DOGREP -e '/^[ 	]*#/d' -e '/^[ 	]*$/d' $FILEGREP |
+		while read zed tname name sid junk; do
+			sccs -p $PROJECT get $PRINTIT -r$sid $name
+		done
+	( vpatchlevel $RELSID $RELMAN > patchlevel.h )
+	chmod -w patchlevel.h
+	if [ -n "${PROJECTDIR}" ] ; then
+		eval TRYHOME="`filexp ~${PROJECTDIR}`"
+		if [ -d ${TRYHOME}/src/${PROJECT}/SCCS ] ; then
+			sdir="${TRYHOME}/src/${PROJECT}/SCCS"
+		elif [ -d ${TRYHOME}/source/${PROJECT}/SCCS ] ; then
+			sdir="${TRYHOME}/source/${PROJECT}/SCCS"
+		elif [ -d ${TRYHOME}/src/${PROJECT} ] ; then
+			sdir="${TRYHOME}/src/${PROJECT}"
+		elif [ -d ${TRYHOME}/source/${PROJECT} ] ; then
+			sdir="${TRYHOME}/source/${PROJECT}"
+		else
+			sdir="${PROJECTDIR}/${PROJECT}"
+		fi
+		unset TRYHOME
+	else
+		sdir="$PROJECT"
+	fi
+	if [ -f "$sdir/../ChangeLog" ] ; then
+		cp $sdir/../ChangeLog ./ChangeLog
+	fi
+	unset OPTCH DOGREP FILEGREP PRINTIT RELSID RELMAN zed tname name sid junk sdir
+}
+
+#
+#	vlist - print interesting info about s-files
+#
+function vlist
+{
+	PRSLIST=":Z::Y:\::M:\t:I:\t(:Q:)\t:D: :T: :P:\tBF=:BF: MF=:MF:"
+	if [ "$1" = "-m" ] ; then
+		PRSLIST="$PRSLIST :MR:"
+		shift
+	fi
+	sccs -p $PROJECT prs -d"$PRSLIST" ${1+"$@"} $PROJECT
+	unset PRSLIST
+}
+
+#
+#	vls - do ls in ${PROJECTDIR}
+#
+function vls
+{
+	if [ -n "${PROJECTDIR}" ] ; then
+		eval TRYHOME="~${PROJECTDIR}"
+		if [ -d ${TRYHOME}/src ] ; then
+			ls $* ${TRYHOME}/src/${PROJECT}
+		elif [ -d ${TRYHOME}/source ] ; then
+			ls $* ${TRYHOME}/source/${PROJECT}
+		else
+			ls $* ${PROJECTDIR}/${PROJECT}
+		fi
+		unset TRYHOME
+	else
+		ls $* ${PROJECT}
+	fi
+}
+
+#
+#	vmkpatch - generate patches for changes since last release
+#
+# i.e. diff the "current" release against the one prior to it.
+#
+# NOTE: requires a patched sccsdiff that accepts '-c' for context diffs,
+# and doesn't do 'get -k' by default....
+#
+function vmkpatch
+{
+	PRSLIST=":Z::Y:\::M:\t:Dt:\t:DI: :DL:\n:C:"
+	RELSID=""
+	CUR=0
+	VERBOSE=0
+	while getopts cmr:v OPTCH
+	do
+	  	case $OPTCH in
+		r)	# for the given release (against the one prior to it)
+			RELSID="-r${OPTARG}"
+			;;
+		c)	# for the "current" release against the specified one
+			CUR=1
+			;;
+		m)
+			PRSLIST="$PRSLIST MRs:\n:M:"
+			;;
+		v)
+			VERBOSE=1
+			;;
+		*)
+			echo "Usage: $0 [-rSID [-c]] [-v] [-m] release-manifest [module ...]" >&2
+			return 2
+			;;
+		esac
+	done
+	shift `expr $OPTIND - 1`
+	if [ $CUR -eq 1 -a -z "$RELSID" ] ; then
+		echo "Usage: $0 [-rSID [-c]] [-v] [-m] release-manifest [module ...]" >&2
+		return 2
+	fi
+	if [ $# -lt 1 ] ; then
+		echo "Usage: $0 [-rSID [-c]] [-v] [-m] release-manifest [module ...]" >&2
+		return 2
+	fi
+	RELMAN=${1}
+	shift
+	MODLIST=""
+	FILEGREP=""
+	DOGREP="-n -e p"
+	while [ $# -gt 0 ] ; do
+		FILEGREP="$FILEGREP -e /${1}/p"
+		MODLIST="$MODLIST ${1}"
+		shift
+	done
+	if [ -n "$FILEGREP" ] ; then
+		DOGREP="-n"
+	fi
+	if sccs -p $PROJECT val $RELMAN ; then
+		: # it's OK Jim....
+	else
+		echo "$0: $RELMAN is not a valid SCCS file." >&2
+		return 1
+	fi
+	# assume there's nothing newer out there than what's in $RELMAN
+	if [ $CUR -eq 1 ] ; then
+		LASTRELSID="$RELSID"
+		RELSID="-r`sccs -p $PROJECT prs -l -d:I: $RELMAN`"
+		sccs -p $PROJECT get -s -p $RELSID $RELMAN |
+			sed -e '/^[ 	]*#/d' -e '/^[ 	]*$/d' | sort > /tmp/vrn.$$
+		sccs -p $PROJECT get -s -p $LASTRELSID $RELMAN |
+			sed -e '/^[ 	]*#/d' -e '/^[ 	]*$/d' | sort > /tmp/vro.$$
+	else
+		LASTRELSID="-r`sccs -p $PROJECT prs -e $RELSID -d:I: $RELMAN | sed -n -e 2p`"
+		if [ -z "$RELSID" ] ; then
+			RELSID="-r`sccs -p $PROJECT prs -l -d:I: $RELMAN`"
+		fi
+		sccs -p $PROJECT get -s -p $RELSID $RELMAN |
+			sed -e '/^[ 	]*#/d' -e '/^[ 	]*$/d' | sort > /tmp/vrn.$$
+		sccs -p $PROJECT get -s -p $LASTRELSID $RELMAN |
+			sed -e '/^[ 	]*#/d' -e '/^[ 	]*$/d' | sort > /tmp/vro.$$
+	fi
+	LSID="`expr X$LASTRELSID : 'X-r\(.*\)$'`"
+	CSID="`expr X$RELSID : 'X-r\(.*\)$'`"
+	if [ $VERBOSE -eq 1 ] ; then
+		echo ""
+		echo "Patch file to update release $LSID to ${CSID}:"
+		if [ -n "$MODLIST" ] ; then
+			echo "NOTE: updates restricted to: $MODLIST"
+		fi
+		echo ""
+	fi
+	# NOTE:  this won't permit changes in the output of vpatchlevel!!!
+	( vpatchlevel $LASTRELSID $RELMAN > /tmp/vpo.$$ )
+	( vpatchlevel $RELSID $RELMAN > /tmp/vpn.$$ )
+	echo "Index: patchlevel.h"
+	echo "Prereq: $LSID"
+	diff -c /tmp/vpo.$$ /tmp/vpn.$$
+	join -a2 -e "1.1" -j 3 -o 2.3 1.4 2.4 /tmp/vro.$$ /tmp/vrn.$$ |
+		sed $DOGREP $FILEGREP |
+		while read name oldsid newsid junk; do
+			sedsid="`echo $oldsid | sed 's/\\./\\\./g'`"
+			echo '#'
+			sccs -p $PROJECT prs -e -r$newsid -d"$PRSLIST" $name |
+				sed -n -e 's/^/# /' -e "/	[DR] $sedsid /q" -e p
+			echo "Index: $name"
+			echo "Prereq: $oldsid"
+			sccs -p $PROJECT sccsdiff -c -r$oldsid -r$newsid $name
+		done
+	rm -f /tmp/v[rn]?.$$
+	unset OPTCH PRSLIST RELMAN RELSID LASTRELSID CUR LSID CSID FILEGREP DOGREP MODLIST VERBOSE name oldsid newsid sedsid junk
+}
+
+#
+#	vmkrelman - create a "release manifest" file
+#
+# WARNING:  This implies the "top" SID's are all ready for release....
+#
+function vmkrelman
+{
+	PRSLIST=":Z:\t:Y:\t:M:\t:I:\t(:Q:)\t:D:\t:T:"
+	if [ $# -lt 1 ] ; then
+		echo "Usage: $0 release-manifest [module ...]" >&2
+		return 2
+	fi
+	RELMAN=${1}
+	shift
+	FILEGREP=""
+	DOGREP="-e /$RELMAN/d"
+	while [ $# -gt 0 ] ; do
+		if [ "${1}" = "$RELMAN" ] ; then
+			echo "$0: don't include $RELMAN in modules list!" >&2
+			return 1
+		fi
+		FILEGREP="$FILEGREP -e /${1}/p"
+		shift
+	done
+	if [ -n "$FILEGREP" ] ; then
+		DOGREP="-n"
+	fi
+	# the extra quoting is to avoid keyword expn. when this file is SCCSed
+	echo "# This is a Release Manifest file"
+	echo "%"Z"%	%"Y"%	%"M"%	%"I"%	(%"Q"%)	%"E"%	%"U"%"
+	echo ""
+	# we should really validate all these files too...
+	# TODO: how do we recurse here?
+	sccs -p $PROJECT prs -l -d"$PRSLIST" $PROJECT |
+		sed $DOGREP $FILEGREP | sort +2 -3
+	unset PRSLIST RELMAN DOGREP FILEGREP
+}
+
+#
+#	vpatchlevel - create a patchlevel.h file
+#
+function vpatchlevel
+{
+	RELSID=""
+	while getopts r: OPTCH
+	do
+	  	case $OPTCH in
+		r)	# for the given release (against the one prior to it)
+			RELSID="-r${OPTARG}"
+			;;
+		*)
+			echo "Usage: $0 [-rSID] release-manifest [module ...]" >&2
+			return 2
+			;;
+		esac
+	done
+	shift `expr $OPTIND - 1`
+	if [ $# -ne 1 ] ; then
+		echo "Usage: $0 release-manifest" >&2
+		return 2
+	fi
+	RELMAN=${1}
+	shift
+	if sccs -p $PROJECT val $RELMAN ; then
+		: # it's OK Jim....
+	else
+		echo "$0: $RELMAN is not a valid SCCS file." >&2
+		return 1
+	fi
+	eval `sccs -p $PROJECT prs $RELSID -d'release=:R: level=:L: branch=:B: sequence=:S: reldate=":D: :T:"' $RELMAN`
+	if [ -z "$branch" ] ; then
+		branch=0
+	fi
+	if [ -z "$sequence" ] ; then
+		sequence=0
+	fi
+	echo "/*\n *	patchlevel.h - automatically generated by $0\n *"
+	if [ $branch -eq 0 ] ; then
+		echo " * #ident \"@(#)patchlevel.h: ${release}.${level}	${reldate}\""
+	else
+		echo " * #ident \"@(#)patchlevel.h: ${release}.${level}.${branch}.${sequence}	${reldate}\""
+	fi
+	echo " */"
+	echo "#define VER_ID		$release"
+	echo "#define VER_SUB		$level"
+	echo "#define VER_BR		$branch"
+	echo "#define VER_SEQ		$sequence"
+
+	unset RELSID RELMAN release level branch sequence reldate
+}
+
+#
+#	vproj - set project name
+#
+function vproj
+{
+	if [ $# -eq 0 ] ; then
+		( vwproj )
+		return 0
+	fi
+	if [ $# -gt 1 ] ; then
+		echo "Usage: $0 project-name" >&2
+		return 2
+	fi
+	case "$1" in
+	-*)
+		echo "Usage: $0 project-name" >&2
+		return 2
+		;;
+	esac
+	if [ -n "${PROJECTDIR}" ] ; then
+		eval TRYHOME="~${PROJECTDIR}"
+		if [ -d ${TRYHOME}/src/${1}/SCCS ] ; then
+			export PROJECT=${1}/SCCS
+		elif [ -d ${TRYHOME}/source/${1}/SCCS ] ; then
+			export PROJECT=${1}/SCCS
+		else
+			export PROJECT=${1}
+		fi
+		unset TRYHOME
+	else
+		export PROJECT=${1}
+	fi
+}
+
+#
+#	vprojdir - set project directory
+#
+function vprojdir
+{
+	if [ $# -ne 1 ] ; then
+		echo "Usage: $0 project-directory | project-owner" >&2
+		return 2
+	fi
+	export PROJECTDIR=${1}
+}
+
+#
+#	vwhat - a saner version of what
+#
+function vwhat
+{
+	what $* | sort -u
+}
+
+#
+#	vwhatsnew - print comments about any un-released changes
+#
+# TODO: doesn't yet find new files not in manifest.... (vlist | diff - Release)
+#
+function vwhatsnew
+{
+	PRSLIST=":Z::Y:\::M:\t:Dt:\t:DI: :DL:\n:C:"
+	RELSID=""
+	while getopts r: OPTCH
+	do
+	  	case $OPTCH in
+		r)
+			RELSID="-r${OPTARG}"
+			;;
+		*)
+			echo "Usage: $0 [-rSID] release-manifest [module ...]" >&2
+			return 2
+			;;
+		esac
+	done
+	shift `expr $OPTIND - 1`
+	if [ $# -lt 1 ] ; then
+		echo "Usage: $0 [-rSID] release-manifest [module ...]" >&2
+		return 2
+	fi
+	RELMAN=${1}
+	shift
+	FILEGREP=""
+	DOGREP=""
+	while [ $# -gt 0 ] ; do
+		FILEGREP="$FILEGREP -e /${1}/p"
+		shift
+	done
+	if [ -n "$FILEGREP" ] ; then
+		DOGREP="-n"
+	fi
+	sccs -p $PROJECT info
+	echo ""
+	sccs -p $PROJECT get -s -p $RELSID $RELMAN |
+		sed $DOGREP -e '/^[ 	]*#/d' -e '/^[ 	]*$/d' $FILEGREP |
+		while read zed tname name sid junk; do
+			sedsid="`echo $sid | sed 's/\\./\\\./g'`"
+			sccs -p $PROJECT prs -e -d"$PRSLIST" $name 2>/dev/null |
+				sed -n -e "/	[DR] $sedsid /q" -e p
+		done
+	unset OPTCH PRSLIST RELSID RELMAN FILEGREP DOGREP zed tname name sedsid sid junk
+}
+
+#
+#	vwproj - display project directory
+#
+function vwproj
+{
+	if [ -n "${PROJECTDIR}" ] ; then
+		eval TRYHOME="~${PROJECTDIR}"
+		if [ -d ${TRYHOME}/src/${PROJECT}/SCCS ] ; then
+			echo ${TRYHOME}/src/${PROJECT}/SCCS
+		elif [ -d ${TRYHOME}/source/${PROJECT}/SCCS ] ; then
+			echo ${TRYHOME}/source/${PROJECT}/SCCS
+		elif [ -d ${TRYHOME}/src/${PROJECT} ] ; then
+			echo ${TRYHOME}/src/${PROJECT}
+		elif [ -d ${TRYHOME}/source/${PROJECT} ] ; then
+			echo ${TRYHOME}/source/${PROJECT}
+		else
+			echo ${PROJECTDIR}/${PROJECT}
+		fi
+		unset TRYHOME
+	else
+		echo $PROJECT
+	fi
+}
