@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.25	96/10/08 23:38:21 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.26	96/10/15 20:22:03 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -161,12 +161,13 @@ directory in the list PATHLIST, otherwise nil."
       (load "shwtmpbuf")
       (global-set-key "\C-xH" 'hide-temp-buffers))) ; defaults to C-x t in shwtmpbuf
 
-(if (elisp-file-in-loadpath-p "ksh-mode")
-    (autoload 'ksh-mode "ksh-mode" "Major mode for editing sh Scripts." t))
+(if (and (elisp-file-in-loadpath-p "ksh-mode")
+	 (not (elisp-file-in-loadpath-p "sh-script")))
+    (autoload 'ksh-mode "ksh-mode" "Major mode for editing Korn Shell scripts." t))
 
 ;; not autoload'ed in 19.28, but there....
 (if (elisp-file-in-loadpath-p "sh-script")
-    (autoload 'sh-mode "ksh-mode" "Major mode for editing sh Scripts." t))
+    (autoload 'sh-mode "sh-mode" "Major mode for editing shell scripts." t))
 
 (if (elisp-file-in-loadpath-p "foldout")
     (eval-after-load "outline" '(load "foldout")))
@@ -271,7 +272,7 @@ directory in the list PATHLIST, otherwise nil."
        '(("\\.H$" . c++-mode))			; cc-mode
        '(("\\.cc$" . c++-mode))			; cc-mode
        '(("\\.hh$" . c++-mode))			; cc-mode
-       '(("\\.m$" . objc-mode))			; cc-mode
+;;;    '(("\\.m$" . objc-mode))			; cc-mode
        '(("\\.java$" . java-mode))		; cc-mode
        '(("/[^/chtly]+\\.[0-9][a-z]?$" . nroff-mode)) ; man page
        '(("/[^/]+\\.an$" . nroff-mode))		; man page
@@ -300,15 +301,6 @@ directory in the list PATHLIST, otherwise nil."
 	   auto-mode-alist)))
 
 ;; assume the autoloads are done for this...
-(if (elisp-file-in-loadpath-p "sgml-mode")
-    (setq auto-mode-alist
-	  (append
-	   '(("\.sgml$" . sgml-mode))
-	   '(("\.html$" . sgml-mode))	; FIXME: delete this when the real
-					; thing comes along....
-	   auto-mode-alist)))
-
-;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "lout-mode")
     (setq auto-mode-alist
 	  (append
@@ -321,20 +313,23 @@ directory in the list PATHLIST, otherwise nil."
     (setq auto-mode-alist
 	  (append
 	   '(("/[Cc]onfig[^/]*$" . ksh-mode))
-	   '((".*rc[^/]*$" . ksh-mode))
+	   '(("[^/]*rc$" . ksh-mode))
+	   '(("^rc\\.[^/]*$" . ksh-mode))
+	   '(("^rc\\.[^/]*/[^/]*$" . ksh-mode))
 	   '(("[-\\.]ash[^/]*$" . ksh-mode))
 	   '(("[-\\.]ksh[^/]*$" . ksh-mode))
 	   '(("[-\\.]sh[^/]*$" . ksh-mode))
 	   '(("\\.[^/]*profile" . ksh-mode))
 	   auto-mode-alist)))
 
-;; the real thing, in 19.30(?) and above
+;; the real thing, in 19.28 and above
 (if (elisp-file-in-loadpath-p "sh-script")
       (setq auto-mode-alist
 	    (append
 	     '(("/[Cc]onfig[^/]*$" . sh-mode))
 	     '(("[^/]*rc$" . sh-mode))
-	     '(("[^/]*rc\.[^/]*$" . sh-mode))
+	     '(("^rc\\.[^/]*$" . sh-mode))
+	     '(("^rc\\.[^/]*/[^/]*$" . sh-mode))
 	     '(("[-\\.]ash[^/]*$" . sh-mode))
 	     '(("[-\\.]ksh[^/]*$" . sh-mode))
 	     '(("[-\\.]sh[^/]*$" . sh-mode))
@@ -1196,6 +1191,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 (global-set-key "\e\C-h" 'backward-kill-word)
 (global-set-key "\e\C-?" 'kill-word)
 (global-set-key "\e?" 'help-command)	; smart enough to set itself up
+(global-set-key "\e?F" 'view-emacs-FAQ)	; well, almost....
 
 ;; I *USUALLY* EXPECT THE BACKSPACE KEY TO GENERATE AN ASCII BACKSPACE!
 (define-key function-key-map [backspace] [8])
