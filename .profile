@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	9.11	95/11/30 14:57:03 (woods)"
+#ident	"@(#)HOME:.profile	9.12	95/11/30 16:36:10 (woods)"
 
 #
 # Assumptions:
@@ -211,6 +211,9 @@ if [ -z "$MANPATH" -a ! -r /etc/man.conf ] ; then
 	export MANPATH
 fi
 OMANPATH="$MANPATH" ; export OMANPATH
+if [ ! -d $LOCAL/share/man ] ; then
+	dirappend MANPATH $LOCAL/man
+fi
 dirprepend MANPATH $LOCAL/share/man $GNU/man $CONTRIB/man $X11PATH/man
 #
 # TODO: We also need to strip $LOCAL/man if it's a symlink -> $LOCAL/share/man
