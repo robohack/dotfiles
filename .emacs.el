@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.14	96/01/08 14:21:29 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.15	96/02/07 12:24:49 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -226,6 +226,7 @@ directory in the list PATHLIST, otherwise nil."
        '(("/[^/]+\\.d$" . nroff-mode))		; documentation file
        '(("/[^/]+\\.m[mes]?$" . nroff-mode))	; mm, me, ms docs
        '(("/[^/]+\\.t[imes]*$" . nroff-mode))	; as above, but w/leading 't'
+       '(("/[^/]+\\.lout$" . text-mode))	; need a lout-mode!
        '(("/[^/]*[rR][eE][aA][dD][^/]*$" . indented-text-mode))
        '(("/[^/]*[iI][nN][sS][tT][aA][lL][lL][^/]*$" . indented-text-mode))
        '(("/[^/]*\\.article.*$" . indented-text-mode))
@@ -248,18 +249,18 @@ directory in the list PATHLIST, otherwise nil."
 (if (elisp-file-in-loadpath-p "ksh-mode")
     (setq auto-mode-alist
 	  (append
-	   '(("[-\\.]sh.[.0-9]+$" . ksh-mode))
-	   '(("[-\\.]sh$" . ksh-mode))
-	   '((".*rc$" . ksh-mode))
+	   '((".*rc[^/]*$" . ksh-mode))
+	   '(("[-\\.]ash[^/]*$" . ksh-mode))
 	   '(("[-\\.]ksh[^/]*$" . ksh-mode))
-	   '(("\\..*profile" . ksh-mode))
+	   '(("[-\\.]sh[^/]*$" . ksh-mode))
+	   '(("\\.[^/]*profile" . ksh-mode))
 	   auto-mode-alist)))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "vm")
     (setq auto-mode-alist
 	  (append
-	   '(("/Letter[^/]*$" . vm-mode))
+	   '(("/Letter$" . vm-mode))
 	   '(("mbox$" . vm-mode))
 	   '(("/Mail/.*$" . vm-mode))
 	   '(("/News/.*$" . vm-mode))
