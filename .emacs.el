@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	4.2	93/12/15 16:56:57 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	4.3	93/12/15 17:31:11 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -93,13 +93,17 @@ directory in the list PATHLIST, otherwise nil."
 ;; ----------
 ;; some default packages we'd like...
 
-(if (or (= init-emacs-type '19)
-	(elisp-file-in-loadpath-p "display-time"))
+(if (elisp-file-in-loadpath-p "time")
     (dont-compile
-      (setq display-time-mail-file "/dev/null") ; it can't check "Status:" headers
+      ; display-time can't check "Status:" headers or "Forward to" files
+      (if (= init-emacs-type ' 19)
+	  (defun display-time-file-nonempty-p (file)
+	    nil)
+	(setq display-time-mail-file "/THIS-IS-NOT-A-FILE"))
       (setq display-time-day-and-date t)
-      (setq display-time-24hr-format t)
-      (display-time)))
+      (if (= init-emacs-type '19)
+	  (setq display-time-24hr-format t))
+      (display-time)))			; also enabled by mode-line, if avail.
 
 (if (and (/= init-emacs-type '19)
 	 (elisp-file-in-loadpath-p "mode-line"))
@@ -124,9 +128,11 @@ directory in the list PATHLIST, otherwise nil."
 					     (t
 					      "/gnu")))
 				    "GNU|")
-			      (cons (concat "^" (expand-file-name "~") "/src/work.d/")
+			      (cons (concat "^" (expand-file-name "~")
+					    "/src/work.d/") 
 				    "~WRK|")
-			      (cons (concat "^" (expand-file-name "~") "/src/")
+			      (cons (concat "^" (expand-file-name "~")
+					    "/src/")
 				    "~SRC|"))
 			file-name-abbreviation-alist)))
       (require 'mode-line)))
