@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	18.5	97/01/28 23:32:01 (woods)"
+#ident	"@(#)HOME:.profile	18.6	97/03/06 14:29:16 (woods)"
 
 #
 # Assumptions:
@@ -569,7 +569,12 @@ if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 			;;
 		esac
 
-		echo "Your terminal is port $TTY."
+		if [ -z "$SSH_TTY" ]; then
+			echo "Your terminal is port $TTY."
+		else
+			echo "Secure connection from $SSH_CLIENT on $SSH_TTY (tty $TTY)\n"
+		fi
+
 		export TERM
 		;;
 	esac
