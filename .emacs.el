@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.35	96/12/05 12:44:07 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.36	96/12/10 14:28:44 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -243,7 +243,14 @@ scripts (alias)." t)
 	("^[^ ].*$" 0 font-lock-comment-face t)
 	("^..d.* \\([^ ]+\\)$" 1 font-lock-keyword-face))))
 
-(setq auto-save-timeout 600)		; 30 seconds is insane!
+;; choose the same font as x-fixed-font-alist "Courier"-"10"
+(if window-system
+    (progn
+      (setq preferred-x-font
+	    "-adobe-courier-medium-r-normal--*-100-*-*-m-*-iso8859-1")
+      (set-default-font preferred-x-font)))
+
+(setq auto-save-timeout 300)		; 30 seconds is insane!
 (setq backup-by-copying t)		; copy, thus preserving modes and owner
 (setq compilation-window-height 10)	; default height for a compile window
 (setq default-tab-width 8)		; a tab is a tab is a tab is a tab....
