@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.14	99/04/09 14:17:42 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.15	99/04/18 13:52:59 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1937,5 +1937,5 @@ current emacs server process..."
 ;;;
 ;;; Local Variables:
 ;;; eval: (defun byte-compile-this-file () (write-region (point-min) (point-max) buffer-file-name nil 't) (byte-compile-file buffer-file-name) nil)
-;;; write-file-hooks: (byte-compile-this-file)
+;;; vc-checkin-hook: (byte-compile-this-file)
 ;;; End:
