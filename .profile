@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	1.2	93/11/18 16:28:44 (woods)"
+#ident	"@(#)HOME:.profile	1.3	93/11/29 11:02:48 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -96,13 +96,26 @@ if [ -z "$LOCAL" ] ; then
 	fi
 fi
 
-dirappend PATH /usr/bin/X11 $LOCAL/bin $LOCAL/gnu/bin /usr/ucb
+if [ -z "$GNU" ] ; then
+	if [ -d /local/gnu ] ; then
+		GNU="/local/gnu" ; export GNU
+	elif [ -d /usr/gnu ] ; then
+		GNU="/usr/gnu" ; export GNU
+	elif [ -d /usr/local/gnu ] ; then
+		GNU="/usr/local/gnu" ; export GNU
+	else
+		echo "$0: WARNING: this system doesn't seem to have a GNU root"
+		GNU="/gnu" ; export GNU
+	fi
+fi
+
+dirappend PATH /usr/bin/X11 $LOCAL/bin $GNU/bin /usr/ucb
 dirappend PATH /usr/games $LOCAL/games
 
 if [ -z "$MANPATH" ] ; then
 	MANPATH="/usr/share/man" ; export MANPATH
 fi
-dirprepend MANPATH $LOCAL/share/man $LOCAL/man $LOCAL/gnu/man /X11R5/man
+dirprepend MANPATH $LOCAL/share/man $LOCAL/man $GNU/man /X11R5/man
 
 ISSUN=false; export ISSUN
 if [ -x /usr/bin/sun ] ; then
@@ -181,7 +194,11 @@ fi
 EDITOR="`expr "$EDITOR" : '^.*/\([^/]*\)$'`"; export EDITOR
 
 if expr "`type emacs`" : '.* is .*/emacs$' >/dev/null 2>&1 ; then
-	VISUAL="`type emacs`"
+	if [ -n "$DISPLAY" ] ; then
+		VISUAL="`type emacsclient`"
+	else
+		VISUAL="`type emacs`"
+	fi
 elif expr "`type jove`" : '.* is .*/jove$' >/dev/null 2>&1 ; then
 	VISUAL="`type jove`"
 else
