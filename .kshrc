@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	4.5	94/11/30 16:45:46 (woods)"
+#ident	"@(#)HOME:.kshrc	4.6	94/12/03 20:37:27 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -452,7 +452,7 @@ fi
 
 if [ "$(whence man)" = "/usr/bin/man" -a -x $LOCAL/bin/man ] ; then
 	alias man=$LOCAL/bin/man
-	alias osman='MANPATH=$OMANPATH /usr/bin/man
+	alias osman='MANPATH=$OMANPATH /usr/bin/man'
 else
 	alias osman='MANPATH=$OMANPATH man'
 fi
