@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	20.7	99/04/29 13:21:36 (woods)"
+#ident	"@(#)HOME:.profile	20.8	99/06/27 17:35:17 (woods)"
 
 #
 # Assumptions that may cause breakage:
@@ -349,6 +349,8 @@ elif [ -r $LOCAL/var/log/smail/logfile ] ; then
 	MAILLOG="$LOCAL/var/log/smail/logfile"
 elif [ -r $LOCAL/spool/smail/log/logfile ] ; then
 	MAILLOG="$LOCAL/spool/smail/log/logfile"
+else
+	MAILLOG="/var/log/smail/logfile"
 fi
 export MAILLOG
 
@@ -478,20 +480,25 @@ nmh )
 	;;
 esac
 
+if [ -z "$MAILDIR" ] ; then
+	if [ -d /var/mail ] ; then
+		MAILDIR="/var/mail"
+	elif [ -d /var/spool/mail ] ; then
+		MAILDIR="/var/spool/mail"
+	elif [ -d /usr/mail ] ; then
+		MAILDIR="/usr/mail"
+	elif [ -d /usr/spool/mail ] ; then
+		MAILDIR="/usr/spool/mail"
+	fi
+fi
+export MAILDIR
+
 # use MAIL instead of MAILPATH, primarily to avoid the clash of using
 # a POP specification in MAILPATH for emacs VM
 # 
 unset MAILPATH
 if [ -z "$MAIL" ] ; then
-	if [ -d /var/mail ] ; then
-		MAIL="/var/mail/$LOGNAME"
-	elif [ -d /var/spool/mail ] ; then
-		MAIL="/var/spool/mail/$LOGNAME"
-	elif [ -d /usr/mail ] ; then
-		MAIL="/usr/mail/$LOGNAME"
-	elif [ -d /usr/spool/mail ] ; then
-		MAIL="/usr/spool/mail/$LOGNAME"
-	fi
+	MAIL=${MAILDIR}/${LOGNAME}
 fi
 export MAIL
 
