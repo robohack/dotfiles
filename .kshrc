@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	3.5	94/06/14 12:54:43 (woods)"
+#ident	"@(#)HOME:.kshrc	3.6	94/06/14 13:02:52 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -64,6 +64,34 @@ function dirprepend
 		shift
 	done
 	unset varname varvalue
+}
+
+# for window systems, first time a shell starts (i.e. $LEV == 0)
+#
+function do_first_time
+{
+	if [ -x /usr/games/fortune ] ; then
+		/usr/games/fortune
+	elif [ -x $LOCAL/games/fortune ] ; then
+		$LOCAL/games/fortune
+	fi
+	if [ -r calendar -o -r .month ] ; then
+		echo "\nToday's Events:"
+		if [ -r .month ] ; then
+			month -B
+		fi
+		if [ -r calendar ] ; then
+			calendar
+		fi
+	fi
+	if [ -d $HOME/notes ] ; then
+		(
+			cd $HOME/notes
+			if [ $(ls|wc -w) != 0 ] ; then
+				echo '\nNotes on: ' *
+			fi
+		)
+	fi
 }
 
 # we need to check this early, as otherwise we won't find ismpx below...
@@ -176,25 +204,8 @@ else
 	fi
 fi
 if [ "$(ismpx)" = yes ] ; then
-	if [ -x $LOCAL/games/fortune ] ; then
-		$LOCAL/games/fortune
-	fi
-	if [ -r calendar -o -r .month ] ; then
-		echo "\nToday's Events:"
-		if [ -r .month ] ; then
-			month -B
-		fi
-		if [ -r calendar ] ; then
-			calendar
-		fi
-	fi
-	if [ -d $HOME/notes ] ; then
-		(
-			cd $HOME/notes
-			if [ $(ls|wc -w) != 0 ] ; then
-				echo '\nNotes on: ' *
-			fi
-		)
+	if [ "$LEV" -eq 0 ] ; then
+		do_first_time
 	fi
 	MYXCLR_L="$(myxban -l)"
 	MYXCLR_C="$(myxban -c)"
@@ -294,29 +305,10 @@ if [ "$(ismpx)" = yes ] ; then
 fi
 
 if [ "$TERM" = "xterm" ] ; then
-	if [ -x /usr/games/fortune ] ; then
-		/usr/games/fortune
+	if [ "$LEV" -eq 0 ] ; then
+		do_first_time
 	fi
-	if [ -x $LOCAL/games/fortune ] ; then
-		$LOCAL/games/fortune
-	fi
-	if [ -r calendar -o -r .month ] ; then
-		echo "\nToday's Events:"
-		if [ -r .month ] ; then
-			month -B
-		fi
-		if [ -r calendar ] ; then
-			calendar
-		fi
-	fi
-	if [ -d $HOME/notes ] ; then
-		(
-			cd $HOME/notes
-			if [ $(ls|wc -w) != 0 ] ; then
-				echo '\nNotes on: ' *
-			fi
-		)
-	fi
+
 	function setban
 	{
 		eval TBANNER='"${XTBANNER:+$XTBANNER - }$PWD - $uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN"'
@@ -632,3 +624,5 @@ function typeof
 alias pushd='unalias pushd popd showd sd;. $HOME/.kshdir; pushd'
 alias popd='unalias pushd popd showd sd;. $HOME/.kshdir; popd'
 alias showd='unalias pushd popd showd sd;. $HOME/.kshdir; showd'
+
+unset -f do_first_time
