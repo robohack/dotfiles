@@ -1,7 +1,7 @@
-#-*-sh-*-
+#-*-m4-*-
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	23.3	02/03/17 15:21:18 (woods)"
+#ident	"@(#)HOME:.ctwmrc	23.4	02/07/04 17:07:50 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -210,11 +210,24 @@ IconJustification		"right"
 IconRegionAlignement		"border"
 IconRegionJustification		"border"
 
-# this really means if screen is >= 1600x1200
-ifelse(HOSTNAME, very.weird.com,
- [IconRegion	"500x250-0+300" North East 10 10],
- [IconRegion	"250x500-0+300" North East 10 10])
-
+# Note it seems the IconRegion must include the expanded icon title,
+# which can be a bit long when we have pathnames in xterm titles.
+#
+# This isn't such a problem though if the "gravity" is North East.
+#
+# A 10x10 grid keeps icons packed about as tight as you'd ever want
+# them to be.
+#
+# On the big screen we keep a little xterm open above xconsole in the
+# bottom right so we keep the icon region above that.  On the
+# mid-sized screens we keep icons just above the xconsole (even though
+# it's rarely kept open).
+#
+ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [IconRegion	"1000x250-0+300" North East 10 10],
+ [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [IconRegion	"800x580-0+310" North East 10 10],
+  [IconRegion	"500x250-0+300" North East 10 10]
+ )]
+)
 
 # Can only be one directory!  Uses resource bitmapFilePath first...
 #
@@ -292,11 +305,33 @@ Cursors {
 	Destroy		"pirate"
 }
 
-# this really means if screen is >= 1600x1200
-ifelse(HOSTNAME, very.weird.com,
- [WorkSpaceManagerGeometry	"170x285-330+0" 2],
- [WorkSpaceManagerGeometry	"130x235-190+0" 2])
+# The positioning of the WorkSpace window seems to ignore borders or
+# something -- i.e. it's not the same as an ordinary client.  You need
+# to specify the horizontal position 10 pixels East of where you'd
+# position of client.  Here the -188 matches -198 for xload.
+#
+# Note also that if you manually resize the WorkSpace window the
+# geometry shown while doing so bears no relation to the actual
+# geometry in pixels, as given here.
+#
+ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [WorkSpaceManagerGeometry	"170x285-330+0" 2],
+ [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [WorkSpaceManagerGeometry	"130x235-188+0" 2],
+  [WorkSpaceManagerGeometry	"130x235-188+0" 2]
+ )]
+)
 
+ifelse(SERVERHOST, xtremely.weird.com, [
+WorkSpaces {
+	"Consoles"
+	"TkIned"
+	"Testing"
+	"Browsing"
+	"Coding"
+	"Work 1"
+	"Play"
+	"Work 2"
+}
+], [
 WorkSpaces {
 	"Main"
 	"Mail"
@@ -307,11 +342,12 @@ WorkSpaces {
 	"Work 1"
 	"Work 2"
 }
+])
 
 Occupy {
     ifelse(SERVERHOST, xtremely.weird.com,
-	[WorkSpace	"Mail"		{ "tkined" } ])
-	WorkSpace	"Browsing"	{ "Netscape" }
+	[WorkSpace	"TkIned"	{ "tkined" } ])
+	WorkSpace	"Browsing"	{ "Netscape" "mozilla-bin" }
 }
 
 # these match the Window Name (or "Name =" in the identify panel)
@@ -545,6 +581,7 @@ menu "quickies"
 	"Window Refresh"	f.winrefresh
 	"Save"			f.saveyourself
 	""			f.separator
+	"Xclipboard"		!"xclipboard &"
 	"Xlock"			!"xlock -mode flame &"
 	""			f.separator
 	"Exit..."		f.menu "exit"
@@ -555,7 +592,7 @@ menu "consoles"
 {
 	"Console Server"	f.title
   define(CONSOLE_REP, [
-	"$1 []"			!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n '$1' -T '$1 Virtual Console' -e console $1 &"
+	"$1 []"			!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 88x31 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n '$1' -T '$1 Virtual Console' -e console $1 &"
   ])
 	CONSOLE_REP(most)
 	CONSOLE_REP(proven)
@@ -568,7 +605,7 @@ menu "consoles"
 	CONSOLE_REP(raid-00)
 	CONSOLE_REP(exb210)
 	CONSOLE_REP(hubly)
-	CONSOLE_REP(best1.44)
+	CONSOLE_REP(best-1.4)
 	CONSOLE_REP(best-3.1-0)
 	CONSOLE_REP(best-3.1-1)
 	CONSOLE_REP(callerid)
@@ -1033,161 +1070,65 @@ menu "backgrounds"
 	"xsetroot xsnow"	!"xsetroot -bitmap $X11PATH/[include]/X11/bitmaps/xsnow"
 }
 
-# NOTE: we should choose the colour options based on the value of
-# either PLANES or BITS_PER_RGB
-#
 menu "www"
 {
 	"WWW Browsers Everywhere!"	f.title
 	"Mozilla..."			f.menu "www-mozilla"
-	""				f.separator
-	"Mosaic..."			f.menu "www-mosaic"
-	"Mosaic Monochrome..."		f.menu "www-mosaic-mono"
-	""				f.separator
-	"Chimera..."			f.menu "www-chimera"
-	""				f.separator
-	"Netscape... (for >16bit displays)"	f.menu "www-netscape"
-	"Netscape -install cmap..."	f.menu "www-netscape-cmap"
+	"Galeon..."			f.menu "www-galeon"
 }
+
+# NOTE: should use either PLANES or BITS_PER_RGB to do this right
+#
+ifelse(COLOR, Yes, [define(OPT_MOZ_INSTALL, [-install])], [])
 
 menu "www-mozilla"
 {
 	"Mozilla Everywhere!"	f.title
-	"@localhost"	!"mozilla &"
-	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY mozilla &"
+	"@localhost"	!"mozilla OPT_MOZ_INSTALL &"
+	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY mozilla OPT_MOZ_INSTALL &"
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, proven.weird.com, [], [
-	"@proven"	!"$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY mozilla &"
+	"@proven"	!"$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY mozilla OPT_MOZ_INSTALL &"
   ])
   ifelse(HOSTNAME, sometimes.weird.com, [], [
-	"@sometimes"	!"$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY mozilla &"
+	"@sometimes"	!"$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY mozilla OPT_MOZ_INSTALL &"
+  ])
+  ifelse(HOSTNAME, starting-out.weird.com, [], [
+	"@starting-out"	!"$RSH -n starting-out.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY mozilla OPT_MOZ_INSTALL &"
   ])
  ])
  ifdef([AT_PLANIX], [
   ifelse(HOSTNAME, woffi.planix.com, [], [
-	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY mozilla &"
+	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY mozilla OPT_MOZ_INSTALL &"
   ])
   ifelse(HOSTNAME, whome.planix.com, [], [
-	"@whome"	!"$RSH -n whome.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY mozilla &"
+	"@whome"	!"$RSH -n whome.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY mozilla OPT_MOZ_INSTALL &"
   ])
  ])
 }
 
-menu "www-mosaic"
+menu "www-galeon"
 {
-	"Mosaic Everywhere!"	f.title
-	"@localhost"	!"Mosaic &"
-	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/Mosaic &"
+	"Galeon Everywhere!"	f.title
+	"@localhost"	!"galeon &"
+	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY galeon &"
  ifdef([AT_WEIRD], [
-  ifelse(HOSTNAME, most.weird.com, [], [
-	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY XKEYSYMDB=/usr/lib/X11/XKeysymDB XNLSPATH=/usr/lib/X11/nls $X11BIN/Mosaic &"
-  ])
   ifelse(HOSTNAME, proven.weird.com, [], [
-	"@proven"	!"$RSH -n proven.weird.com exec env PATH=$PATH/usr/pkg/bin:/usr/local/bin DISPLAY=$DISPLAY /usr/pkg/bin/Mosaic &"
-  ])
-  ifelse(HOSTNAME, whats.weird.com, [], [
-	"@whats"	!"$RSH -n whats.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/Mosaic &"
+	"@proven"	!"$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY galeon &"
   ])
   ifelse(HOSTNAME, sometimes.weird.com, [], [
-	"@sometimes"	!"$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/Mosaic &"
+	"@sometimes"	!"$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY galeon &"
   ])
-  ifelse(HOSTNAME, always.weird.com, [], [
-	"@always"	!"$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/Mosaic &"
+  ifelse(HOSTNAME, starting-out.weird.com, [], [
+	"@starting-out"	!"$RSH -n starting-out.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY galeon &"
   ])
  ])
  ifdef([AT_PLANIX], [
   ifelse(HOSTNAME, woffi.planix.com, [], [
-	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/Mosaic &"
-  ])
- ])
- ifdef([AT_ACI], [
-  ifelse(HOSTNAME, admin.aci.on.ca, [], [
-	"@admin"	!"$RSH -n admin.aci.on.ca exec env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/Mosaic &"
-  ])
- ])
-}
-
-menu "www-mosaic-mono"
-{
-	"Mosaic Monochrome Everywhere!"	f.title
-	"@localhost"	!"$LOCAL/bin/Mosaic -mono &"
-	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/Mosaic -mono &"
- ifdef([AT_WEIRD], [
-  ifelse(HOSTNAME, most.weird.com, [], [
-	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY XKEYSYMDB=/usr/lib/X11/XKeysymDB XNLSPATH=/usr/lib/X11/nls $X11BIN/Mosaic -mono &"
-  ])
- ])
-}
-
-menu "www-chimera"
-{
-	"Chimera Everywhere!"	f.title
-	"@localhost"	!"chimera &"
-	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/chimera &"
- ifdef([AT_WEIRD], [
-  ifelse(HOSTNAME, most.weird.com, [], [
-	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY XKEYSYMDB=/usr/lib/X11/XKeysymDB XNLSPATH=/usr/lib/X11/nls $X11BIN/chimera &"
-  ])
- ])
-}
-
-menu "www-netscape"
-{
-	"Netscape Everywhere! (for >16bit displays)"	f.title
-	"@localhost"	!"$LOCAL/bin/netscape -display $DISPLAY &"
-	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
- ifdef([AT_WEIRD], [
-  ifelse(HOSTNAME, most.weird.com, [], [
-	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
-  ])
-  ifelse(HOSTNAME, proven.weird.com, [], [
-	"@proven"	!"$RSH -n proven.weird.com '. ./.localprofile; PATH='$PATH:/usr/pkg/bin:/usr/local/bin'; export PATH; exec /usr/local/bin/netscape -display '$DISPLAY &"
-  ])
-  ifelse(HOSTNAME, sometimes.weird.com, [], [
-	"@sometimes"	!"$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
-  ])
-  ifelse(HOSTNAME, always.weird.com, [], [
-	"@always"	!"$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
-  ])
- ])
- ifdef([AT_PLANIX], [
-  ifelse(HOSTNAME, woffi.planix.com, [], [
-	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
+	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY galeon &"
   ])
   ifelse(HOSTNAME, whome.planix.com, [], [
-	"@whome"	!"$RSH -n whome.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
-  ])
- ])
-}
-
-menu "www-netscape-cmap"
-{
-	"Netscape with its own colour map."	f.title
-	"@localhost"	!"$LOCAL/bin/netscape -install -display $DISPLAY &"
-	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -install -display $DISPLAY &"
- ifdef([AT_WEIRD], [
-  ifelse(HOSTNAME, most.weird.com, [], [
-	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
-  ])
-  ifelse(HOSTNAME, proven.weird.com, [], [
-	"@proven"	!"$RSH -n proven.weird.com '. ./.localprofile; PATH='$PATH:/usr/pkg/bin:/usr/local/bin'; export PATH; exec /usr/local/bin/netscape -install -display '$DISPLAY &"
-  ])
-  ifelse(HOSTNAME, sometimes.weird.com, [], [
-	"@sometimes"	!"$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -install -display $DISPLAY &"
-  ])
-  ifelse(HOSTNAME, always.weird.com, [], [
-	"@always"	!"$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -install -display $DISPLAY &"
-  ])
-  ifelse(HOSTNAME, pretty.weird.com, [], [
-	"@pretty"	!"$RSH -n pretty.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
-  ])
- ])
- ifdef([AT_PLANIX], [
-  ifelse(HOSTNAME, woffi.planix.com, [], [
-	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
-  ])
-  ifelse(HOSTNAME, whome.planix.com, [], [
-	"@whome"	!"$RSH -n whome.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
+	"@whome"	!"$RSH -n whome.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY galeon &"
   ])
  ])
 }
