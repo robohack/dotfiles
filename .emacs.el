@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	4.1	93/12/15 15:13:21 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	4.2	93/12/15 16:56:57 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -32,7 +32,9 @@
 				    ((getenv "GNU")
 				     (getenv "GNU"))
 				    ((getenv "LOCAL")
-				     (concat (getenv "LOCAL") "/gnu")))
+				     (concat (getenv "LOCAL") "/gnu"))
+				    (t
+				     "/gnu"))
 				   "/lib/emacs/site-lisp")))))
 
 ;; emacs-18 doesn't have these...
@@ -108,8 +110,20 @@ directory in the list PATHLIST, otherwise nil."
 		(append (list '("^/big/web/work/apc/" . "APC|")
 			      '("^/big/web/work/" . "WEB|")
 			      '("^/big/web/update.d/" . "UPD|")
-			      '((concat "^" (getenv "LOCAL") "/src") . "LSRC|")
-			      '((concat "^" (getenv "LOCAL")) . "LOCAL|")
+			      (cons (concat "^"
+					    (cond
+					     ((getenv "LOCAL")
+					      (getenv "LOCAL") "/src")
+					     (t
+					      "/local")))
+				    "LOCAL|")
+			      (cons (concat "^"
+					    (cond
+					     ((getenv "GNU")
+					      (getenv "GNU") "/src")
+					     (t
+					      "/gnu")))
+				    "GNU|")
 			      (cons (concat "^" (expand-file-name "~") "/src/work.d/")
 				    "~WRK|")
 			      (cons (concat "^" (expand-file-name "~") "/src/")
