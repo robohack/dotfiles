@@ -1,12 +1,13 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	21.7	00/04/14 13:18:50 (woods)"
+;;;#ident	"@(#)HOME:.vm	21.8	01/10/17 12:01:51 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
 
 (require 'sendmail)			; get this over with right away
+(require 'vm-menu)			; and this too....
 
 (setq vm-version-number (string-to-number vm-version))
 
@@ -23,8 +24,10 @@
     (substitute-key-definition 'next-line 'mail-abbrev-next-line
                                mail-mode-map global-map)))
 
-;; Kyle's filladapt from http://www.wonderworks.com/
-;;
+;;; Kyle's filladapt from http://www.wonderworks.com/
+;;;
+;;; WARNING:  elisp-file-in-load-path-p is a local function in my ~/.emacs.el
+;;;
 (if (and (fboundp 'elisp-file-in-loadpath-p)
 	 (elisp-file-in-loadpath-p "filladapt"))
     (progn
@@ -32,7 +35,7 @@
       (add-to-list 'filladapt-token-table '("To: " bullet))
       (add-to-list 'filladapt-token-table '("Cc: " bullet))))
 
-;; Thanks to John Owens <owens@graphics.stanford.edu>
+;; mail-x-face-file thanks to John Owens <owens@graphics.stanford.edu>
 ;;
 (defvar mail-x-face-file "~/.face"
   "Name of file containing contents for X-Face header")
@@ -48,15 +51,259 @@
 (add-hook 'mail-setup-hook 'mail-insert-x-face)
 
 ;;; mailcrypt --- a simple interface to message encryption with PGP.
+;;;
+;;; WARNING:  elisp-file-in-load-path-p is a local function in my ~/.emacs.el
+;;;
 (if (and (fboundp 'elisp-file-in-loadpath-p)
 	 (elisp-file-in-loadpath-p "mailcrypt"))
     (progn
+      (load-library "mailcrypt")
+      (mc-setversion "5.0")
       (add-hook 'vm-mode-hook 'mc-install-read-mode)
       (add-hook 'vm-summary-mode-hook 'mc-install-read-mode)
       (add-hook 'vm-virtual-mode-hook 'mc-install-read-mode)
       (add-hook 'vm-mail-mode-hook 'mc-install-write-mode)))
 
+;;;;
+;;;; mail-mode stuff....
+;;;;
+
+;;;From: friedman@splode.com (Noah Friedman)
+;;;In-Reply-To: <srandall@quixote.asic.sc.ti.com> , 13 May 1997 10:32:32 -0500
+;;;References: <wq9d8qvie0f.fsf@quixote.i-have-a-misconfigured-system-so-shoot-me>
+;;;Message-Id: <19970514015519.FMU96188@piglet.splode.com>
+;;;To: srandall@quixote.asic.sc.ti.com
+;;;Cc: info-vm@uunet.uu.net
+;;;Date: Wed, 14 May 1997 01:55:19 -0700 (PDT)
+;;;Subject: please help me fix minor annoyances in vm
+
+(define-key mail-mode-map "\C-i" 'mail-goto-next-header-or-insert)
+
+(define-key mail-mode-map [S-tab] 'mail-goto-previous-header)
+
+(defun mail-goto-previous-header (&optional count)
+  "Call mail-goto-next-header-or-insert with (- COUNT)"
+  (interactive "p")
+  (mail-goto-next-header-or-insert (- count)))
+
+(defun mail-goto-next-header-or-insert (&optional count)
+  "If in header area, go to beginning of next header.
+If point is not in the header area, just insert the character which
+invoked this command.
+
+With numeric prefix arg, skip forward that many headers.
+If prefix arg is negative, skip backward that many headers.
+
+If either the head or tail of the headers are reached, wrap around
+to the other end and continue."
+  (interactive "p")
+  (let* ((headers-end
+	  (save-excursion
+	    (goto-char (point-min))
+	    (re-search-forward
+	     (concat "^" (regexp-quote mail-header-separator) "$"))
+	    (match-beginning 0)))
+	 (forwardp (or (null count) (> count 0)))
+	 (fn (if forwardp 're-search-forward 're-search-backward))
+	 (la (if forwardp 2 1))
+	 (nla (if forwardp 1 2))
+	 (re "^[^:\n\t ]+:")
+	 (i (abs count)))
+    (cond ((>= (point) headers-end)
+	   (call-interactively 'self-insert-command))
+	  (t
+	   (save-restriction
+	     (narrow-to-region (point-min) headers-end)
+	     (while (not (zerop i))
+	       (cond
+		((funcall fn re nil t (if (looking-at re) la nla)))
+		(t
+		 (goto-char (point-min))
+		 (funcall fn re nil t)))
+	       (setq i (1- i)))
+	     (goto-char (match-end 0))
+	     (and (looking-at "[ \t]")
+		  (forward-char 1)))))))
+
+;;
+;; dired stuff...
+;;
+
+;;Message-ID: <cxjpv5he74u.fsf@engc.bu.edu>
+;;References: <cajhfquqejw.fsf@faui5pc29.informatik.uni-erlangen.de>
+;;Date: 06 Apr 1999 18:06:25 -0400
+;;From: David Bakhash <cadet@bu.edu>
+;;Organization: Boston University
+;;Subject: Re: Selecting a special  mail
+;;To: info-vm@uunet.uu.net
+;;
+;; I don't think that's feasible given the command interface that VM
+;; has.  With some programming, you can probably figure out something,
+;; but the best way to do it, of course, is to just use vm-visit-folder
+;; instead of find-file.  If you visit with dired, then use the `r'
+;; binding (XEmacs), and you will visit it with vm-visit-folder instead
+;; of find-file.  If you're using GNU Emacs, then try this code out in
+;; your ~/.emacs file:
+;;
+(defun dired-vm (&optional read-only)
+  "Run VM on this file.
+With prefix arg, visit folder read-only (this requires at least VM 5).
+See also variable `dired-vm-read-only-folders'."
+  (interactive "P")
+  (let ((dir (dired-current-directory))
+        (fil (dired-get-filename)))
+    ;; take care to supply 2nd arg only if requested - may still run VM 4!
+    (require 'vm)			; vm-visit-folder may not be an autoload
+    (setq this-command 'vm-visit-folder) ; for vm window config
+    (if read-only
+        (vm-visit-folder fil t)
+      (vm-visit-folder fil))
+    ;; so that pressing `v' inside VM does prompt within current directory:
+    (set (make-local-variable 'vm-folder-directory) dir)))
+
+(add-hook 'dired-mode-hook 
+	  '(lambda ()
+	     (require 'dired-x)
+	     (define-key dired-mode-map "r" 'dired-vm)))
+
+;;;
+;;;	VM related things
+;;;
+
+(define-key mail-mode-map "\C-ci" 'ispell-message)
+(define-key mail-mode-map "\M-S" 'ispell-message)
+(define-key vm-mode-map "/" 'vm-isearch-forward)
+
+(defvar my-vm-virtual-leftovers-folder "General Delivery"
+  "The name of the virtual folder containing all the messages which are not
+members of other virtual folders.  (It's created after all the others are
+created by my-vm-visit-all-virtual-folders.)
+
+NOTE:  Changes to this variable only take effect when your .vm is reloaded.")
+
+(defun my-vm-quit-all-virtual-folders ()
+  "Quit from all of the virtual folders in vm-virtual-folder-alist."
+  (interactive)
+  (let ((vfolder vm-virtual-folder-alist))
+    (while vfolder
+      (save-excursion
+	(condition-case error-data
+	    (let ((vm-confirm-quit nil))
+	      (set-buffer (concat "(" (car (car vfolder)) ")"))
+	      (vm-quit))
+	  (error nil))
+	(setq vfolder (cdr vfolder))))))
+
+(defun my-vm-visit-all-virtual-folders ()
+  "Visit all of the virtual folders in vm-virtual-folder-alist."
+  (interactive)
+  (let ((vfolder vm-virtual-folder-alist))
+    (while vfolder
+      (let ((vfname (car (car vfolder))))
+	(if (not (string-equal vfname my-vm-virtual-leftovers-folder))
+	    (vm-visit-virtual-folder vfname))
+	(setq vfolder (cdr vfolder)))))
+  (vm-visit-virtual-folder my-vm-virtual-leftovers-folder))
+
+(defun my-vm-resync-all-virtual-folders ()
+  "Revisit all virtual folders to update them.  This doesn't seem to be
+necessary any more with newer versions of VM, eg. 6.62."
+  (interactive)
+  (save-excursion
+    ;; this is no longer necessary with newer versions of VM, eg. 6.62
+    ;;(my-vm-quit-all-virtual-folders)
+    ;; make sure all new messages are in their target folders so that the magic
+    ;; for the General Delivery folder works....
+    (my-vm-visit-all-virtual-folders)))
+
+(defun my-vm-get-new-mail ()
+  "Local version of vm-get-new-mail that updates all virtual folders in
+vm-virtual-folder-alist."
+  (interactive)
+  (save-excursion
+    ;; this is no longer necessar with newer versions of VM, eg. 6.62
+    ;;(my-vm-quit-all-virtual-folders)
+    ;; instead we only need to quit the "General Delivery" folder:
+    (save-excursion
+      (condition-case error-data
+	  (let ((vm-confirm-quit nil))
+	    (set-buffer (concat "(" my-vm-virtual-leftovers-folder ")"))
+	    (vm-quit))
+	(error nil)))
+    (set-buffer (vm-get-file-buffer vm-primary-inbox))
+    (vm-get-new-mail)
+    ;; make sure all new messages are in their target folders so that the magic
+    ;; for the General Delivery folder works....
+    (my-vm-visit-all-virtual-folders)))
+
+;; This overrides the normal binding of 'G' to vm-sort-messages....
+(define-key vm-mode-map "G" 'my-vm-get-new-mail)
+
+(defun my-vm-quit ()
+  "Local version of vm-quit that quits all virtual buffers if quitting
+vm-primary-inbox."
+  (interactive)
+  (vm-select-folder-buffer)
+  (if (eq major-mode 'vm-virtual-mode)
+      (vm-quit)
+    (if (string-equal (buffer-file-name)
+		      (expand-file-name vm-primary-inbox))
+	(my-vm-quit-all-virtual-folders))
+    (vm-quit)))
+
+(define-key vm-mode-map "q" 'my-vm-quit)
+
+(require 'ispell)
+(add-hook 'vm-mail-mode-hook
+	  (function (lambda () (local-set-key "\C-ci" 'ispell-message))))
+
+(setq ispell-message-text-end
+      (mapconcat (function identity)
+		 (list ispell-message-text-end
+		       "^-- $"		; XXX this is in orig, but it's not!
+		       "^-----BEGIN PGP " ; PGP 
+		       "&This is a[-A-Z0-9 ]+digest" ; digest
+		       )
+		 "\\|"))
+
+(require 'advice)
+(defadvice vm-summarize (after my-vm-summarize activate)
+  "Also call vm-emit-totals-blurb after vm-summarize."
+  (vm-emit-totals-blurb))
+
+(defun my-vm-auto-archive-messages ()
+  "Local version of vm-auto-archive-messages that obtains user confirmation."
+  (interactive)
+  (if (y-or-n-p "Are you really sure you want to archive all messages???")
+      (vm-auto-archive-messages)))
+
+(define-key vm-mode-map "A" 'my-vm-auto-archive-messages)
+
+;; this is done this way so that it remains compatible with pre-6.x VM
+(defun my-vm-forward-message-using-rfc934 ()
+  "Local version of vm-forward-message that uses rfc934 encapsulation and
+avoids any MIME transfer encoding.  Pine 3.96 cannot show headers in MIME
+message/rfc822 attachments."
+  (interactive)
+  (let ((vm-forwarding-digest-type "rfc934"))
+    (vm-forward-message)
+    (set (make-local-variable 'vm-send-using-mime) nil)))
+
+(define-key vm-mode-map "Z" 'vm-forward-message) ; use default (mime)
+(define-key vm-mode-map "z" 'my-vm-forward-message-using-rfc934)
+
+;;;
+;;; some assistance for spam-handling
+;;;
+(defun my-vm-rblookup-at-point ()
+  "Run rblookup on the address or name at the point."
+  (interactive)
+  (message "sorry -- not yet implemented!")
+)
+
+;;;
 ;;; from Jukka Partanen <jukka.partanen@research.nokia.com>.
+;;;
 (if (>= vm-version-number 6.0)
     (progn
       (defun vm-mime-delete-mime-body-part (&optional layout)
@@ -231,62 +478,67 @@ forbidden in URL encoding."
       (delete-region beg end)
       (insert (vm-url-unhex-string str)))))
 
-;;;From: friedman@splode.com (Noah Friedman)
-;;;In-Reply-To: <srandall@quixote.asic.sc.ti.com> , 13 May 1997 10:32:32 -0500
-;;;References: <wq9d8qvie0f.fsf@quixote.i-have-a-misconfigured-system-so-shoot-me>
-;;;Message-Id: <19970514015519.FMU96188@piglet.splode.com>
-;;;To: srandall@quixote.asic.sc.ti.com
-;;;Cc: info-vm@uunet.uu.net
-;;;Date: Wed, 14 May 1997 01:55:19 -0700 (PDT)
-;;;Subject: please help me fix minor annoyances in vm
 
-(define-key mail-mode-map "\C-i" 'mail-goto-next-header-or-insert)
+;;; Message-ID: <4vnura$cgr@nnrp1.news.primenet.com>
+;;; From: edwinh@primenet.com (Edwin Huffstutler)
+;;; Date: 24 Aug 1996 15:14:02 -0700
+;;; Subject: Remove "extra" text from replies
+;;; Summary: functions to remove .sigs, double citations
+;;; 
+;;; Create a function to nuke a .sig from replied-to mail (if it exists).  
+;;; Find the end of the buffer, back up over my .sig, then delete up to 
+;;; the beginning of the quoted .sig. 
+(defun citation-kill-sig ()
+  "Nuke a .sig from cited mail"
+  (interactive)
+  (save-excursion
+    (goto-char (point-max))
+    (search-backward-regexp "^-- $" 1 t)
+    (let ((top-of-my-sig (point)))
+      (search-backward-regexp 
+       (concat "^" vm-included-text-prefix "-- $") 1 t)
+      (delete-region (point) top-of-my-sig)
+      )))
 
-(define-key mail-mode-map [S-tab] 'mail-goto-previous-header)
+(add-hook 'vm-reply-hook
+	  'citation-kill-sig)
 
-(defun mail-goto-previous-header (&optional count)
-  "Call mail-goto-next-header-or-insert with (- COUNT)"
-  (interactive "p")
-  (mail-goto-next-header-or-insert (- count)))
+;;; more from: edwinh@primenet.com (Edwin Huffstutler)
+;;; 
+;;; This next one I bind to C-c C-d in a reply buffer, and it deletes anything
+;;; that has been quoted twice, and removes included-text-prefixes on blank
+;;; lines.  (I just think it looks cleaner that way, as I usually reply to
+;;; each paragraph of the mail separately)
+;;; 
+;;; define a function to remove doubly-cited stuff
+(defun citation-kill-double ()
+  "Remove doubly-cited text and extra lines in a mail message"
+  (interactive)
+  (save-excursion
+    ;;; nuke the quoted quoted text
+    ;;(beginning-of-buffer)
+    ;;(replace-regexp
+    ;; (concat "^" vm-included-text-prefix "\\sw*[>|}].*\n") "")
+    ;;; get rid of citation prefix on blank lines
+    (beginning-of-buffer)
+    (replace-regexp
+     (concat "^" vm-included-text-prefix "$") "")
+    ;;; replace more than two newlines with just two
+    (beginning-of-buffer)
+    (replace-regexp "\n\n+" "\n\n")
+    ;;; get rid of double attribution text
+    ;;(beginning-of-buffer)
+    ;;(replace-regexp
+    ;; (concat "^" vm-included-text-prefix "\\[ .*wrote.*\\]\n\\|"
+    ;;         "^" vm-included-text-prefix ".*wrote:\n") "")
+    ))
 
-(defun mail-goto-next-header-or-insert (&optional count)
-  "If in header area, go to beginning of next header.
-If point is not in the header area, just insert the character which
-invoked this command.
+(defun citation-set-kill-double-binding ()
+  "Set the binding for citation-kill-double"
+  (local-set-key "\C-c\C-d" 'citation-kill-double))
 
-With numeric prefix arg, skip forward that many headers.
-If prefix arg is negative, skip backward that many headers.
-
-If either the head or tail of the headers are reached, wrap around
-to the other end and continue."
-  (interactive "p")
-  (let* ((headers-end
-	  (save-excursion
-	    (goto-char (point-min))
-	    (re-search-forward
-	     (concat "^" (regexp-quote mail-header-separator) "$"))
-	    (match-beginning 0)))
-	 (forwardp (or (null count) (> count 0)))
-	 (fn (if forwardp 're-search-forward 're-search-backward))
-	 (la (if forwardp 2 1))
-	 (nla (if forwardp 1 2))
-	 (re "^[^:\n\t ]+:")
-	 (i (abs count)))
-    (cond ((>= (point) headers-end)
-	   (call-interactively 'self-insert-command))
-	  (t
-	   (save-restriction
-	     (narrow-to-region (point-min) headers-end)
-	     (while (not (zerop i))
-	       (cond
-		((funcall fn re nil t (if (looking-at re) la nla)))
-		(t
-		 (goto-char (point-min))
-		 (funcall fn re nil t)))
-	       (setq i (1- i)))
-	     (goto-char (match-end 0))
-	     (and (looking-at "[ \t]")
-		  (forward-char 1)))))))
+(add-hook 'vm-reply-hook
+	  'citation-set-kill-double-binding)
 
 ;;;
 ;;;	some stuff for sendmail.el ...
@@ -397,230 +649,6 @@ ORGANIZATION.  If not nil, takes precedence over the file
 	       "\n")))			; mail-mode needs the trailing newline,
 					; VM will cope either way
 
-;;
-;; dired stuff...
-;;
-
-;;Message-ID: <cxjpv5he74u.fsf@engc.bu.edu>
-;;References: <cajhfquqejw.fsf@faui5pc29.informatik.uni-erlangen.de>
-;;Date: 06 Apr 1999 18:06:25 -0400
-;;From: David Bakhash <cadet@bu.edu>
-;;Organization: Boston University
-;;Subject: Re: Selecting a special  mail
-;;To: info-vm@uunet.uu.net
-;;
-;; I don't think that's feasible given the command interface that VM
-;; has.  With some programming, you can probably figure out something,
-;; but the best way to do it, of course, is to just use vm-visit-folder
-;; instead of find-file.  If you visit with dired, then use the `r'
-;; binding (XEmacs), and you will visit it with vm-visit-folder instead
-;; of find-file.  If you're using GNU Emacs, then try this code out in
-;; your ~/.emacs file:
-;;
-(defun dired-vm (&optional read-only)
-  "Run VM on this file.
-With prefix arg, visit folder read-only (this requires at least VM 5).
-See also variable `dired-vm-read-only-folders'."
-  (interactive "P")
-  (let ((dir (dired-current-directory))
-        (fil (dired-get-filename)))
-    ;; take care to supply 2nd arg only if requested - may still run VM 4!
-    (require 'vm)			; vm-visit-folder may not be an autoload
-    (setq this-command 'vm-visit-folder) ; for vm window config
-    (if read-only
-        (vm-visit-folder fil t)
-      (vm-visit-folder fil))
-    ;; so that pressing `v' inside VM does prompt within current directory:
-    (set (make-local-variable 'vm-folder-directory) dir)))
-
-(add-hook 'dired-mode-hook 
-	  '(lambda ()
-	     (require 'dired-x)
-	     (define-key dired-mode-map "r" 'dired-vm)))
-
-;;;
-;;;	VM related things
-;;;
-
-(defvar my-vm-virtual-leftovers-folder "General Delivery"
-  "The name of the virtual folder containing all the messages which are not
-members of other virtual folders.  (It's created after all the others are
-created by my-vm-visit-all-virtual-folders.)
-
-NOTE:  Changes to this variable only take effect when your .vm is reloaded.")
-
-(defun my-vm-quit-all-virtual-folders ()
-  "Quit from all of the virtual folders in vm-virtual-folder-alist."
-  (interactive)
-  (let ((vfolder vm-virtual-folder-alist))
-    (while vfolder
-      (save-excursion
-	(condition-case error-data
-	    (let ((vm-confirm-quit nil))
-	      (set-buffer (concat "(" (car (car vfolder)) ")"))
-	      (vm-quit))
-	  (error nil))
-	(setq vfolder (cdr vfolder))))))
-
-(defun my-vm-visit-all-virtual-folders ()
-  "Visit all of the virtual folders in vm-virtual-folder-alist."
-  (interactive)
-  (let ((vfolder vm-virtual-folder-alist))
-    (while vfolder
-      (let ((vfname (car (car vfolder))))
-	(if (not (string-equal vfname my-vm-virtual-leftovers-folder))
-	    (vm-visit-virtual-folder vfname))
-	(setq vfolder (cdr vfolder)))))
-  (vm-visit-virtual-folder my-vm-virtual-leftovers-folder))
-
-(defun my-vm-resync-all-virtual-folders ()
-  "Revisit all virtual folders to update them.  This doesn't seem to be
-necessary any more with newer versions of VM, eg. 6.62."
-  (interactive)
-  (save-excursion
-    ;; this is no longer necessary with newer versions of VM, eg. 6.62
-    ;;(my-vm-quit-all-virtual-folders)
-    ;; make sure all new messages are in their target folders so that the magic
-    ;; for the General Delivery folder works....
-    (my-vm-visit-all-virtual-folders)))
-
-(defun my-vm-get-new-mail ()
-  "Local version of vm-get-new-mail that updates all virtual folders in
-vm-virtual-folder-alist."
-  (interactive)
-  (save-excursion
-    ;; this is no longer necessar with newer versions of VM, eg. 6.62
-    ;;(my-vm-quit-all-virtual-folders)
-    ;; instead we only need to quit the "General Delivery" folder:
-    (save-excursion
-      (condition-case error-data
-	  (let ((vm-confirm-quit nil))
-	    (set-buffer (concat "(" my-vm-virtual-leftovers-folder ")"))
-	    (vm-quit))
-	(error nil)))
-    (set-buffer (vm-get-file-buffer vm-primary-inbox))
-    (vm-get-new-mail)
-    ;; make sure all new messages are in their target folders so that the magic
-    ;; for the General Delivery folder works....
-    (my-vm-visit-all-virtual-folders)))
-
-;; This overrides the normal binding of 'G' to vm-sort-messages....
-(define-key vm-mode-map "G" 'my-vm-get-new-mail)
-
-(defun my-vm-quit ()
-  "Local version of vm-quit that quits all virtual buffers if quitting
-vm-primary-inbox."
-  (interactive)
-  (vm-select-folder-buffer)
-  (if (eq major-mode 'vm-virtual-mode)
-      (vm-quit)
-    (if (string-equal (buffer-file-name)
-		      (expand-file-name vm-primary-inbox))
-	(my-vm-quit-all-virtual-folders))
-    (vm-quit)))
-
-(define-key vm-mode-map "q" 'my-vm-quit)
-
-(require 'ispell)
-(add-hook 'vm-mail-mode-hook
-	  (function (lambda () (local-set-key "\C-ci" 'ispell-message))))
-
-(setq ispell-message-text-end
-      (mapconcat (function identity)
-		 (list ispell-message-text-end
-		       "^-- $"		; XXX this is in orig, but it's not!
-		       "^-----BEGIN PGP " ; PGP 
-		       "&This is a[-A-Z0-9 ]+digest" ; digest
-		       )
-		 "\\|"))
-
-(require 'advice)
-(defadvice vm-summarize (after my-vm-summarize activate)
-  "Also call vm-emit-totals-blurb after vm-summarize."
-  (vm-emit-totals-blurb))
-
-(defun my-vm-auto-archive-messages ()
-  "Local version of vm-auto-archive-messages that obtains user confirmation."
-  (interactive)
-  (if (y-or-n-p "Are you really sure you want to archive all messages???")
-      (vm-auto-archive-messages)))
-
-(define-key vm-mode-map "A" 'my-vm-auto-archive-messages)
-
-;; this is done this way so that it remains compatible with pre-6.x VM
-(defun my-vm-forward-message-using-rfc934 ()
-  "Local version of vm-forward-message that uses rfc934 encapsulation and
-avoids any MIME transfer encoding.  Pine 3.96 cannot show headers in MIME
-message/rfc822 attachments."
-  (interactive)
-  (let ((vm-forwarding-digest-type "rfc934"))
-    (vm-forward-message)
-    (set (make-local-variable 'vm-send-using-mime) nil)))
-
-(define-key vm-mode-map "Z" 'vm-forward-message) ; use default (mime)
-(define-key vm-mode-map "z" 'my-vm-forward-message-using-rfc934)
-
-;;; Message-ID: <4vnura$cgr@nnrp1.news.primenet.com>
-;;; From: edwinh@primenet.com (Edwin Huffstutler)
-;;; Date: 24 Aug 1996 15:14:02 -0700
-;;; Subject: Remove "extra" text from replies
-;;; Summary: functions to remove .sigs, double citations
-;;; 
-;;; Create a function to nuke a .sig from replied-to mail (if it exists).  
-;;; Find the end of the buffer, back up over my .sig, then delete up to 
-;;; the beginning of the quoted .sig. 
-(defun citation-kill-sig ()
-  "Nuke a .sig from cited mail"
-  (interactive)
-  (save-excursion
-    (goto-char (point-max))
-    (search-backward-regexp "^-- $" 1 t)
-    (let ((top-of-my-sig (point)))
-      (search-backward-regexp 
-       (concat "^" vm-included-text-prefix "-- $") 1 t)
-      (delete-region (point) top-of-my-sig)
-      )))
-
-(add-hook 'vm-reply-hook
-	  'citation-kill-sig)
-
-;;; more from: edwinh@primenet.com (Edwin Huffstutler)
-;;; 
-;;; This next one I bind to C-c C-d in a reply buffer, and it deletes anything
-;;; that has been quoted twice, and removes included-text-prefixes on blank
-;;; lines.  (I just think it looks cleaner that way, as I usually reply to
-;;; each paragraph of the mail separately)
-;;; 
-;;; define a function to remove doubly-cited stuff
-(defun citation-kill-double ()
-  "Remove doubly-cited text and extra lines in a mail message"
-  (interactive)
-  (save-excursion
-    ;;; nuke the quoted quoted text
-    ;;(beginning-of-buffer)
-    ;;(replace-regexp
-    ;; (concat "^" vm-included-text-prefix "\\sw*[>|}].*\n") "")
-    ;;; get rid of citation prefix on blank lines
-    (beginning-of-buffer)
-    (replace-regexp
-     (concat "^" vm-included-text-prefix "$") "")
-    ;;; replace more than two newlines with just two
-    (beginning-of-buffer)
-    (replace-regexp "\n\n+" "\n\n")
-    ;;; get rid of double attribution text
-    ;;(beginning-of-buffer)
-    ;;(replace-regexp
-    ;; (concat "^" vm-included-text-prefix "\\[ .*wrote.*\\]\n\\|"
-    ;;         "^" vm-included-text-prefix ".*wrote:\n") "")
-    ))
-
-(defun citation-set-kill-double-binding ()
-  "Set the binding for citation-kill-double"
-  (local-set-key "\C-c\C-d" 'citation-kill-double))
-
-(add-hook 'vm-reply-hook
-	  'citation-set-kill-double-binding)
-
 ;;;
 ;;; VM fontification support...
 ;;;
@@ -678,7 +706,7 @@ message/rfc822 attachments."
      (:foreground "Red" :bold t :italic t :underline t))
     (((class color)
       (background light))
-     (:foreground "Green" :bold t :italic t :underline t))
+     (:foreground "DarkGreen" :bold t :italic t :underline t))
     (t
      (:bold t :italic t :underline t)))
   "Face for VM From: header contents.")
@@ -700,10 +728,43 @@ message/rfc822 attachments."
      (:foreground "Red" :bold t :underline t))
     (((class color)
       (background light))
-     (:foreground "Green" :bold t :underline t))
+     (:foreground "DarkGreen" :bold t :underline t))
     (t
      (:bold t :underline t)))
   "Face for VM From: header contents.")
+
+(defface vm-organization-face
+  '((((class color)
+      (background dark))
+     (:foreground "SlateBlue" :italic t))
+    (((class color)
+      (background light))
+     (:foreground "DarkSlateBlue" :italic t))
+    (t
+     (:italic t)))
+  "Face for VM Organization: contents.")
+
+(defface vm-header-reply-face
+  '((((class color)
+      (background dark))
+     (:foreground "blue" :bold t :underline t))
+    (((class color)
+      (background light))
+     (:foreground "NavyBlue" :bold t :underline t))
+    (t
+     (:bold t :underline t)))
+  "Face for VM Reply-To: header contents.")
+
+(defface vm-to-face
+  '((((class color)
+      (background dark))
+     (:foreground "Green" :bold t :italic t))
+    (((class color)
+      (background light))
+     (:foreground "ForestGreen" :bold t :italic t))
+    (t
+     (:italic t)))
+  "Face for VM To: contents.")
 
 (defface vm-header-cc-face
   '((((class color)
@@ -711,7 +772,7 @@ message/rfc822 attachments."
      (:foreground "OrangeRed" :bold t :underline t))
     (((class color)
       (background light))
-     (:foreground "LimeGreen" :bold t :underline t))
+     (:foreground "DarkSeaGreen" :bold t :underline t))
     (t
      (:bold t :underline t)))
   "Face for VM Cc: header contents.")
@@ -720,9 +781,10 @@ message/rfc822 attachments."
   '((((class color)
       (background dark))
      (:foreground "Yellow" :bold t :italic t :underline t))
+
     (((class color)
       (background light))
-     (:foreground "Coral" :bold t :italic t :underline t))
+     (:foreground "IndianRed" :bold t :italic t :underline t))
     (t
      (:bold t :italic t :underline t)))
   "Face for VM Subject: header contents.")
@@ -738,13 +800,19 @@ message/rfc822 attachments."
       '(t
 	("^\\(Subject:\\) \\(.+\\)$"
 	 (1 'vm-header-name-face)
-	 (2 'vm-subject-face))
+	 (2 'vm-header-subject-face))
         ("^\\(From:\\) \\(.+\\)$"
 	 (1 'vm-header-name-face)
 	 (2 'vm-header-from-face))
+        ("^\\(Organization:\\) \\(.+\\)$"
+	 (1 'vm-header-name-face)
+	 (2 'vm-organization-face))
         ("^\\(Reply-To:\\) \\(.+\\)$"
 	 (1 'vm-header-name-face)
-	 (2 'vm-header-from-face))
+	 (2 'vm-header-reply-face))
+        ("^\\(To:\\) \\(.+\\)$"
+	 (1 'vm-header-name-face)
+	 (2 'vm-to-face))
         ("^\\(Cc:\\) \\(.+\\)$"
 	 (1 'vm-header-name-face)
 	 (2 'vm-header-cc-face))
@@ -766,15 +834,15 @@ message/rfc822 attachments."
   (setq font-lock-defaults '(vm-font-lock-keywords t t))
   (turn-on-font-lock))
 
-(cond (window-system
-       (add-hook 'vm-mode-hook
-		 'vm-fontify)
-       (add-hook 'vm-presentation-mode-hook
-		 'vm-fontify)
-       (add-hook 'vm-mail-mode-hook
-		 'vm-fontify)
-       (add-hook 'vm-edit-message-hook
-		 'vm-fontify)))
+;(cond (window-system
+;       (add-hook 'vm-mode-hook
+;		 'vm-fontify)
+;       (add-hook 'vm-presentation-mode-hook
+;		 'vm-fontify)
+;       (add-hook 'vm-mail-mode-hook
+;		 'vm-fontify)
+;       (add-hook 'vm-edit-message-hook
+;		 'vm-fontify)))
 
 ;; This summary stuff is way too CPU intensive when you have as many virtual
 ;; folders open as I do (especially on a machine as slow as mine! ;-).
@@ -806,7 +874,7 @@ message/rfc822 attachments."
 ;       (add-hook 'vm-summary-update-hook
 ;		 'vm-summary-fontify)))
 
-;; commented lines indicate changed values....  (from v5.72)
+;; commented lines indicate changed values....  (from v6.75)
 ;;
 (setq 
 ;;;   vm-arrived-message-hook nil
@@ -825,7 +893,7 @@ message/rfc822 attachments."
       vm-auto-next-message nil		; when you're at the bottom of the msg, stay there!
       vm-berkeley-mail-compatibility '(berkeley-unix netbsd)
       vm-check-folder-types t
-      vm-circular-folders nil		; don't wrap around the folder
+      vm-circular-folders nil
       vm-confirm-new-folders t		; be careful!
       vm-confirm-quit t			; always ask about quitting
       vm-convert-folder-types t
@@ -897,7 +965,7 @@ message/rfc822 attachments."
       vm-delete-after-bursting nil
       vm-delete-after-saving nil
       vm-delete-empty-folders t
-      vm-digest-burst-type "guess"	; let it try to figure out what to do
+      vm-digest-burst-type "guess"
       vm-digest-identifier-header-format "X-Digest: %s\n"
       vm-digest-center-preamble t
       vm-digest-preamble-format "\"%s\" (%F)"
@@ -906,24 +974,24 @@ message/rfc822 attachments."
 			    "mime")	; go for the good
 ;;;   vm-display-buffer-hook nil
       vm-display-using-mime t
+      vm-display-xfaces t		; try this out
 ;;;   vm-edit-message-hook nil
       vm-edit-message-mode 'indented-text-mode ; slightly better than text-mode
       vm-fill-paragraphs-containing-long-lines nil
-      vm-flush-interval t
-      vm-folder-directory "~/Mail/"	; the usual place
+      vm-flush-interval t		; flush every change (emacs is unstable)
+      vm-folder-directory "~/Mail/"	; my usual place
 ;;;   vm-folder-read-only nil		; don't set this (becomes buffer local!)
       vm-follow-summary-cursor t
 ;;;   vm-forward-message-hook nil
-      vm-forwarded-headers nil		; vm-unforwarded-headers is an
-					; impossible value so all included
+      vm-forwarded-headers nil
       vm-forwarding-digest-type  (if (< vm-version-number 6.0)
 				     "rfc934"
 				   "mime") ; go for the good
-      vm-forwarding-subject-format "%s (forwarded)\nSummary: forwarded message from %F"
+      vm-forwarding-subject-format "%s (forwarded)\nSummary: forwarded message from %F" ; much better!
       vm-frame-parameter-alist nil
       vm-frame-per-completion nil	; no extra frames!
       vm-frame-per-composition nil	; no extra frames!
-      vm-frame-per-edit nil
+      vm-frame-per-edit nil		; no extra frames!
       vm-frame-per-folder nil		; no extra frames!
       vm-frame-per-help t		; ok, maybe one!
       vm-frame-per-summary nil
@@ -932,7 +1000,7 @@ message/rfc822 attachments."
       vm-honor-page-delimiters nil
 ;;;   vm-image-directory "/usr/local/share/emacs/site-lisp/vm/"
       vm-imap-bytes-per-session nil
-      vm-imap-expunge-after-retrieving t
+      vm-imap-expunge-after-retrieving nil ; we'll do this manually
       vm-imap-max-message-size nil
       vm-imap-messages-per-session nil
       vm-imap-session-preauth-hook nil
@@ -940,11 +1008,12 @@ message/rfc822 attachments."
       vm-included-text-attribution-format "[ On %w, %m %d, %y at %h (%z), %F wrote: ]\n> Subject: %s\n>\n"
 					; just the way I like it!
       vm-included-text-discard-header-regexp nil
-      vm-included-text-headers nil	; nah, not worth it...
+      vm-included-text-headers nil
       vm-included-text-prefix "> "
       vm-index-file-suffix nil
       vm-inhibit-startup-message t	; don't bother me with legalese
 ;;;   vm-init-file "~/.vm"
+      vm-infer-mime-types nil
       vm-invisible-header-regexp (concat "^Content-" "\\|"
 					 "^In-[rR]eply-[tT]o:" "\\|"
 					 "^Message-I[dD]:" "\\|"
@@ -971,6 +1040,7 @@ message/rfc822 attachments."
 					 "^X-Received:" "\\|"
 					 "^X-Sender:" "\\|"
 					 "^X-Status:" "\\|"
+					 "^X-UIDL:" "\\|"
 					 "^X-VM-" "\\|"
 					 "^X[rR][eE][fF]:"
 					 )	; these are ugly and meaningless
@@ -978,7 +1048,7 @@ message/rfc822 attachments."
       vm-jump-to-unread-messages t
       vm-keep-crash-boxes "~/tmp/"	; crash inbox saviour
       vm-keep-sent-messages 8		; keep a few for reference
-      vm-mail-check-interval 300
+      vm-mail-check-interval nil	; don't bother -- we don't show  mail-waiting indicator
       vm-mail-header-from (concat (user-login-name) "@" (vm-fqdn t)
 				  " (" (user-full-name) ")") ; this is also for
 							     ; resent-from
@@ -986,11 +1056,12 @@ message/rfc822 attachments."
       vm-mail-header-insert-message-id nil ; don't do this either!
 ;;;   vm-mail-hook nil
 ;;;   vm-mail-mode-hook nil
+;;;   vm-mail-send-hook nil
       vm-make-crash-box-name nil
       vm-make-spool-file-name nil
       vm-mime-7bit-composition-charset "us-ascii"
       vm-mime-8bit-composition-charset "iso-8859-1"
-      vm-mime-8bit-text-transfer-encoding '8bit
+      vm-mime-8bit-text-transfer-encoding '8bit	; just send it, damn it!
       vm-mime-alternative-select-method 'best-internal
       vm-mime-attachment-auto-type-alist '(("\\.jpe?g" . "image/jpeg")
 					   ("\\.gif" . "image/gif")
@@ -1008,18 +1079,30 @@ message/rfc822 attachments."
       vm-mime-base64-decoder-switches nil
       vm-mime-base64-encoder-program "base64-encode" ; let's assume it's installed
       vm-mime-base64-encoder-switches nil
+      vm-mime-button-face 'gui-button-face
       vm-mime-button-format-alist '(("text" . "%-35.35(%d, %c%) [%k to %a]")
-				    ("multipart/alternative" . "%-35.35(%d%) [%k to %a]")
-				    ("multipart/digest" . "%-35.35(%d, %n message%s%) [%k to %a]")
-				    ("multipart" . "%-35.35(%d, %n part%s%) [%k to %a]")
-				    ("message/partial" . "%-35.35(%d, part %N (of %T)%) [%k to %a]")
+				    ("multipart/alternative" .
+				     "%-35.35(%d%) [%k to %a]")
+				    ("multipart/digest" .
+				     "%-35.35(%d, %n message%s%) [%k to %a]")
+				    ("multipart" .
+				     "%-35.35(%d, %n part%s%) [%k to %a]")
+				    ("message/partial" .
+				     "%-35.35(%d, part %N (of %T)%) [%k to %a]")
 				    ("message" . "%-35.35(%d%) [%k to %a]")
 				    ("audio" . "%-35.35(%d%) [%k to %a]")
 				    ("video" . "%-35.35(%d%) [%k to %a]")
 				    ("image" . "%-35.35(%d%) [%k to %a]")
-				    ("application/octet-stream" . "%-35.35(%d, %f%) [%k to %a]")
+				    ("application/octet-stream" .
+				     "%-35.35(%d, %f%) [%k to %a]")
 				    )
-      vm-mime-button-face 'gui-button-face
+;;
+;; is this the only way to get a charset alias into place?
+;;
+;;    vm-mime-mule-charset-to-coding-alist (append
+;;					    vm-mime-mule-charset-to-coding-alist
+;;					    '("gb2312" cn-gb-2312)
+;;					    '("big5" chinese-big5))
       vm-mime-charset-font-alist '(("x-unknown" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-1")
 				   ("us-ascii" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-1")
 				   ("iso-8859-1" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-1")
@@ -1033,18 +1116,24 @@ message/rfc822 attachments."
 				   ("koi8" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-koi8-1")
 				   )	; this should be smarter and use preferred-frame-font
       vm-mime-confirm-delete t
-      vm-mime-delete-after-saving nil
+      vm-mime-decode-for-preview t
       vm-mime-default-face-charset-exceptions nil
       vm-mime-default-face-charsets '("us-ascii"
 				      "iso-8859-1"
-				      "x-unknown"
-				      ) ; pine sometimes uses x-unknown!
-      vm-mime-digest-discard-header-regexp "X400-"
-      vm-mime-digest-headers nil
+				      "x-unknown" ; pine sometimes uses x-unknown!
+				      "Windows-1251" ; non-standard crappy M$ crud
+				      "Windows-1252" ; non-standard crappy M$ crud
+				      "Windows-1257" ; non-standard crappy M$ crud
+				      )
+      vm-mime-delete-after-saving nil
+      vm-mime-delete-viewer-processes t
+      vm-mime-digest-discard-header-regexp "X400-|x-uidl" ; yucky headers
+      vm-mime-digest-headers nil	; digest all the rest
       vm-mime-display-function nil
-      vm-mime-external-content-types-alist '(("text/html" 	"xterm -e lynx -force_html") ; lynx RULES!
-					     ("image/gif" 	"xv")
-					     ("image/jpeg" 	"xv")
+      vm-mime-external-content-types-alist '(("image/gif" 	"xv") ; RMS hates GIF so it must be displayed
+					     ("image"	 	"xv") ; so other types can be too
+;;;  this shouldn't be necessary with 6.92 or newer....
+;;;					     ("text/html" 	"xterm -e links") ; links RULES!
 					     ("video/mpeg" 	"mpeg_play")
 					     ("video" 		"xanim")
 					     ) ; basically from the example
@@ -1052,13 +1141,15 @@ message/rfc822 attachments."
       vm-mime-internal-content-type-exceptions nil
       vm-mime-internal-content-types t
       vm-mime-max-message-size 100000	; that's more than big enough!
-      vm-mime-qp-decoder-program "qp-decode"
+      vm-mime-qp-decoder-program "qp-decode" ; assume it's there
       vm-mime-qp-decoder-switches nil
-      vm-mime-qp-encoder-program "qp-encode"
+      vm-mime-qp-encoder-program "qp-encode" ; assume it's there
       vm-mime-qp-encoder-switches nil
       vm-mime-type-converter-alist '(("application/msword"	"text/plain"	"catdoc -")
 				     ("application/ms-word"	"text/plain"	"catdoc -")
 				     )	; why I should even mention this, I do not know....
+      vm-mime-uuencode-decoder-program "uudecode"
+      vm-mime-uuencode-decoder-switches nil
 ;;;   vm-mode-hook nil
 ;;;   vm-mode-hooks nil			; >6.0?
       vm-mode-line-format '("" "  %&%& "
@@ -1079,15 +1170,21 @@ message/rfc822 attachments."
 			     ("  %[ " vm-ml-message-attributes-alist
 			      (vm-ml-labels ("; " vm-ml-labels)) " %]    ")
 			     ("  %[%]   "))
-			    "%p" "   " global-mode-string) ; show minor-mode too
+			    "%p" "   " global-mode-string) ; show minor-mode
+							   ; too, but not the
+							   ; version ID, nor
+							   ; the "mail-waiting"
+							   ; indicator (it is
+							   ; sufficient to use
+							   ; xbuffy et al!)
       vm-mosaic-program "Mosaic"
       vm-mosaic-program-switches nil
       vm-move-after-deleting t		; keep on rolling
-      vm-move-after-killing nil
+      vm-move-after-killing t		; keep on rolling
       vm-move-after-undeleting nil
       vm-move-messages-physically nil
       vm-movemail-program "movemail"
-      vm-mutable-frames nil
+      vm-mutable-frames nil		; leave my frames alone!
       vm-mutable-windows t
 ;;; because of the silly way call-process works, and the horrid syntax
 ;;; of netscape's -remote option you'll need a script like this in order
@@ -1102,12 +1199,14 @@ message/rfc822 attachments."
 ;; else
 ;; 	rsh $NETSCAPEHOST $NETSCAPEPATH -display $DISPLAY 
 ;; fi
-      vm-netscape-program "netscape"
-      vm-netscape-program-switches (list "-display" my-vm-netscape-display "-install")
-;;; shouldn't mess with this
-;;;   vm-options-file "~/.vm.options"
+      vm-netscape-program "mozilla"
+      vm-netscape-program-switches (list "-display" my-vm-netscape-display)
+;;;;      vm-netscape-program "netscape"
+;;;;      vm-netscape-program-switches (list "-display" my-vm-netscape-display "-install")
 ;;; defaults to (default-value 'fill-column)
 ;;;   vm-paragraph-fill-column
+;;; eventually we'll use this:
+;;;   vm-pop-auto-expunge-alist
       vm-pop-bytes-per-session nil
       vm-pop-expunge-after-retrieving t
       vm-pop-max-message-size nil
@@ -1137,16 +1236,16 @@ message/rfc822 attachments."
 					; just me!
       vm-reply-ignored-reply-tos nil
       vm-reply-subject-prefix "Re: "	; please do the standard thing!
-      vm-resend-bounced-discard-header-regexp "\\(X400-\\)?Received:"
-      vm-resend-bounced-headers nil
+      vm-resend-bounced-discard-header-regexp "\\(X400-\\)?Received:\\|x-uidl:" ; hmmmm?
+      vm-resend-bounced-headers nil	; keep the rest
 ;;;   vm-resend-bounced-message-hook nil
-      vm-resend-discard-header-regexp "\\(\\(X400-\\)?Received:\\|Resent-\\)"
+      vm-resend-discard-header-regexp "\\(\\(X400-\\)?Received:\\|Resent-\\|x-uidl:\\)"	; hmmmm?
       vm-resend-headers nil
 ;;;   vm-resend-message-hook nil
 ;;;   vm-retrieved-spooled-mail-hook nil
-      vm-rfc1153-digest-discard-header-regexp "X400-"
+      vm-rfc1153-digest-discard-header-regexp "\\(X400-\\)?Received:\\|x-uidl:" ; hmmmm?
       vm-rfc1153-digest-headers nil
-      vm-rfc934-digest-discard-header-regexp "X400-"
+      vm-rfc934-digest-discard-header-regexp "\\(X400-\\)?Received:\\|x-uidl:" ; hmmmm?
       vm-rfc934-digest-headers nil
       vm-search-using-regexps nil
 ;;;   vm-select-message-hook nil
@@ -1156,9 +1255,33 @@ message/rfc822 attachments."
       vm-send-using-mime t
       vm-skip-deleted-messages 1	; don't bother if none to see...
       vm-skip-read-messages nil
+      vm-spool-files (eval-and-compile (list ; defaults to just the value of
+					; MAILPATH or MAIL
+		       (list vm-primary-inbox
+			     (getenv "MAIL")
+			     vm-crash-box)
+		       (list vm-primary-inbox
+			     "pop.weird.com:pop:apop:woods:*"
+			     vm-crash-box)
+		       (list (concat vm-primary-inbox ".aci")
+			     "imap:imap.aci.on.ca:imap:inbox:login:woods:*"
+			     (concat vm-crash-box ".aci"))
+		       (list (concat vm-primary-inbox ".soma")
+			     "imap:mail.somanetworks.com:imap:inbox:login:woods:*"
+			     (concat vm-crash-box ".soma"))
+		       (list (concat vm-primary-inbox ".rogers")
+			     "mail.ym1.on.wave.home.com:pop:pass:millswoods:*"
+			     (concat vm-crash-box ".rogers"))
+		       (list (concat vm-primary-inbox ".rogers-netmail")
+			     "netmail.home.com:pop:pass:millswoods:*"
+			     (concat vm-crash-box ".rogers-netmail"))
+		       ))
+			
       vm-spool-file-suffixes nil
+;;;   vm-spooled-mail-waiting-hook nil
       vm-startup-with-summary t
       vm-strip-reply-headers nil
+      vm-subject-significant-chars nil
       vm-summary-format "%3n%*%A %-18.18F %4y/%02M/%02d-%H %4l/%-5c %I\"%s\"\n"
 					; ah, that's better! (except %02d
 					; doesn't put leading zeros out)
@@ -1167,7 +1290,6 @@ message/rfc822 attachments."
 ;;;   vm-summary-mode-hooks nil
 ;;;   vm-summary-redo-hook nil
 ;;;   vm-summary-show-threads nil	; this is buffer-local
-      vm-summary-subject-no-newlines t
       vm-summary-thread-indent-level 2
       vm-summary-uninteresting-senders (concat "\\("
 					        "\\b"
@@ -1188,49 +1310,27 @@ message/rfc822 attachments."
 ;;;   vm-toolbar-pixmap-directory "/usr/local/share/emacs/site-listp/vm/"
       vm-trust-From_-with-Content-Length nil
 ;;;   vm-undisplay-buffer-hook nil
-      vm-unforwarded-header-regexp "only-drop-this-header"
+      vm-unforwarded-header-regexp "x-uidl:"	; hmmmm?
       vm-url-browser 'vm-mouse-send-url-to-netscape
       vm-url-search-limit 1000000	; the more the merrier
-      vm-use-menus '(folder
-		     motion
-		     send
-		     mark
-		     label
-		     sort
-		     virtual
-		     undo
-		     dispose
-		     emacs
-		     nil
-		     help
-		     )
-      vm-use-toolbar '(next
-		       previous
-		       delete/undelete
-		       autofile
-		       file
-		       reply
-		       compose
-		       print
-		       visit
-		       quit
-		       nil
-		       help
-		       )
+      vm-use-menus '(folder motion send mark label sort virtual undo dispose emacs
+			    nil help)
+      vm-use-toolbar '(next previous delete/undelete autofile file reply compose
+		  print visit quit nil help)
 ;;;   vm-virtual-folder-alist			; see below....
       vm-virtual-folder-case-fold-search t	; I want everything to match!
       vm-virtual-mirror t
       vm-visible-headers '("Resent-Date:" "Date:"
 			   "Newsgroups:"	; better for forwarded news
 			   "Resent-From:" "From:"
-			   "Resent-Reply-To:" "Reply-To:"
 			   "Organization:"
-			   "Subject:"
+			   "Resent-Reply-To:" "Reply-To:"
 			   "Resent-To:" "To:"
 			   "Resent-Apparently-To:" "Apparently-To:"
 			   "Resent-Cc:" "Cc:"
 			   "Resent-Bcc:" "Bcc:"
 			   "Delivered-To:"
+			   "Subject:"
 			   )		; vm-invisible-header-regexp is set,
 					; this defines only the display order
 ;;;   vm-visit-folder-hook nil
@@ -1247,6 +1347,8 @@ message/rfc822 attachments."
 			      ("8lgm-advisories@8lgm.org" . "8lgm-l")
 			      ("admin-l@io.org" . "planix/io-admin-l")
 			      ("aegis-users@" . "aegis-users-l")
+			      ("amanda-hackers@" . "amanda-hackers-l")
+			      ("amanda-users@" . "amanda-users-l")
 			      ("announce-vm@" . "bug-vm") ; merging too...
 			      ("auto-net@" . "auto-net-l")
 			      ("autoconf@" . "autoconf-l")
@@ -1284,6 +1386,7 @@ message/rfc822 attachments."
 			      ("pcl-cvs-auto-bugs@" . "pcl-cvs-l")
 			      ("prcs-list@" . "prcs-l")
 			      ("qotd@" . "qotd-l")
+			      ("quotationoftheday@" . "qotd-l")
 			      ("rc@hawkwind.utcs.toronto.edu" . "rc-l")
 			      ("rescue@sunhelp.org" . "sunhelp-rescue-l")
 			      ("rs-info@" . "rs-info-l")
@@ -1295,6 +1398,8 @@ message/rfc822 attachments."
 			      ("smail3-wizards@" . "smail3-wizards-l")
 			      ("spamtools@" . "spamtools-l")
 			      ("sparcbook-owners@" . "sparcbook-owners-l")
+			      ("squeak@" . "squeak-l")
+			      ("squeak-dev@" . "squeak-l")
 			      ("ssh@" . "ssh-l")
 			      ("stk@" . "stk-l")
 			      ("tkined@" . "tkined-l")
@@ -1302,6 +1407,7 @@ message/rfc822 attachments."
 			      ("zmailer@" . "zmailer-l")
 			      ;; various netbsd lists
 			      ("source-changes@netbsd.org" . "netbsd/source-changes")
+			      ("pkgsrc-changes@netbsd.org" . "netbsd/pkgsrc-changes")
 			      ("current-users@netbsd.org" . "netbsd/current-users")
 			      ("\\(tech-[^@%]+\\)[@%]netbsd.org" .
 			       (concat "netbsd/"
@@ -1335,12 +1441,14 @@ message/rfc822 attachments."
 			      ("ciac-bulletin@" . "ciac-l")
 			      ("ciac-notes@" . "ciac-l")
 			      ("iap@vma.cc.nd.edu" . "iap-l")
+			      ("geeks-admin@sunhelp.org" . "sungeeks-l")
 			      ("owner-admin-l@io.org" . "planix/io-admin-l")
 			      ("owner-datacenter@" . "datacenter-l")
 			      ("owner-dce@" . "dce-l")
 			      ("owner-devel-cvs@" . "devel-cvs-l")
 			      ("owner-fwtk-users@" . "fwtk-l")
 			      ("owner-namedroppers@internic.net" . "namedroppers-l")
+			      ("mw-wod@" . "mw-wod-l")
 			      ("owner-net-dist@nikhef.nl" . "nikhef.net-dist-l")
 			      ("owner-pcl-cvs@" . "pcl-cvs-l")
 			      ("owner-rs-info@internic.net" . "rs-info-l")
@@ -1349,13 +1457,15 @@ message/rfc822 attachments."
 			       (concat "netbsd/"
 				       (buffer-substring (match-beginning 1)
 							 (match-end 1))))
+			      ("rescue-admin@sunhelp.org" . "sunrescue-l")
 			      )
 			     ;; From: entries here.
 			     ("^\\(from\\|resent-from\\)"
 			      ("0xdeadbeef@" . "0xdeadbeef-l")
 			      ("gegai@.*io\\.org" . "from/andy")
-			      ("Andy_Mills@jdedwards.com" . "from/andy")
-			      ("gnats-bugs@netbsd.org" . "netbsd/gnats-bugs")
+			      ("Andy_Mills@jdedwards\\.com" . "from/andy")
+			      ("andy.mills@schwab.*\\.com" . "from/andy")
+			      ("gnats-bugs@netbsd\\.org" . "netbsd/gnats-bugs")
 			      ;; code to make auto-folder default to the user name of the sender.
 			      ;; this should be last in the auto folder alist since it tends to
 			      ;; always match something.
@@ -1406,23 +1516,29 @@ message/rfc822 attachments."
 		      (recipient "dce@"))))
 		("Languages"
 		 (("INBOX")
-		  (recipient "stk@")))
+		  (or (recipient "squeak@")
+		      (recipient "squeak-dev@")
+		      (recipient "stk@"))))
+		("Monitoring"
+		 (("INBOX")
+		  (recipient "cricket-users@")))
 		("NANOG"
 		 (("INBOX")
 		  (or (recipient "nanog@")
 		      (recipient "nanog-announce@"))))
 		("SSH"
 		 (("INBOX")
-		  (recipient "ssh@")))
+		  (or (recipient "ssh@")
+		      (recipient "secureshell@securityfocus.com"))))
 		("VM"
 		 (("INBOX")
 		  (or (recipient "bug-vm@")
 		      (recipient "announce-vm@")
 		      (recipient "info-vm@"))))
-		("automake"
+		("amanda"
 		 (("INBOX")
-		  (or (recipient "automake@")
-		      (recipient "autoconf@"))))
+		  (or (recipient "amanda-hackers@")
+		      (recipient "amanda-users@"))))
 		("cvs"
 		 (("INBOX")
 		  (or (recipient "bug-cvs@")
@@ -1444,13 +1560,6 @@ message/rfc822 attachments."
 		 (("INBOX")
 		  (or (recipient "lout@niif.spb.su")
 		      (recipient "lout@ptc.spbu.ru"))))
-		("gnu-emacs"
-		 (("INBOX")
-		  (or (recipient "bug-gnu-emacs@")
-		      (recipient "bugs-gnu-emacs@") ; every damn spelling????
-		      (recipient "gnu-emacs-sources@")
-		      (recipient "info-gnu-emacs@")
-		      (recipient "gnu-emacs-bug@"))))
 		("exim"
 		 (("INBOX")
 		  (or (recipient "exim-users@")
@@ -1481,6 +1590,7 @@ message/rfc822 attachments."
 		("netbsd-source-changes"
 		 (("INBOX")
 		  (or (recipient "source-changes@")
+		      (recipient "pkgsrc-changes@")
 		      (recipient "source@netbsd.org"))))
 		("netbsd-tech"
 		 (("INBOX")
@@ -1489,6 +1599,7 @@ message/rfc822 attachments."
 		      (recipient "tech-kern@")
 		      (recipient "tech-misc@")
 		      (recipient "tech-net@")
+		      (recipient "tech-perform@")
 		      (recipient "tech-pkg@")
 		      (recipient "tech-ports@")
 		      (recipient "tech-security@")
@@ -1515,18 +1626,20 @@ message/rfc822 attachments."
 		 (("INBOX")
 		  (or (recipient "pcl-cvs-auto-bugs@")
 		      (recipient "pcl-cvs@"))))
+		("security-stuff"
+		 (("INBOX")
+		  (or (recipient "sectools@")
+		      (recipient "secpapers@"))))
 		("smail3"
 		 (("INBOX")
 		  (recipient "smail3")))
 		("spam-stuff"
 		 (("INBOX")
 		  (recipient "spamtools@")))
-		("sparcbook-owners"
-		 (("INBOX")
-		  (recipient "sparcbook-owners@")))
 		("sunhelp"
 		 (("INBOX")
-		  (recipient "rescue@sunhelp.org")))
+		  (or (recipient "rescue@sunhelp.org")
+		      (recipient "geeks@sunhelp.org"))))
 		("tkined"
 		 (("INBOX")
 		  (recipient "tkined@")))
