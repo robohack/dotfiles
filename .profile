@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	3.4	94/03/08 17:13:08 (woods)"
+#ident	"@(#)HOME:.profile	3.5	94/03/25 18:20:32 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -82,7 +82,7 @@ dirprepend ()
 }
 
 case "$UUNAME" in
-robohack )
+robohack | toile | wombat )
 	;;
 * )
 	PATH="/bin" ; export PATH
@@ -268,17 +268,28 @@ MONTH="AIKO" ; export MONTH
 
 RNINIT="-v -M -S -T -i=8 -g2" ; export RNINIT
 TRNINIT='-v -M -S -T -i=8 -g2 -F"> " -X3 -x6"' ; export TRNINIT
+STRNINIT='-v -M -S -T -i=8 -g2 -F"> " -X3 -x6"' ; export TRNINIT
 MAILPOSTER="Rnmush -h %h" ; export MAILPOSTER
 
 # set terminal type..
-if [ "$UUNAME" != "robohack" ] ; then
+case "$UUNAME" in
+robohack )
+	;;
+toile | wombat )
+	if [ -r $HOME/.kshedit ] ; then
+		if grep "^set -o vi" $HOME/.kshedit ; then
+			stty intr '^?'
+		fi
+	fi
+	;;
+* )
 	echo "Re-setting terminal preferences...."
 	stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
-	TERM=`tset -r - -m dmd:dmd -m sun:sun -m xterm:xterm -m at386:at386 -m AT386:at386 -m :?$TERM`
+	TERM=`tset -r - -m vt102:vt102 -m dmd:dmd -m sun:sun -m xterm:xterm -m at386:at386 -m AT386:at386 -m :?$TERM`
 	case $TTY in
 	/dev/tty[p-zP-Z]* | /dev/vt* | /dev/console )
 		echo "Setting up an 8-bit tty environment...."
-		stty cs8 -istrip
+		stty cs8 -istrip -parenb
 		;;
 	esac
 	if [ -d $HOME/lib/terminfo ] ; then
@@ -297,7 +308,8 @@ if [ "$UUNAME" != "robohack" ] ; then
 		echo 'You have mail:'
 		mush -H:n
 	fi
-fi
+	;;
+esac
 
 SANE="`stty -g`" ; export SANE
 
@@ -370,6 +382,15 @@ if $HAVEX && [ "`tty`" = "/dev/console" ] ; then
 %(%(%[from]=(\\(..*\\))$?%1:%[from])                        \
 =^\\(........................\\)?%1)" 
 				-ESAVENAME="%`%X/savename %^C`"' ; export TRNINIT
+		STRNINIT='-v -M -S -i=8 -g2 -F"> " -X3 -x6
+				-ERNMACRO='$LOCAL'/lib/strn/Macros
+				-ESUBJLINE="%(%[subject]                                              \
+=^\\(..............................................\\)?\
+%1:%[subject]) \
+%(%(%[lines]=^$? %z:       (%[lines]\\))=  *\\(......\\)$\\|\\(.*\\)?%0) \
+%(%(%[from]=(\\(..*\\))$?%1:%[from])                        \
+=^\\(........................\\)?%1)" 
+				-ESAVENAME="%`%X/savename %^C`"' ; export TRNINIT
 		trap '' 2
 		xinit
 		tput clear
@@ -408,6 +429,15 @@ if $HAVELAYERS && [ "$TERM" = "dmd" -a "`ismpx`" != "yes" ] ; then
 				-ESAVENAME="%`%X/savename %^C`"' ; export RNINIT
 		TRNINIT='-v -M -S -i=8 -g2 -F"> " -X3 -x6
 				-ERNMACRO='$LOCAL'/lib/trn/Macros
+				-ESUBJLINE="%(%[subject]                                              \
+=^\\(..............................................\\)?\
+%1:%[subject]) \
+%(%(%[lines]=^$? %z:       (%[lines]\\))=  *\\(......\\)$\\|\\(.*\\)?%0) \
+%(%(%[from]=(\\(..*\\))$?%1:%[from])                        \
+=^\\(........................\\)?%1)" 
+				-ESAVENAME="%`%X/savename %^C`"' ; export TRNINIT
+		STRNINIT='-v -M -S -i=8 -g2 -F"> " -X3 -x6
+				-ERNMACRO='$LOCAL'/lib/strn/Macros
 				-ESUBJLINE="%(%[subject]                                              \
 =^\\(..............................................\\)?\
 %1:%[subject]) \
