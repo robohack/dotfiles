@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	20.6	99/04/21 21:21:49 (woods)"
+#ident	"@(#)HOME:.ctwmrc	20.7	99/04/21 23:51:14 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -100,7 +100,7 @@ IconManagerShadowDepth		3
 MaxWindowSize			"WIDTH[x]HEIGHT"
 MenuShadowDepth			3
 MoveDelta			3
-OpaqueMoveThreshold		40	# window % of screen size
+OpaqueMoveThreshold		80	# window % of screen size
 #OpaqueResizeThreshold		80	# turned off above
 TitleButtonShadowDepth		3
 TitleShadowDepth		3
@@ -116,9 +116,13 @@ MenuFont	"-*-clean-bold-r-normal-*-*-90-100-100-*-*-*-*"
 IconFont	"-*-courier-bold-o-normal-*-*-80-100-100-*-*-*-*"
 IconManagerFont	"-*-helvetica-bold-r-normal-*-*-80-100-100-*-*-*-*"
 
+# Define some useful functions for motion-based actions.
 # DefaultFunction must come after fonts....
-DefaultFunction f.beep
-
+#
+ChangeWorkspaceFunction		!"AUPLAY HOME/lib/sounds/wschange &"
+IconifyFunction			!"AUPLAY HOME/lib/sounds/iconify &"
+DeIconifyFunction		!"AUPLAY HOME/lib/sounds/deiconify &"
+DefaultFunction			!"AUPLAY HOME/lib/sounds/default &"
 
 # this really means if screen is >= 1600x1200
 ifelse(HOSTNAME, very.weird.com,
@@ -134,7 +138,8 @@ WorkSpaces {
 	"Work 2"
 }
 
- ifelse(COLOR, Yes, [
+ifelse(COLOR, Yes, [
+
 Color {
 	# highlit window borders
 	BorderColor		"SteelBlue"
@@ -178,7 +183,10 @@ MapWindowDefaultWorkSpace {
 	"grey98"
 	"grey50"
 }
- ], [
+
+# else not COLOR
+], [
+
 Monochrome {
 	BorderColor		"grey70"
 	BorderTileBackground	"grey6"
@@ -206,7 +214,9 @@ MapWindowDefaultWorkSpace {
 	"grey98"
 	"grey50"
 }
- ])
+
+# end not COLOR
+])
 
 IconJustification		"right"
 
@@ -216,9 +226,9 @@ IconRegion	"500x250-0+300" North East 25 25
 #
 IconDirectory	"HOME/lib/bitmaps"
 
- ifdef([XPM], [
+ifdef([XPM], [
 PixmapDirectory	"HOME/lib/pixmaps:/usr/lib/X11/twm/images"
- ])
+])
 
 IconManagerDontShow {
 	"oclock"
@@ -244,7 +254,7 @@ Icons {
 	"xcmap"		"plaid"
 	"XConsole"	"terminal"
 	"emacs"		"gnu.xbm"	# only when no '-i' given
- ifdef([XPM], [
+  ifdef([XPM], [
 	"auedit"	"xpm:audio_editor.xpm"
 	"ghostview"	"xpm:ghostview.xpm"
 	"log0"		"xpm:document-simple.xpm"
@@ -260,10 +270,10 @@ Icons {
 	"xpostit"	"xpm:postit.xpm"
 	"XSm"		"xpm:xgrab.xpm"
 	"xterm"		"xpm:term.xpm"
- ], [
+   ], [
 	"swissclock"	"clock.xbm"
 	"xterm"		"Term"
- ])
+   ])
 }
 
 Cursors {
@@ -330,14 +340,6 @@ WarpCursor {
 	"xterm"
 }
 
-# Define some useful functions for motion-based actions.
-#
-
-ChangeWorkspaceFunction		!"AUPLAY HOME/lib/sounds/wschange &"
-IconifyFunction			!"AUPLAY HOME/lib/sounds/iconify &"
-DeIconifyFunction		!"AUPLAY HOME/lib/sounds/deiconify &"
-DefaultFunction			!"AUPLAY HOME/lib/sounds/default &"
-
 Function "forcemove-or-lower"	{ f.forcemove f.deltastop f.lower }
 Function "forcemove-or-raise"	{ f.forcemove f.deltastop f.raise }
 Function "forcemove-or-iconify"	{ f.forcemove f.deltastop f.iconify }
@@ -387,8 +389,8 @@ Button2 =      : iconmgr : f.raise
 Button3 =      : iconmgr : f.lower
 
 ifdef([XPM],
-[LeftTitleButton ":xpm:bar" = f.menu "winops"],
-[LeftTitleButton "menu12" = f.menu "winops"])
+ [LeftTitleButton ":xpm:bar" = f.menu "winops"],
+ [LeftTitleButton "menu12" = f.menu "winops"])
 
 "F11"	=      : root	: f.nextworkspace
 "F12"	=      : root	: f.prevworkspace
@@ -555,8 +557,6 @@ menu "preferences"
 	"Bug Compat Off"	!"xset -bc"
 	"ReHash FP"		!"xset fp rehash"
 	"Reset FP Default"	!"xset fp default"
-##	"Prefer 75dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Type1/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/75dpi/,/usr/lib/X11/fonts/100dpi/,/usr/lib/X11/fonts/PEX/"
-##	"Prefer 100dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Type1/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/100dpi/,/usr/lib/X11/fonts/75dpi/,/usr/lib/X11/fonts/PEX/"
 ##	"Video Inverse"		!"xset p 1 0"
 ##	"Video Normal"		!"xset p 0 1"
  ifelse(COLOR, Yes,
@@ -585,7 +585,8 @@ ifelse(COLOR, Yes,
 	"Delete red"		!"xstdcmap -delete red -verbose &"	
 	"Delete green"		!"xstdcmap -delete green -verbose &"	
 	"Delete blue"		!"xstdcmap -delete blue -verbose &"	
-}], [])
+}
+], [])
 
 menu "screensaver"
 {
@@ -660,7 +661,7 @@ menu "applications"
 menu "audios"
 {
 	"Audio Tools"			f.title
-	"audemo"			!"cd /local/audio; audemo &"
+	"audemo"			!"cd HOME/lib/sounds; audemo &"
 	"auedit"			!"auedit &"
 	"aupanel"			!"aupanel &"
 	"auphone"			!"auphone &"
