@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.20	99/06/10 11:56:50 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.21	99/07/22 18:52:36 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -869,7 +869,7 @@ message/rfc822 attachments."
 ;;;   vm-summary-mode-hook nil		; < 6.0?
 ;;;   vm-summary-mode-hooks nil
 ;;;   vm-summary-redo-hook nil
-      vm-summary-show-threads nil
+;;;   vm-summary-show-threads nil	; this is buffer-local
       vm-summary-subject-no-newlines t
       vm-summary-thread-indent-level 2
       vm-summary-uninteresting-senders (concat "\\("
