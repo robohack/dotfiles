@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	20.5	99/03/26 00:49:34 (woods)"
+#ident	"@(#)HOME:.profile	20.6	99/04/06 13:33:30 (woods)"
 
 #
 # Assumptions that may cause breakage:
@@ -32,6 +32,9 @@
 #
 #	.localprofile may set $PATH_IS_OKAY to "true" if it is so.
 #
+
+umask 022
+ulimit -S -p 99999		# make it equal the hard limit
 
 if [ -r $HOME/.bashlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} -a -n "${BASH}" ] ; then
 	trap '. $HOME/.bashlogout ; exit $?' 0
