@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	8.2	95/02/15 17:55:59 (woods)"
+#ident	"@(#)HOME:.profile	8.3	95/02/17 14:07:07 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -355,6 +355,7 @@ if [ -n "$APCCONFIG" ] ; then
 		APCEDITOR="`type $VISUAL`" ; export APCEDITOR
 		APCEDITOR="`expr "$APCEDITOR" : '^[^/]*\(/.*\)$'`"
 		#
+		dirappend PATH /usr/local/apc/xbin /usr/local/apc/bin
 		dirprepend MANPATH /usr/catman
 		;;
 	sunweb )
@@ -380,7 +381,7 @@ if [ -n "$APCCONFIG" ] ; then
 		APCEDITOR="$VISUAL" ; export APCEDITOR
 		;;
 	esac
-	dirappend PATH $APCCONFIG/bin /apc/bin /apc/xbin
+	dirappend PATH $APCCONFIG/bin $APCCONFIG/xbin /apc/bin /apc/xbin
 	dirappend PATH /usr/local/apc/bin /usr/local/apc/xbin
 	dirappend MANPATH /apc/man
 	if [ -d $HOME/.pn ] ; then
