@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.16	93/11/26 12:04:44 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	1.17	93/11/26 12:08:26 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -665,6 +665,7 @@ display-buffer for it"
 ;
 ;(if (elisp-file-in-loadpath-p "framepop")
 ;    (progn
+;      (setq framepop-prefix-map (lookup-key global-map "\C-c\C-f"))
 ;      (if (not (keymapp framepop-prefix-map))
 ;	  (progn
 ;	    (setq framepop-prefix-map (make-sparse-keymap))
