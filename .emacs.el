@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.16	96/02/09 11:10:09 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.17	96/02/09 16:03:26 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -243,6 +243,15 @@ directory in the list PATHLIST, otherwise nil."
 	  (append
 	   '(("/[Mm]ake[^/]*$" . makefile-mode))
 	   '(("/[^/]+\\.mk$" . makefile-mode))
+	   auto-mode-alist)))
+
+;; assume the autoloads are done for this...
+(if (elisp-file-in-loadpath-p "sgml-mode")
+    (setq auto-mode-alist
+	  (append
+	   '(("\.sgml$" . sgml-mode))
+	   '(("\.html$" . sgml-mode))	; FIXME: delete this when the real
+					; thing comes along....
 	   auto-mode-alist)))
 
 ;; assume the autoloads are done for this...
