@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	1.8	97/12/03 11:55:46 (woods)"
+#ident	"@(#)HOME:.ctwmrc	1.9	97/12/06 20:15:57 (woods)"
 #
 
 AutoRelativeResize
@@ -758,6 +758,7 @@ menu "www-netscape"
 	"@weirdo"	!"$RSH -n ns.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
 	"@sometimes"	!"$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
 	"@always"	!"$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
+	"@pretty"	!"$RSH -n pretty.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
 	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
 }
 
@@ -769,6 +770,7 @@ menu "www-netscape-96"
 	"@weirdo"	!"$RSH -n ns.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -ncol 96 -display $DISPLAY &"
 	"@sometimes"	!"$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -ncol 96 -display $DISPLAY &"
 	"@always"	!"$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -ncol 96 -display $DISPLAY &"
+	"@pretty"	!"$RSH -n pretty.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -ncol 96 -display $DISPLAY &"
 	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -ncol 96 -display $DISPLAY &"
 }
 
@@ -780,6 +782,7 @@ menu "www-netscape-cmap"
 	"@weirdo"	!"$RSH -n ns.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
 	"@sometimes"	!"$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -install -display $DISPLAY &"
 	"@always"	!"$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -install -display $DISPLAY &"
+	"@pretty"	!"$RSH -n pretty.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
 	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
 }
 
