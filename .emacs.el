@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	6.1	94/01/10 19:49:22 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	6.2	94/01/25 14:03:57 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -96,10 +96,8 @@ directory in the list PATHLIST, otherwise nil."
 (if (elisp-file-in-loadpath-p "time")
     (dont-compile
       ; display-time can't check "Status:" headers or "Forward to" files
-      (if (= init-emacs-type '19)
-	  (defun display-time-file-nonempty-p (file)
-	    nil)
-	(setq display-time-mail-file "/THIS-IS-NOT-A-FILE"))
+      (if (/= init-emacs-type '19)
+	  (setq display-time-mail-file "/THIS-IS-NOT-A-FILE"))
       (setq display-time-day-and-date t)
       (if (= init-emacs-type '19)
 	  (setq display-time-24hr-format t))
@@ -142,6 +140,14 @@ directory in the list PATHLIST, otherwise nil."
 
 (if (elisp-file-in-loadpath-p "ksh-mode")
     (autoload 'ksh-mode "ksh-mode" "Major mode for editing sh Scripts." t))
+
+; must appear after display-time is invoked (thus after time.el is loaded)
+; [only called on emacs-19(?)]
+; 
+(defun display-time-file-nonempty-p (file)
+  "This function returns 'nil, as it would only be useful if it could check
+Status: headers for O, or Forward to in mailboxes."
+  nil)
 
 ;; ----------
 ;; some property defintions...
