@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	26.1	03/01/05 16:26:09 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	26.2	03/01/05 17:14:42 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -149,6 +149,7 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 	    nil))))
 
 ;;; This could probably be rewritten to use mapcar
+;;;
 (defun elisp-file-in-loadpath-p (file-name)
   "Returns t if there is an emacs lisp-library of the name FILENAME in
 the load-path list. Matching is first done by looking for the file
@@ -392,12 +393,16 @@ when our preferred font is not available."
 (setq delete-auto-save-files t)		; delete auto-save file when saved
 (setq enable-local-variables 1)		; non-nil, non-t means query...
 (setq file-name-handler-alist nil)	; turn off ange-ftp entirely
+(if (< init-emacs-type 21)
+    (defvar indicate-empty-lines))
 (setq indicate-empty-lines t)		; show which window lines are past the EOF
 (setq make-backup-files nil)		; too much clutter
 (setq message-log-max 1000)		; default of 50 loses too much!
 (setq next-line-add-newlines nil)	; I hate it when it does that!  ;-)
 (setq search-highlight 1)		; not sure when this begins to work
 (setq sentence-end-double-space t)	; just to be absolutely sure!
+(if (< init-emacs-type 21)
+    (defvar tab-always-indent))
 (setq tab-always-indent nil)		; silly
 (setq track-eol nil)			; too hard to control (it's sticky!)
 (setq window-min-height 1)		; don't be snobbish
@@ -405,6 +410,7 @@ when our preferred font is not available."
 
 (setq sentence-end
       "[.?!][]\"')}]*\\($\\| $\\|\t\\|  \\)[ \t\n]*") ; also to make sure!
+
 
 (require 'compile)
 (setq compilation-window-height 10)	; default height for a compile window
@@ -1653,6 +1659,8 @@ Use `list-faces-display' to see all available faces")
   (setq tab-width 8)			; normal, standard, default TAB chars
   (setq fill-column 79)
   (setq comment-column 48)
+  (if (< init-emacs-type 21)
+    (defvar comment-style))
   (setq comment-style 'extra-line)	; not used, but maybe someday?
   (setq indent-tabs-mode t)		; only use tabs
 
@@ -2356,59 +2364,69 @@ current emacs server process..."
 ;;;; timeclock.el stuff
 ;;;;
 
-;; You'll probably want to bind the timeclock commands to some handy
-;; keystrokes.  At the moment, C-c t is unused in Emacs 21 (and here in
-;; ~/.emacs.el):
-;;
-(require 'timeclock)
+(if (elisp-file-in-loadpath-p "timeclock")
+    (progn
+      ;; You'll probably want to bind the timeclock commands to some handy
+      ;; keystrokes.  At the moment, C-c t is unused in Emacs 21 (and here in
+      ;; ~/.emacs.el):
+      ;;
+      (require 'timeclock)
 
-(setq timeclock-use-display-time t)
+      (if (< init-emacs-type 21)
+	  (defvar timeclock-use-display-time))
+      (setq timeclock-use-display-time t)
 
-;; NOTE:  you must have a ~/.timelog file or this will crap out...
-;;
-(if (file-exists-p "~/.timelog")
-    (timeclock-modeline-display))
+      ;; NOTE:  you must have a ~/.timelog file or this will crap out...
+      ;;
+      (if (file-exists-p "~/.timelog")
+	  (timeclock-modeline-display))
 
-;; There's probably a better way to do this....
-;;
-(defun timeclock-bindings-help ()
-  "Show help for timeclock bindings"
-  (interactive)
-  (message
-   "i - in, c - change, o - out, r - reread-log, u - update-mode, v - visit-log, w - when-to-leave"))
-
-(defun my-timeclock-generate-report (&optional html-p)
-  "Show help for timeclock bindings"
-  (interactive "p")
-  (setq html-p (> html-p 1))
-  (set-buffer (get-buffer-create (if html-p
-				     "*TimeClock HTML Report*"
-				   "*TimeClock Report*")))
-  (setq buffer-read-only nil)
-  (erase-buffer)
-  (timeclock-generate-report html-p)
-  (pop-to-buffer (current-buffer)))
-
-(define-key global-map "\C-ct?" 'timeclock-bindings-help) ; XXX should use help-char
-(define-key global-map "\C-cti" 'timeclock-in)
-(define-key global-map "\C-cto" 'timeclock-out)
-(define-key global-map "\C-ctc" 'timeclock-change)
-(define-key global-map "\C-cts" 'timeclock-status-string)
-(define-key global-map "\C-ctr" 'timeclock-reread-log)
-(define-key global-map "\C-ctu" 'timeclock-update-modeline)
-(define-key global-map "\C-ctv" 'timeclock-visit-timelog)
-(define-key global-map "\C-ctw" 'timeclock-when-to-leave-string)
+      ;; There's probably a better way to do this....
+      ;;
+      (defun timeclock-bindings-help ()
+	"Show help for timeclock bindings"
+	(interactive)
+	(message
+	 "i - in, c - change, o - out, r - reread-log, u - update-mode, v - visit-log, w - when-to-leave"))
+      
+      (defun my-timeclock-generate-report (&optional html-p)
+	"Show help for timeclock bindings"
+	(interactive "p")
+	(setq html-p (> html-p 1))
+	(set-buffer (get-buffer-create (if html-p
+					   "*TimeClock HTML Report*"
+					 "*TimeClock Report*")))
+	(setq buffer-read-only nil)
+	(erase-buffer)
+	(timeclock-generate-report html-p)
+	(pop-to-buffer (current-buffer)))
+      
+      (define-key global-map "\C-ct?" 'timeclock-bindings-help) ; XXX should use help-char
+      (define-key global-map "\C-cti" 'timeclock-in)
+      (define-key global-map "\C-cto" 'timeclock-out)
+      (define-key global-map "\C-ctc" 'timeclock-change)
+      (define-key global-map "\C-cts" 'timeclock-status-string)
+      (define-key global-map "\C-ctr" 'timeclock-reread-log)
+      (define-key global-map "\C-ctu" 'timeclock-update-modeline)
+      (define-key global-map "\C-ctv" 'timeclock-visit-timelog)
+      (define-key global-map "\C-ctw" 'timeclock-when-to-leave-string)
+      ))
 
 ;;;;
 ;;;; todo stuff....
 ;;;;
 
-;; todo-mode autoloads itself and may even be autoloaded by calendar....
+(if (elisp-file-in-loadpath-p "todo-mode")
+    (progn
+      ;; todo-mode autoloads itself and may even be autoloaded by calendar....
 
-(setq todo-prefix "&%%(equal (calendar-current-date) date)")
+      (if (< init-emacs-type 21)
+	  (defvar todo-prefix))
+      (setq todo-prefix "&%%(equal (calendar-current-date) date)")
 
-(global-set-key "\C-cTs" 'todo-show) ;; switch to TODO buffer
-(global-set-key "\C-cTi" 'todo-insert-item) ;; insert new item
+      (global-set-key "\C-cTs" 'todo-show) ;; switch to TODO buffer
+      (global-set-key "\C-cTi" 'todo-insert-item) ;; insert new item
+      ))
 
 ;;;;
 ;;;; mail-mode stuff....
