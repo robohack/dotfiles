@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.31	96/11/25 16:33:17 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.32	96/12/02 10:22:13 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -249,6 +249,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("admin-l@io.org" . "planix/io-admin-l")
 			      ("aegis-users@" . "aegis-users-l")
 			      ("auto-net@" . "auto-net-l")
+			      ("best-of-security@suburbia.net" . "best-of-security-l")
 			      ("bind@" . "bind-l")
 			      ("bind-users@" . "bind-users-l")
 			      ("bind-workers@" . "bind-workers-l")
