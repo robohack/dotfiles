@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	18.5	97/04/03 10:21:30 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	18.6	97/04/04 00:44:43 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -462,6 +462,46 @@ scripts (alias)." t)
 ;   (interactive "_")
 ;   (setq rb-up nil)
 ;   (rb-page-move))
+
+;;Message-Id: <199704040329.AA197244558@martigny.ai.mit.edu>
+;;In-Reply-To: <199704040014.QAA17341@june.cs.washington.edu>
+;;	(dyaitskov@insystems.com)
+;;From: Bill Dubuque <wgd@martigny.ai.mit.edu>
+;;To: dyaitskov@insystems.com
+;;Cc: ntemacs-users@cs.washington.edu, help-gnu-emacs@prep.ai.mit.edu,
+;;        bug-gnu-emacs@prep.ai.mit.edu, rms@gnu.ai.mit.edu,
+;;        wgd@martigny.ai.mit.edu
+;;Date: Thu, 3 Apr 1997 22:29:16 -0500
+;;Subject: Re: undo question
+;;
+;;Try something like the following for a 'redo' command. 
+;;
+;;WARNING: just like 'undo', this will only work if you bind it
+;;to a keychord -- "M-x redo" won't do the trick. The problem
+;;is that these commands test 'last-command' to determine their
+;;state, but when you invoke them via "M-x...", 'last-command'
+;;is clobbered by the commands you execute in the minibuffer
+;;after typing in "M-x..." (so 'last-command' will end up being 
+;;'self-insert-command'). This is a bug/misfeature in Emacs.
+;;
+;;RMS: Perhaps minibuffer invocation should preserve 'last-command'.
+;;
+(defun redo (&optional arg)
+  "Redo some previous changes.
+Repeat this command to redo more changes.
+Cannot be invoked from the minibuffer -- must be bound.
+A numeric argument serves as a repeat count."
+  (interactive "*p")
+  (cond ((eq last-command 'redo)
+         (let ((last-command 'undo))
+	   (undo arg)))
+        ((eq last-command 'undo)
+	 (let ((last-command 'nosuch))
+	   (undo arg)))
+        (t (error "Can't redo: last command was not undo but %s"
+                  last-command)))
+  (setq this-command 'redo))
+(global-set-key "\C-xc" 'redo)
 
 ;;Message-Id: <9507291206.AA01499@owl.hq.ileaf.com>
 ;;From: karl@owl.hq.ileaf.com (Karl Berry)
