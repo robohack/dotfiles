@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	19.5	98/02/02 10:53:23 (woods)"
+#ident	"@(#)HOME:.xinitrc	19.6	98/02/15 02:21:48 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -156,6 +156,13 @@ if [ -z "$ONX11SERVER" ] ; then
 			echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
 			# now start special programs we like for this scenario
 			$ONX11SERVER $X11BIN/xbuffy -mail /var/spool/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/opt/games/bin/auplay -audio '$AUDIOSERVER' /local/audio/newmail1.au"' &
+			;;
+		almost.weird.com)
+			ONX11SERVER="$RSH -n most.weird.com exec"
+			export ONX11SERVER
+			echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
+			# now start special programs we like for this scenario
+			$ONX11SERVER $X11BIN/xbuffy -mail /var/spool/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &
 			;;
 		*)
 			# not setting this just makes WM run stuff on the
