@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	26.1	03/01/05 16:26:10 (woods)"
+;;;#ident	"@(#)HOME:.vm	26.2	03/11/23 14:21:46 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -92,7 +92,7 @@ See also variable `dired-vm-read-only-folders'."
     ;; so that pressing `v' inside VM does prompt within current directory:
     (set (make-local-variable 'vm-folder-directory) dir)))
 
-(add-hook 'dired-mode-hook 
+(add-hook 'dired-mode-hook
 	  '(lambda ()
 	     (require 'dired-x)
 	     (define-key dired-mode-map "r" 'dired-vm)))
@@ -102,6 +102,7 @@ See also variable `dired-vm-read-only-folders'."
 ;;;
 
 (define-key vm-mode-map "/" 'vm-isearch-forward)
+(define-key vm-mode-map "\em" 'vm-mark-message)
 
 ;; Kyle suggests this as the q&d way to be able to see all the parts of a
 ;; multipart/alternative message....
@@ -195,6 +196,43 @@ vm-primary-inbox."
 
 (define-key vm-mode-map "q" 'my-vm-quit)
 
+(defun my-vm-quit-all ()
+  "Quit from all buffers in VM-mode."
+  (interactive)
+  (save-excursion
+    (mapcar '(lambda (buffer)
+               (and (buffer-live-p buffer) (set-buffer buffer)
+                    (eq major-mode 'vm-mode) (vm-quit)))
+            (buffer-list))))
+
+;; Does no harm if VM already exited.
+(add-hook 'my-before-kill-emacs-hook 'my-vm-quit-all)
+
+(defun my-vm-count-function ()
+  "Return the number of buffers in vm-mode."
+  (interactive)
+  (let ((count 0))
+    (save-excursion
+      (mapcar '(lambda (buffer) (set-buffer buffer)
+                 (and (eq major-mode 'vm-mode) (setq count (1+ count))))
+              (buffer-list)))
+    (if (interactive-p)
+	(message "%s buffer%s in VM mode" count (if (> count 1) "s" ""))
+      count)))
+
+(defun my-vm-quit-last ()
+  "Quit from VM.  If this is the last buffer in VM mode, prompt."
+  (interactive)
+  (let ((quit t))
+    (and (= (my-vm-count-function) 1)
+         (or (when (yes-or-no-p "Really exit VM? ")
+               (my-vm-save-all-folders-deactivate)
+               t)
+             (setq quit nil)))
+    (message "%s" (current-buffer))
+    (when quit
+      (vm-quit))))
+
 (require 'ispell)
 (add-hook 'vm-mail-mode-hook
 	  (function (lambda () (local-set-key "\C-ci" 'ispell-message))))
@@ -203,7 +241,7 @@ vm-primary-inbox."
       (mapconcat (function identity)
 		 (list ispell-message-text-end
 		       "^-- $"		; XXX this is in orig, but it's not!
-		       "^-----BEGIN PGP " ; PGP 
+		       "^-----BEGIN PGP " ; PGP
 		       "&This is a[-A-Z0-9 ]+digest" ; digest
 		       )
 		 "\\|"))
@@ -237,28 +275,250 @@ message/rfc822 attachments."
 ;;;
 ;;; some assistance for spam-handling
 ;;;
-(defun my-vm-rblookup-at-point ()
-  "Run rblookup on the address or name at the point."
-  (interactive)
-  (set-buffer (get-buffer-create "*RBL-Lookup*"))
-  (setq buffer-read-only nil)
-  (erase-buffer)
-  (apply 'start-process "rblookup" "*RBL-Lookup*" "rblookup" (list "-v" "204.92.254.15"))
-  (setq buffer-read-only t)
-  (goto-char (point-min))
-  (pop-to-buffer (current-buffer)))
+(defun my-vm-run-lookup-prog (progname args pop-buffer &optional bufname)
+  "Run PROGNAME with ARGS into BUFNAME, visiting buffer if POP-BUFFER is
+non-nil.  If BUFNAME is nil or not given then create it using PROGNAME."
+  (if (not bufname)
+      (setq bufname (concat "*VM-lookup-" progname "*")))
+  (save-window-excursion		; bury-buffer buggers windows...
+    (save-excursion
+      (set-buffer (get-buffer-create bufname))
+      (setq buffer-read-only nil)
+      (erase-buffer)
+      (if pop-buffer
+	  ;; watch it in progress...
+	  (apply 'start-process progname bufname progname args)
+	;; wait for the output...
+	(apply 'call-process progname nil '(t t) nil args))
+      (if pop-buffer
+	  (setq buffer-read-only t))
+      (goto-char (point-min))
+      (if pop-buffer
+	  (let ((pop-up-windows t))
+	    (pop-to-buffer (current-buffer)))
+	(bury-buffer)))))
+
+(defun my-vm-rblookup (ip-addr-or-name)
+  "Run rblookup on the address or name given as IP-ADDR-OR-NAME, leaving output
+in *VM-lookup-rblookup*."
+  (interactive "sAddress or hostname for rblookup: ")
+  (my-vm-run-lookup-prog "rblookup" (list ; "-v" is too verbose
+				     ip-addr-or-name) (interactive-p)))
+
+(defun my-vm-host-check (ip-addr)
+  "Run `host -A' on the address given as IP-ADDR, leaving output in
+*VM-lookup-host-A*."
+  (interactive "sAddress or hostname for host -v -A: ")
+  (if (not (interactive-p))
+      (my-vm-run-lookup-prog "host" (list "-v" "-A" ip-addr) nil "*VM-lookup-host-A*"))
+  (my-vm-run-lookup-prog "host" (list "-v" "-A" ip-addr) (interactive-p) "*VM-lookup-host-A*"))
+
+(defun my-vm-jwhois (token)
+  "Run jwhois on the address or name given as TOKEN, leaving output in
+*VM-lookup-jwhois*."
+  (interactive "sAddress or hostname for jwhois: ")
+  (my-vm-run-lookup-prog "jwhois" (list token) (interactive-p)))
 
 (defun my-vm-forward-spam ()
-  "Local version of vm-forward-message that does it as spam."
+  "Local version of vm-forward-message that treats the message being forwarded
+as spam and prepares information about its sources."
   (interactive)
-  (let ((vm-forwarding-subject-format
-	 "%s (forwarded SPAM)\nSummary: forwarded SPAM from %F"))
+  (vm-follow-summary-cursor)
+  (vm-select-folder-buffer)
+  (vm-check-for-killed-summary)
+  (vm-error-if-folder-empty)
+  ;; note the magic use of `%UR', which calls `vm-summary-function-R'
+  (let* ((vm-forwarding-subject-format
+	  "forwarded spam/UCE from \"%UR\"\nSummary: original message sent %y/%M/%d-%h (%z)\n         with ID %i")
+	 (mp (car (vm-select-marked-or-prefixed-messages 1)))
+	 ;; we call `vm-summary-function-R' again to get the from-host string
+	 (from-host (vm-summary-function-R mp)))
+    ;; force simple encapsulation so the recipient doesn't need a MIME-capable
+    ;; mailer to read this message...
     (my-vm-forward-message-using-rfc934)
-    (mail-position-on-field "To")
-    (insert "spam@cmds.spamcop.net")))
+    (string-match "[[)]\\([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\)[])]" from-host)
+    (let ((from-host-addr (match-string 1 from-host)))
+      (mail-to)
+      (insert "spam@cmds.spamcop.net")
+      (replace-regexp "(locally authorised broken client using invalid hostname!) [^(]*" "INVALID-HOSTNAME")
+      (undo-boundary)
+      (if (<= (string-to-number from-host-addr) 0) ; XXX not a real test, but what the heck
+	  (message (concat
+		    "Apparently there is no IP address in `" from-host "'!"))
+	(message (concat
+		  "Getting info for `" from-host "' as `" from-host-addr "'..."))
+	(my-vm-host-check from-host-addr)
+;	(my-vm-rblookup from-host-addr)
+;	(my-vm-jwhois from-host-addr)
+	(message (concat
+		  "Getting info for `" from-host "' as `" from-host-addr "'... Done."))
+	(mail-text)
+	(insert (concat "\n$ host -v -A " from-host-addr "\n"))
+	(insert-buffer-substring "*VM-lookup-host-A*")
+	(insert "\n")
+;	(undo-boundary)
+;	(insert (concat "\n$ jwhois " from-host-addr "\n"))
+;	(insert-buffer-substring "*VM-lookup-jwhois*")
+;	(insert "\n")
+;	(undo-boundary)
+;	(insert (concat "\n$ rblookup " from-host-addr "\n"))
+;	(insert-buffer-substring "*VM-lookup-rblookup*")
+;	(insert "\n")
+	(undo-boundary)))))
 
 (define-key vm-mode-map "\eZ" 'my-vm-forward-spam) ; use default (mime)
 
+(defun my-vm-forward-fraud ()
+  "Local version of vm-forward-message that treats the message being forwarded
+as fraud and prepares information about its sources."
+  (interactive)
+  (vm-follow-summary-cursor)
+  (vm-select-folder-buffer)
+  (vm-check-for-killed-summary)
+  (vm-error-if-folder-empty)
+  ;; note the magic use of `%UR', which calls `vm-summary-function-R'
+  (let* ((vm-forwarding-subject-format
+	  "forwarded FRAUD from \"%UR\"\nSummary: original message sent %y/%M/%d-%h (%z)\n         with ID %i")
+	 (mp (car (vm-select-marked-or-prefixed-messages 1)))
+	 ;; we call `vm-summary-function-R' again to get the from-host string
+	 (from-host (vm-summary-function-R mp)))
+    ;; force simple encapsulation so the recipient doesn't need a MIME-capable
+    ;; mailer to read this message...
+    (my-vm-forward-message-using-rfc934)
+    (string-match "[[)]\\([0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+\\)[])]" from-host)
+    (let ((from-host-addr (match-string 1 from-host)))
+      (mail-to)
+      (insert "spam@cmds.spamcop.net")
+      (undo-boundary)
+      (if (<= (string-to-number from-host-addr) 0) ; XXX not a real test, but what the heck
+	  (message (concat
+		    "Apparently there is no IP address in `" from-host "'!"))
+	(message (concat
+		  "Getting info for `" from-host "' as `" from-host-addr "'..."))
+	(my-vm-host-check from-host-addr)
+	(my-vm-jwhois from-host-addr)
+	(message (concat
+		  "Getting info for `" from-host "' as `" from-host-addr "'... Done."))
+	(mail-text)
+	(insert (concat "\n$ host -v -A " from-host-addr "\n"))
+	(insert-buffer-substring "*VM-lookup-host-A*")
+	(insert "\n")
+	(undo-boundary)
+	(insert (concat "\n$ jwhois " from-host-addr "\n"))
+	(insert-buffer-substring "*VM-lookup-jwhois*")
+	(insert "\n")
+	(undo-boundary)))))
+
+(define-key vm-mode-map "\eF" 'my-vm-forward-fraud) ; use default (mime)
+
+(defun vm-summary-function-R (mp)
+  "Local function to extract first interesting next-hop host from the received
+headers of message MP.  Called by `vm-forward-message' when
+`vm-forwarding-subject-format' contains the magic format string `%UR'."
+  (let ((from-host nil)
+	;; gather the content of all the received headers into a string and
+	;; split this string into a list of words.
+	(split-rcvd (split-string (vm-get-header-contents mp "Received:" " Received: "))))
+
+    ;; search for the first word following an occurance of the keyword "from"
+    ;; that is not followed by a host/addr string matching one that commonly
+    ;; forwards messages to us.
+    ;;
+    ;;(message (concat "STARTING new parse of: " (mapconcat 'concat split-rcvd " ") "\n"))
+    (while (and (>= (length split-rcvd) 2)
+		(not from-host))
+      (catch 'next-token
+	(let ((key (car split-rcvd))
+	      (value (car (cdr split-rcvd))))
+	  ;;(message (concat "KEY is: '" key "', VALUE is: '" value "'"))
+	  (if (string-equal key "from")
+	      (progn
+		(setq split-rcvd (cdr split-rcvd)) ; be sure to skip key ...
+		;; This shouldn't happen, but sometimes mailers forget to
+		;; properly quote hostnames that need quoting to appear in
+		;; RFC-822 headers.  Also sometimes the optional comment
+		;; containing the TCP info is in the next token.  Try
+		;; concatenating another word if the value doesn't contain a
+		;; commented IP address literal.
+		(while (and (car (cdr split-rcvd))
+			    (not (string-match "[[(][0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+[])]" value)))
+		  ;; we also need to deal with incomplete timestamp lines --
+		  ;; e.g. those that don't contain a TCP info comment
+		  (setq split-rcvd (cdr split-rcvd))
+		  (let ((next-token (car split-rcvd)))
+		    (if (or (string-equal next-token "Received:")
+			    (string-equal next-token "by"))
+			;; seeing "Received:" or "by" means we need to restart
+			;; collecting `value' again so throw away what have
+			;; collected so far and continue the outer loop
+			(progn
+			  ;;(message (concat "FOUND '" next-token "', jumping to outer loop"))
+			  (setq value "")
+			  (throw 'next-token t))
+		      ;; else we have a good token to append to `value'
+		      ;;(message (concat "CURRENT value is: '" value "', appending: '" next-token "'"))
+		      (setq value (concat value (if (not (string-equal value "")) " ") next-token)))))
+		;; skip all the mailers were I have local aliases forwarded to me
+		;;(message (concat "FINAL value is: '" value "'"))
+		(if (and (not (string-match ".*\\.weird\\.com *( *\\[204\\.92\\.254.[0-9]+\\][^\)]*)*" value 0))
+			 (not (string-equal value "whome.planix.com([204.29.161.33])"))
+			 (not (string-equal value "whome.planix.com([204.29.161.33]"))
+			 (not (string-equal value "engine.ieee.org([140.98.193.23])"))
+			 (not (string-equal value "engine.ieee.org([140.98.193.23]"))
+			 (not (string-equal value "gemini3.ieee.org([140.98.193.188])"))
+			 (not (string-equal value "gemini3.ieee.org([140.98.193.188]"))
+			 (not (string-equal value "orion2.ieee.org (gemini3.ieee.org [140.98.193.188])"))
+			 (not (string-equal value "orion2.ieee.org (gemini4.ieee.org [140.98.193.189])"))
+			 (not (string-equal value "orion3.ieee.org (gemini3.ieee.org [140.98.193.188])"))
+			 (not (string-equal value "orion3.ieee.org (gemini4.ieee.org [140.98.193.189])"))
+			 (not (string-equal value "ruebert.ieee.org([140.98.193.10])"))
+			 (not (string-equal value "ruebert.ieee.org([140.98.193.10]"))
+			 (not (string-equal value "mail.netbsd.org([155.53.1.253])")) ; this doesn't work well -- qmail SUCKS!
+			 (not (string-equal value "camomile.cloud9.net([168.100.1.3]"))
+			 (not (string-equal value "russian-caravan.cloud9.net([168.100.1.4]"))
+			 (not (string-equal value "localhost (localhost [127.0.0.1])")) ; also for cloud9.net
+			 (not (string-equal value "localhost.cloud9.net (localhost.cloud9.net [127.0.0.1])"))
+			 (not (string-equal value "camomile.cloud9.net (localhost.cloud9.net [127.0.0.1])"))
+			 (not (string-equal value "russian-caravan.cloud9.net (localhost [127.0.0.1])"))
+			 (not (string-equal value "corporate.aci.on.ca([205.207.148.249])"))
+			 (not (string-equal value "corporate.aci.on.ca([205.207.148.12])"))
+			 (not (string-equal value "corporate.aci.on.ca(dns.aci.on.ca[205.207.148.12])"))
+			 (not (string-equal value "aci.on.ca(ipass.aci.on.ca[205.207.148.15])"))
+			 (not (string-equal value "public.aci.on.ca([205.207.148.251])"))
+			 (not (string-equal value "aci.on.ca([205.207.148.251])")))
+		    (setq from-host value))))
+	  (setq split-rcvd (cdr split-rcvd)))))
+    (if (not from-host)
+	(setq from-host "(unknown)"))
+    ;; return the string containing the most interesting next-hop host
+    from-host))
+
+;;;
+;;; simple initial bogofilter support from:
+;;;
+;;;	http://www-xray.ast.cam.ac.uk/~gmorris/dotvm.txt
+;;;
+(defun my-vm-bogofilter-reclassify-spam ()
+  "Have bogofilter reclassify the current message(s) as spam."
+  (interactive)
+  (vm-pipe-message-to-command "bogofilter -S" nil))
+
+(defun my-vm-bogofilter-reclassify-nonspam ()
+  "Have bogofilter reclassify the current message(s) as non-spam."
+  (interactive)
+  (vm-pipe-message-to-command "bogofilter -N" nil))
+
+(defun my-vm-bogofilter-print-bogosity ()
+  "Have bogofilter print the bogosity of the current message(s)."
+  (interactive)
+  (vm-pipe-message-to-command "bogofilter -p | grep '^X-Bogo'" nil))
+
+(define-key vm-summary-mode-map "\C-c\C-bs"
+  'my-vm-bogofilter-reclassify-spam)
+(define-key vm-summary-mode-map "\C-c\C-bn"
+  'my-vm-bogofilter-reclassify-nonspam)
+(define-key vm-summary-mode-map "\C-c\C-bp"
+  'my-vm-bogofilter-print-bogosity)
 
 ;;;
 ;;; from Jukka Partanen <jukka.partanen@research.nokia.com>.
@@ -444,9 +704,9 @@ forbidden in URL encoding."
 ;;; Subject: Remove "extra" text from replies
 ;;; Summary: functions to remove .sigs, double citations
 ;;; 
-;;; Create a function to nuke a .sig from replied-to mail (if it exists).  
-;;; Find the end of the buffer, back up over my .sig, then delete up to 
-;;; the beginning of the quoted .sig. 
+;;; Create a function to nuke a .sig from replied-to mail (if it exists).
+;;; Find the end of the buffer, back up over my .sig, then delete up to
+;;; the beginning of the quoted .sig.
 (defun citation-kill-sig ()
   "Nuke a .sig from cited mail"
   (interactive)
@@ -454,7 +714,7 @@ forbidden in URL encoding."
     (goto-char (point-max))
     (search-backward-regexp "^-- $" 1 t)
     (let ((top-of-my-sig (point)))
-      (search-backward-regexp 
+      (search-backward-regexp
        (concat "^" vm-included-text-prefix "-- $") 1 t)
       (delete-region (point) top-of-my-sig)
       )))
@@ -500,27 +760,167 @@ forbidden in URL encoding."
 	  'citation-set-kill-double-binding)
 
 ;;;
-;;;	some stuff for sendmail.el ...
+;;;	some stuff for sendmail.el et al...
 ;;;
 
-(setq mail-default-reply-to (concat (user-login-name) "@" (vm-fqdn t)
-				    " (" (user-full-name) ")"))
+(setq mail-from-style 'angles)		; Elvis Parsley <king@graceland.com>
+;; note this uses the same expression as vm-mail-header-from
+(setq mail-default-reply-to (concat "\"" (user-full-name) "\" <"
+				    (user-login-name) "@" (vm-fqdn t) ">"))
 (setq mail-header-separator ".")	; as close to nothing as possible
+(setq mail-yank-prefix "> ")		; see also vm-included-text-prefix
 
-(defun mail-set-new-random-signature ()
-  "Set mail-signature to a new signature generated by ~/bin/randsig."
+(setq mail-signature t)			; just auto-insert ~/.signature
+
+;; more fancy .sig handling adapted from:
+;; <URL:http://www-xray.ast.cam.ac.uk/~gmorris/dotvm.txt>
+;;
+(defun my-mail-goto-signature ()
+  "Move point to the signature separator, if present.  Otherwise go to the end
+and return nil."
+  (goto-char (point-max))
+  (re-search-backward message-signature-separator (mail-text-start) t))
+
+(defun my-mail-signature-start ()
+  "Return start position of signature in current buffer, or nil if none."
+  (save-excursion
+    (goto-char (point-max))
+    (and (re-search-backward message-signature-separator nil t)
+         (point))))
+
+(defface my-signature-face
+  '((((class color)
+      (background dark))
+     (:foreground "light pink"))
+    (((class color)
+      (background light))
+     (:background "light pink"))
+    (t
+     (:italic t)))
+  "My signature face")
+
+(defun my-signature-highlight ()
+  "Highlight the signature in an article with `my-signature-face'."
   (interactive)
   (save-excursion
-    (set-buffer (get-buffer-create " signature"))
-    (call-process "~/bin/randsig" nil t) ; magic....
-    (setq mail-signature (buffer-string))
-    (kill-buffer (current-buffer))))
+    (let ((start (my-mail-signature-start)))
+      (and start
+           (facep 'my-signature-face)
+           (overlay-put (make-overlay start (point-max))
+                        'face 'my-signature-face)))))
 
-;; not just yet....
-(setq mail-signature t)			; just auto-insert ~/.signature
-;(mail-set-new-random-signature)	; initialize...
-;(add-hook 'mail-setup-hook 'mail-set-new-random-signature)
+(defun my-signature-insert (sig &optional replace highlight)
+  "Insert SIG as signature at end of current buffer, unless a signature is
+already present, in which case REPLACE must be supplied.  If a file matching
+string SIG exists, its contents will be inserted, otherwise SIG is treated as a
+literal string. With HIGHLIGHT, highlight the new signature."
+  (save-excursion
+    (let ((sigsep "\n-- \n")	; like message-signature-separator, but not as a regex
+	  (exists (my-mail-goto-signature))) ; moves point
+      (when (and exists replace)
+	(delete-region (point) (point-max))
+	(delete-char -1))
+      (when (or (not exists) (and exists replace))
+	(insert sigsep)
+	(if (file-exists-p sig) (insert-file-contents sig)
+	  (insert sig))
+	(and highlight (my-signature-highlight))))))
 
+(defun my-signature-kill ()
+  "Remove signature in current buffer."
+  (interactive)
+  (save-excursion
+    (and (my-mail-goto-signature) (delete-region (point) (point-max)))))
+
+(setq my-randomsig-file "~/.quotes.notes"
+      my-randomsig-delimiter-pattern "^%"
+      my-randomsig-comment-pattern "#"
+      my-randomsig-sigflag-pattern "s")
+
+(defun my-get-random-quote (&optional include-commented lines sigflag)
+  "Return a random quote from `my-randomsig-file'.
+If INCLUDE-COMMENTED is non-nil, include private quotes.
+If LINES is non-nil, do not return a quote with more than LINES lines.
+If SIG is non-nil, only return quotes marked as sig-suitable, ignoring
+any line-limit."
+  (interactive)
+  (or (file-exists-p my-randomsig-file)
+      (error "File `%s' not found" my-randomsig-file))
+    (with-temp-buffer
+      (insert-file-contents my-randomsig-file)
+      (goto-char (point-min))
+      (let ((sigcount 0)
+            (try 0)
+            (maxtry 100)
+            found sigstring)
+	;; Count number of signatures.
+	(while (re-search-forward my-randomsig-delimiter-pattern nil t)
+	  (setq sigcount (1+ sigcount)))
+	;; search for a suitable signature...
+        (while (not sigstring)
+          (while (and (not found) (< try maxtry))
+            ;; Select random signature.
+            (setq try (1+ try))
+	    (setq selected (1+ (random sigcount)))
+            (goto-char (point-min))
+            ;; Note this expects a separator before first quote.
+            (or (re-search-forward my-randomsig-delimiter-pattern
+                                   (point-max) t selected)
+                (error "Failed to find selected quote"))
+            (setq found (if (looking-at my-randomsig-comment-pattern)
+                            include-commented
+                          t))
+            ;; If requested, reject those not explicitly marked as sigs.
+            ;; Ugly.
+            (and found
+                 (setq found
+                       (or (not sigflag) 
+                           (re-search-forward 
+                            my-randomsig-sigflag-pattern 
+                            (line-end-position) t)))))
+          (or found (error "Tried %s quotes and failed" maxtry))
+          (forward-line 1)              ; to quote start
+          ;; Cut signature and return it.
+          (let ((start (point))
+                (end (save-excursion
+                       (and (re-search-forward
+                             my-randomsig-delimiter-pattern (point-max) 'move)
+                            (beginning-of-line))
+                       (point)))
+                thislines)
+            ;; Move to end, or comment section.
+            (and (re-search-forward my-randomsig-comment-pattern end 'move)
+                 (beginning-of-line))
+            (setq end (point)
+                  sigstring (buffer-substring start end)
+                  thislines (count-lines start end))
+            ;; Reject signature if too long.
+            (and lines (not sigflag) (> thislines lines)
+                 (setq found nil sigstring nil))))
+        (if (interactive-p) (message "%s" sigstring)
+          sigstring))))
+
+;; The above could be used by:
+;;
+;;(defun my-set-new-random-signature ()
+;;  (setq message-signature (my-get-random-quote)))
+;;
+;;(add-hook 'message-signature-setup-hook my-set-new-random-signature)
+
+(defun my-sig-replace-random-and-highlight (&optional prefix) ; suitable for keybinding
+  "Insert and highlight random signature, from those marked OK.
+With PREFIX, select from all quotes."
+  (interactive "*P")
+  (my-signature-insert (my-get-random-quote prefix nil t) t t))
+
+;; the above might also be used with:
+;;
+;;(add-hook 'mail-setup-hook 'my-sig-replace-random-and-highlight)
+
+(defun my-sig-replace-true-and-highlight () ; suitable for keybinding
+  "Insert and highlight signature file."
+  (interactive)
+  (my-signature-insert mail-signature-file t t))
 
 ;;(setq mail-archive-file-name "~/Mail/.outgoing") ; for posterity
 ;;
@@ -558,9 +958,9 @@ forbidden in URL encoding."
 ;	     (mail-fcc (format "~/Mail/vm/sm-%s%s"
 ;			       (downcase (substring (current-time-string) 4 7))
 ;			       (substring (current-time-string) 22 24)))))
-;
-; Kyle also suggests this for mail-send-hook:
-;
+
+;; Kyle also suggests this for mail-send-hook:
+;;
 ;(defun german-suplex-lauryn-hill ()
 ;  (save-excursion
 ;    (goto-char (point-min))
@@ -577,19 +977,25 @@ ORGANIZATION.  If not nil, takes precedence over the file
 {$LOCAL,/usr}/lib/news/organization.")
 
 (defvar mail-x-face-file "~/.face"
-  "The name of a file containing the content for your `X-face' header.")
+  "The name of a file containing the content for your `X-Face' header in
+`compface' output format.")
 
 (defvar mail-default-x-face
-  " *Vqm<\"ErD\"t5{*PViZ^>nLZo*Td+y(r1f3)jj\\>&1O=,q?:pt6cR]Hi6h|*f#8nBBgD@\\+D
- 7Cf5&(Wg'RA|/+Ee`$\"V>se7P7j2O-MG?rIJW=EBcaQf7k\\KnmT0^375!h\\._mc>~9'd_
+  " *Vqm<\"ErD\"t5{*PViZ^>nLZo*Td+y(r1f3)jj\\>&1O=,q?:pt6cR]Hi6h|*f#
+ 8nBBgD@\\+D7Cf5&(Wg'RA|/+Ee`$\"V>se7P7j2O-MG?rIJW=EBcaQf7k\\KnmT0^375!h
+ \\._mc>~9'd_
 "
-  "The default x-face content in `compface' output format (leading space on
-every line, with a trailing newline).")
+  "The default x-face content in `compface' output format (i.e. with a leading
+space on every line, and a trailing newline).")
 
 (defvar mail-alternate-x-face
-  " G=jn*S]P-JmPX0[GAK;)7Yo0p?#U/0m{g!*j3XGvT80*#5pX0kPN$4+azk{O#@ZEZV9BS:4y;\9utXK@+?.mCT.k%G&Ix2XEj-`bBt{TituWYrQ5npZb+:ERfmRt-((lW:itQr$C|B~;vhJ:>2,{tA}#)P'g3h6eE8JT|Qfcm50pUoy{zb8=jvof2?lY}EYTEt4z=5*i%OJ136\?S8^g~^>,s&,jBb'=K|ryeVtUX5
+  " G=jn*S]P-JmPX0[GAK;)7Yo0p?#U/0m{g!*j3XGvT80*#5pX0kPN$4+azk{O#@ZE
+ ZV9BS:4y;\9utXK@+?.mCT.k%G&Ix2XEj-`bBt{TituWYrQ5npZb+:ERfmRt-((lW:itQr$
+ C|B~;vhJ:>2,{tA}#)P'g3h6eE8JT|Qfcm50pUoy{zb8=jvof2?lY}EYTEt4z=5*i%OJ136
+ \?S8^g~^>,s&,jBb'=K|ryeVtUX5
 "
-  "An alternate x-face file -- this one is a cute little BSD daemon.")
+  "An alternate x-face file -- this one is a cute little BSD daemon.
+Use it by evaluating `(setq mail-default-x-face mail-alternate-x-face)'")
 
 (setq mail-default-headers
       (concat
@@ -615,7 +1021,7 @@ every line, with a trailing newline).")
 		     (not-modified)
 		     (kill-buffer nil))))
 	     (if (and (not x-face)	; XXX SOMETHING does this!
-		     mail-default-x-face)
+		      mail-default-x-face)
 		 (concat "X-face:"
 			 (or x-face mail-default-x-face))
 	       nil)))
@@ -657,8 +1063,342 @@ every line, with a trailing newline).")
 	       "\n")))			; mail-mode needs the trailing newline,
 					; VM will cope either way
 
+(require 'mailabbrev)
+(defun mail-abbrev-expand-hook ()
+  "The default definition of this function tries to do magic for auto-fill-mode
+but it's seriously brain damaged so we re-define it as nothing."
+  t)
+
 ;;;
-;;; VM fontification support...
+;;; mail aliases
+;;;
+
+;; aliases for mailing lists
+;;
+(define-mail-abbrev "aegis-users"
+  "Aegis Users Mailing List <aegis-users@canb.auug.org.au>")
+(define-mail-abbrev "amanda-hackers"
+  "Amanda Hackers Mailing List <amanda-hackers@amanda.org>")
+(define-mail-abbrev "amanda-users"
+  "Amanda Users Mailing List <amanda-users@amanda.org>")
+(define-mail-abbrev "autoconf"
+  "GNU AUtoconf Mailing List <autoconf@gnu.org>")
+(define-mail-abbrev "automake"
+  "GNU Automake Mailing List <automake@gnu.org>")
+(define-mail-abbrev "bind-workers"
+  "BIND Workers Mailing List <bind-workers@isc.org>")
+(define-mail-abbrev "bitkeeper-users"
+  "BitKeeper Discussion List <bitkeeper-users@bitmover.com>")
+(define-mail-abbrev "bug-cvs"
+  "CVS-II Bugs Mailing List <bug-cvs@gnu.org>")
+(define-mail-abbrev "bug-gnu-emacs"
+  "GNU Emacs Bugs Mailing List <bug-gnu-emacs@gnu.org>")
+(define-mail-abbrev "bug-vm"
+  "ViewMail Bugs Mailing List <bug-vm@UUnet.UU.net>")
+(define-mail-abbrev "bugtraq"
+  "\"BUGTRAQ: Full Disclosure Security Mailing List\" <bugtraq@SecurityFocus.com>")
+(define-mail-abbrev "conserver"
+  "ConServer Users Mailing List <users@conserver.com>")
+(define-mail-abbrev "conserver-users"
+  "ConServer Users Mailing List <users@conserver.com>")
+(define-mail-abbrev "cricket-users"
+  "Cricket Users Mailing List <cricket-users@lists.sourceforge.net>")
+(define-mail-abbrev "cssc-users"
+  "GNU CSSC Discussion List <cssc-users@gnu.org>")
+(define-mail-abbrev "current-users"
+  "NetBSD-current Discussion List <current-users@NetBSD.ORG>")
+(define-mail-abbrev "datacenter"
+  "Data Centre Discussion List <datacenter@shorty.com>")
+(define-mail-abbrev "datacentre"
+  "Data Centre Discussion List <datacenter@shorty.com>")
+(define-mail-abbrev "devel-cvs"
+  "CVS Developers <devel-cvs@cyclic.com>")
+(define-mail-abbrev "emacs-pretest-bug"
+  "GNU Emacs Pre-Test Bugs Mailing List <emacs-pretest-bug@gnu.org>")
+(define-mail-abbrev "exim-users"
+  "Exim Users Mailing List <exim-users@exim.org>")
+(define-mail-abbrev "geeks"
+  "Sun Geeks List <geeks@sunhelp.org>")
+(define-mail-abbrev "gnats-bugs"
+  "NetBSD GNATS submissions and followups <gnats-bugs@gnats.netbsd.org>")
+(define-mail-abbrev "gnu-emacs-sources"
+  "GNU Emacs Sources Mailing List <gnu-emacs-sources@gnu.org>")
+(define-mail-abbrev "gnu-emacs-pretest"
+  "GNU Emacs Pre-Test Bugs Mailing List <emacs-pretest-bug@gnu.org>")
+(define-mail-abbrev "gnu-emacs-pretest-bug"
+  "GNU Emacs Pre-Test Bugs Mailing List <emacs-pretest-bug@gnu.org>")
+(define-mail-abbrev "info-cvs"
+  "CVS-II Discussion Mailing List <info-cvs@gnu.org>")
+(define-mail-abbrev "info-vm"
+  "ViewMail Info Mailing List <info-vm@UUnet.UU.net>")
+(define-mail-abbrev "ipfilter"
+  "IP-Filter Mailing List <ipfilter@postbox.anu.edu.au>")
+(define-mail-abbrev "ip-filter"
+  "IP-Filter Mailing List <ipfilter@postbox.anu.edu.au>")
+(define-mail-abbrev "lout"
+  "Lout mailing List <lout@ptc.spbu.ru>")
+(define-mail-abbrev "mush-users"
+  "Mush Users Mailing List <mush-users-request@garp.mit.edu>")
+(define-mail-abbrev "nanog"
+  "North America Network Operators Group Mailing List <nanog@merit.edu>")
+(define-mail-abbrev "netbsd-bugs"
+  "NetBSD Bugs and PR posting List <netbsd-bugs@NetBSD.ORG>")
+(define-mail-abbrev "netbsd-gnats"
+  "NetBSD GNATS submissions and followups <gnats-bugs@gnats.netbsd.org>")
+(define-mail-abbrev "netbsd-current"
+  "NetBSD-current Discussion List <current-users@NetBSD.ORG>")
+(define-mail-abbrev "netbsd-help"
+  "NetBSD Questions List <netbsd-help@NetBSD.ORG>")
+(define-mail-abbrev "netbsd-ports"
+  "NetBSD Ports Discussion List <netbsd-ports@NetBSD.ORG>")
+(define-mail-abbrev "netbsd-source-changes"
+  "NetBSD CVS Logs <source-changes@NetBSD.ORG>")
+(define-mail-abbrev "netbsd-users"
+  "NetBSD User's Discussion List <netbsd-users@NetBSD.ORG>")
+(define-mail-abbrev "port-alpha"
+  "\"NetBSD/alpha Discussion List\" <port-alpha@NetBSD.ORG>")
+(define-mail-abbrev "port-i386"
+  "\"NetBSD/i386 Discussion List\" <port-i386@NetBSD.ORG>")
+(define-mail-abbrev "port-pmax"
+  "\"NetBSD/pmax Discussion List\" <port-pmax@NetBSD.ORG>")
+(define-mail-abbrev "port-sparc"
+  "\"NetBSD/sparc Discussion List\" <port-sparc@NetBSD.ORG>")
+(define-mail-abbrev "port-sun3"
+  "\"NetBSD/sun3 Discussion List\" <port-sun3@NetBSD.ORG>")
+(define-mail-abbrev "port-vax"
+  "\"NetBSD/vax Discussion List\" <port-vax@NetBSD.ORG>")
+(define-mail-abbrev "postfix-testers"
+  "Postfix Testers List <postfix-testers@postfix.org>")
+(define-mail-abbrev "postfix-users"
+  "Postfix Users List <postfix-users@postfix.org>")
+(define-mail-abbrev "qotd"
+  "Quotation of the Day List <quotationoftheday@yahoo.ca>")
+(define-mail-abbrev "rescue"
+  "Sun Rescue List <rescue@sunhelp.org>")
+(define-mail-abbrev "secureshell"
+  "SSH Users Mailing List <secureshell@securityfocus.com>")
+(define-mail-abbrev "shape-l"
+  "ShapeTools Discussion Mailing List <SHAPE-L%DB0TUI11.BITNET@vm.gmd.de>")
+(define-mail-abbrev "smail-bugs"
+  "Smail PR Reports and followups <smail-bugs@planix.com>")
+(define-mail-abbrev "smail3-devel"
+  "Smail-3 Developers Mailing smail3-devel@weird.com <List>")
+(define-mail-abbrev "smail3-wizards"
+  "Smail-3 Wizards Mailing List <smail3-wizards@athabascau.ca>")
+(define-mail-abbrev "smail3-users"
+  "Smail-3 Users Mailing List <smail3-users@athabascau.ca>")
+(define-mail-abbrev "spamtools"
+  "Spam Tools Mailing List <spamtools@abuse.net>")
+(define-mail-abbrev "squeak"
+  "Squeak Mailing List <squeak@cs.uiuc.edu>")
+(define-mail-abbrev "ssh"
+  "SSH Users Mailing List <secureshell@securityfocus.com>")
+(define-mail-abbrev "sungeeks"
+  "Sun Geeks List <geeks@sunhelp.org>")
+(define-mail-abbrev "sun-geeks"
+  "Sun Geeks List <geeks@sunhelp.org>")
+(define-mail-abbrev "sunrescue"
+  "Sun Rescue List <rescue@sunhelp.org>")
+(define-mail-abbrev "sun-rescue"
+  "Sun Rescue List <rescue@sunhelp.org>")
+(define-mail-abbrev "suns-at-home"
+  "Suns-at-Home Mailing List <suns-at-home@net-kitchen.com>")
+(define-mail-abbrev "tech-embed"
+  "NetBSD for Embedded Systems Technical Discussion List <tech-embed@NetBSD.ORG>")
+(define-mail-abbrev "tech-install"
+  "NetBSD Install Process Technical Discussion List <tech-install@NetBSD.ORG>")
+(define-mail-abbrev "tech-kern"
+  "NetBSD Kernel Technical Discussion List <tech-kern@NetBSD.ORG>")
+(define-mail-abbrev "tech-misc"
+  "NetBSD Miscellaneous Technical Discussion List <tech-misc@NetBSD.ORG>")
+(define-mail-abbrev "tech-net"
+  "NetBSD Networking Technical Discussion List <tech-net@NetBSD.ORG>")
+(define-mail-abbrev "tech-perform"
+  "NetBSD Performance Technical Discussion List <tech-perform@NetBSD.ORG>")
+(define-mail-abbrev "tech-pkg"
+  "NetBSD Packages Technical Discussion List <tech-pkg@NetBSD.ORG>")
+(define-mail-abbrev "tech-ports"
+  "NetBSD Porting Technical Discussion List <tech-ports@NetBSD.ORG>")
+(define-mail-abbrev "tech-security"
+  "NetBSD Security Technical Discussion List <tech-security@NetBSD.ORG>")
+(define-mail-abbrev "tech-toolchain"
+  "NetBSD Toolchain Technical Discussion List <tech-toolchain@NetBSD.ORG>")
+(define-mail-abbrev "tech-userlevel"
+  "NetBSD Userlevel Technical Discussion List <tech-userlevel@NetBSD.ORG>")
+(define-mail-abbrev "tech-x11"
+  "NetBSD X11 Technical Discussion List <tech-x11@NetBSD.ORG>")
+(define-mail-abbrev "tkined"
+  "Scotty Mailing List <tkined@ibr.cs.tu-bs.de>")
+(define-mail-abbrev "tpc-rp"
+  "TPC-Int <tpc-rp@aarnet.edu.au>")
+(define-mail-abbrev "trn-test"
+  "TRN Beta Test List <trn-test@borland.com>")
+(define-mail-abbrev "unix-virus"
+  "Unix Virus Mailing List <unix-virus@virus.beergrave.net>")
+(define-mail-abbrev "vmailer-testers"
+  "VMailer Testers List <vmailer-testers@porcupine.org>")
+
+;; local mailing list aliases
+;;
+(define-mail-abbrev "jet-fuel"
+  "Caffeine is fuel for your mind <jet-fuel@weird.com>")
+
+;; ACI aliases
+;;
+(define-mail-abbrev "aci-abuse"
+  "ACI Abuse Contact <abuse@aci.on.ca>")
+(define-mail-abbrev "abuse-aci"
+  "ACI Abuse Contact <abuse@aci.on.ca>")
+
+(define-mail-abbrev "aci-postmaster"
+  "ACI PostMaster <postmaster@aci.on.ca>")
+(define-mail-abbrev "postmaster-aci"
+  "ACI PostMaster <postmaster@aci.on.ca>")
+
+(define-mail-abbrev "aci-hostmaster"
+  "ACI HostMaster <hostmaster@aci.on.ca>")
+(define-mail-abbrev "hostmaster-aci"
+  "ACI HostMaster <hostmaster@aci.on.ca>")
+
+(define-mail-abbrev "aci-support"
+  "ACI Technical Support <support@aci.on.ca>")
+(define-mail-abbrev "support-aci"
+  "ACI Technical Support <support@aci.on.ca>")
+
+(define-mail-abbrev "aci-netadmin"
+  "ACI Network Administrator <netadmin@aci.on.ca>")
+(define-mail-abbrev "netadmin-aci"
+  "ACI Network Administrator <netadmin@aci.on.ca>")
+
+;; friendly aliases
+;;
+(define-mail-abbrev "adb"
+  "Anthony DeBoer <adb@onramp.ca>")
+(define-mail-abbrev "alex"
+  "Alex von Tiesenhausen <alex@corelan.com>")
+(define-mail-abbrev "sandu"
+  "Alexandru Sburlan <sandu@mail.on.rogers.wave.ca>")
+(define-mail-abbrev "andreas"
+  "Andreas Wrede <andreas@planix.com>")
+(define-mail-abbrev "andy"
+  "Andy Mills <andy@weird.com>")
+(define-mail-abbrev "andy-work"
+  "Andy Mills <andy@nationalfibre.net> (work)")
+(define-mail-abbrev "bdb"
+  "Bruce Becker <bdb@gts.net>")
+(define-mail-abbrev "bruce"
+  "Bruce Becker <bdb@gts.net>")
+(define-mail-abbrev "bernie"
+  "Bernard Becker <becker@proxy.net>")
+(define-mail-abbrev "blatte"
+  "Blattidae Cucaracha <blatte@cock.roach.org>")
+(define-mail-abbrev "bryan"
+  "Bryan Challenger <bryan@aci.on.ca>")
+(define-mail-abbrev "dan"
+  "Dan Tomlinson <dan@compus.ca>")
+(define-mail-abbrev "darcy"
+  "\"D'Arcy J.M. Cain\" <darcy@druid.net>")
+(define-mail-abbrev "dave"
+  "Dave Mason <mason@tmsoftware.ca>")
+(define-mail-abbrev "david"
+  "David Maxwell <david@maxwell.net>")
+(define-mail-abbrev "dennis"
+  "Dennis Breckenridge VE6TCP <dennis@nebulus.net>")
+(define-mail-abbrev "drek"
+  "Agent Drek <drek@smashpow.net>")
+(define-mail-abbrev "dtw"
+  "Deirdre Taylor-Wright <dtw@rom.on.ca>")
+(define-mail-abbrev "dumais"
+  "\"Paul E. Dumais\" <dumais@mad.scientist.com>")
+(define-mail-abbrev "dwm"
+  "David Maxwell <david@vex.net>")
+(define-mail-abbrev "ecarroll"
+  "\"Eric M. Carroll\" <ecarroll@rogers.wave.ca>")
+(define-mail-abbrev "eric.carroll"
+  "\"Eric M. Carroll\" <eric.carroll@acm.org>")
+(define-mail-abbrev "evan"
+  "Evan Leibovitch <evan@telly.ca>")
+(define-mail-abbrev "georgn"
+  "Georg Nikodym <georgn@somanetworks.com>")
+(define-mail-abbrev "gil"
+  "Gil Hauer <gilh@somanetworks.com>")
+(define-mail-abbrev "grant"
+  "Grant Officer <grant@slick.net>")
+(define-mail-abbrev "me"
+  "\"Greg A. Woods\" <woods@weird.com>")
+(define-mail-abbrev "woods"
+  "\"Greg A. Woods; Planix, Inc.\" <woods@planix.com>")
+(define-mail-abbrev "heison"
+  "Heison Chak <heison@somanetworks.com>")
+(define-mail-abbrev "henry"
+  "Henry Spencer <henry@utzoo.cs.utoronto.ca>")
+(define-mail-abbrev "hughg"
+  "Hugh Gamble <hugh@phaedrav.com>")
+(define-mail-abbrev "hughr"
+  "Hugh Redelmeier <hugh@mimosa.com>")
+(define-mail-abbrev "jeff"
+  "Jeff Royle <jeff@aci.on.ca>")
+(define-mail-abbrev "jerqs"
+  "jerq users <jerqs@clsc.utoronto.ca>")
+(define-mail-abbrev "jim"
+  "Jim Mercer <jim@reptiles.org>")
+(define-mail-abbrev "jmm"
+  "John Macdonald <jmm@Elegant.COM>")
+(define-mail-abbrev "strange"
+  "\"Kristofer P. Cox\" <strange@strange.com>")
+(define-mail-abbrev "kris"
+  "Kris Cox (not at corelan!) <kris@corelan.com>")
+(define-mail-abbrev "kyle"
+  "Kyle Jones <kyle_jones@wonderworks.com>")
+(define-mail-abbrev "lcis"
+  "Library of Computer and Information Sciences <professionals@bookclubservices.com>")
+(define-mail-abbrev "marc"
+  "Marc Staveley <marc@somanetworks.com>")
+(define-mail-abbrev "nik"
+  "Nik Habermel <habern@caledon.org>")
+(define-mail-abbrev "norman"
+  "Norman Wilson <norman@cs.yorku.ca>")
+(define-mail-abbrev "paul"
+  "\"Paul E. Dumais\" <dumais@mad.scientist.com>")
+(define-mail-abbrev "ped"
+  "\"Paul E. Dumais\" <dumais@moosefactory.com>")
+(define-mail-abbrev "peter"
+  "Peter Renzland <peter@renzland.org>")
+(define-mail-abbrev "peterm"
+  "\"Peter G. Marshall\" <peterm@openphase.com>")
+(define-mail-abbrev "planix"
+  "\"Planix, Inc.\" <planix@planix.com>")
+(define-mail-abbrev "dick"
+  "R. H. Lathwell <rhl@the-wire.com>")
+(define-mail-abbrev "rayan"
+  "Rayan Zachariassen <rayan@uunet.ca>")
+(define-mail-abbrev "stever"
+  "Steve Rapaport <steve@petabit.com>")
+(define-mail-abbrev "timo"
+  "Timo Janhunen <timo@aci.on.ca>")
+(define-mail-abbrev "all-planix"
+  "Those Planix Dudes <all@planix.com>")
+(define-mail-abbrev "ops"
+  "Weird NOC <ops@weird.com>")
+
+(define-mail-abbrev "dduffey"
+  "dduffey@slb.com (sandra's friend sending baby pictures)")
+
+;; aliases for commonly used addresses when sending spam complaints
+;;
+(define-mail-abbrev "easynet"	"abuse-silent@easynet.nl")
+(define-mail-abbrev "orbz"	"spam@orbz.org (defunct)")
+(define-mail-abbrev "osir"	"relays@relays.osirusoft.com (defunct)")
+(define-mail-abbrev "osirusoft"	"relays@relays.osirusoft.com (defunct)")
+(define-mail-abbrev "spamcop"	"spam@cmds.spamcop.net")
+(define-mail-abbrev "old-spamcop" "spamcop@spamcop.net (defunct)")
+(define-mail-abbrev "wirehub"	"abuse-silent@wirehub.net (defunct)")
+
+;;;
+;;;	VM fontification support...
+;;;
+;;; Currently we're using font-lock-mode to highlight headers and such.
+;;; Ideally we would use the XEmacs highlight-headers package instead.
 ;;;
 
 (defface vm-test-region-face
@@ -694,6 +1434,8 @@ every line, with a trailing newline).")
     (t
      (:italic t)))
   "Face for VM citation contents.")
+(defvar vm-citation-face		'vm-citation-face
+  "Face name to use for citation text.")
 
 ;; VM header font faces
 
@@ -707,6 +1449,8 @@ every line, with a trailing newline).")
     (t
      (:bold t)))
   "Face for VM header names.")
+(defvar vm-header-name-face		'vm-header-name-face
+  "Face name to use for header name.")
 
 (defface vm-resent-header-name-face
   '((((class color)
@@ -729,6 +1473,8 @@ every line, with a trailing newline).")
     (t
      (:italic t)))
   "Face for generic VM header contents.")
+(defvar vm-header-content-face		'vm-header-content-face
+  "Face name to use for contents.")
 
 (defface vm-header-from-face
   '((((class color)
@@ -740,8 +1486,10 @@ every line, with a trailing newline).")
     (t
      (:bold t :underline t)))
   "Face for VM From: header contents.")
+(defvar vm-header-from-face		'vm-header-from-face
+  "Face name to use for subject header contents.")
 
-(defface vm-organization-face
+(defface vm-header-organization-face
   '((((class color)
       (background dark))
      (:foreground "SlateBlue" :italic t))
@@ -751,6 +1499,8 @@ every line, with a trailing newline).")
     (t
      (:italic t)))
   "Face for VM Organization: contents.")
+(defvar vm-header-organization-face	'vm-header-organization-face
+  "Face name to use for subject header contents.")
 
 (defface vm-header-reply-face
   '((((class color)
@@ -762,8 +1512,10 @@ every line, with a trailing newline).")
     (t
      (:bold t :underline t)))
   "Face for VM Reply-To: header contents.")
+(defvar vm-header-reply-face		'vm-header-reply-face
+  "Face name to use for reply header contents.")
 
-(defface vm-to-face
+(defface vm-header-to-face
   '((((class color)
       (background dark))
      (:foreground "Green" :bold t :italic t))
@@ -773,6 +1525,8 @@ every line, with a trailing newline).")
     (t
      (:italic t)))
   "Face for VM To: contents.")
+(defvar vm-header-to-face		'vm-header-to-face
+  "Face name to use for to header contents.")
 
 (defface vm-header-cc-face
   '((((class color)
@@ -784,12 +1538,13 @@ every line, with a trailing newline).")
     (t
      (:bold t :underline t)))
   "Face for VM Cc: header contents.")
+(defvar vm-header-cc-face		'vm-header-cc-face
+  "Face name to use for CC header contents.")
 
 (defface vm-header-subject-face
   '((((class color)
       (background dark))
      (:foreground "Yellow" :bold t :italic t :underline t))
-
     (((class color)
       (background light))
      (:foreground "IndianRed" :bold t :italic t :underline t))
@@ -797,60 +1552,177 @@ every line, with a trailing newline).")
      (:bold t :italic t :underline t)))
   "Face for VM Subject: header contents.")
 
-;; Note that these REs are matched across the entire buffer
-;;
-;; Unfortunately it doesn't seem very easy to use REs to match full RFC-822
-;; headers.  Ideally multi-line header contents would be matched.  Perhaps this
-;; could be done with the appropriate syntax magic, but I haven't figured that
-;; part out yet.
+(defvar vm-header-subject-face		'vm-header-subject-face
+  "Face name to use for subject header contents.")
+
+(defface vm-header-bogo-face
+  '((((class color)
+      (background dark))
+     (:foreground "LawnGreen" :bold t :italic t :underline t))
+    (((class color)
+      (background light))
+     (:foreground "DarkOliveGreen" :bold t :italic t :underline t))
+    (t
+     (:bold t :italic t :underline t)))
+  "Mail X-Bogosity: header face")
+(defvar vm-header-bogo-face		'vm-header-bogo-face
+  "Face name to use for bogo header contents.")
+
+(defface vm-header-bogo-emph-face
+  '((((class color)
+      (background dark))
+     (:foreground "Red" :bold t :italic t :underline t))
+    (((class color)
+      (background light))
+     (:foreground "IndiaRed3" :bold t :italic t :underline t))
+    (t
+     (:bold t :italic t :underline t)))
+  "Mail bogofilter emphasis face")
+(defvar vm-header-bogo-emph-face	'vm-header-bogo-emph-face
+  "Face name to use for bogo header contents.")
+
+;; Magic multi-line content regex from
+;; http://www-xray.ast.cam.ac.uk/~gmorris/dotvm.txt
 ;;
 (setq vm-font-lock-keywords
-      '(t
-	("^\\(Subject:\\) \\(.+\\)$"
-	 (1 'vm-header-name-face)
-	 (2 'vm-header-subject-face))
-        ("^\\(From:\\) \\(.+\\)$"
-	 (1 'vm-header-name-face)
-	 (2 'vm-header-from-face))
-        ("^\\(Organization:\\) \\(.+\\)$"
-	 (1 'vm-header-name-face)
-	 (2 'vm-organization-face))
-        ("^\\(Reply-To:\\) \\(.+\\)$"
-	 (1 'vm-header-name-face)
-	 (2 'vm-header-reply-face))
-        ("^\\(To:\\) \\(.+\\)$"
-	 (1 'vm-header-name-face)
-	 (2 'vm-to-face))
-        ("^\\(Cc:\\) \\(.+\\)$"
-	 (1 'vm-header-name-face)
-	 (2 'vm-header-cc-face))
-	;; Resent-* headers
-	("^\\(resent-[^ \t\n:]+:\\) \\(.+\\)$"
-	 (1 'vm-resent-header-name-face)
-	 (2 'vm-header-content-face))
-	;; Other headers
-	("^\\([^ \t\n:]+:\\) \\(.+\\)$"
-	 (1 'vm-header-name-face)
-	 (2 'vm-header-content-face))
- 	;; citations (try to avoid Unix mailbox ">From" quoting)
-        ("^[a-z0-9 \t]*[>|}:]+\\(.+\\)$"
-	 (1 'vm-citation-face))))
+      (eval-when-compile
+	(let* ((header-content "\\(.+\\)\\(\\(\n[ \t]+.*\\)*\\)")
+	       (cite-chars "[>|}]")
+	       (cite-prefix "A-Za-z")
+	       (cite-suffix (concat cite-prefix "0-9_.@-`'\"")))
+	  (list
+	   '("^\\(From .*\\)\nX-VM"
+	     (1 'vm-header-from_-face))
+	   `(,(concat "^\\(Subject:\\) " header-content)
+	     (1 'vm-header-name-face t t)
+	     (2 'vm-header-subject-face nil t)
+	     (3 'vm-header-subject-face nil t))
+	   `(,(concat "^\\(From:\\) " header-content)
+	     (1 'vm-header-name-face t t)
+	     (2 'vm-header-from-face nil t)
+	     (3 'vm-header-from-face nil t))
+	   `(,(concat "^\\(Organization:\\) " header-content)
+	     (1 'vm-header-name-face t t)
+	     (2 'vm-header-organization-face nil t)
+	     (3 'vm-header-organization-face nil t))
+	   `(,(concat "^\\(Reply-To:\\) " header-content)
+	     (1 'vm-header-name-face t t)
+	     (2 'vm-header-reply-face nil t)
+	     (3 'vm-header-reply-face nil t))
+	   `(,(concat "^\\(To:\\) " header-content)
+	     (1 'vm-header-name-face t t)
+	     (2 'vm-header-to-face nil t)
+	     (3 'vm-header-to-face nil t))
+	   `(,(concat "^\\(Cc:\\) " header-content)
+	     (1 'vm-header-name-face t t )
+	     (2 'vm-header-cc-face nil t)
+	     (3 'vm-header-cc-face nil t))
+	   `("^\\(X-Bogosity:\\) \\([a-z]+\\)\\(.*\\)"
+	     (1 'vm-header-bogo-face t t)
+	     (2 'vm-header-bogo-emph-face nil t))
+	   '("^X-Bogosity: .*\\(?:spamicity=\\)\\([.0-9]+\\)"
+	     (1 'vm-header-bogo-emph-face t))
+	   '("^X-Bogosity: .*\\(?:algorithm=\\)\\([a-z]+\\)"
+	     (1 'vm-header-bogo-emph-face t))
+	   ;; Resent-* headers
+	   `(,(concat "^\\(resent-[^ \t\n:]+:\\) " header-content)
+	     (1 'vm-resent-header-name-face t t)
+	     (2 'vm-header-content-face nil t)
+	     (3 'vm-header-content-face nil t))
+	   ;; all the other headers
+	   `(,(concat "^\\([a-z0-9_-]+:\\) " header-content)
+	     (1 'vm-header-name-face t t)
+	     (2 'vm-header-content-face nil t)
+	     (3 'vm-header-content-face nil t))
+	   ;; Citations -- this should only match in the body
+	   ;; (borrowed from rmail-font-lock-keywords in rmail.el)
+	   `(,cite-chars
+	     (,(concat "\\=[ \t]*"
+		       "\\(\\([" cite-prefix "]+[" cite-suffix "]*\\)?"
+		       "\\(" cite-chars "[ \t]*\\)\\)+"
+		       "\\(.*\\)")
+	      (beginning-of-line) (end-of-line)
+	      (2 font-lock-constant-face nil t)
+	      (4 vm-citation-face nil t)))))))
+	
+;;;; *** Rmail Local Fontification -- some clues for possible use with VM ***
+;
+;  (make-local-variable 'font-lock-defaults)
+;  (setq font-lock-defaults
+;	'(rmail-font-lock-keywords
+;	  t nil nil nil
+;	  (font-lock-maximum-size . nil)
+;	  (font-lock-fontify-buffer-function . rmail-fontify-buffer-function)
+;	  (font-lock-unfontify-buffer-function . rmail-unfontify-buffer-function)
+;	  (font-lock-inhibit-thing-lock . (lazy-lock-mode fast-lock-mode))))
+;
+;(defun rmail-fontify-buffer-function ()
+;  ;; This function's symbol is bound to font-lock-fontify-buffer-function.
+;  (make-local-hook 'rmail-show-message-hook)
+;  (add-hook 'rmail-show-message-hook 'rmail-fontify-message nil t)
+;  ;; If we're already showing a message, fontify it now.
+;  (if rmail-current-message (rmail-fontify-message))
+;  ;; Prevent Font Lock mode from kicking in.
+;  (setq font-lock-fontified t))
+;
+;(defun rmail-unfontify-buffer-function ()
+;  ;; This function's symbol is bound to font-lock-fontify-unbuffer-function.
+;  (let ((modified (buffer-modified-p))
+;	(buffer-undo-list t) (inhibit-read-only t)
+;	before-change-functions after-change-functions
+;	buffer-file-name buffer-file-truename)
+;    (save-restriction
+;      (widen)
+;      (remove-hook 'rmail-show-message-hook 'rmail-fontify-message t)
+;      (remove-text-properties (point-min) (point-max) '(rmail-fontified nil))
+;      (font-lock-default-unfontify-buffer)
+;      (and (not modified) (buffer-modified-p) (set-buffer-modified-p nil)))))
+;
+;(defun rmail-fontify-message ()
+;  ;; Fontify the current message if it is not already fontified.
+;  (if (text-property-any (point-min) (point-max) 'rmail-fontified nil)
+;      (let ((modified (buffer-modified-p))
+;	    (buffer-undo-list t) (inhibit-read-only t)
+;	    before-change-functions after-change-functions
+;	    buffer-file-name buffer-file-truename)
+;	(save-excursion
+;	  (save-match-data
+;	    (add-text-properties (point-min) (point-max) '(rmail-fontified t))
+;	    (font-lock-fontify-region (point-min) (point-max))
+;	    (and (not modified) (buffer-modified-p) (set-buffer-modified-p nil)))))))
+;
 
 (defun vm-fontify ()
+  "Turn on font-locking for a mail buffer."
   (make-local-variable 'font-lock-defaults)
-  ;; fontify with keywords only (no syntax spec) and ignore case
-  (setq font-lock-defaults '(vm-font-lock-keywords t t))
+  ;; fontify with keywords only (no syntax spec) [t] and ignore case [t]
+  (set (make-local-variable 'font-lock-defaults)
+       '(vm-font-lock-keywords t t))
   (turn-on-font-lock))
 
-(cond (window-system
-;       (add-hook 'vm-mode-hook
-;		 'vm-fontify)
-       (add-hook 'vm-presentation-mode-hook
-		 'vm-fontify)
-       (add-hook 'vm-mail-mode-hook
-		 'vm-fontify)
-       (add-hook 'vm-edit-message-hook
-		 'vm-fontify)))
+;; fontifying the whole buffer in older versions is too painful
+;;
+(if (>= emacs-major-version 21)
+    (add-hook 'vm-mode-hook 'vm-fontify))
+
+;; always fontify for presentation buffers -- they are just one message long.
+;; Presentation buffers are used to display messages when some type of decoding
+;; must be done to the message to make it presentable.  E.g. MIME decoding.
+;;
+(add-hook 'vm-presentation-mode-hook
+	  'vm-fontify)
+
+;; always fontify for composing new messages (note this has to be on
+;; `vm-mail-hook', not on `vm-mail-setup-hook' or else the mail mode
+;; fontification overrides)
+;;
+(add-hook 'vm-mail-hook
+	  'vm-fontify)
+
+;; always fontify for editing messages
+;;
+(add-hook 'vm-edit-message-hook
+	  'vm-fontify)
 
 ;; This summary stuff is way too CPU intensive when you have as many virtual
 ;; folders open as I do (especially on a machine as slow as mine! ;-).
@@ -882,9 +1754,13 @@ every line, with a trailing newline).")
 ;       (add-hook 'vm-summary-update-hook
 ;		 'vm-summary-fontify)))
 
+;;;;
+;;;;	 now the remaining bulk of the VM configuration variables:
+;;;;
+
 ;; commented lines indicate changed values....  (from v6.75)
 ;;
-(setq 
+(setq
 ;;;   vm-arrived-message-hook nil
 ;;;   vm-arrived-messages-hook nil
       vm-auto-center-summary nil	; never bother centering the arrow
@@ -1065,9 +1941,8 @@ every line, with a trailing newline).")
       vm-keep-sent-messages 30		; keep a few for reference
       vm-lynx-program "lynx"
       vm-mail-check-interval nil	; don't bother -- we don't show  mail-waiting indicator
-      vm-mail-header-from (concat (user-login-name) "@" (vm-fqdn t)
-				  " (" (user-full-name) ")") ; this is also for
-							     ; resent-from
+      vm-mail-header-from  (concat "\"" (user-full-name) "\" <"
+				   (user-login-name) "@" (vm-fqdn t) ">") ; this is also for resent-from
       vm-mail-header-insert-date nil	; don't do this!
       vm-mail-header-insert-message-id nil ; don't do this either!
 ;;;   vm-mail-hook nil
@@ -1079,18 +1954,39 @@ every line, with a trailing newline).")
       vm-mime-8bit-composition-charset "iso-8859-1"
       vm-mime-8bit-text-transfer-encoding '8bit	; just send it, damn it!
       vm-mime-alternative-select-method 'best-internal
+      vm-mime-attachment-auto-suffix-alist (("image/jpeg" . ".jpeg") ; that's JPEG, not JPG!
+					    ("image/gif" . ".gif")
+					    ("image/png" . ".png")
+					    ("image/tiff" . ".tiff")
+					    ("image/xpm" . ".xpm")
+					    ("text/html" . ".html")
+					    ("audio/basic" . ".au")
+					    ("audio/mpeg" . ".mp3")
+					    ("audio/ogg" . ".ogg")
+					    ("audio/x-mpeg" . ".mp3")
+					    ("video/mpeg" . ".mpeg") ; and MPEG!
+					    ("video/quicktime" . ".mov")
+					    ("application/mac-binhex40" . ".hqx")
+					    ("application/postscript" . ".ps")
+					    ("application/pdf" . ".pdf")
+					    ("application/vnd.ms-excel" . ".xls")
+					    ("application/x-dvi" . ".dvi")
+					    ("application/zip" . ".zip"))
       vm-mime-attachment-auto-type-alist '(("\\.jpe?g$" . "image/jpeg")
 					   ("\\.gif$" . "image/gif")
 					   ("\\.png$" . "image/png")
 					   ("\\.tiff?$" . "image/tiff")
+					   ("\\.xpm$"   . "image/xpm")
 					   ("\\.html?$" . "text/html")
 					   ("\\.au$" . "audio/basic")
+					   ("\\.mp3$" . "audio/mpeg")
 					   ("\\.mpe?g$" . "video/mpeg")
 					   ("\\.mov$" . "video/quicktime")
+					   ("\\.dvi$" . "application/x-dvi")
 					   ("\\.pdf$" . "application/pdf")
 					   ("\\.e?ps$" . "application/postscript")
 					   ("\\.xls$" . "application/vnd.ms-excel"))
-      vm-mime-attachment-save-directory nil
+      vm-mime-attachment-save-directory "~/" ; put us home by default
       vm-mime-avoid-folding-content-type t
       vm-mime-base64-decoder-program "base64-decode" ; let's assume it's installed
       vm-mime-base64-decoder-switches nil
@@ -1130,7 +2026,7 @@ every line, with a trailing newline).")
 				   ("koi8" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-koi8-1")
 				   )	; this should be smarter and use preferred-frame-font
       vm-mime-confirm-delete t
-      vm-mime-decode-for-preview nil	; this is a waste of time!
+      vm-mime-decode-for-preview nil	; this is a huge bloody waste of time!
       vm-mime-default-face-charset-exceptions nil
       vm-mime-default-face-charsets '("us-ascii"
 				      "iso-8859-1"
@@ -1145,15 +2041,21 @@ every line, with a trailing newline).")
       vm-mime-digest-discard-header-regexp "X400-|x-uidl" ; yucky headers
       vm-mime-digest-headers nil	; digest all the rest
       vm-mime-display-function nil
-      vm-mime-external-content-types-alist '(("image/gif" 	"xv") ; RMS hates GIF so it must be displayed
-					     ("image"	 	"xv") ; so other types can be too
+      ;; the next should be set automatically from ~/.mailcap
+      vm-mime-external-content-types-alist '(("image/gif" 	"xv") ; RMS hates GIF so it must be displayed externally
+					     ("image"	 	"xv") ; so why not other types too?
 					     ("text/html" 	"xterm -e links") ; links RULES!
-					     ("video/mpeg" 	"mpeg_play -dither fs4")
+					     ("audio/mpeg" 	"mpg123")
+					     ("audio/ogg" 	"ogg123")
+					     ("audio/x-mpeg" 	"mpg123")
+					     ("video/mpeg" 	"mpeg_play -dither fs4") ; need "-dither color2" on 16-bit or better displays
 					     ("video" 		"xanim")
+					     ("application/pdf" "gv -spartan -scale 2")
+					     ("application/postscript" "gv -spartan -scale 2")
 					     ) ; basically from the example
       vm-mime-ignore-composite-type-opaque-transfer-encoding t
       vm-mime-ignore-mime-version t
-      vm-mime-internal-content-type-exceptions nil
+      vm-mime-internal-content-type-exceptions '("text/html") ; always do HTML _externally_
       vm-mime-internal-content-types t
       vm-mime-max-message-size 100000	; that's more than big enough!
       ;;
@@ -1233,7 +2135,7 @@ every line, with a trailing newline).")
 ;; if [ $# -eq 2 -a X"$1" = X"-remote" ] ; then
 ;; 	rsh $NETSCAPEHOST $NETSCAPEPATH -display $DISPLAY -remote "'$2'"
 ;; else
-;; 	rsh $NETSCAPEHOST $NETSCAPEPATH -display $DISPLAY 
+;; 	rsh $NETSCAPEHOST $NETSCAPEPATH -display $DISPLAY
 ;; fi
       vm-netscape-program "mozilla"
       vm-netscape-program-switches (list "-display" my-vm-netscape-display)
@@ -1298,8 +2200,11 @@ every line, with a trailing newline).")
 			     (getenv "MAIL")
 			     vm-crash-box)
 		       (list vm-primary-inbox
-			     "pop.weird.com:pop:apop:woods:*"
+			     "pop:pop.weird.com:pop:pass:woods:*"
 			     vm-crash-box)
+		       (list (concat vm-primary-inbox ".almost")
+			     "pop:almost.weird.com:pop:pass:woods:*"
+			     (concat vm-crash-box ".almost"))
 		       (list (concat vm-primary-inbox ".aci")
 			     "imap-ssh:imap.aci.on.ca:imap:inbox:login:woods:*"
 			     (concat vm-crash-box ".aci"))
@@ -1316,7 +2221,6 @@ every line, with a trailing newline).")
 			     "netmail.home.com:pop:pass:millswoods:*"
 			     (concat vm-crash-box ".rogers-netmail"))
 		       ))
-			
       vm-spool-file-suffixes nil
 ;;;   vm-spooled-mail-waiting-hook nil
       vm-startup-with-summary t
@@ -1515,8 +2419,13 @@ every line, with a trailing newline).")
 			      ("Andy_Mills@jdedwards\\.com" . "from/andy")
 			      ("andy.mills@schwab.*\\.com" . "from/andy")
 			      ("amills@infinetcomm.*\\.com" . "from/andy")
-			      ("gnats-admin@netbsd\\.org" . "from/netbsd-gnats-bugs")
+			      ("andy@nationalfibre.net" . "from/andy")
+			      ("hostmaster@GTS.NET" . "from/bdb")
+			      ("postmaster@GTS.NET" . "from/bdb")
+			      ("news@GTS.NET" . "from/bdb")
+			      ("usenet@GTS.NET" . "from/bdb")
 			      ("gnats-bugs@netbsd\\.org" . "netbsd/gnats-bugs")
+			      ("gnats-admin@netbsd\\.org" . "from/netbsd-gnats-bugs")
 			      ("word@m-w.com" . "mw-wod-l")
 			      ;; code to make auto-folder default to the user name of the sender.
 			      ;; this should be last in the auto folder alist since it tends to
@@ -1525,7 +2434,7 @@ every line, with a trailing newline).")
 			       (concat "from/"
 				       (downcase (buffer-substring (match-beginning 1)
 								   (match-end 1)))))
-			      ("<\\([^>]+\\)>" . 
+			      ("<\\([^>]+\\)>" .
 			       (concat "from/"
 				       (downcase (buffer-substring (match-beginning 1)
 								   (match-end 1)))))
@@ -1641,6 +2550,7 @@ every line, with a trailing newline).")
 		("netbsd-bugs"
 		 (("INBOX")
 		  (or (recipient "gnats-bugs@gnats.netbsd.org")
+		      (recipient "gnats-admin@netbsd.org")
 		      (recipient "netbsd-bugs@"))))
 		("netbsd-source-changes"
 		 (("INBOX")
@@ -1659,7 +2569,8 @@ every line, with a trailing newline).")
 		      (recipient "tech-ports@")
 		      (recipient "tech-security@")
 		      (recipient "tech-toolchain@")
-		      (recipient "tech-userlevel@"))))
+		      (recipient "tech-userlevel@")
+		      (recipient "tech-x11@"))))
 		("netbsd-port-alpha"
 		 (("INBOX")
 		  (recipient "port-alpha@")))
@@ -1669,10 +2580,9 @@ every line, with a trailing newline).")
 		("netbsd-port-misc"
 		 (("INBOX")
 		  (or (recipient "port-arm32@")
-		      (recipient "port-powerpc@"))))
-		("netbsd-port-pmax"
-		 (("INBOX")
-		  (recipient "port-pmax@")))
+		      (recipient "port-pmax@")
+		      (recipient "port-powerpc@")
+		      (recipient "port-vax@"))))
 		("netbsd-port-sun"
 		 (("INBOX")
 		  (or (recipient "port-sparc@")
