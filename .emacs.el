@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.26	96/10/15 20:22:03 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.27	96/10/25 00:21:17 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -19,9 +19,11 @@
 ;;;
 ;;; more goodies for debug:
 ;;;
-;;; (setq stack-trace-on-error t)
-;;; (setq debug-on-quit t)
 ;;; (setq debug-on-error nil)
+;;; (setq stack-trace-on-error t)
+;;; (setq stack-trace-on-error nil)
+;;; (setq debug-on-quit t)
+;;; (setq debug-on-quit nil)
 
 ;; I don't want that annoying startup message.
 (setq inhibit-startup-message t)
