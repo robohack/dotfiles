@@ -1,10 +1,32 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.26	96/10/18 01:01:10 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.27	96/10/18 04:09:22 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
+
+;;; rmime.el --- read MIME messages
+;; Author: Ray Moody <moody@cray.com>
+;; Version: $Id: rmime.el,v 1.2 1996/05/30 02:24:58 moody Exp $
+;; NOTE: elisp-file-in-loadpath-p comes from my .emacs.el
+(if (elisp-file-in-loadpath-p "rmime")
+    (progn
+      (setq vm-preview-lines t)
+      ;; use the key bindings to do this...
+      ;;(add-hook 'vm-select-message-hook 'rmime-format)
+      (add-hook 'vm-select-message-hook 'rmime-cancel)
+      (add-hook 'vm-edit-message-hook 'rmime-cancel)
+      (autoload 'rmime-mode "rmime" "" nil)
+      (autoload 'rmime-format "rmime" "" nil)
+      (autoload 'rmime-cancel "rmime" "" nil)
+      (autoload 'vm-rmime-mode "rmime" "" nil)
+      (autoload 'vm-mode-mimeinfo "rmime" "" nil)
+      (setq rmime-clean-files t)	; save as MIME encoded
+      (define-key vm-mode-map "I" 'vm-rmime-mode)
+      ;;(define-key vm-mode-map "i" 'vm-rmime-display-mimeinfo)
+      )
+  (setq vm-preview-lines 4))		; allow 4 lines of the body to show
 
 ;;;
 ;;; some more enhancements
@@ -179,8 +201,6 @@ ORGANIZATION.  If not nil, takes precedence over the file
       (delete-region (point) top-of-my-sig)
       )))
 
-(add-hook 'vm-reply-hook 'citation-kill-sig)
-
 ;;; more from: edwinh@primenet.com (Edwin Huffstutler)
 ;;; 
 ;;; This next one I bind to C-c C-d in a reply buffer, and it deletes anything
@@ -213,8 +233,8 @@ ORGANIZATION.  If not nil, takes precedence over the file
 
 (add-hook 'vm-reply-hook
 	  '(lambda ()
-	     (local-set-key "\C-c\C-d" 'citation-kill-double)
-	     ))
+	     (local-set-key "\C-c\C-s" 'citation-kill-sig)
+	     (local-set-key "\C-c\C-d" 'citation-kill-double)))
 
 ;; commented lines indicate changed values....  (from v5.72)
 ;;
@@ -363,15 +383,17 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-frame-per-composition nil	;
       vm-frame-per-edit nil
       vm-frame-per-folder nil		;
-      vm-highlighted-header-regexp nil
-;;;   vm-highlighted-header-regexp "^From:\\|^Subject:" ; highlight these headers
+      vm-highlighted-header-regexp "^From:\\|^Subject:" ; highlight these headers
       vm-honor-page-delimiters nil
       vm-in-reply-to-format "%F's message\n	of \"%w, %m %d, %y %h %z\"\n	regarding \"%s\"\n	id %i"
 					; just the way I like it!
       vm-included-text-attribution-format "[ On %w, %m %d, %y at %h (%z), %F wrote: ]\n> Subject: %s\n>\n"
 					; just the way I like it!
       vm-included-text-discard-header-regexp nil
-      vm-included-text-headers nil
+      vm-included-text-headers '("Keywords:"
+				 "Newsgroups:"
+				 "MIME-"
+				 "Content-") ; try for manual MIME replies
       vm-included-text-prefix "> "	; k.i.s.s. (and standard!)
       vm-inhibit-startup-message t	; don't bother me with legalese
 ;;;   vm-init-file "~/.vm"
@@ -387,6 +409,25 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;;;   vm-mail-mode-hook nil
 ;;;   vm-mode-hook nil
 ;;;   vm-mode-hooks nil
+      vm-mode-line-format '("" "  %&%& "
+			    ("VM: " minor-mode-alist " "
+			     (vm-folder-read-only "read-only ")
+			     (vm-virtual-folder-definition (vm-virtual-mirror
+							    "mirrored "))
+			     "%b"
+			     (vm-mail-buffer (vm-ml-sort-keys ("" " by "
+							       vm-ml-sort-keys)))
+			     (vm-message-list
+			      ("   " vm-ml-message-number
+			       " (of " vm-ml-highest-message-number ")")
+			      (vm-folder-type
+			       "   (unrecognized folder type)"
+			       "   (no messages)")))
+			    (vm-message-list
+			     ("  %[ " vm-ml-message-attributes-alist
+			      (vm-ml-labels ("; " vm-ml-labels)) " %]    ")
+			     ("  %[%]   "))
+			    "%p" "   " global-mode-string) ; show minor-mode too
       vm-move-after-deleting t		; keep on rolling
       vm-move-after-undeleting nil
       vm-move-messages-physically nil
@@ -394,7 +435,8 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-mutable-frames nil
       vm-mutable-windows t
       vm-pop-md5-program "md5"
-      vm-preview-lines 4		; allow 4 lines of the body to show
+;; this is controlled by rmime now
+;;    vm-preview-lines 4		; allow 4 lines of the body to show
       vm-preview-read-messages nil
       vm-primary-inbox "~/Mail/INBOX"	; keep everything in vm-folder-directory
 ;;;   vm-quit-hook nil
@@ -512,7 +554,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-virtual-folder-alist nil
       vm-virtual-mirror t
       vm-visible-headers '("Newsgroups:"
-			   "X-[^VF]"		; try to avoid X-VM-* and X-Face
+			   "X-[^VFS][^Mat]"	; try to avoid X-VM-*, X-Status, and X-Face
 			   "Resent-[^M]"	; try to avoid Resent-Message-ID:
 			   "Original-[^M]"	; try to avoid Original-Message-ID:
 			   "From:"
