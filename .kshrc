@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	7.1	95/02/17 11:22:59 (woods)"
+#ident	"@(#)HOME:.kshrc	7.2	95/03/03 16:44:59 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -283,6 +283,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
 			WBANNER="GNU Emacs @ $UUNAME"
 			setban
+			mesg n
 			emacs "$@"
 		}
 	fi
@@ -318,6 +319,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		fi
 		WBANNER="cu $*"
 		setban
+		mesg n
 		/usr/bin/cu "$@"
 	}
 
@@ -333,6 +335,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		fi
 		WBANNER="C-Kermit $*"
 		setban
+		mesg n
 		$LOCAL/bin/ckermit "$@"
 	}
 
@@ -345,6 +348,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
 			WBANNER="rlogin $*"
 			setban
+			mesg n
 			$RLOGIN "$@"
 		}
 	fi
@@ -363,6 +367,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			fi
 			WBANNER="telnet $*"
 			setban
+			mesg n
 			$TELNET "$@"
 		}
 	fi
@@ -384,6 +389,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	function _su
 	{
 		trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+		mesg n
 		if [ -x /usr/5bin/su ] ; then
 			/usr/5bin/su "$@"
 		else
