@@ -1,7 +1,7 @@
 #
 #	.bashrc - per-shell startup stuff for bash via $ENV
 #
-#ident	"@(#)HOME:.bashrc	20.1	98/07/20 11:23:53 (woods)"
+#ident	"@(#)HOME:.bashrc	20.2	98/10/14 01:43:56 (woods)"
 
 # Assumptions:
 
@@ -314,7 +314,7 @@ alias lra='/bin/ls $LS_OPTIONS -CFRa'
 alias lsa='/bin/ls $LS_OPTIONS -a'
 alias logout='exit 0'
 alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok'
-alias maillog='$PAGER -e +G $MAILLOG'
+alias maillog='$PAGER -e -p ": remote [A-Z ]*:" +G $MAILLOG'
 alias rstty='stty $SANE'
 alias uuq='uusnap -av'
 alias wcvs='echo $CVSROOT'
