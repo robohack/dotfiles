@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.15	98/03/23 19:46:10 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.16	98/04/25 22:55:15 (woods)"
 #
 
 changequote([, ])
@@ -85,8 +85,8 @@ WorkSpaces {
 	"Work 2"
 }
 
-ifelse(COLOR, Yes,
-[Color {
+ ifelse(COLOR, Yes, [
+Color {
 	# highlit window borders
 	BorderColor		"SteelBlue"
 	# unused?
@@ -128,8 +128,9 @@ MapWindowDefaultWorkSpace {
 	"DarkGreen"
 	"grey98"
 	"grey50"
-}],
-[Monochrome {
+}
+ ], [
+Monochrome {
 	BorderColor		"grey70"
 	BorderTileBackground	"grey6"
 	BorderTileForeground	"grey50"
@@ -156,21 +157,19 @@ MapWindowDefaultWorkSpace {
 	"grey98"
 	"grey50"
 }
-])
+ ])
 
 IconJustification		"right"
 
 IconRegion	"500x250-0+300" North East 25 25
 
-IconDirectory		["HOME/lib/bitmaps:/usr/include/X11/bitmaps"]
-ifdef([XPM],
- [PixmapDirectory	"HOME/lib/pixmaps:/usr/lib/X11/twm/images"], [])
+# Can only be one directory!  Uses resource bitmapFilePath first...
+#
+IconDirectory	"HOME/lib/bitmaps"
 
-#IconManagers	{ "XTerm" "=305x100-200+0" 1 }
-
-#IconifyByUnmapping {
-#	"XTerm"
-#}
+ ifdef([XPM], [
+PixmapDirectory	"HOME/lib/pixmaps:/usr/lib/X11/twm/images"
+ ])
 
 IconManagerDontShow {
 	"oclock"
@@ -189,21 +188,22 @@ IconManagerDontShow {
 	"XSysStats"
 }
 
-UnknownIcon			"xpm:unknown.xpm"
+ifdef([XPM], [UnknownIcon "xpm:unknown.xpm"], [UnknownIcon "unknown.xbm"])
 
 Icons {
 	"Untitled"	"xlogo16"
 	"xcmap"		"plaid"
 	"XConsole"	"terminal"
+	"emacs"		"gnu.xbm"	# only when no '-i' given
  ifdef([XPM], [
 	"auedit"	"xpm:audio_editor.xpm"
-	"emacs"		"xpm:emacs.xpm"
 	"ghostview"	"xpm:ghostview.xpm"
 	"log0"		"xpm:document-simple.xpm"
 	"log1"		"xpm:document-simple.xpm"
 	"log2"		"xpm:document-simple.xpm"
-	"Mosaic"	"xpm:button-spider.xpm"
+	"Mosaic"	"xpm:xmosaic.xpm"
 	"spider"	"xpm:spider.xpm"
+	"swissclock"	"xpm:clock.xpm"
 	"xcalendar"	"xpm:datebook.xpm"
 	"xclipboard"	"xpm:clipboard.xpm"
 	"xedit"		"xpm:xedit.xpm"
@@ -211,7 +211,10 @@ Icons {
 	"xpostit"	"xpm:postit.xpm"
 	"XSm"		"xpm:xgrab.xpm"
 	"xterm"		"xpm:term.xpm"
- ], [	"xterm"		"Term" ])
+ ], [
+	"swissclock"	"clock.xbm"
+	"xterm"		"Term"
+ ])
 }
 
 Cursors {
@@ -280,9 +283,9 @@ WarpCursor {
 # Define some useful functions for motion-based actions.
 #
 
-ChangeWorkspaceFunction		!"auplay HOME/sounds/wschange &"
-IconifyFunction			!"auplay HOME/sounds/iconify &"
-DeIconifyFunction		!"auplay HOME/sounds/deiconify &"
+ChangeWorkspaceFunction		!"auplay HOME/lib/sounds/wschange &"
+IconifyFunction			!"auplay HOME/lib/sounds/iconify &"
+DeIconifyFunction		!"auplay HOME/lib/sounds/deiconify &"
 
 Function "forcemove-or-lower"	{ f.forcemove f.deltastop f.lower }
 Function "forcemove-or-raise"	{ f.forcemove f.deltastop f.raise }
@@ -364,7 +367,7 @@ menu "quickies"
 	"WinDelete or Destroy"	f.deleteordestroy
 	"Kill"			f.menu "kill"
 	""			f.separator
-	"Xterm @CLIENTHOST"	!"$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm [@CLIENTHOST]"	!"$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls &"
 	"Xterm @x11server"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
 	""			f.separator
 	"Toggle workspace"	f.togglestate
@@ -645,7 +648,9 @@ menu "miscapps"
 {
 	"Miscellaneous Applications"	f.title
 	"plan"				!"plan &"
+ ifdef([AT_WEIRD], [
 	"plan @planix"			!"$RSH -n woffi.planix.com /usr/local/bin/plan -display $DISPLAY &"
+ ])
 	"axe"				!"axe &"
 	"xcalendar"			!"xcalendar &"
 	"xalarm"			!"xalarm &"
@@ -689,7 +694,7 @@ menu "emacs"
 	"@localhost"		!"emacs -i &"
 	"@x11server"		!"$RSH -n $XDMHOST '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='$MAILPATH'; export MAILPATH; exec '$GNU'/bin/emacs -display '$DISPLAY' -i' &"
  ifelse(HOSTNAME, most.weird.com, [], [
-	"@most"			!"$RSH -n most.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /usr/pkg/bin/emacs -display '$DISPLAY' -i' &"
+	"@most"			!"$RSH -n most.weird.com '. ./.localprofile; PATH='$HOME/bin:/usr/bin:/bin:/usr/bin/X11:/local/bin:/usr/pkg/bin:/usr/games:$PATH'; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /usr/pkg/bin/emacs -display '$DISPLAY' -i' &"
  ])
  ifelse(HOSTNAME, whats.weird.com, [], [
 	"@whats"		!"$RSH -n whats.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
@@ -701,8 +706,19 @@ menu "emacs"
 	"@kuma"			!"$RSH -n kuma.web.net '. ./.localprofile; PATH='$PATH'; export PATH; MAILPATH='/var/spool/mail/$LOGNAME'; export MAILPATH; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
  ])
  ifdef([AT_SEACHANGE], [
-  ifelse(HOSTNAME, kuma.web.net, [], [
+  ifelse(HOSTNAME, clapton.seachange.com, [], [
 	"@clapton"		!"$RSH -n clapton.seachange.com '. ./.localprofile; PATH='$PATH':/usr/contrib/bin; export PATH; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /usr/contrib/bin/emacs -display '$DISPLAY' -i ' &"
+  ])
+ ])
+ ifdef([AT_LEITCH], [
+  ifelse(HOSTNAME, bitter.zeus.leitch.com, [], [
+	"@bitter"	!"$RSH -n bitter.zeus.leitch.com '. ./.localprofile; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /usr/local/bin/emacs -display '$DISPLAY' -i ' &"
+  ])
+  ifelse(HOSTNAME, tap.zeus.leitch.com, [], [
+	"@tap"		!"$RSH -n tap.zeus.leitch.com '. ./.localprofile; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /usr/local/bin/emacs -display '$DISPLAY' -i ' &"
+  ])
+  ifelse(HOSTNAME, brain.zeus.leitch.com, [], [
+	"@brain"		!"$RSH -n brain.zeus.leitch.com '. ./.localprofile; MAILPATH='/var/mail/$LOGNAME'; export MAILPATH; exec /usr/local/bin/emacs -display '$DISPLAY' -i ' &"
   ])
  ])
 }
@@ -717,7 +733,6 @@ menu "monitors"
 	"xbiff"			!"xbiff -rv -bw 0 &"
 	"xlbiff"		!"xlbiff &"
 	"xbuffy"		!"xbuffy -geometry 80x25-0+235 -shortnames -header 0 &"
-	"xbuffy w/-acmd"	!"xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd \"$AUDIOPLAYER HOME/sounds/newmail\" &"
 
   ifdef([AT_WEIRD], [
     ifelse(HOSTNAME, most.weird.com, [], [
@@ -726,8 +741,8 @@ menu "monitors"
     ])
   ])
   ifdef([AT_LEITCH], [
-    ifelse(HOSTNAME, bitter.zeus.leitch.com, [], [
-	"xbuffy @bitter"	!"$RSH -n bitter.zeus.leitch.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &"
+    ifelse(HOSTNAME, tap.zeus.leitch.com, [], [
+	"xbuffy @tap"		!"$RSH -n tap.zeus.leitch.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &"
     ])
   ])
 	""			f.separator
@@ -764,13 +779,15 @@ menu "backgrounds"
 	"xearth nogrid"		!"xearth -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -wait 900 -nice 10 &"
 	"xearth orbiting"	!"xearth -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth orbiting fast"	!"xearth -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 0 &"
- ifelse(COLOR, Yes,
-	["xearth -gamma 1.7"	!"xearth -gamma 1.7 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
+ ifelse(COLOR, Yes, [
+	"xearth -gamma 1.7"	!"xearth -gamma 1.7 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth -gamma 1.7 nogrid" !"xearth -gamma 1.7 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -wait 900 -nice 10 &"
 	"xearth -gamma 1.7 orbiting" !"xearth -gamma 1.7 -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth -gamma 1.7 orbiting fast" !"xearth -gamma 1.7 -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 0 &"
-	"xearth on greyscale"	!"xearth -gamma 1.6 -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"],
-	["xearth on mono"	!"xearth -mono -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"])
+	"xearth on greyscale"	!"xearth -gamma 1.6 -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
+ ], [
+	"xearth on mono"	!"xearth -mono -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
+ ])
 	"xphoon"		!"xphoon -t 10 &"
 	"xsetroot eschernknot"	!"xsetroot -bitmap $X11PATH/[include]/X11/bitmaps/escherknot"
 	"xsetroot xsnow"	!"xsetroot -bitmap $X11PATH/[include]/X11/bitmaps/xsnow"
@@ -886,12 +903,13 @@ menu "www-netscape-cmap"
 	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
 }
 
-ifelse([HOSTNAME], once.weird.com,
+ifelse(
+[HOSTNAME], once.weird.com,
 	[define(OPT_GAMES_PATH_, [/opt/games/bin/])],
-	[define(OPT_GAMES_PATH_, [])],
 [HOSTNAME], very.weird.com,
 	[define(OPT_GAMES_PATH_, [/opt/games/bin/])],
-	[define(OPT_GAMES_PATH_, [])])
+	[define(OPT_GAMES_PATH_, [])]
+)
 
 menu "games"
 {
@@ -901,6 +919,7 @@ menu "games"
 	"Xsol for colour"	!"xsol +r &"
 	"Spider"		!"OPT_GAMES_PATH_[spider] &"
 	"mahjongg"		!"OPT_GAMES_PATH_[mahjongg] &"
+	"xmahjongg"		!"xmahjongg &"
 	"xdragon (mahjongg)"	!"OPT_GAMES_PATH_[xdragon] -geometry 40x40 &"
 	"Xtetris"		!"xtetris -bw &"
 	"Xtetris for colour"	!"xtetris -color &"
@@ -1309,8 +1328,8 @@ menu "rlogin-reptiles"
 menu "rlogin-vrx"
 {
 	"Rlogin's At vrx.net" f.title
-	"Rlogin @ns1(FreeBSD)"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin ns1.vrx.net &"
-	"Rlogin @ns3(FreeBSD)"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin ns3.vrx.net &"
+	"Rlogin @ns1(FreeBSD)"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin ns1.vrx.net &"
+	"Rlogin @ns3(FreeBSD)"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin ns3.vrx.net &"
 }
 
 menu "rlogin-druid"
