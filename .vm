@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.24	98/07/05 17:31:57 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.25	98/07/05 23:42:14 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -957,19 +957,25 @@ message/rfc822 attachments."
 	       (list (symbol-value 'my-vm-virtual-leftovers-folder)
 		     (list (list "INBOX")
 			   '(not (virtual-folder-member)))))
-	      '(("VM"
+	      '(("CM-stuff"
+		 (("INBOX")
+		  (or (recipient "aegis-users@")
+		      (recipient "cssc-users@")
+		      (recipient "prcs-list@")
+		      (recipient "bitkeeper-users@")
+		      (recipient "shape-l@"))))
+
+		("NANOG"
+		 (("INBOX")
+		  (or (recipient "nanog@")
+		      (recipient "nanog-announce@"))))
+		("VM"
 		 (("INBOX")
 		  (or (recipient "bug-vm@")
 		      (recipient "info-vm@"))))
 		("automake"
 		 (("INBOX")
 		  (recipient "automake@")))
-		("cm-stuff"
-		 (("INBOX")
-		  (or (recipient "prcs-list@")
-		      (recipient "cssc-users@")
-		      (recipient "bitkeeper-users@")
-		      (recipient "shape-l@"))))
 		("cvs"
 		 (("INBOX")
 		  (or (recipient "bug-cvs@")
@@ -1012,10 +1018,6 @@ message/rfc822 attachments."
 		("ipfilter"
 		 (("INBOX")
 		  (recipient "ipfilter@")))
-		("NANOG"
-		 (("INBOX")
-		  (or (recipient "nanog@")
-		      (recipient "nanog-announce@"))))
 		("netbsd-current-users"
 		 (("INBOX")
 		  (recipient "current-users@")))
