@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	10.5	94/03/14 12:10:15 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	10.6	94/03/25 10:42:34 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;;
@@ -302,8 +302,10 @@ Status: headers for O, or Forward to in mailboxes."
 (if (elisp-file-in-loadpath-p "vm")
     (setq auto-mode-alist
 	  (append
+	   '(("/Letter[^/]*$" . vm-mode))
 	   '(("mbox$" . vm-mode))
 	   '(("/Mail/.*$" . vm-mode))
+	   '(("/News/.*$" . vm-mode))
 	   auto-mode-alist)))
 
 (setq completion-ignored-extensions
@@ -609,6 +611,91 @@ the window showing completions."
 
 (define-key minibuffer-local-must-match-map "\t" 'minibuf-tab)
 (define-key minibuffer-local-completion-map "\t" 'minibuf-tab)
+
+;;; From: jimb@totoro.bio.indiana.edu (Jim Blandy)
+;;; To: gnu-emacs-sources@prep.ai.mit.edu
+;;; Subject: Finding function sources 
+;;; Date: Fri, 18 Mar 94 12:49:11 -0500
+;;;
+;;; These two functions show the name of the file from which a given Emacs
+;;; lisp function was loaded.  They use the `load-history' and `load-path'
+;;; variables to figure out where the function definition at hand came
+;;; from.
+;;;
+;;; find-load-file.el --- Which file did a given function come from?
+;;;
+;;; Author: Jim Blandy <jimb@gnu.ai.mit.edu>
+;;; Created: 18 Mar 1994
+;;; Keywords: lisp
+
+(defun load-file-defining-function (function)
+  "Return the name of the source file from which FUNCTION was loaded.
+If FUNCTION was defined by reading from a buffer, return 'buffer.
+If FUNCTION is a subr, or a lisp function dumped with Emacs, return nil."
+  (interactive "aFunction: ")
+  (symbol-function function)
+  (let ((hist load-history)
+        (file nil))
+    (while (consp hist)
+      (let ((name (car (car hist)))
+            (functions (cdr (car hist))))
+        (if (memq function functions)
+            (setq file (if name name 'buffer)
+                  hist nil)
+          (setq hist (cdr hist)))))
+    (setq file (load-file-name file))
+    (if (interactive-p)
+        (message
+         (cond
+          ((stringp file) 
+           (format "Function %s loaded from \"%s\"." function file))
+          ((null file)
+           (format "Function %s loaded from a buffer without a file."
+                   function))
+          (t
+           (format "Function %s loaded when Emacs was built."
+                   function)))))
+    file))
+
+(defun load-file-name (filename &optional nosuffix)
+  "Expand FILENAME, searching in the directories listed in `load-path'.
+This returns the name of the file `load-library' and `load' would
+process if passed FILENAME as the name of the file to load.
+
+If optional arg NOSUFFIX is non-nil, don't try adding
+suffixes `.elc' or `.el' to the specified name FILE."
+  (if (file-name-absolute-p filename)
+      filename
+    (let ((path load-path)
+          pathified-name
+          expanded
+          extended)
+      (while (and (null pathified-name)
+                  (consp path))
+        (setq expanded (expand-file-name filename (car path)))
+        (if (not (file-name-absolute-p expanded))
+            (setq expanded (expand-file-name filename)))
+        (if (file-name-absolute-p expanded)
+            (setq pathified-name
+                  (cond
+                   ((and (not nosuffix)
+                         (file-readable-p 
+                          (setq extended (concat expanded ".elc")))
+                         (not (file-directory-p extended)))
+                    extended)
+                   ((and (not nosuffix)
+                         (file-readable-p
+                          (setq extended (concat expanded ".el")))
+                         (not (file-directory-p extended)))
+                    extended)
+                   ((and (file-readable-p expanded)
+                         (not (file-directory-p expanded)))
+                    expanded))))
+        (setq path (cdr path)))
+      (if pathified-name
+          pathified-name
+          (signal 'file-error (list "Cannot find load file"
+                                    filename))))))
 
 ;;;; ----------
 ;;;; some special hooks.....
