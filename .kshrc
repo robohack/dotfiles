@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	20.7	99/04/01 14:36:26 (woods)"
+#ident	"@(#)HOME:.kshrc	20.8	99/06/27 20:09:29 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -207,19 +207,7 @@ if [ "$id" -eq 0 ] ; then
 	else
 		PS1='$TTYN:$LOGNAME@$UUNAME[$LEV.!] ${PWD#$HOME} # '
 	fi
-	if [ -d /var/spool/mail ] ; then
-		MAILPATH="/var/spool/mail/${LOGNAME}:/var/spool/mail/root\
-:/var/spool/mail/adm:/var/spool/mail/uucp:/var/spool/mail/badmail\
-:/var/spool/mail/usenet:/usr/adm/lastlog:/usr/adm/sulog"
-	elif [ -d /var/mail ] ; then
-		MAILPATH="/var/mail/${LOGNAME}:/var/mail/root\
-:/var/mail/adm:/var/mail/uucp:/var/mail/badmail\
-:/var/mail/usenet:/var/adm/lastlog:/var/adm/sulog"
-	else
-		MAILPATH="/usr/mail/${LOGNAME}:/usr/mail/root:/usr/mail/adm\
-:/usr/mail/uucp:/usr/mail/badmail:/usr/mail/usenet:/usr/adm/lastlog\
-:/usr/adm/sulog"
-	fi
+	MAILPATH=${MAILDIR}/${LOGNAME}:${MAILDOR}/root:${MAILDIR}/uucp:${MAILDIR}/usenet
 	if [ "$VISUAL" = "emacsclient" ] ; then
 		export VISUAL="emacs -nw"
 	fi
@@ -551,6 +539,7 @@ alias elc='emacs -batch -q -no-site-file -f batch-byte-compile'
 alias f='finger'
 alias h='fc -l | tail'
 alias j='jobs -l'
+alias krcmd="kill -9 \$(ps -x | awk '\$5 == \"rcmd\" {print \$1}')"
 alias l='/bin/ls -CF'
 alias la='/bin/ls -CFa'
 alias ll='/bin/ls -lis'
@@ -622,72 +611,23 @@ function errno
 	grep "^#define[ 	]*[A-Z][A-Z]*[ 	]*$1[ 	]" /usr/include/sys/errno.h
 }
 
+function kall
+{
+	SIGOPT=""
+	case "$1" in
+	-*)
+		SIGOPT=$1
+		shift;
+		;;
+	esac
+	kill $SIGOPT $(ps -x | awk '$5 == "'$1'" {print $1}')
+
+	unset SIGOPT
+}
+
 function lastcmd
 {
 	tr '[\001-\007]' '[\012*]' < .sh_history | tr '[\176-\377]' '[ *]' | egrep -v '^[	 }#]|^$' | tail ${1+"$@"}
-}
-
-function lastlog
-{
-	YearGrep="grep $(date +%Y)"
-	if [ $# -eq 1 -a "$1" = "-a" ] ; then
-		YearGrep="grep -v 1969"
-	elif [ $# -ne 0 ] ; then
-		print 'Usage: lastlog [-a]' >&2
-	fi
-	/usr/lib/acct/fwtmp < /usr/adm/lastlog.ut | $YearGrep |
-		awk '{printf("%-8s %-12s %s\n", $1, $3, substr($0, 56))}'
-}
-
-function malias
-{
-	grep "alias[ 	]$*" $LOCAL/lib/mush/Mail.rc ~/.mushrc
-}
-
-# note, there is an mk(8) on source licensed sites
-#
-function mk
-{
-	make $* 2>&1 | tee Errors
-}
-
-function mka
-{
-	make $* 2>&1 | tee -a Errors
-}
-
-function mkbg
-{
-	nohup make $* &
-	sleep 2
-	mv nohup.out Errors
-}
-
-function mkd
-{
-	make DEBUG=-DDEBUG $* 2>&1 | tee Errors
-}
-
-function mkda
-{
-	make DEBUG=-DDEBUG $* 2>&1 | tee -a Errors
-}
-
-function mkdbg
-{
-	nohup make DEBUG=-DDEBUG $* &
-	sleep 2
-	mv nohup.out Errors
-}
-
-function psp
-{
-	ps -fp $* | sort -n +1
-}
-
-function pst
-{
-	ps -ft $* | sort -n +1
 }
 
 function signm
@@ -711,6 +651,20 @@ function typeof
 	egrep -i "$1" $LLIBDIR/llib-lc $LLIBDIR/llib-lm $LLIBDIR/llib-lcurses
 	unset LLIBDIR
 }
+
+if [ -f /usr/adm/lastlog.ut -a -x /usr/lib/acct/fwtmp ] ; then
+	function lastlog
+	{
+		YearGrep="grep $(date +%Y)"
+		if [ $# -eq 1 -a "$1" = "-a" ] ; then
+			YearGrep="grep -v 1969"
+		elif [ $# -ne 0 ] ; then
+			print 'Usage: lastlog [-a]' >&2
+		fi
+		/usr/lib/acct/fwtmp < /usr/adm/lastlog.ut | $YearGrep |
+			awk '{printf("%-8s %-12s %s\n", $1, $3, substr($0, 56))}'
+	}
+fi
 
 if [ -r $HOME/.kshdir ] ; then
 	alias pushd='unalias pushd popd showd sd;. $HOME/.kshdir; pushd'
