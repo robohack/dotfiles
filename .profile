@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	18.4	97/01/20 21:50:06 (woods)"
+#ident	"@(#)HOME:.profile	18.5	97/01/28 23:32:01 (woods)"
 
 #
 # Assumptions:
@@ -38,6 +38,11 @@ fi
 if [ "`echo ~`" = "$HOME" -a -r $HOME/.ashtype -a ${RANDOM:-0} -eq ${RANDOM:-0} ] ; then
 	# TODO: actually, maybe this should be considered a Posix shell environment...
 	. $HOME/.ashtype
+fi
+
+if [ -z "$LOGNAME" ] ; then
+	LOGNAME="$USER"
+	export LOGNAME
 fi
 
 if [ -z "$UUNAME" ] ; then
