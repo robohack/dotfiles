@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	8.14	95/06/07 22:39:47 (woods)"
+#ident	"@(#)HOME:.profile	8.15	95/06/07 22:50:28 (woods)"
 
 #
 # Assumptions:
@@ -233,16 +233,28 @@ elif [ -r $LOCAL/lib/smail/mail.log ] ; then
 	MAILLOG="$LOCAL/lib/smail/mail.log" ; export MAILLOG
 fi
 
-(echo "hi there\c" ; echo " ") >$HOME/echotmp
-# Configure checks to make sure grep returns a status...
-if grep c echotmp >/dev/null 2>&1 ; then
-	n='-n'
-	c=''
-else
+HAVEPRINTF=false ; export HAVEPRINTF
+if expr "`type printf`" : '.* is .*/printf$' >/dev/null 2>&1 ; then
+	HAVEPRINTF=true
+	echo=printf
+	nl='\n'
 	n=''
 	c='\c'
+else
+	echo=echo
+	(echo "hi there\c" ; echo " ") >$HOME/echotmp
+	# Configure checks to make sure grep returns a status...
+	if grep c echotmp >/dev/null 2>&1 ; then
+		nl=''
+		n='-n'
+		c=''
+	else
+		nl='\n'
+		n=''
+		c='\c'
+	fi
+	rm -f $HOME/echotmp
 fi
-rm -f $HOME/echotmp
 
 if expr "`type mktable`" : '.* is .*/mktable$' >/dev/null 2>&1 ; then
 	MKTABLE="mktable"
@@ -424,7 +436,7 @@ if [ "$argv0" != ".xsession" -a "$argv0" != ".xinitrc" ] ; then
 		get_newterm ()
 		{
 			while [ "$TERM" != "$ttytype" ] ; do
-				echo $n "Please enter your terminal type [$ttytype]: $c"
+				$echo $n "Please enter your terminal type [$ttytype]: $c"
 				read newttytype
 				if [ -n "$newttytype" ] ; then
 					ttytype="$newttytype"
@@ -644,7 +656,7 @@ elif [ -x $LOCAL/games/fortune ] ; then
 	$LOCAL/games/fortune
 fi
 if [ -r calendar -o -r .month ] ; then
-	echo "\nToday's Events:"
+	echo "${nl}Today's Events:"
 	if $HAVEMONTH && [ -r .month ] ; then
 		month -B
 		#		monthd -i5
@@ -656,7 +668,7 @@ fi
 if [ -d $HOME/notes ] ; then
 	cd $HOME/notes
 	if [ `ls|wc -w` -ne 0 ] ; then
-		echo '\nYou have notes on: ' * '\n'
+		echo '${nl}You have notes on: ' * '${nl}'
 	fi
 	cd $HOME
 fi
