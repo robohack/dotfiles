@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	5.1	94/12/20 14:38:48 (woods)"
+#ident	"@(#)HOME:.kshrc	5.2	95/01/26 11:14:51 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -134,6 +134,8 @@ if [ "$LAYERSPID" -gt 0 -o "$TERM" = xterm ] ; then
 fi
 
 # UGLY, but it works
+#
+# WARNING: this sed expression breaks if there isn't a group-id for each gid
 #
 eval "$(id|sed -e 's/^uid=\([0-9]*\)(\(..*\)) gid=[0-9]*(\([^) ]*\)).*$/id=\1 uid=\2 gid=\3/')"
 
