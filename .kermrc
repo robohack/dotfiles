@@ -1,11 +1,26 @@
-# setup file for kermit
-set line /dev/tty01
-set speed 38400
+#ident	"@(#)HOME:.kermrc	20.2	99/04/11 14:52:13 (woods)"
+#
+#	setup file for kermit
+#
+# default port and parameters
+#
+#set line /dev/tty01
+#set speed 38400
+#set flow rts                    # hardware flow control
+#
+set command recall-buffer-size 100
+#
+#set buffer 262144 262144	# overall mem bytes for SEND & RECEIVE (win*p)
+set buffer 140000 140000	# overall mem bytes for SEND & RECEIVE (win*p)
+set send packet 9024		# send packet size
+set receive packet 9024		# receive packet size
+set block 3			# use 16bit CCITT crc's
+set window 15			# use 15 sliding window slots
+#
 set terminal bytesize 8
-set send pack 500
-set receive pack 500
-set buffer 25000 25000
-set window 15
-set file type bin
+#
+set file type binary
 set file display fullscreen
-set file names literal
+set file name literal
+#
+# end of ~/.kermrc
