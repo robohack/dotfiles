@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	5.4	95/01/27 18:34:56 (woods)"
+#ident	"@(#)HOME:.kshrc	5.5	95/01/30 15:04:03 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -284,7 +284,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		}
 	fi
 
-	if expr "$(type xpnerun)" : '.* is .*/xpnerun$' >/dev/null 2>&1 ; then
+	if expr "$(type pnerun)" : '.* is .*/pnerun$' >/dev/null 2>&1 ; then
 		unalias pnotes
 		alias pnotes=_pnotes
 		function _pnotes
@@ -295,9 +295,11 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			if [ ! -d $HOME/.pn ] ; then
 				mkdir $HOME/.pn
 			fi
-			rm -f $HOME/.pn/.emacs_server
-			ln -f $HOME/.emacs_server $HOME/.pn
-			xpnerun pnotes "$@"
+			if [ -f $HOME/.emacs_server ] ; then
+				rm -f $HOME/.pn/.emacs_server
+				ln -f $HOME/.emacs_server $HOME/.pn
+			fi
+			pnerun pnotes "$@"
 		}
 	fi
 
