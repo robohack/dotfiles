@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.8	95/09/25 12:05:26 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.9	95/09/25 12:25:23 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -114,10 +114,13 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("auto-net@" . "auto-net-l")
 			      ("bind@" . "bind-l")
 			      ("bind-workers@" . "bind-workers-l")
+			      ("com-priv@psi.com" . "com-priv-l")
 			      ("devel-cvs@" . "devel-cvs-l")
 			      ("\\(hyperbole\\|hyperbole-announce\\)@" . "hyperbole-l")
+			      ("iap@vma.cc.nd.edu" . "iap-l")
 			      ("info-vm@" . "bug-vm") ; just merge these....
 			      ("jet-fuel@" . "jet-fuel-l")
+			      ("namedroppers@internic.net" . "namedroppers-l")
 			      ("net-dist@nikhef.nl" . "nikhef.net-dist-l")
 			      ("qotd@" . "qotd-l")
 			      ("smail3-maintainers@" . "smail3-maintainers-l")
@@ -154,7 +157,9 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      )
 			     ;; Sender: entries here.
 			     ("sender"
+			      ("iap@vma.cc.nd.edu" . "iap-l")
 			      ("owner-admin-l@io.org" . "planix/io-admin-l")
+			      ("owner-namedroppers@internic.net" . "namedroppers-l")
 			      ("owner-net-dist@nikhef.nl" . "nikhef.net-dist-l")
 			      ("owner-\\([^@%]+\\)[@%]NetBSD.ORG" .
 			       (concat "netbsd/"
