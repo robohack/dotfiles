@@ -1,7 +1,7 @@
 #-*-m4-*-
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	24.2	02/07/31 02:26:16 (woods)"
+#ident	"@(#)HOME:.ctwmrc	24.3	02/10/30 14:34:38 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -1009,6 +1009,7 @@ menu "monitors"
 	"xclock"		!"xclock -geometry 190x190-0+0 &"
 	"xclock -digital"	!"xclock -geometry 190x30-0+192 -digital &"
 	"swissclock"		!"swisswatch -name swissclock -geometry 190x190-0+0 &"
+	"xchrono"		!"xchrono -local Toronto -tokyo &"
 	""			f.separator
 	"xbiff"			!"xbiff -rv -bw 0 &"
 	"xlbiff"		!"xlbiff &"
