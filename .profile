@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	9.8	95/11/30 11:57:26 (woods)"
+#ident	"@(#)HOME:.profile	9.9	95/11/30 14:50:14 (woods)"
 
 #
 # Assumptions:
@@ -197,7 +197,7 @@ if [ -z "$X11PATH" ] ; then
 	export X11BIN
 fi
 
-dirappend PATH $X11BIN $LOCAL/bin $GNU/bin $CONTRIB/bin /usr/ucb /usr/openwin/demo
+dirappend PATH /usr/ccs/bin $X11BIN $LOCAL/bin $GNU/bin $CONTRIB/bin /usr/ucb
 dirappend PATH /usr/games $LOCAL/games
 
 # don't set MANPATH with 4.4BSD man....
@@ -227,12 +227,16 @@ if [ -x /usr/bin/sun ] ; then
 	if sun ; then
 		ISSUN=true
 		PATH=`echo $PATH | sed 's/^\/bin://'`
-		if [ "$LOGNAME" != root ] ; then
-			dirprepend PATH /usr/5bin
+		if [ `uname -r` -gt 4 ] ; then
+			if [ "$LOGNAME" != root ] ; then
+				dirprepend PATH /usr/5bin
+			else
+				dirappend PATH /usr/5bin
+			fi
 		else
-			dirappend PATH /usr/5bin
+			dirprepend PATH /opt/SUNSwpro/bin
 		fi
-		dirappend PATH /usr/openwin/bin
+		dirappend PATH /usr/openwin/bin /usr/openwin/demo
 		dirappend MANPATH /usr/openwin/share/man
 	fi
 fi
