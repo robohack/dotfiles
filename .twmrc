@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	18.10	97/03/10 12:51:44 (woods)"
+#ident	"@(#)HOME:.twmrc	18.11	97/03/10 20:20:46 (woods)"
 #
 
 AutoRelativeResize
@@ -72,7 +72,7 @@ Color
 	MenuTitleBackground	"DarkSeaGreen"
 	MenuTitleForeground	"white"
 	MenuShadowColor		"gray50"
-	IconBackground		"DarkBlue"
+	IconBackground		"blue4"
 	IconForeground		"yellow"
 	IconBorderColor		"gray95"
 	IconManagerBackground	"blue"
