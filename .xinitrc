@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	20.5	99/01/27 19:58:20 (woods)"
+#ident	"@(#)HOME:.xinitrc	20.6	99/04/29 13:19:07 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -63,6 +63,49 @@ esac
 #
 if [ -r $HOME/.localprofile ] ; then
 	. $HOME/.localprofile < /dev/null
+fi
+
+# if this still isn't set then we probably didn't have a ~/.profile!
+#
+if [ -z "$X11PATH" ] ; then
+	# FIXME: this won't work very well if X11R? is multiple names....
+	if [ -d /local/X11R? -a ! -h /local/X11R? ] ; then
+		X11PATH="`echo /local/X11R?`"
+	elif [ -d /usr/X11 -a ! -h /usr/X11 ] ; then
+		X11PATH="/usr/X11"
+	elif [ -d /usr/X11R? -a ! -h /usr/X11? ] ; then
+		X11PATH="`echo /usr/X11R?`"
+	elif [ -d /usr/X??? -a ! -h /usr/X??? ] ; then	# X386, for example
+		X11PATH="`echo /usr/X???`"
+	elif [ -d /usr/local/X11R? -a ! -h /usr/local/X11R? ] ; then
+		X11PATH="`echo /usr/local/X11R?`"
+	else
+		X11PATH="/NO-X11-FOUND"
+		echo "$argv0: X11PATH not found!"
+	fi
+	export X11PATH
+fi
+
+# if this still isn't set then we probably didn't have a ~/.profile!
+#
+if [ -z "$X11BIN" ] ; then
+	# TODO: this is a best guess that might fail for remote hosts
+	# note that "test -L" is POSIX, but old systems had "-h"
+	if [ -d /usr/bin/X11 -a ! -L /usr/bin/X11 ] ; then
+		X11BIN=/usr/bin/X11
+	else
+		X11BIN=$X11PATH/bin
+	fi
+	export X11BIN
+fi
+
+# just in case we don't have a ~/.profile
+#
+if expr ":${PATH}:" : ".*:$X11BIN:.*" > /dev/null ; then
+	:
+else
+	PATH=$PATH:$X11BIN
+	export PATH
 fi
 
 VENDORSTR="`xdpyinfo | sed -n 's/^vendor string:[ ]*\(.*\)$/\1/p'`"
@@ -144,8 +187,6 @@ if [ -r $HOME/.xhosts ] ; then
 			;;
 		esac
 	done < $HOME/.xhosts
-else
-	echo "$argv0: no $HOME/.xhosts found..."
 fi
 
 if [ -z "$ONX11SERVER" ] ; then
@@ -190,26 +231,21 @@ if [ -z "$ONX11SERVER" ] ; then
 	fi
 fi
 
-# TODO:  think about using `type` ala .profile, but type isn't everywhere
+# TODO:  think about using `type` ala .profile, but type isn't in (a)sh, etc.
 if [ -z "$WM" ] ; then
-	if [ -x $X11BIN/xsm -a -r $HOME/.xsmstartup ] ; then
-		WM=xsm
-	elif [ -x $X11BIN/xsession -a -r $HOME/.X11Startup ] ; then
-		WM=xsession	# TODO: '$ONX11SERVER xsession -remote'?
-	elif [ \( -x $X11BIN/ctwm -o -x $HOME/bin/ctwm \) -a -r $HOME/.ctwmrc ] ; then
+	if [ -x $X11BIN/ctwm -o -x $HOME/bin/ctwm ] ; then
 		if [ $SCREENDEPTH -eq 1 ] ; then
 			WM="ctwm -W"
 		else
 			WM=ctwm
 		fi
 	else
-		WM=twm					# assumptions....
+		WM=twm					# silly assumption?
 	fi
 	export WM
 fi
 
 # argv0 is .xinitrc if called by xinit or startx
-# TODO:  always do, but only if we're not on the console....
 #
 if [ "$argv0" = .xinitrc ] ; then
 	xconsole -geometry 500x160-0-0 &
@@ -243,7 +279,7 @@ elif $ONCONSOLE ; then
 	:
 else
 	#
-	#	probably starting on an independent xterm....
+	#	we're probably logging in on an independent xterm....
 	#
 	if [ -r $HOME/.xsession-errors-$DISPLAY ] ; then
 		xterm -geometry 60x12-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 500 -ut -T "Xsession Messages for '$DISPLAY'" -e sh -c "mesg n; exec tail -200f $HOME/.xsession-errors-$DISPLAY" &
