@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, or ksh.
 #
-#ident	"@(#)HOME:.profile	6.2	94/07/11 12:49:23 (woods)"
+#ident	"@(#)HOME:.profile	6.3	94/07/28 10:32:49 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -229,10 +229,14 @@ fi
 EDITOR="`expr "$EDITOR" : '^.*/\([^/]*\)$'`"; export EDITOR
 
 if expr "`type emacs`" : '.* is .*/emacs$' >/dev/null 2>&1 ; then
-	if [ -n "$DISPLAY" -o \( "$TERM" = "xterm" -a -n "$APCCONFIG" -a "$UUNAME" = "web" \) ] ; then
-		VISUAL="`type emacsclient`"
-	else
-		VISUAL="`type emacs`"
+	VISUAL="`type emacs`"
+	if [ -n "$DISPLAY" -o "$TERM" = "xterm" ] ; then
+		if [ -x /usr/bin/id ] ; then
+			eval `id | sed 's/[^a-z0-9=].*//'`
+			if [ "${uid:=0}" -ne 0 ] ; then
+				VISUAL="`type emacsclient`"
+			fi
+		fi
 	fi
 elif expr "`type jove`" : '.* is .*/jove$' >/dev/null 2>&1 ; then
 	VISUAL="`type jove`"
@@ -411,7 +415,7 @@ if $HAVELAYERS && [ "$TERM" = "dmd" -a "`ismpx`" != "yes" ] ; then
 		fi
 		TRNINIT="$HOME/.trninitdmd" ; export TRNINIT
 		if [ "$VISUAL" = "emacs" ] ; then
-			VISUAL=emacsclient ; export VISUAL
+			VISUAL="emacsclient" ; export VISUAL
 		fi
 		LAYERSPID=$$ ; export LAYERSPID
 		rc=.${TERM}rc
