@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc  20.9    98/12/23 18:45:18 (woods)"
+# ident	"@(#)HOME:.mailrc  20.10    99/01/27 18:52:20 (woods)"
 
 set keep
 set keepsave
@@ -40,6 +40,8 @@ alias port-i386		"port-i386@NetBSD.ORG (NetBSD/i386 Discussion List)"
 alias port-pmax		"port-pmax@NetBSD.ORG (NetBSD/pmax Discussion List)"
 alias port-sparc	"port-sparc@NetBSD.ORG (NetBSD/sparc Discussion List)"
 alias port-sun3		"port-sun3@NetBSD.ORG (NetBSD/sun3 Discussion List)"
+alias postfix-testers	"postfix-testers@postfix.org (Postfix Testers List)"
+alias postfix-users	"postfix-users@postfix.org (Postfix Users List)"
 alias tech-install	"tech-install@NetBSD.ORG (NetBSD Install Process Technical Discussion List)"
 alias tech-kern		"tech-kern@NetBSD.ORG (NetBSD Kernel Technical Discussion List)"
 alias tech-net		"tech-net@NetBSD.ORG (NetBSD Networking Technical Discussion List)"
