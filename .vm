@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.19	99/05/21 13:56:36 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.20	99/06/10 11:56:50 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -523,6 +523,7 @@ message/rfc822 attachments."
 ;;;   vm-arrived-messages-hook nil
       vm-auto-center-summary nil
       vm-auto-decode-mime-messages nil	; might miss text in preamble otherwise!
+      vm-auto-displayed-mime-content-type-exceptions nil
       vm-auto-displayed-mime-content-types '("text" "multipart" "message/rfc822")
       vm-auto-folder-case-fold-search t	; so that vm-auto-folder-alist is simpler
       vm-auto-get-new-mail nil		; keep this manual for now
@@ -535,6 +536,7 @@ message/rfc822 attachments."
       vm-convert-folder-types t
       vm-crash-box "~/Mail/INBOX.CRASH"	; keep everything in the vm-folder-directory
       vm-crash-box-suffix nil
+      vm-default-From_-folder-type 'From_
       vm-default-folder-type 'From_
       vm-default-window-configuration '((startup
 					 ((((top . 70)
@@ -607,9 +609,11 @@ message/rfc822 attachments."
       vm-digest-send-type (if (< vm-version-number 6.0)
 			      "rfc934"
 			    "mime")	; go for the good
+;;;   vm-display-buffer-hook nil
       vm-display-using-mime t
 ;;;   vm-edit-message-hook nil
       vm-edit-message-mode 'indented-text-mode ; slightly better than text-mode
+      vm-fill-paragraphs-containing-long-lines nil
       vm-flush-interval t
       vm-folder-directory "~/Mail/"	; the usual place
 ;;;   vm-folder-read-only nil		; don't set this (becomes buffer local!)
@@ -622,15 +626,20 @@ message/rfc822 attachments."
 				   "mime") ; go for the good
       vm-forwarding-subject-format "%s (forwarded)\nSummary: forwarded message from %F"
       vm-frame-parameter-alist nil
-      vm-frame-per-composition nil	;
+      vm-frame-per-completion nil	; no extra frames!
+      vm-frame-per-composition nil	; no extra frames!
       vm-frame-per-edit nil
-      vm-frame-per-folder nil		;
-      vm-frame-per-help t		;
+      vm-frame-per-folder nil		; no extra frames!
+      vm-frame-per-help t		; ok, maybe one!
       vm-frame-per-summary nil
       vm-highlight-url-face 'bold-italic
       vm-highlighted-header-regexp "^From:\\|^Resent-[fF]rom:\\|^Subject:" ; highlight these headers
       vm-honor-page-delimiters nil
 ;;;   vm-image-directory "/usr/local/share/emacs/site-lisp/vm/"
+      vm-imap-bytes-per-session nil
+      vm-imap-expunge-after-retrieving t
+      vm-imap-max-message-size nil
+      vm-imap-messages-per-session nil
       vm-imap-session-preauth-hook nil
       vm-in-reply-to-format "%F's message\n	of \"%w, %m %d, %y %h %z\"\n	regarding \"%s\"\n	id %i"
 					; just the way I like it!
@@ -639,6 +648,7 @@ message/rfc822 attachments."
       vm-included-text-discard-header-regexp nil
       vm-included-text-headers nil	; nah, not worth it...
       vm-included-text-prefix "> "
+      vm-index-file-suffix nil
       vm-inhibit-startup-message t	; don't bother me with legalese
 ;;;   vm-init-file "~/.vm"
       vm-invisible-header-regexp (concat "^Content-" "\\|"
@@ -695,22 +705,46 @@ message/rfc822 attachments."
 					   ("\\.html?" . "text/html")
 					   ("\\.au" . "audio/basic")
 					   ("\\.mpe?g" . "video/mpeg")
+					   ("\\.pdf" . "application/pdf")
 					   ("\\.ps" . "application/postscript")
-					   )
+					   ) ; common, from example
       vm-mime-attachment-save-directory nil
       vm-mime-avoid-folding-content-type t
       vm-mime-base64-decoder-program "base64-decode" ; let's assume it's installed
       vm-mime-base64-decoder-switches nil
       vm-mime-base64-encoder-program "base64-encode" ; let's assume it's installed
       vm-mime-base64-encoder-switches nil
+      vm-mime-button-format-alist '(("text" . "%-35.35(%d, %c%) [%k to %a]")
+				    ("multipart/alternative" . "%-35.35(%d%) [%k to %a]")
+				    ("multipart/digest" . "%-35.35(%d, %n message%s%) [%k to %a]")
+				    ("multipart" . "%-35.35(%d, %n part%s%) [%k to %a]")
+				    ("message/partial" . "%-35.35(%d, part %N (of %T)%) [%k to %a]")
+				    ("message" . "%-35.35(%d%) [%k to %a]")
+				    ("audio" . "%-35.35(%d%) [%k to %a]")
+				    ("video" . "%-35.35(%d%) [%k to %a]")
+				    ("image" . "%-35.35(%d%) [%k to %a]")
+				    ("application/octet-stream" . "%-35.35(%d, %f%) [%k to %a]")
+				    )
       vm-mime-button-face 'gui-button-face
-      vm-mime-charset-font-alist nil
+      vm-mime-charset-font-alist '(("x-unknown" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-1")
+				   ("us-ascii" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-1")
+				   ("iso-8859-1" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-1")
+				   ("iso-8859-2" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-2")
+				   ("iso-8859-3" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-3")
+				   ("iso-8859-4" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-4")
+				   ("iso-8859-5" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-5")
+				   ("iso-8859-7" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-7")
+				   ("iso-8859-8" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-8")
+				   ("iso-8859-9" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-iso8859-9")
+				   ("koi8" . "-etl-*-medium-r-normal-*-16-*-*-*-c-*-koi8-1")
+				   )	; this should be smarter and use preferred-frame-font
       vm-mime-confirm-delete t
       vm-mime-delete-after-saving nil
+      vm-mime-default-face-charset-exceptions nil
       vm-mime-default-face-charsets '("us-ascii"
 				      "iso-8859-1"
-				      "x-unknown") ; pine sometimes uses x-unknown!
-      vm-mime-default-face-charset-exceptions nil
+				      "x-unknown"
+				      ) ; pine sometimes uses x-unknown!
       vm-mime-digest-discard-header-regexp "X400-"
       vm-mime-digest-headers nil
       vm-mime-display-function nil
@@ -721,8 +755,13 @@ message/rfc822 attachments."
 					     ("video" 		"xanim")
 					     ) ; basically from the example
       vm-mime-ignore-mime-version t
+      vm-mime-internal-content-type-exceptions nil
       vm-mime-internal-content-types t
-      vm-mime-max-message-size nil
+      vm-mime-max-message-size 100000	; that's more than big enough!
+      vm-mime-qp-decoder-program "qp-decode"
+      vm-mime-qp-decoder-switches nil
+      vm-mime-qp-encoder-program "qp-encode"
+      vm-mime-qp-encoder-switches nil
 ;;;   vm-mode-hook nil
 ;;;   vm-mode-hooks nil			; >6.0?
       vm-mode-line-format '("" "  %&%& "
@@ -747,6 +786,7 @@ message/rfc822 attachments."
       vm-mosaic-program "Mosaic"
       vm-mosaic-program-switches nil
       vm-move-after-deleting t		; keep on rolling
+      vm-move-after-killing nil
       vm-move-after-undeleting nil
       vm-move-messages-physically nil
       vm-movemail-program "movemail"
@@ -772,6 +812,7 @@ message/rfc822 attachments."
 ;;; defaults to (default-value 'fill-column)
 ;;;   vm-paragraph-fill-column
       vm-pop-bytes-per-session nil
+      vm-pop-expunge-after-retrieving t
       vm-pop-max-message-size nil
       vm-pop-messages-per-session nil
       vm-pop-md5-program "md5"
@@ -782,6 +823,7 @@ message/rfc822 attachments."
       vm-preview-read-messages nil
       vm-primary-inbox "~/Mail/INBOX"	; keep everything in vm-folder-directory
 ;;;   vm-quit-hook nil
+      vm-recognize-imap-maildrops "^imap:[^:]+:[^:]+:[^:]+:[^:]+:[^:]+:[^:]+"
       vm-recognize-pop-maildrops "^[^:]+:[^:]+:[^:]+:[^:]+:[^:]+"
 ;;;   vm-reply-hook nil
       vm-reply-ignored-addresses (list (concat "\\("
@@ -844,13 +886,14 @@ message/rfc822 attachments."
 					; just me!
       vm-summary-uninteresting-senders-arrow "To: "
       vm-tale-is-an-idiot t		; sounds good to me!
-;;;   vm-toolbar-pixmap-directory "/local/gnu/share/emacs/19.34/etc/vm/"
       vm-temp-file-directory "~/tmp"	; better for keeping secrets!
+      vm-thread-using-subject t
+;;;   vm-toolbar-pixmap-directory "/usr/local/share/emacs/site-listp/vm/"
       vm-trust-From_-with-Content-Length nil
 ;;;   vm-undisplay-buffer-hook nil
       vm-unforwarded-header-regexp "only-drop-this-header"
       vm-url-browser 'vm-mouse-send-url-to-netscape
-      vm-url-search-limit 12000
+      vm-url-search-limit 32000		; the more the merrier
       vm-use-menus '(folder
 		     motion
 		     send
@@ -877,6 +920,7 @@ message/rfc822 attachments."
 		       nil
 		       help
 		       )
+;;;   vm-virtual-folder-alist			; see below....
       vm-virtual-folder-case-fold-search t	; I want everything to match!
       vm-virtual-mirror t
       vm-visible-headers '("Resent-Date:" "Date:"
