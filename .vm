@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.20	98/05/27 23:24:17 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.21	98/06/24 03:27:08 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -19,6 +19,20 @@
     ;; mail-abbrev-end-of-buffer is useless with signature files.
     (substitute-key-definition 'next-line 'mail-abbrev-next-line
                                mail-mode-map global-map)))
+
+;; Thanks to John Owens <owens@graphics.stanford.edu>
+;(defvar mail-x-face-file "~/.face"
+;  "Name of file containing contents for X-Face header")
+;(defun mail-insert-x-face ()
+;  "Insert an X-Face header containing the contents of mail-x-face-file."
+;  (if (file-exists-p mail-x-face-file)
+;      (save-excursion 
+;	(goto-char (point-min))
+;	(search-forward mail-header-separator)
+;	(beginning-of-line nil)
+;	(insert "X-Face:")
+;	(insert-file mail-x-face-file))))
+;(add-hook 'mail-setup-hook 'mail-insert-x-face)
 
 ;;; mailcrypt --- a simple interface to message encryption with PGP.
 (if (elisp-file-in-loadpath-p "mailcrypt")
