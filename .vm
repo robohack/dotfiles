@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	4.5	94/11/15 17:33:27 (woods)"
+;;;#ident	"@(#)HOME:.vm	4.6	94/11/18 11:56:37 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -84,7 +84,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			    ;; To: & Cc: entries here.
 			    ("^\\(to\\|cc\\|apparently-to\\)"
 			     ("source-changes@NetBSD.ORG" . "netbsd/source-changes")
-			     ("\\(current-users@NetBSD.ORG\\|apana-lists-os-netbsd-general@\||source@NetBSD.ORG\\)" .
+			     ("\\(current-users@NetBSD.ORG\||apana-lists-os-netbsd-general@\||source@NetBSD.ORG\\)" .
 			      "netbsd/current-users")
 			     ("\\(tech-[^@%]+\\)[@%]NetBSD.ORG" .
 			      (concat "netbsd/"
@@ -117,6 +117,8 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			     ;; code to make auto-folder default to the user name of the sender.
 			     ;; this should be last in the auto folder alist since it tends to
 			     ;; always match something.
+			     ;; even though I don't really like it, since 'A'
+			     ;; archive's everthing now...  yuck!
 			     ("<\\([^ \t\n\f@%()<>]+\\)[@%]\\([^ \t\n\f<>()]+\\)>" .
 			      (concat "from/"
 				      (buffer-substring (match-beginning 1)
@@ -131,7 +133,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 							(match-end 1))))
 			     )
 			    )
-     vm-auto-folder-case-fold-search nil
+     vm-auto-folder-case-fold-search t	; hmmm....  I don't like this, but....
      vm-auto-get-new-mail t		; don't go to next msg unless I say so!
      vm-auto-next-message nil
      vm-berkeley-mail-compatibility t	; read & write Status: headers
