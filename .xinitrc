@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	23.2	02/03/17 15:21:51 (woods)"
+#ident	"@(#)HOME:.xinitrc	23.3	02/07/04 17:11:11 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -373,23 +373,20 @@ xtremely.weird.com:*)
 		xphoon -t 10 &
 	elif [ -r $X11PATH/include/X11/bitmaps/escherknot ] ; then
 		xsetroot -bitmap $X11PATH/include/X11/bitmaps/escherknot
-	elif [ -r /usr/include/X11/bitmaps/escherknot ] ; then
-		xsetroot -bitmap /usr/include/X11/bitmaps/escherknot
-	elif [ -r /usr/openwin/share/include/X11/bitmaps/escherknot ] ; then
-		xsetroot -bitmap /usr/openwin/share/include/X11/bitmaps/escherknot
 	else
 		echo "$argv0: no background set"
 	fi
 	xload -geometry 190x60-0+233 -hl red &
 	xclock -geometry 190x30-0+196 -digital &
-	$RSH -n proven.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x60-200+233 -hl red &
+	$RSH -n proven.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x50-198+243 -hl red &
 	if $HAVESWISSWATCH; then
 		swisswatch -name swissclock -geometry 190x190-0+0 &
 	else
 		xclock -geometry 190x190-0+0 &
 	fi
 	xterm -display $DISPLAY -geometry 80x41-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/pkg/bin/mozilla -display $DISPLAY -geometry 935x990+0+0 &
+#	$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/pkg/bin/mozilla -display $DISPLAY -geometry 935x990+0+0 &
+#	$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/pkg/bin/galeon --disable-sound -display $DISPLAY -geometry 935x990+0+0 &
 
 	# first column....
 	xterm -display $DISPLAY -geometry 88x24+0+0   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn07 -T "Console-07 [isit.weird.com]" -e console -S isit &
@@ -421,6 +418,15 @@ xtremely.weird.com:*)
 	;;
 
 worm.planix.com:*)
+	if $HAVEXEARTH ; then
+		xearth -gamma 1.3 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
+	elif $HAVEXPHOON ; then
+		xphoon -t 10 &
+	elif [ -r $X11PATH/include/X11/bitmaps/escherknot ] ; then
+		xsetroot -bitmap $X11PATH/include/X11/bitmaps/escherknot
+	else
+		echo "$argv0: no background set"
+	fi
 	xload -geometry 190x60-0+233 -hl red &
 	xclock -geometry 190x30-0+196 -digital &
 	if $HAVESWISSWATCH ; then
@@ -433,6 +439,9 @@ worm.planix.com:*)
 	mozilla -display $DISPLAY -SelectProfile &
 	;;
 *)
+	# make everything rather small so that enough will fit on even
+	# tiny screens....
+	#
 	if [ $SCREENDEPTH -eq 1 ] ; then
 		xload -geometry 100x50-0+150 -hl grey90 &
 	else
@@ -444,8 +453,8 @@ worm.planix.com:*)
 	else
 		xclock -geometry 100x100-0+0 &
 	fi
-	xterm -display $DISPLAY -geometry 80x30-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	xterm -display $DISPLAY -geometry 80x30+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	xterm -display $DISPLAY -geometry 80x24-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	;;
 esac
 
