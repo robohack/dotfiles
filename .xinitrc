@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	19.3	98/02/01 01:53:32 (woods)"
+#ident	"@(#)HOME:.xinitrc	19.4	98/02/01 20:33:15 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -50,7 +50,7 @@ case "$DISPLAY" in
 		echo "$argv0: redirecting stdout and stderr to /dev/console."
 		exec 1>/dev/console 2>&1
 	else
-		echo "$argv0: WARNING: display was $DISPLAY but /dev/console not ours!"
+		echo "$argv0: WARNING: display was $DISPLAY but /dev/console not writable by $USER!"
 		ls -l /dev/console
 	fi
 	DISPLAY="${XDMHOST:-${HOSTNAME}${DOMAINNAME}}:0.0"
@@ -61,8 +61,8 @@ esac
 
 VENDORSTR="`xdpyinfo | sed -n 's/^vendor string:[ ]*\(.*\)$/\1/p'`"
 DEPTHSTR="`xdpyinfo | fgrep 'depth of root window'`"
-WINDOWDEPTH=`expr "$DEPTHSTR" : '[ ]*depth of root window:[ ]*\([0-9]*\) '`
-export VENDORSTR WINDOWDEPTH
+SCREENDEPTH=`expr "$DEPTHSTR" : '[ ]*depth of root window:[ ]*\([0-9]*\) '`
+export VENDORSTR SCREENDEPTH
 unset DEPTHSTR
 
 # TODO:  think about using `type` ala .profile, but type isn't everywhere
@@ -73,47 +73,6 @@ if [ -z "$RSH" ] ; then
 		RSH=/usr/bin/rsh
 	fi
 	export RSH			# used by .twmrc as well as below
-fi
-
-if [ -z "$ONX11SERVER" ] ; then
-	# If you're running on a diskless workstation that runs xdm itself
-	# then you probably have a server that's more powerful and on which
-	# you'd rather run the majority of your X applications.  Normally
-	# this will be the same server your home directory resides on....
-	#
-	if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
-		case "$XDMHOST" in
-		very.weird.com)
-			ONX11SERVER="$RSH -n most.weird.com exec"
-			export ONX11SERVER
-			echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
-			;;
-		*)
-			# not setting this just makes WM run stuff on the
-			# current login host....
-			unset ONX11SERVER
-			echo "$argv0: have unset ONX11SERVER, XDMHOST is $XDMHOST"
-			;;
-		esac
-	fi
-fi
-
-# TODO:  think about using `type` ala .profile, but type isn't everywhere
-if [ -z "$WM" ] ; then
-	if [ -x $X11BIN/xsm -a -r $HOME/.xsmstartup ] ; then
-		WM=xsm
-	elif [ -x $X11BIN/xsession -a -r $HOME/.X11Startup ] ; then
-		WM=xsession	# TODO: '$ONX11SERVER xsession -remote'?
-	elif [ \( -x $X11BIN/ctwm -o -x $HOME/bin/ctwm \) -a -r $HOME/.ctwmrc ] ; then
-		if [ $SCREENDEPTH -eq 1 ] ; then
-			WM="ctwm -W"
-		else
-			WM=ctwm
-		fi
-	else
-		WM=twm					# assumptions....
-	fi
-	export WM
 fi
 
 if [ -r "/usr/lib/X11/Xdefaults" ] ; then
@@ -148,7 +107,7 @@ case "$VENDORSTR" in
 		# is attached.... this is primarily to fix dumb PC(-like) keyboards
 		case "$XDMHOST" in
 		*weird.com)
-			# may have been done by xdm setup script....
+			# should have been done by xdm setup script....
 			;;
 		*)
 			xmodmap $HOME/.Xmodmap	# Load user's keymap
@@ -181,6 +140,49 @@ if [ -r $HOME/.xhosts ] ; then
 	done < $HOME/.xhosts
 else
 	echo "$argv0: no $HOME/.xhosts found..."
+fi
+
+if [ -z "$ONX11SERVER" ] ; then
+	# If you're running on a diskless workstation that runs xdm itself
+	# then you probably have a server that's more powerful and on which
+	# you'd rather run the majority of your X applications.  Normally
+	# this will be the same server your home directory resides on....
+	#
+	if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
+		case "$XDMHOST" in
+		very.weird.com)
+			ONX11SERVER="$RSH -n most.weird.com exec"
+			export ONX11SERVER
+			echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
+			# now start special programs we like for this scenario
+			$ONX11SERVER $X11BIN/xbuffy -mail /var/spool/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/opt/games/bin/auplay -audio '$AUDIOSERVER' /local/audio/newmail1.au"' &
+			;;
+		*)
+			# not setting this just makes WM run stuff on the
+			# current login host....
+			unset ONX11SERVER
+			echo "$argv0: have unset ONX11SERVER, XDMHOST is $XDMHOST"
+			;;
+		esac
+	fi
+fi
+
+# TODO:  think about using `type` ala .profile, but type isn't everywhere
+if [ -z "$WM" ] ; then
+	if [ -x $X11BIN/xsm -a -r $HOME/.xsmstartup ] ; then
+		WM=xsm
+	elif [ -x $X11BIN/xsession -a -r $HOME/.X11Startup ] ; then
+		WM=xsession	# TODO: '$ONX11SERVER xsession -remote'?
+	elif [ \( -x $X11BIN/ctwm -o -x $HOME/bin/ctwm \) -a -r $HOME/.ctwmrc ] ; then
+		if [ $SCREENDEPTH -eq 1 ] ; then
+			WM="ctwm -W"
+		else
+			WM=ctwm
+		fi
+	else
+		WM=twm					# assumptions....
+	fi
+	export WM
 fi
 
 # argv0 is .xinitrc if called by xinit or startx
@@ -223,35 +225,23 @@ else
 	if [ -r $HOME/bin/xerrors ] ; then
 		xterm -geometry 80x12-0-0 -cn -rw -sb -si -sk -sl 200 -e xerrors &
 	else
-		# TODO:  grrr....  this needs to do a 'mesg n' too somehow...
-		xterm -geometry 80x12-0-0 -cn -rw -sb -si -sk -sl 200 -T "Xsession Errors" -e tail -200f $HOME/.xsession-errors &
-	fi
-	if [ -n "$ONX11SERVER" ] ; then
-		if [ -x $X11BIN/xsysstats ] ; then
-			# this is normally done in Xsetyp by xdm, and if not there's a menu
-			#xsysstats -geometry 120x137-205+0 -type load1 -type disk -sample 5 &
-			$ONX11SERVER xsysstats -geometry 120x137-205+150 -type load1 -host most -type disk -host $XDMHOST -sample 5 &
+		if [ -r $HOME/.xsession-errors.$$ ] ; then
+			xterm -geometry 60x12-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 500 -T "Xsession PID #$$" -e sh -c "mesg n; exec tail -200f $HOME/.xsession-errors.$$" && sleep 300 && rm $HOME/.xsession-errors.$$ &
 		else
-			# xload is in the MIT X11R5 distribution, so default to it....
-			# this is normally done in Xsetyp by xdm, and if not there's a menu
-			#xload -geometry 120x137-205+0 -hl grey90 &
-			$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x137-205+150 -hl grey90 &
+			echo "$argv0: didn't find .xsession-errors.$$"
+			xterm -geometry 60x12-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 500 -T "Xsession Messages" -e sh -c "mesg n; exec tail -200f $HOME/.xsession-errors" &
 		fi
 	fi
 fi
 
 if [ -x $X11BIN/xbuffy ] ; then
-	if [ -z "$ONX11SERVER" ] ; then
-		xbuffy -geometry 100x25-0+250 -shortnames -header 0 -acmd '/opt/games/bin/auplay $HOME/sounds/newmail' &
+	if -n "$AUDIOPLAYER" -a -r $HOME/sounds/newmail ] ; then
+		xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd "$AUDIOPLAYER $HOME/sounds/newmail" &
 	else
-		$ONX11SERVER $X11BIN/xbuffy -display $DISPLAY -mail $MAILPATH -geometry 100x25-0+250 -shortnames -header 0 -acmd "'/opt/games/bin/auplay -audio $AUDIOSERVER $HOME/sounds/newmail'" &
+		xbuffy -geometry 80x25-0+235 -shortnames -header 0 &
 	fi
 else
-	if [ -z "$ONX11SERVER" ] ; then
-		xbiff -geometry 48x48-0+0 -bw 0 &
-	else
-		$ONX11SERVER $X11BIN/xbiff -display $DISPLAY -geometry 48x48-0+0 -title Main-biff &
-	fi
+	xbiff -geometry 48x48-0+235 -bw 0 &
 fi
 
 # when the window manager exits so shall we...
