@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	21.6	00/03/08 00:53:28 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	21.7	00/03/20 23:22:06 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -327,6 +327,9 @@ scripts (alias)." t)
 ;; this gets the current frame, which already exists....
 (set-default-font preferred-frame-font)
 
+;; we like fancy faces!
+(global-font-lock-mode t)
+
 (setq auto-save-timeout 300)		; 30 seconds is insane!
 (setq backup-by-copying t)		; copy, thus preserving modes and owner
 (setq compilation-window-height 10)	; default height for a compile window
@@ -494,10 +497,12 @@ scripts (alias)." t)
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "lout-mode")
-    (setq auto-mode-alist
-	  (append
-	   '(("/[^/]+\\.lout$" . lout-mode))
-	   auto-mode-alist)))
+    (progn
+      (autoload 'lout-mode "lout-mode" "Major mode for editing Lout text" t)
+      (setq auto-mode-alist
+	    (append
+	     '(("/[^/]+\\.lout$" . lout-mode))
+	     auto-mode-alist))))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "m4-mode")
