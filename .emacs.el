@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.1	98/07/20 11:23:35 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.2	98/09/18 00:55:49 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -46,14 +46,14 @@
       (message "Not running emacs v19 I see -- you'll have trouble with this .emacs!")
       (sit-for 5)))
 
-(if (= init-emacs-type 20)
-    ;; You probably want/need this.
-    ;; From: Johan Vromans <johan_vromans@nl.compuware.com>
-    (defadvice standard-display-european
-      (around maintain-multibyte-character-mode activate)
-      "Inhibit standard-display-european from disabling multibyte-character mode."
-      (let ((enable-multibyte-characters enable-multibyte-characters))
-	ad-do-it)))
+;(if (= init-emacs-type 20)
+;    ;; You probably want/need this.
+;    ;; From: Johan Vromans <johan_vromans@nl.compuware.com>
+;    (defadvice standard-display-european
+;      (around maintain-multibyte-character-mode activate)
+;      "Inhibit standard-display-european from disabling multibyte-character mode."
+;      (let ((enable-multibyte-characters enable-multibyte-characters))
+;	ad-do-it)))
 
 (standard-display-european t)		; This forces iso8859-1
 
