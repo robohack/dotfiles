@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	27.1	03/11/23 19:15:52 (woods)"
+#ident	"@(#)HOME:.profile	27.2	04/10/09 14:53:56 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -32,7 +32,16 @@
 #	.localprofile may set $PATH_IS_OKAY to "true" if it is so.
 
 umask 022
-ulimit -S -p 99999 2> /dev/null		# force it equal to the hard limit
+
+# force nproc, data, stack, and nofiles limits equal to their maximum
+# hard limit.
+#
+# (assume time, file, and coredump are already unlimited)
+#
+ulimit -S -p `ulimit -H -p`
+ulimit -S -d `ulimit -H -d`
+ulimit -S -s `ulimit -H -s`
+ulimit -S -n `ulimit -H -n`
 
 if [ -r $HOME/.bashlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} -a -n "${BASH}" ] ; then
 	trap '. $HOME/.bashlogout ; exit $?' 0
