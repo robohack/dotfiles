@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	9.5	95/09/09 11:09:26 (woods)"
+#ident	"@(#)HOME:.profile	9.6	95/11/02 11:25:39 (woods)"
 
 #
 # Assumptions:
@@ -12,19 +12,19 @@
 
 # Files referenced:
 #
-#	$HOME/.ashtype		- sourced once, if readable and if running ash(1)
-#	$HOME/.ashlogin		- sourced once, if running ash(1)
-#	$HOME/.editor		- name of prefered text editor command
-#	$HOME/.kshlogin		- sourced once, if running ksh(1)[, or bash(1)?]
-#	$HOME/.kshlogout	- set on trap 0, if running ksh(1)[, or bash(1)?]
-#	$HOME/.localprofile	- sourced once, near end of this file
-#	$HOME/.mailer		- name of prefered MUA command
-#	$HOME/.shell		- mktable'd and exec'ed as shell (see end of this file)
-#	$HOME/.shfuncs		- sourced once, and pathname set in $ENV
-#	$HOME/.shlogin		- sourced once
-#	$HOME/.shlogout		- set on trap 0
-#	$HOME/.stty		- sourced for stty command(s), etc. just before tset(1)
-#	$HOME/.trninit		- pathname set as value for $TRNINIT
+#	$HOME/.ashtype	- sourced once, if readable and if running ash(1)
+#	$HOME/.ashlogin	- sourced once, if running ash(1)
+#	$HOME/.editor	- name of prefered text editor command
+#	$HOME/.kshlogin	- sourced once, if running ksh(1)[, or bash(1)?]
+#	$HOME/.kshlogout - set on trap 0, if running ksh(1)[, or bash(1)?]
+#	$HOME/.localprofile - sourced once, near end of this file
+#	$HOME/.mailer	- name of prefered MUA command
+#	$HOME/.shell	- mktable'd and exec'ed as shell (see end of this file)
+#	$HOME/.shlogin	- sourced once
+#	$HOME/.shlogout	- set on trap 0
+#	$HOME/.shrc	- sourced once from .shlogin, and pathname set in $ENV
+#	$HOME/.stty	- sourced for stty command(s), etc. just before tset(1)
+#	$HOME/.trninit	- pathname set as value for $TRNINIT
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
