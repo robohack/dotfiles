@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	6.2	94/01/25 14:03:57 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	6.3	94/01/25 14:19:52 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -476,6 +476,27 @@ If HOOK is void, it is first set to nil."
                 (equal function tail))
             (memq function (symbol-value hook)))
           (set hook (cons function (symbol-value hook))))))
+
+; From gnu@ai.mit.edu Sat Jan 22 01:37:54 1994
+; Date: Fri, 21 Jan 94 08:54:28 GMT
+; From: simonm@plod.ai.mit.edu (Simon Marshall)
+; Message-Id: <9401210854.AA22319@plod.esrin.esa.it>
+; To: bug-gnu-emacs@prep.ai.mit.edu
+; Reply-To: Simon.Marshall@mail.esrin.esa.it
+; Subject: [19.22]: `match-string': Short but sweet function
+; 
+; In GNU Emacs 19.22.1 of Tue Nov 30 1993 on tracy (berkeley-unix)
+; 
+; I think I got some version from someone else, but here's a nice function
+; to alleviate the (substring string (match-beginning 1) (match-end 1))
+; blues.  Now you can just (match-string 1 string) to your heart's delight...
+;
+(defun match-string (n &optional string)
+  "Return the matched grouping N from STRING.
+If STRING is not given, use the current buffer.  See `string-match'."
+  (if (stringp string)
+      (substring string (match-beginning n) (match-end n))
+    (buffer-substring (match-beginning n) (match-end n))))
 
 ;; ----------
 ;; some special hooks.....
