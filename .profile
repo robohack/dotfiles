@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	19.5	98/04/26 16:14:51 (woods)"
+#ident	"@(#)HOME:.profile	19.6	98/06/02 20:46:05 (woods)"
 
 #
 # Assumptions:
@@ -868,11 +868,10 @@ if [ -r calendar -o -r .month ] ; then
 	fi
 fi
 if [ -d $HOME/notes ] ; then
-	cd $HOME/notes
-	if [ `ls|wc -w` -ne 0 ] ; then
-		$echo "${nl}You have notes on: ' * '${nl}"
-	fi
-	cd $HOME
+	(
+		cd $HOME/notes
+		echo "${nl}You have notes on:" * "${nl}"
+	)
 fi
 if [ -r $HOME/.trninit$TERM ] ; then
 	TRNINIT="$HOME/.trninit$TERM" ; export TRNINIT
@@ -893,5 +892,7 @@ if [ -s $HOME/.shell -a "X$argv0" != "X.xinitrc" -a "X$argv0" != "X.xsession" ] 
 	# mktable just throws away comments....
 	exec `mktable $HOME/.shell`
 fi
+
+cd
 
 # End Of File
