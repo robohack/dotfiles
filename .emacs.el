@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	14.3	94/08/16 19:04:41 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	14.4	94/10/25 19:05:15 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -648,6 +648,18 @@ current emacs server process..."
 		(save-buffers-kill-emacs))))
       (global-set-key "\C-x\C-c" 'server-really-exit)
       (server-start)))
+
+;;; Reset mail-aliases to t when ~/.mailrc is written, so that mail-aliases
+;;; will get updated before next send."
+;;; From: mike@inform.co.nz (Mike Williams)From: mike@inform.co.nz (Mike Williams)
+(add-hook 'write-file-hooks
+	  (function
+	   (lambda ()
+	     (if (string-equal (buffer-file-name)
+			       (expand-file-name "~/.mailrc"))
+		 (setq mail-aliases t))
+	     nil)			; Must return nil for file to be written
+	   ))
 
 ;;;; ----------
 ;;;; some major-mode hooks...
