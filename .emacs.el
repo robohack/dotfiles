@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.13	95/11/19 14:27:52 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.14	96/01/08 14:21:29 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -44,14 +44,27 @@
 	     "Functions to call after loading the init file (`~/.emacs').
 The call is not protected by a condition-case, so you can set `debug-on-error'
 in `.emacs', and put all the actual code on `after-init-hook'."
-,	     (progn
+	     (progn
 	       ;; (require 'time)	; this isn't provided by time.el!
 	       (setq display-time-day-and-date t) ; autoload'ed though
 	       (setq display-time-24hr-format t)
 	       (if (or (string-equal (system-name) "robohack")
 		       (string-equal (system-name) "web"))
 		   (setq display-time-interval 300)) ; poor little machines....
-	       (display-time)))))	; also autoload'ed
+	       (display-time)		; also autoload'ed
+	       ;;
+	       ;; Message-Id: <9601081816.AA07579@alex.x.org>
+	       ;; From: Stephen Gildea <gildea@x.org>
+	       ;; To: bug-gnu-emacs@prep.ai.mit.edu
+	       ;; Date: Mon, 08 Jan 1996 13:16:19 EST
+	       ;; Subject: resize-minibuffer-mode should be on by default
+	       ;; 
+	       ;; I just stumbled upon resize-minibuffer-mode (in Emacs 19.26-19.30);
+	       ;; it is very nice.
+	       ;;
+	       (if (and (fboundp 'resize-minibuffer-mode)
+			(not resize-minibuffer-mode))
+		   (resize-minibuffer-mode)))))) ; also autoload'ed
 
 ;;;; ----------
 ;;;; get ready to load stuff
