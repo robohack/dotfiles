@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.32	96/11/25 16:04:24 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.33	96/11/26 18:35:20 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -269,7 +269,7 @@ scripts (alias)." t)
 ;; Format string for PR summary text.
 (defvar gnats::format-string)
 (setq gnats::format-string
-      "%5n %-14,14c %,1e%,1p %-12,12r %,6L %,4s %-10*10S %-10*-10R %j\n")
+      "%5n %-14,14c %,1e%,1p %-8,8r %,6L %,4s %-4*4S %-12*-12R %j\n")
 
 ;;;; ----------
 ;;;; auto-mode-alist setup
@@ -1128,6 +1128,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	  (function
 	   (lambda ()
 	     "Private view-mode stuff."
+	     (define-key view-mode-map "b" 'View-scroll-lines-backward)
 	     (define-key view-mode-map "\C-h" 'View-scroll-lines-backward))))
 
 ;; the real thing, in 19.30(?) and above
