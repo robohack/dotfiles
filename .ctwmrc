@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.9	98/02/02 11:03:58 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.10	98/02/05 15:12:50 (woods)"
 #
 
 changequote([, ])
@@ -765,7 +765,7 @@ menu "backgrounds"
 menu "ghostviews"
 {
 	"GhostView"	f.title
-	"@localhost"	!"$X11BIN/ghostview -d $DISPLAY &"
+	"@localhost"	!"$X11BIN/ghostview &"
 	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
@@ -983,6 +983,9 @@ menu "rlogin"
 	"Rlogin's Everywhere"		f.title
 	"Rlogin's at Weird.com..."	f.menu "rlogin-weird"
 	"Rlogin's at Planix.com..."	f.menu "rlogin-planix"
+ ifdef([AT_LEITCH], [
+	"Rlogin's at Leitch.com..."	f.menu "rlogin-leitch"
+ ])
 	"Rlogin's at Dancing.org..."	f.menu "rlogin-dancing"
 	"Rlogin's at Infoshare.net..."	f.menu "rlogin-infoshare"
 	"Rlogin's at Proxy.com..."	f.menu "rlogin-proxy"
@@ -1103,6 +1106,22 @@ menu "slogin-planix"
 	"Slogin @weight"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e $LOCAL/bin/slogin -C weight.planix.com &"
 	"Slogin @warlord"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e $LOCAL/bin/slogin -C warlord.planix.com &"
 }
+
+
+ifdef([AT_LEITCH], [
+menu "rlogin-leitch"
+{
+	"Rlogin's At Leitch.com" f.title
+	"Rlogin @brain"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin brain.zeus.leitch.com &"
+	"Rlogin @bitter"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin bitter.zeus.leitch.com &"
+	"Rlogin @keg"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin keg.zeus.leitch.com &"
+	"Rlogin @new"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin new.zeus.leitch.com &"
+	"Rlogin @gateman"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin gateman.zeus.leitch.com &"
+	"Rlogin @sonet"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin sonet.zeus.leitch.com &"
+	"Rlogin @tap"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin tap.zeus.leitch.com &"
+	"Rlogin @virgo"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2000 -e rlogin virgo.zeus.leitch.com &"
+}
+])
 
 
 menu "rlogin-dancing"
