@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file
 #
-#ident	"@(#)HOME:.xinitrc	5.2	95/03/11 16:40:08 (woods)"
+#ident        "@(#)HOME:.xinitrc     5.3     95/03/16 22:03:21 (woods)"
 
 . /etc/profile
 
@@ -112,7 +112,7 @@ fi
 sleep 1
 
 # Ah!  Your Free localhost Window!
-xterm -geometry 80x24-4-110 -sl 500 -sb -sk -si -rw  -ls -T Primary &
+xterm -geometry 80x24-4-130 -sl 500 -sb -sk -si -rw  -ls -T Primary &
 
 # when the window manager exits so shall we...
 #
