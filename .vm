@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.7	98/02/08 15:30:31 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.8	98/02/08 15:37:13 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -318,7 +318,7 @@ buffer is not not a composition preview buffer"
 
 (add-hook 'vm-reply-hook
 	  '(lambda ()
-	     (local-set-key "\C-c\C-s" 'citation-kill-sig)
+	     (citation-kill-sig)
 	     (local-set-key "\C-c\C-d" 'citation-kill-double)))
 
 ;; commented lines indicate changed values....  (from v5.72)
