@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	21.2	99/12/28 23:05:25 (woods)"
+#ident	"@(#)HOME:.kshrc	21.3	00/03/20 14:15:24 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -640,6 +640,11 @@ function signm
 function signo
 {
 	grep -i "^#define[ 	]*.*${1}[ 	]*[0-9]" /usr/include/sys/signal.h
+}
+
+function snmpmiblist
+{
+	cd $1; echo $(awk '{print $1}' .index) | sed 's/ /:/g'
 }
 
 function typeof
