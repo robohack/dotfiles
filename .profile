@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	8.15	95/06/07 22:50:28 (woods)"
+#ident	"@(#)HOME:.profile	8.16	95/06/08 10:45:55 (woods)"
 
 #
 # Assumptions:
@@ -32,7 +32,7 @@ elif [ -r $HOME/.shlogout ] ; then
 	trap '. $HOME/.shlogout ; exit $?' 0
 fi
 
-if [ `echo ~` = $HOME -a -r .ashtype ] ; then
+if [ `echo ~` = $HOME -a -r .ashtype -a ${RANDOM:-0} -eq ${RANDOM:-0} ] ; then
 	# TODO: actually, maybe this should be a Posix shell environment...
 	. $HOME/.ashtype
 fi
@@ -668,7 +668,7 @@ fi
 if [ -d $HOME/notes ] ; then
 	cd $HOME/notes
 	if [ `ls|wc -w` -ne 0 ] ; then
-		echo '${nl}You have notes on: ' * '${nl}'
+		echo "${nl}You have notes on: ' * '${nl}"
 	fi
 	cd $HOME
 fi
