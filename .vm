@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.17	99/05/21 13:48:03 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.18	99/05/21 13:54:24 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -630,7 +630,8 @@ message/rfc822 attachments."
       vm-highlight-url-face 'bold-italic
       vm-highlighted-header-regexp "^From:\\|^Resent-[fF]rom:\\|^Subject:" ; highlight these headers
       vm-honor-page-delimiters nil
-;;;   vm-image-directory "/local/gnu/share/emacs/19.34/etc/vm/"
+;;;   vm-image-directory "/usr/local/share/emacs/site-lisp/vm/"
+      vm-imap-session-preauth-hook nil
       vm-in-reply-to-format "%F's message\n	of \"%w, %m %d, %y %h %z\"\n	regarding \"%s\"\n	id %i"
 					; just the way I like it!
       vm-included-text-attribution-format "[ On %w, %m %d, %y at %h (%z), %F wrote: ]\n> Subject: %s\n>\n"
@@ -704,11 +705,14 @@ message/rfc822 attachments."
       vm-mime-base64-encoder-switches nil
       vm-mime-button-face 'gui-button-face
       vm-mime-charset-font-alist nil
+      vm-mime-confirm-delete t
+      vm-mime-delete-after-saving nil
       vm-mime-default-face-charsets '("us-ascii" "iso-8859-1")
+      vm-mime-default-face-charset-exceptions nil
       vm-mime-digest-discard-header-regexp "X400-"
       vm-mime-digest-headers nil
       vm-mime-display-function nil
-      vm-mime-external-content-types-alist '(("text/html" 	"xterm -e lynx -force_html")
+      vm-mime-external-content-types-alist '(("text/html" 	"xterm -e lynx -force_html") ; lynx RULES!
 					     ("image/gif" 	"xv")
 					     ("image/jpeg" 	"xv")
 					     ("video/mpeg" 	"mpeg_play")
@@ -763,6 +767,8 @@ message/rfc822 attachments."
       vm-netscape-program-switches (list "-display" my-vm-netscape-display "-install")
 ;;; shouldn't mess with this
 ;;;   vm-options-file "~/.vm.options"
+;;; defaults to (default-value 'fill-column)
+;;;   vm-paragraph-fill-column
       vm-pop-bytes-per-session nil
       vm-pop-max-message-size nil
       vm-pop-messages-per-session nil
