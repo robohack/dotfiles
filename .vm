@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.17	96/01/14 20:09:33 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.18	96/01/19 08:44:33 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -123,6 +123,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("info-vm@" . "bug-vm") ; just merge these....
 			      ("jet-fuel@" . "jet-fuel-l")
 			      ("lout@" . "lout-l")
+			      ("NAMEDROPPERS@LISTS.INTERNIC.NET" . "namedroppers-l")
 			      ("namedroppers@internic.net" . "namedroppers-l")
 			      ("net-dist@nikhef.nl" . "nikhef.net-dist-l")
 			      ("newdom@" . "newdom-l")
