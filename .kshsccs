@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	27.1	03/11/23 19:15:54 (woods)"
+#ident	"@(#)HOME:.kshsccs	27.2	05/01/08 17:18:58 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -77,46 +77,50 @@
 # use of '-t' to the right commands, though not all functions accept this
 # option.
 #
-# Many of things should probably be separate scripts.....
+# Many of the functions should probably be separate scripts.....
 
-# explicitly setting this makes life easier....
+# explicitly setting this makes life with "sccs" easier overall
 #
-if [ -z "$PROJECT" ] ; then
-	export PROJECT=SCCS
-fi
+: ${PROJECT:="SCCS"}
+export PROJECT
+
+# this makes it possible to easily use a different front-end
+#
+: ${SCCS:="sccs"}
+export SCCS
 
 # TODO: if the 'x' bit is set on the SCCS file, set it on the g-file too
 
-alias vadmin='sccs -p $PROJECT admin'
-alias vcdc='sccs -p $PROJECT cdc'
-alias vcheck='sccs -p $PROJECT check'
-alias vclean='sccs -p $PROJECT clean'
-alias vcreate='sccs -p $PROJECT create'
-alias vdeled='sccs -p $PROJECT deledit'
-alias vdeledit='sccs -p $PROJECT deledit'
-alias vdelget='sccs -p $PROJECT delget'
-alias vdelta='sccs -p $PROJECT delta'
-alias vdiff='sccs -p $PROJECT diffs'
-alias vedit='sccs -p $PROJECT edit'
-alias venter='sccs -p $PROJECT enter' # XXX should this warn to use vmksccs instead?
-alias vfix='sccs -p $PROJECT fix'
-alias vget='sccs -p $PROJECT get'
-alias vgeted='sccs -p $PROJECT edit'
-alias vgetedit='sccs -p $PROJECT edit'
-alias vhelp='sccs help'
-alias vinfo='sccs -p $PROJECT info'
-alias vlog='sccs -p $PROJECT prs'
+alias vadmin='${SCCS} -p $PROJECT admin'
+alias vcdc='${SCCS} -p $PROJECT cdc'
+alias vcheck='${SCCS} -p $PROJECT check'
+alias vclean='${SCCS} -p $PROJECT clean'
+alias vcreate='${SCCS} -p $PROJECT create'
+alias vdeled='${SCCS} -p $PROJECT deledit'
+alias vdeledit='${SCCS} -p $PROJECT deledit'
+alias vdelget='${SCCS} -p $PROJECT delget'
+alias vdelta='${SCCS} -p $PROJECT delta'
+alias vdiff='${SCCS} -p $PROJECT diffs'
+alias vedit='${SCCS} -p $PROJECT edit'
+alias venter='${SCCS} -p $PROJECT enter' # XXX should this warn to use vmksccs instead?
+alias vfix='${SCCS} -p $PROJECT fix'
+alias vget='${SCCS} -p $PROJECT get'
+alias vgeted='${SCCS} -p $PROJECT edit'
+alias vgetedit='${SCCS} -p $PROJECT edit'
+alias vhelp='${SCCS} help'
+alias vinfo='${SCCS} -p $PROJECT info'
+alias vlog='${SCCS} -p $PROJECT prs'
 alias vnoproj='unset PROJECTDIR; vproj SCCS'
-alias vprint='sccs -p $PROJECT print'
-alias vprs='sccs -p $PROJECT prs'
-alias vprt='sccs -p $PROJECT prt'
-alias vrdiff='sccs -p $PROJECT sccsdiff'
-alias vrmdel='sccs -p $PROJECT rmdel'
-alias vsccsdiff='sccs -p $PROJECT sccsdiff'
-alias vtell='sccs -p $PROJECT tell'
-alias vunedit='sccs -p $PROJECT unedit'
-alias vunget='sccs -p $PROJECT unget'
-alias vval='sccs -p $PROJECT val'
+alias vprint='${SCCS} -p $PROJECT print'
+alias vprs='${SCCS} -p $PROJECT prs'
+alias vprt='${SCCS} -p $PROJECT prt'
+alias vrdiff='${SCCS} -p $PROJECT sccsdiff'
+alias vrmdel='${SCCS} -p $PROJECT rmdel'
+alias vsccsdiff='${SCCS} -p $PROJECT sccsdiff'
+alias vtell='${SCCS} -p $PROJECT tell'
+alias vunedit='${SCCS} -p $PROJECT unedit'
+alias vunget='${SCCS} -p $PROJECT unget'
+alias vval='${SCCS} -p $PROJECT val'
 alias vpident='echo "#ident	\"%Z\045%Y\045:%M\045	%I\045	%E\045 %U\045 (%Q\045)\""'
 
 #
@@ -277,23 +281,23 @@ function mksccs
 	else
 		TFLAG=$PROJECT
 	fi
-	sccs -p $PROJECT enter $REL $*
+	${SCCS} -p $PROJECT enter $REL $*
 	if [ $? -eq 0 ] ; then
-		sccs -p $PROJECT admin $DEFBR -fb -fq"$QFLAG" -ft"$TFLAG" $*
+		${SCCS} -p $PROJECT admin $DEFBR -fb -fq"$QFLAG" -ft"$TFLAG" $*
 	else
 		return 1
 	fi
 
 	rc=$?
 
-	if sccs -p $PROJECT val $* ; then
+	if ${SCCS} -p $PROJECT val $* ; then
 		: # It's OK Jim....
 	else
 		echo "$0: failed to enter one or more files (try vval...)" >&2
 		return 1
 	fi
 
-	sccs -p $PROJECT get $*
+	${SCCS} -p $PROJECT get $*
 
 	rc=$(( $rc + $? ))
 
@@ -335,7 +339,7 @@ function vlist
 		PRSLIST="$PRSLIST :MR:"
 		shift
 	fi
-	sccs -p $PROJECT prs -d"$PRSLIST" ${1+"$@"} $PROJECT
+	${SCCS} -p $PROJECT prs -d"$PRSLIST" ${1+"$@"} $PROJECT
 	unset PRSLIST
 }
 
@@ -374,9 +378,9 @@ function vwhat
 function vsact
 {
 	if [ $# -eq 0 ] ; then
-		sccs -p $PROJECT sact $(vwproj)/s.*
+		${SCCS} -p $PROJECT sact $(vwproj)/s.*
 	else
-		sccs -p $PROJECT sact $*
+		${SCCS} -p $PROJECT sact $*
 	fi
 }
 
