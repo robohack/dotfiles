@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	24.1	02/07/04 17:19:31 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	24.2	02/11/25 16:03:26 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -30,7 +30,9 @@
 
 ;;;; ----------
 ;;;; Let's make sure we're "home"....
-(cd "~")
+;;;; if that's where we should be.
+(if (<= (safe-length command-line-args) 1)
+    (cd "~"))
 
 ;;;; ----------
 ;;;; stolen from cl.el -- find out where we are!
@@ -107,11 +109,13 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 	       ;; (require 'time)	; this isn't provided by time.el!
 	       (setq display-time-day-and-date t) ; autoload'ed though
 	       (setq display-time-24hr-format t)
-	       (if (or (string-equal (system-name) "robohack")
-		       (string-equal (system-name) "very.weird.com"))
-		   (setq display-time-interval 300)) ; poor little machines....
-	       (let ((process-connection-type nil)) ;pty's are limited, pipes aren't
-		 (display-time))	; also autoload'ed
+;;;	       (if (or (string-equal (system-name) "robohack")
+;;;		       (string-equal (system-name) "almost.weird.com")
+;;;		       (string-equal (system-name) "always.weird.com"))
+;;;		   (setq display-time-interval 300)) ; poor little machines....
+	       (if (not (= (user-uid) 0))
+		   (let ((process-connection-type nil)) ;pty's are limited, pipes aren't
+		     (display-time)))	; also autoload'ed
 	       ;;
 	       ;; Message-Id: <9601081816.AA07579@alex.x.org>
 	       ;; From: Stephen Gildea <gildea@x.org>
@@ -187,20 +191,16 @@ directory in the list PATHLIST, otherwise nil."
 ;;;; ----------
 ;;;; some default packages we'd like...
 
-;; cc-mode (shipped with 19.27 and newer)
-(if (and (= init-emacs-type '19)
-	 (elisp-file-in-loadpath-p "cc-mode"))
+(if (elisp-file-in-loadpath-p "newcomment")
     (progn
-      ;; emacs was (probably) dumped with c-mode, but we have cc-mode
-      (fmakunbound 'c-mode)
-      (makunbound 'c-mode-map)
-      (fmakunbound 'c++-mode)
-      (makunbound 'c++-mode-map)
-      (makunbound 'c-style-alist)
-      (autoload 'c++-mode  "cc-mode" "C++ Editing Mode" t)
-      (autoload 'c-mode    "cc-mode" "C Editing Mode" t)
-      (autoload 'objc-mode "cc-mode" "Objective-C Editing Mode" t)
-      (autoload 'java-mode "cc-mode" "Java Editing Mode" t)))
+      (require 'newcomment)))
+
+(if (elisp-file-in-loadpath-p "filladapt")
+    (progn
+      (require 'filladapt)
+      (defvar filladapt-mode)
+      (setq-default filladapt-mode t)	; it is a "Good Thing(tm)!"
+      (add-hook 'text-mode-hook 'turn-on-filladapt-mode))) ; it is a "Really Good Thing(tm)!"
 
 ;; hyperbole auto-loading
 (if (elisp-file-in-loadpath-p "hyperbole")
@@ -310,9 +310,13 @@ scripts (alias)." t)
 	("^[^ ].*$" 0 font-lock-comment-face t)
 	("^..d.* \\([^ ]+\\)$" 1 font-lock-keyword-face))))
 
+(defvar orig-default-frame-font
+  nil
+  "The original default frame font.")
+
 (defvar preferred-frame-font
   "fixed"
-  "My preferred font")
+  "My preferred font.")
 
 ;; The Bitstream Courier font is very clean but doesn't seem to have a matching
 ;; size italic (and has no oblique) font (at least not on some stock X11's).
@@ -323,53 +327,78 @@ scripts (alias)." t)
 ;;
 ;;	"-adobe-*-medium-r-normal--*-120-*-*-m-*-iso8859-1"
 ;;
-;; A pxlsz of '0' would force the use of Type-1 fonts...  but since they don't
-;; always have a proper back-tick, we're hosed and we must stay with this
-;; slightly bigger and slightly uglier version (which still doesn't have proper
-;; back-ticks for italic fonts).
+;; It matches the default, at least as of 21.1 on a 100dpi display, which is:
+;;
+;;	"-adobe-courier-medium-r-normal--17-120-100-100-m-100-ISO8859-1"
+;;
+;; A pxlsz of '0' might force the use of Type-1 fonts (if your Xserver is
+;; capable of displaying them)...
+;;
+;;	"-adobe-*-medium-r-normal--0-120-*-*-m-*-iso8859-1"
+;;
+;; ... but since they don't always have a proper back-tick, we're hosed and we
+;; must stay with this slightly bigger (about 30% wider, but maybe 2% shorter)
+;; and much uglier font.
 ;;
 ;; ... assuming it's X, that is!  ;-)
 ;;
 ;; Ideally you can install a custom font with all unique glyphs (and a
-;; complete set of glhphs).
+;; complete set of glyphs).
 ;;
-;; This is What we're actually using.  It's one of the fonts from the GNU
-;; intlfonts distribution.  These are by far the very best all-round
-;; complete fonts I've ever seen.
+;; Indeed I use just such a font.
+;;
+;;	    "-etl-fixed-medium-r-normal--16-*-*-*-c-*-iso8859-1"
+;;
+;; It's one of the fonts from the GNU intlfonts distribution.  These are by far
+;; the very best all-round complete fonts I've ever seen for X11.
 ;;
 (if (eq window-system 'x)
-    (setq preferred-frame-font
-	  "-etl-fixed-medium-r-normal--16-*-*-*-c-*-iso8859-1"))
+    (progn
+      (setq orig-default-frame-font (frame-parameter nil 'font))
+      (setq preferred-frame-font
+	    "-etl-fixed-medium-r-normal--16-*-*-*-c-*-iso8859-1")))
 
 (require 'frame)
 (defun set-frame-face-to-preferred-frame-font (frame)
-  "Set FRAME's faces to those for preferred-frame-font"
-  (set-frame-font preferred-frame-font)
-  ;; this is the equivalent of the previous, but with a FRAME arg.
-  (modify-frame-parameters frame
-			   (list (cons 'font preferred-frame-font)))
+  "Set FRAME's faces to those for preferred-frame-font.  This is a replacement
+for set-frame-font (formerly set-default-font) which can be used as an
+after-make-frame-functions hook.  It is not just a wrapper but a
+re-implementation so that we can catch the error from modify-frame-parameters
+when our preferred font is not available."
+  (condition-case nil
+      (progn
+	(modify-frame-parameters frame
+				 (list (cons 'font
+					     preferred-frame-font))))
+    (error (modify-frame-parameters frame
+				    (list (cons 'font
+						orig-default-frame-font)))))
+  (run-hooks 'after-setting-font-hook 'after-setting-font-hooks)
   ;; Update faces that want a bold or italic version of the default font.
+  ;; unnecessary in 21.1 and newer.
   (if (not (and (>= init-emacs-type 21)
 		(>= emacs-version-minor 1)))
       (frame-update-faces frame)))
 (add-hook 'after-make-frame-functions 'set-frame-face-to-preferred-frame-font)
 
-;; this gets the current frame, which already exists, and already has a font
-;; set....
-(set-default-font preferred-frame-font)
+;; this fixes up the current frame, which already exists, and already has its
+;; font parameter set....
+(set-frame-face-to-preferred-frame-font (selected-frame))
+
+;; where is that damn cursor anyway?!?!?!?
+(if (and window-system
+	 (fboundp 'blink-cursor-mode))
+    (blink-cursor-mode 1))
 
 ;; we like fancy faces!
 (global-font-lock-mode t)
-
-;; Gerd Moellmann says that the menu-bar and tool-bar can be controlled on
-;; individual frames by managing these frame-parameters: `menu-bar-lines' and
-;; `tool-bar-lines
 
 (setq auto-save-timeout 300)		; 30 seconds is insane!
 (setq backup-by-copying t)		; copy, thus preserving modes and owner
 (setq colon-double-space t)		; ah ha!  this should mirror sentence-end-double-space!
 (setq default-tab-width 8)		; a tab is a tab is a tab is a tab....
 (setq delete-auto-save-files t)		; delete auto-save file when saved
+(setq display-time-24hr-format t)	; time in 24hour-mode
 (setq enable-local-variables 1)		; non-nil, non-t means query...
 (setq file-name-handler-alist nil)	; turn off ange-ftp entirely
 (setq indicate-empty-lines t)		; show which window lines are past the EOF
@@ -378,6 +407,7 @@ scripts (alias)." t)
 (setq next-line-add-newlines nil)	; I hate it when it does that!  ;-)
 (setq search-highlight 1)		; not sure when this begins to work
 (setq sentence-end-double-space t)	; just to be absolutely sure!
+(setq tab-always-indent nil)		; silly
 (setq track-eol nil)			; too hard to control (it's sticky!)
 (setq window-min-height 1)		; don't be snobbish
 (setq window-min-width 1)
@@ -403,13 +433,14 @@ scripts (alias)." t)
 	  (tool-bar-mode -1))))		; major space waster!
 
 (if window-system
+    (setq mouse-yank-at-point t)	; yank at click is DANGEROUS!!!!
     (setq baud-rate 153600))		; let's make things more efficient
 
 (if (and (string-match "-sunos4" system-configuration)
 	 (string-match "/bin/sh$" shell-file-name))
     (setq cannot-suspend t))		; no jobs support!  ;-)
 
-;; Something more detailed like this really should be the default!
+;; Something more detailed, like this, really should be the default!
 ;;
 ;; note that the octal escapes are for iso-8859-1 encodings....
 ;;
@@ -450,12 +481,15 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 	"*grep*"
 	"*tex-shell*"))
 
+;; Gerd Moellmann says that the menu-bar and tool-bar can be controlled on
+;; individual frames by managing these frame-parameters: `menu-bar-lines' and
+;; `tool-bar-lines
+;;
 (setq special-display-regexps
       '((".*\\*Apropos\\*.*" '((top . 0)
 			       (left . -1)
 			       (height . 40)
 			       (width . 80)
-			       (unsplittable . t)
 			       (tool-bar-lines . 0)
 			       (menu-bar-lines . 0)))
 	(".*\\*Help\\*.*" '((top . 0)
@@ -477,12 +511,19 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 			       (tool-bar-lines . 0)
 			       (menu-bar-lines . 0)))))
 
+;; special buffers also shouldn't have a menu-bar either....
+;;
+;; Hmmm....
+;; these seem to over-ride those set in special-display-regexps above...
+;;
 (setq special-display-frame-alist
       '((top . 0)
 	(left . -1)
-	(height . 12)
+	(height . 16)
 	(width . 80)
-	(unsplittable . t)))
+	(unsplittable . t)		; ?????  Should they be?
+	(tool-bar-lines . 0)
+	(menu-bar-lines . 0)))
 
 ;; Format string for PR summary text.
 (defvar gnats::format-string)
@@ -505,6 +546,9 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
   (setq dired-listing-switches "-lbag"
         list-directory-verbose-switches "-lbaFg"
         list-directory-brief-switches "-abCFg")))
+
+(defvar tags-revert-without-query)	; avoid needing (require 'etags)
+(setq tags-revert-without-query t)	; always revert to a newer TAGS file
 
 ;;;; ----------
 ;;;; auto-mode-alist setup
@@ -644,14 +688,14 @@ next ARG-1 words if ARG is greater than 1), moving over."
 ;; Subject: Killing a named process.
 ;;
 ;; [I posted this to gnu.emacs.bug but it seems to have got lost]
-;; 
+;;
 ;; Feature request: occasionally I want to be able to kill a process (as
 ;; seen in the *Process List* buffer) and no convenience command (eg
 ;; ispell-kill-ispell) exists.
-;; 
+;;
 ;; Did I miss a way of easily doing this? If not, the following can be
 ;; used.
-;; 
+;;
 (defun kill-named-process ()
   "Kill a process chosen from a list.
 The list is built from the function `process-list'."
@@ -690,15 +734,15 @@ The list is built from the function `process-list'."
 ;; To: gnu-emacs-sources@prep.ai.mit.edu
 ;; Date: 14 Nov 96 09:27:37 +0200
 ;; Subject: Improved, fast page-up page-down
-;; 
+;;
 ;; Dear (X)emacs users,
-;; 
+;;
 ;; The three functions below (a basic one and two which call it to perform
 ;; different actions) allow page-down, page-up movement in such a way that the
 ;; original line is always recovered when inverting the action and the cursor
 ;; remains all the time at the same line on the screen (window): that is, no
 ;; automatic recentering is performed.
-;; 
+;;
 ;; In my opinion, recentering is annoying in a few occasions. For example, when
 ;; the current line is close to the bottom of the window and page-down is
 ;; pressed, because of the recentering, the lines which were visible at the
@@ -706,11 +750,11 @@ The list is built from the function `process-list'."
 ;; default mapping of the pg-up, pg-dn keys with scroll-down scroll-up, on the
 ;; other hand, has the problem of the noninvertibility of the action mentioned
 ;; above (i.e., after a pg-dn, pg-up, the current line may be changed).
-;; 
+;;
 ;; Those who are interested in trying this simple variant should assign the
 ;; keys pg-dn, pg-up in .emacs to the functions rb-page-down, rb-page-up. The
 ;; code is for (X)emacs-19.14: slight modifications for Emacs are necessary.
-;; 
+;;
 ;; Remo Badii
 ;; Paul Scherrer Institute
 ;; Nonlinear dynamics and
@@ -718,15 +762,15 @@ The list is built from the function `process-list'."
 ;; CH-5232 Villigen
 ;; Switzerland
 ;; badii @ psi.ch
-;; 
+;;
 ; (defvar rb-up nil
 ;   "Set true by rb-page-up and false by rb-page-down.")
-; 
+;
 ; (defun rb-page-move ()
 ;   "Called by rb-page-down (up).  Moves the current line down (up)
-; window-displayed-height lines, depending on whether rb-up is nil or t. 
+; window-displayed-height lines, depending on whether rb-up is nil or t.
 ; The inverse operation brings back to the previous line.
-; No recentering takes place, except close to the end of the buffer, 
+; No recentering takes place, except close to the end of the buffer,
 ; so that the cursor remains on the same displayed line on the screen."
 ;   (interactive "_")
 ;   (let ((wdh (window-displayed-height))  ; Variables: window-start, current
@@ -752,13 +796,13 @@ The list is built from the function `process-list'."
 ; 	  (progn                              ; of buffer, recenter.
 ; 	    (setq wdh (abs wdh))              ; Take abs(wdh)
 ; 	    (recenter (/ wdh 2))))))
-; 
+;
 ; (defun rb-page-up ()
 ;   "Moves the text up window-displayed-height lines."
 ;   (interactive "_")
 ;   (setq rb-up t)
 ;   (rb-page-move))
-; 
+;
 ; (defun rb-page-down ()
 ;   "Moves the text up window-displayed-height lines."
 ;   (interactive "_")
@@ -776,14 +820,14 @@ The list is built from the function `process-list'."
 ;;Date: Thu, 3 Apr 1997 22:29:16 -0500
 ;;Subject: Re: undo question
 ;;
-;;Try something like the following for a 'redo' command. 
+;;Try something like the following for a 'redo' command.
 ;;
 ;;WARNING: just like 'undo', this will only work if you bind it
 ;;to a keychord -- "M-x redo" won't do the trick. The problem
 ;;is that these commands test 'last-command' to determine their
 ;;state, but when you invoke them via "M-x...", 'last-command'
 ;;is clobbered by the commands you execute in the minibuffer
-;;after typing in "M-x..." (so 'last-command' will end up being 
+;;after typing in "M-x..." (so 'last-command' will end up being
 ;;'self-insert-command'). This is a bug/misfeature in Emacs.
 ;;
 ;;RMS: Perhaps minibuffer invocation should preserve 'last-command'.
@@ -907,6 +951,38 @@ If not `nil' and not `t', query for each instance."
   (interactive)
   (move-to-window-line -1))
 
+(defun forward-screen ()
+  "Move point down by the height of the window"
+  (interactive)
+  (next-line (/ (* (window-height) 3) 5)))
+
+(defun backward-screen ()
+  "Move point down by the height of the window"
+  (interactive)
+  (previous-line (/ (* (window-height) 3) 5)))
+
+;; cycle through buffers, ignoring uninteresting ones
+(defun z-backward-buffer () (interactive)
+  "Switch to previously selected buffer."
+  (let* ((list (cdr (buffer-list)))
+	 (buffer (car list)))
+    (while (and (cdr list) (string-match "\\*" (buffer-name buffer)))
+      (progn
+	(setq list (cdr list))
+	(setq buffer (car list))))
+    (bury-buffer)
+    (switch-to-buffer buffer)))
+
+(defun z-forward-buffer () (interactive)
+  "Opposite of backward-buffer."
+  (let* ((list (reverse (buffer-list)))
+	 (buffer (car list)))
+    (while (and (cdr list) (string-match "\\*" (buffer-name buffer)))
+      (progn
+	(setq list (cdr list))
+	(setq buffer (car list))))
+    (switch-to-buffer buffer)))
+
 ;;; Snarfed from Steve Humble
 (defun ascii-table (new)
   "Show the buffer *Ascii Table* or make one.
@@ -954,9 +1030,62 @@ advancing point."
     (message (current-time-string))))
 
 (defun insert-date-in-current-buffer ()
-  "Insert output of date process in current buffer at point."
+  "Insert the date (as from date(1)) in current buffer at point."
   (interactive)
-  (call-process "date" nil t t))
+  (insert (format-time-string "%a %b %e %T %Z %Y")))
+
+(defconst rfc822-month-alist
+  '(("jan" "January" "1")
+    ("feb" "February" "2")
+    ("mar" "March" "3")
+    ("apr" "April" "4")
+    ("may" "May" "5")
+    ("jun" "June" "6")
+    ("jul" "July" "7")
+    ("aug" "August" "8")
+    ("sep" "September" "9")
+    ("oct" "October" "10")
+    ("nov" "November" "11")
+    ("dec" "December" "12"))
+  "Valid month names for RFC 822 format dates.")
+(defconst rfc822-weekday-alist
+  '(("sun" "Sunday" "0")
+    ("mon" "Monday" "1")
+    ("tue" "Tuesday" "2")
+    ("wed" "Wednesday" "3")
+    ("thu" "Thursday" "4")
+    ("fri" "Friday" "5")
+    ("sat" "Saturday" "6"))
+  "Valid weekday names for RFC 822 format dates.")
+
+(defun insert-rfc822-date-in-current-buffer ()
+  ""
+  (interactive)
+  (let* ((timezone (car (current-time-zone)))
+	 (hour (/ timezone 3600))
+	 (min (/ (- timezone (* hour 3600)) 60))
+	 (time (current-time))
+	 (resent nil))
+    (insert (capitalize
+	     (car (nth (string-to-int (format-time-string "%w" time))
+		       rfc822-weekday-alist)))
+	    ", "
+	    ;; %e generated " 2".  Go from string to int
+	    ;; to string to get rid of the blank.
+	    (int-to-string
+	     (string-to-int
+	      (format-time-string "%e" time)))
+	    " "
+	    (capitalize
+	     (car (nth
+		   (1- (string-to-int (format-time-string "%m" time)))
+		   rfc822-month-alist)))
+	    (format-time-string " %Y %H:%M:%S" time)
+	    (format " %s%02d%02d"
+		    (if (< timezone 0) "-" "+")
+		    (abs hour)
+		    (abs min))
+	    "\n")))
 
 (defun shell-command-to-buffer (process-name buffer-name &rest args)
   "Runs a command string PROCESS-NAME and puts it in buffer
@@ -968,6 +1097,35 @@ BUFFER-NAME.  Optional command args to process supplied by ARGS"
   (setq buffer-read-only t)
   (goto-char (point-min))
   (pop-to-buffer (current-buffer)))
+
+;;; borrowed from <johnw@gnu.org>
+;(defun edit-variable (variable)
+;  "Edit the value of VARIABLE."
+;  (interactive (list (completing-read "Edit variable: " obarray 'boundp)))
+;  (let* ((symbol (intern variable))
+;         (value (symbol-value symbol))
+;         (buffer (current-buffer)))
+;    (with-current-buffer (get-buffer-create (format "*var %s*" variable))
+;      (erase-buffer)
+;      (emacs-lisp-mode)
+;;; XXX these variables need to be pulled out and defvar'ed
+;      (setq edit-variable-buffer buffer
+;            edit-variable-symbol symbol
+;            edit-variable-windows (current-window-configuration))
+;      (insert (pp-to-string value))
+;      (goto-char (point-min))
+;      (select-window (display-buffer (current-buffer)))
+;;; XXX this function needs to be pulled out and made top-level in scope
+;      (define-key (current-local-map) [(control ?c) (control ?c)]
+;        (function
+;         (lambda ()
+;           (interactive)
+;           (goto-char (point-min))
+;           (let ((symbol edit-variable-symbol)
+;                 (value (read (current-buffer))))
+;             (with-current-buffer edit-variable-buffer
+;               (set symbol value)))
+;           (set-window-configuration edit-variable-windows)))))))
 
 ;;; More stuff stolen from Roland.
 ;(defun make-interactive (symbol &rest interactive-args)
@@ -1265,12 +1423,13 @@ Use `list-faces-display' to see all available faces")
 ;;;; ----------
 ;;;; some special hooks.....
 
-(if (or (string-equal (getenv "EDITOR") "emacsclient")
-	(string-equal (getenv "VISUAL") "emacsclient"))
+(if (and (<= (safe-length command-line-args) 1)
+	 (or (string-equal (getenv "EDITOR") "emacsclient")
+	     (string-equal (getenv "VISUAL") "emacsclient")))
     (progn
       ;; to quiet the v19 byte compiler
-      (defvar server-temp-file-regexp)
       (defvar server-process)
+      (defvar server-temp-file-regexp)
       (eval-and-compile
 	(autoload 'server-buffer-done "server"
 	  "Mark BUFFER as \"done\" for its client(s)."
@@ -1278,6 +1437,7 @@ Use `list-faces-display' to see all available faces")
       (require 'server)
       (setq server-temp-file-regexp
 	    "/tmp/Re\\|/draft$\\|/\\.letter$\\|/\\.article$/\\|/tmp/[^/]*\\.ed\\|/tmp/[^/]*nf")
+
 ;;;      ;; From: qhslali@aom.ericsson.se (Lars Lindberg EHS/PBE 80455 2122 { tom
 ;;;      ;;	-> 940531  ansv. EHS/PBE Christer Nilsson })
 ;;;      ;; Message-Id: <9402170914.AA18291@aom.ericsson.se>
@@ -1292,7 +1452,11 @@ Use `list-faces-display' to see all available faces")
 ;;; perhaps this should be wrapped with something that returns nil....
 ;;;				(server-buffer-done
 ;;;				 (current-buffer))))))))
-      (server-start)))
+
+      (if (not (boundp 'server-started))
+	  (progn
+	    (defvar server-started 1 "If defined we've called server-start.")
+	    (server-start)))))
 
 ;;;; ----------
 ;;;; some major-mode hooks...
@@ -1352,99 +1516,195 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	     (override-local-key-settings)
 	     (override-default-variable-settings))))
 
-;;; GNU-Emacs' ideas about formatting C code suck!  Let's stick to doing things
-;;; the good old K&R standard way!!!!
+(add-hook 'makefile-mode-hook		; mostly to get `compile' binding
+	  (function
+	   (lambda ()
+	     "Private makefile-mode-hook."
+	     (override-local-key-settings)
+	     (override-default-variable-settings))))
+
+;;; GNU-Emacs' ideas about formatting C code really suck!  Let's stick to doing
+;;; things the good old standard K&R way!!!!
 ;;;
 ;;; For reference my .indent.pro (for BSD indent) says:
 ;;;
-;;;	-bad -ncdb -d0 -nfc1 -i8 -l256 -sc
+;;;  -bad -bap -bc -br -nbs -c49 -cd33 -ncdb -ce -cli0 -d0 -di16 -ndj -ei -neei
+;;;  -nfc1 -i8 -ip -l256 -lp -npcs -psl -sc -nsob -Tptrdiff_t -Tsize_t
+;;;  -Tssize_t -Toff_t -Ttime_t -Tclock_t -Tsocklen_t -Tbool_t -Tenum_t
+;;;  -Tu_char -Tu_short -Tu_int -Tu_long -Tuchar -Tushort -Tuint -Tulong
+;;;  -Tunchar -Tquad_t -Tu_quad_t -Tqaddr_t -Tlonglong_t -Tu_longlong_t
+;;;  -Tregoff_t -Twchar_t -Tint8_t -Tuint8_t -Tu_int8_t -Tint16_t -Tuint16_t
+;;;  -Tu_int16_t -Tint32_t -Tuint32_t -Tu_int32_t -Tint64_t -Tuint64_t
+;;;  -Tu_int64_t -Tintptr_t -Tuintptr_t -Tva_list -Tmode_t -Toff_t -Tpid_t
+;;;  -Tuid_t -Tgid_t -Trlim_t
 ;;;
-;;; NOTE: Someday I want a simple flag I can toggle in a file's local variables
-;;; to turn off use of tab characters and do all indentation and alignment with
-;;; spaces only.
+;;; NOTE: Someday I _think_ I want a simple flag I can toggle in a file's local
+;;; variables to turn off use of tab characters and do all indentation and
+;;; alignment with spaces only.
+
+(require 'cc-mode)
+
+(setq c-font-lock-extra-types
+      '("FILE"
+	"fd_set"
+	"jmp_buf"
+	"va_list"
+	"\\sw+_t"
+	"t_\\sw+"
+	"u_\\sw+"
+	"uchar"
+	"uint"
+	"ulong"
+	"unchar"
+	"ushort"))
+
+(defconst my-c-style
+  '((c-backslash-column . 72)
+    (c-basic-offset . 8)
+    (c-block-comment-prefix . "* ")
+    (c-cleanup-list . (brace-else-brace
+		       brace-elseif-brace
+		       scope-operator)) ; (scope-operator)
+    (c-comment-continuation-stars . "* ")
+    (c-comment-only-line-offset . (0 . 0))
+    (c-hanging-braces-alist . ((defun-open . (before after))
+			       (defun-close . (before))
+			       (class-open . (after))
+			       (class-close . nil)
+			       (inline-open . nil)
+			       (inline-close . nil)
+			       (block-open . (after))
+			       (block-close . (before))
+			       (substatement-open . nil)
+			       (statement-case-open . nil)
+			       (brace-list-open . nil)
+			       (brace-list-close . nil)
+			       (brace-list-intro . nil)
+			       (brace-list-entry . nil)))
+    (c-hanging-colons-alist . ((member-init-intro before)
+			       (inher-intro)
+			       (case-label after)
+			       (label after)
+			       (access-label after)))
+    (c-label-minimum-indentation . 0)
+    ;; an OFFSET is nil; an inteter (usually zero); one of the symbols:  `+',
+    ;; `-', `++', `--', `*', or `/' (a positive or negative multiple of
+    ;; `c-basic-offset' is added; 1, -1, 2, -2, 0.5, and -0.5, respectively); a
+    ;; vector; a function; or a list.
+    (c-offsets-alist . ((arglist-close . c-lineup-close-paren) ; +
+			(arglist-cont-nonempty . c-lineup-arglist) ; +
+			(arglist-intro . c-lineup-arglist-intro-after-paren) ; +
+			(block-open . -) ; 0
+			(func-decl-cont . 0) ; +
+			(inline-open . 0) ; +
+                        (statement-case-open . *) ; 0
+			(statement-cont . c-lineup-math) ; +
+			(substatement-open . 0)))) ; +
+  "My PERSONAL C Style, similar to NetBSD KNF.")
+(c-add-style "PERSONAL" my-c-style nil)
+
+;; This is how Dave Mills likes to see the code formatted.
+;;
+(defconst ntp-c-style
+  '((c-basic-offset . 8)
+    (c-offsets-alist . ((arglist-intro        . +)
+                        (case-label           . *)
+                        (statement-case-intro . *)
+                        (statement-cont       . *)
+                        (substatement-open    . 0))))
+  "Dave L. Mills; programming style for use with ntp")
+(c-add-style "ntp" ntp-c-style nil)
+
+;; NetBSD "knf" style (ala /usr/share/misc/style)
+;;
+(defconst netbsd-knf-c-style
+  '((c-auto-newline . nil)
+    (c-tab-always-indent . nil)
+    (c-recognize-knr-p . t)
+    (c-basic-offset . 8)
+    (c-comment-only-line-offset . 0)
+    (c-cleanup-list . (brace-else-brace
+		       empty-defun-braces
+		       defun-close-semi
+		       list-close-comma
+		       scope-operator))
+    (c-hanging-braces-alist . ((defun-open . (before after))
+			       (defun-close . (before))
+			       (class-open . (after))
+			       (class-close . nil)
+			       (inline-open . nil)
+			       (inline-close . nil)
+			       (block-open . (after))
+			       (block-close . (before))
+			       (substatement-open . nil)
+			       (statement-case-open . nil)
+			       (brace-list-open . nil)
+			       (brace-list-close . nil)
+			       (brace-list-intro . nil)
+			       (brace-list-entry . nil)
+			       ))
+    (c-offsets-alist . ((knr-argdecl-intro . +)
+			(arglist-cont-nonempty . 4)
+			(knr-argdecl . 0)
+			(block-open . -)
+			(label . -)
+			(member-init-intro . '++)
+			(statement-cont . 4)
+			)))
+  "NetBSD KNF C Style.")
+(c-add-style "netbsd" netbsd-knf-c-style nil)
+;; these settings are also important to KNF....
+(defun netbsd-knf-c-mode-hook ()
+  "Other stuff for NetBSD-KNF"
+  (setq tab-width 8
+	indent-tabs-mode t))
+
+(setq c-default-style
+      '((awk-mode . "PERSONAL")
+	(other . "PERSONAL")))
+
+(defun my-c-mode-common-hook ()
+  "My setup hook to be called by all CC Mode modes for common initializations."
+
+  ;; other customizations
+  (setq tab-width 8)			; normal, standard, default TAB chars
+  (setq fill-column 79)
+  (setq comment-column 48)
+  (setq comment-style 'extra-line)	; not used, but maybe someday?
+  (setq indent-tabs-mode t)		; only use tabs
+
+  (if (elisp-file-in-loadpath-p "filladapt")
+      (progn
+	(require 'filladapt)
+	(c-setup-filladapt)
+	;; we supposedly can't autoload this thing, yet that means this
+	;; function will not be defined at compile time...
+	(turn-on-filladapt-mode)))
+
+  ;; CC Mode things that are not style variables...
+  (setq c-echo-syntactic-information-p nil)
+  (setq c-electric-pound-behavior '(alignleft)) ; nil
+  (setq c-recognize-knr-p t)		; yes, PLEASE!
+  (setq c-tab-always-indent nil)	; insert tabs if not in left margin
+
+  (c-toggle-auto-state 1)		; try this on for size!
+
+  ;; keybindings for all supported languages.  We can put these in
+  ;; c-mode-base-map because c-mode-map, c++-mode-map, objc-mode-map,
+  ;; java-mode-map, idl-mode-map, and pike-mode-map inherit from it.
+  (define-key c-mode-base-map "\C-m" 'c-context-line-break)
+  (define-key c-mode-base-map "\ej" 'c-fill-paragraph)
+  ;; even cc-mode is sometimes too over-bearing.  It seems to
+  ;; insist re-setting some key bindings without regard to the
+  ;; global key map.
+  (override-local-key-settings)
+  (override-default-variable-settings))
+
+(add-hook 'c-mode-common-hook 'my-c-mode-common-hook)
+
 ;;;
-(if (elisp-file-in-loadpath-p "cc-mode")
-    ;; the real thing, in 19.30(?) and newer
-    (progn
-      ;; to quiet the v19 byte compiler
-      (defvar c-basic-offset)
-      (defvar c-offsets-alist)
-      (defvar c-block-comments-indent-p)
-      (defvar c-cleanup-list)
-      (defvar c-comment-only-line-offset)
-      (defvar c-backslash-column)
-      (defvar c-delete-function)
-      (defvar c-electric-pound-behavior)
-      (defvar c-hanging-braces-alist)
-      (defvar c-hanging-colons-alist)
-      (defvar c-hanging-comment-ender-p)
-      (defvar c-tab-always-indent)
-      (defvar c-recognize-knr-p)
-      (add-hook 'c-mode-hook
-		(function
-		 (lambda ()
-		   "Private c-mode stuff."
-		   ;; even cc-mode is sometimes too over-bearing.  It seems to
-		   ;; insist re-setting some key bindings without regard to the
-		   ;; global key map.
-		   (override-local-key-settings)
-		   (override-default-variable-settings)
-		   (setq fill-column 79)
-		   (setq comment-column 48)
-		   (setq comment-multi-line t)
-		   (setq c-basic-offset 8)	; 2
-		   (c-set-offset 'inline-open '0) ; +
-		   (c-set-offset 'statement 'c-lineup-runin-statements) ; 0
-		   (c-set-offset 'statement-cont 'c-lineup-math) ; +
-		   (c-set-offset 'substatement-open '0) ; +
-		   (c-set-offset 'label '*) ; 2
-		   (setq c-block-comments-indent-p nil)
-		   (setq c-cleanup-list '(scope-operator brace-else-brace)) ; '(scope-operator)
-		   (setq c-comment-only-line-offset '(0 . 0))
-		   (setq c-backslash-column 56)
-		   (setq c-electric-pound-behavior '(alignleft)) ; nil
-		   (setq c-hanging-braces-alist '((brace-list-open)
-						  (substatement-open after)
-						  (block-close . c-snug-do-while)))
-		   (setq c-hanging-colons-alist nil)
-		   (setq c-hanging-comment-ender-p nil) ; t
-		   (setq c-tab-always-indent nil)
-		   (setq c-recognize-knr-p t)
-		   (setq defun-prompt-regexp nil)
-		   (setq tab-width 8)
-		   ))))
-  ;; old version for pre-19.34 (i.e. pre cc-mode)
-  (progn
-    (defvar c-auto-newline)
-    (defvar c-argdecl-indent)
-    (defvar c-brace-offset)
-    (defvar c-brace-imaginary-offset)
-    (defvar c-continued-statement-offset)
-    (defvar c-continued-brace-offset)
-    (defvar c-indent-level)
-    (defvar c-label-offset)
-    (add-hook 'c-mode-hook
-	      (function
-	       (lambda ()
-		 "Private c-mode stuff."
-		 ;; damn c-mode is too over-bearing!  It seems to insist
-		 ;; re-setting these bindings without regard to the global key
-		 ;; map.
-		 (override-local-key-settings)
-		 (override-default-variable-settings)
-		 (setq fill-column 79)
-		 (setq comment-column 40)
-		 (setq comment-multi-line t)
-		 (setq c-auto-newline nil)
-		 (setq c-argdecl-indent 8)
-		 (setq c-brace-offset 0)
-		 (setq c-brace-imaginary-offset 0)
-		 (setq c-continued-statement-offset 8)
-		 (setq c-continued-brace-offset -8)
-		 (setq c-indent-level 8)
-		 (setq c-label-offset -8)
-		 (setq c-tab-always-indent nil)
-		 )))))
+;;; version-control (VC) stuff....
+;;;
 
 ;; to quiet the v19 byte compiler
 (defvar vc-command-messages)
@@ -1454,11 +1714,16 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	  (function
 	   (lambda ()
 	     "Private vc-mode stuff."
+	     (setq vc-checkout-carefully t)
 	     (setq vc-command-messages t)
 	     (setq vc-initial-comment t)
-	     (setq vc-checkout-carefully t)
+	     (setq vc-maximum-comment-ring-size 64) ; 32 is too small!
 	     (add-hook 'vc-checkin-hook
 		       'vc-comment-to-change-log))))
+
+;;;
+;;; misc other hooks
+;;;
 
 (add-hook 'emacs-lisp-mode-hook
 	  (function
@@ -1522,10 +1787,15 @@ it could check Status: headers for O, or Forward to in mailboxes."
       (defvar sh-alias-alist)
       (defvar sh-indentation)
       (defvar sh-basic-offset)
+      (defvar sh-learn-basic-offset)
+      (defvar sh-indent-comment)
       (defvar sh-indent-for-case-label)
       (defvar sh-indent-for-case-alt)
+      (defvar sh-indent-for-do)
+      (defvar sh-indent-for-then)
       (defvar sh-indent-after-switch)
       (defvar sh-indent-after-case)
+      (defvar sh-indent-after-do)
       (setq sh-alias-alist
 	    '((ksh . posix)		; most shells are really posix
 	      (bash2 . posix)
@@ -1534,10 +1804,21 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	      (sh5 . sh)))
       (setq sh-indentation 8)
       (setq sh-basic-offset 8)
+      (setq sh-learn-basic-offset nil)	; never....
+      (setq sh-indent-comment t)
+      ;; 	+   Indent right by sh-basic-offset
+      ;; 	-   Indent left  by sh-basic-offset
+      ;; 	++  Indent right twice sh-basic-offset
+      ;; 	--  Indent left  twice sh-basic-offset
+      ;; 	*   Indent right half sh-basic-offset
+      ;; 	/   Indent left  half sh-basic-offset.
       (setq sh-indent-for-case-label 0)
       (setq sh-indent-for-case-alt '+)
-      (setq sh-indent-after-switch 0)		; for rc
+      (setq sh-indent-for-do 0)
+      (setq sh-indent-after-do '+)
+      (setq sh-indent-for-then 0)
       (setq sh-indent-after-case 0)		; for rc
+      (setq sh-indent-after-switch 0)		; for rc
       (add-hook 'sh-mode-hook
 		(function
 		 (lambda ()
@@ -1592,17 +1873,6 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		   (setq ksh-case-item-indent 0)
 		   (setq ksh-case-indent 8)
 		   (setq ksh-match-and-tell t))))))
-
-(if (elisp-file-in-loadpath-p "c-boxes")
-    (progn
-      ;; to quiet the v19 byte compiler
-      (defvar c-comment-starting-blank)
-      (add-hook 'c-mode-hook
-		(function
-		 (lambda ()
-		   "Private c-boxes stuff."
-		   (local-set-key "\ej" 'reindent-c-comment)
-		   (setq c-comment-starting-blank t))))))
 
 ;;;; ----------
 ;;;; some default key re-binding....
@@ -1753,6 +2023,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
       (global-set-key "\C-x51" 'delete-other-frames)
       (global-set-key "\C-x5i" 'iconify-frame)
       (global-set-key "\C-x5l" 'lower-frame)
+      (global-set-key "\C-x5u" 'raise-frame)
       (global-set-key "\C-x5T" 'find-tag-other-frame)
       (if (fboundp 'make-frame-on-display)
 	  (global-set-key "\C-x5O" 'make-frame-on-display))))
@@ -1954,64 +2225,93 @@ current emacs server process..."
 ;;;  "Magic!"
 ;;;  (setq spell-command (concat "deroff | " spell-command)))
 
-;;; From: kifer@sbkifer.cs.sunysb.edu (Michael Kifer)
-;;; Subject: Re: calendar tool in Emacs?
-;;; Organization: SUNY at Stony Brook
-;;; Date: 15 Nov 1993 20:53:02 GMT
-;;; Message-Id: <KIFER.93Nov15155303@sbkifer.cs.sunysb.edu>
-;;;
-;;;(if (= init-emacs-type '19)
-;;;    (progn
-;;;      (setq
-;;;       view-diary-entries-initially t
-;;;       mark-diary-entries-in-calendar t
-;;;       mark-holidays-in-calendar t
-;;;       diary-display-hook (list 'appt-make-list 'fancy-diary-display)
-;;;       appt-display-duration 14		; seconds to display appointment message
-;;;       appt-issue-message t)
-;;;      (autoload 'appt-make-list "appt.el" nil t)
-;;;      (add-hook 'initial-calendar-window-hook 'display-time)
-;;;      (calendar)))
-(require 'advice)
-(defadvice appt-disp-window (around kn-appt-disp-win compile)
-  (if (or (= min-to-app 20)
-	  (and (<= min-to-app 6) (= (mod min-to-app 2) 0)))
-      ad-do-it))
-(eval-after-load "appt" '(ad-activate 'appt-disp-window))
-;;
+
+;;;;
+;;;; calendar and appointment stuff
+;;;;
+
+(require 'calendar)
+(require 'appt)
+
 ;; For 61 Lorraine Drive:
 ;; This is according to mapblast.com: 43.77681 N  79.420865 W
 ;; the GPS essentially agrees:  43 46 36.9 N  79 25 15.1 W
 (setq calendar-latitude 43.77681)
 (setq calendar-longitude -79.420865)
-(setq today-visible-calendar-hook 'calendar-mark-today)
+
 (setq calendar-time-display-form
       '(24-hours ":" minutes
 		 (if time-zone " (") time-zone (if time-zone ")")))
-(setq american-date-diary-pattern
+(setq diary-date-forms
       '((month "/" day "[^/0-9]")
-	(month "/" day "/" year "[^0-9]")
+	(monthname "/" day "[^/0-9]")
+	(year "/" month "/" day "[^0-9]")
+	(year "/" monthname "/" day "[^0-9]")
 	(month "-" day "[^/0-9]")
-	(year "-" month "-" year "[^0-9]")
+	(monthname "-" day "[^/0-9]")
+	(year "-" month "-" day "[^0-9]")
+	(year "-" monthname "-" day "[^0-9]")
 	(monthname " *" day "[^,0-9]")
 	(monthname " *" day ", *" year "[^0-9]")
 	(dayname "\\W")))
+(setq american-date-diary-pattern
+      '((month "/" day "[^/0-9]")
+	(monthname "/" day "[^/0-9]")
+	(year "/" month "/" day "[^0-9]")
+	(year "/" monthname "/" day "[^0-9]")
+	(month "-" day "[^/0-9]")
+	(monthname "-" day "[^/0-9]")
+	(year "-" month "-" day "[^0-9]")
+	(year "-" monthname "-" day "[^0-9]")
+	(monthname " *" day "[^,0-9]")
+	(monthname " *" day ", *" year "[^0-9]")
+	(dayname "\\W")))
+
 (setq appt-audible t)			; beep to warn of appointments
-(setq appt-display-diary t)		; display diary at midnight (want?)
-(setq appt-display-duration 60)		; seconds to display appointment message
 (setq appt-display-mode-line t)		; show sppt msg in mode line
-(setq appt-issue-message t)		; enable appt msgs
-(setq appt-message-warning-time 30)	; minutes of warning prior to appt
-(setq appt-msg-window nil)		; no extra window for appt message!
-(setq appt-visible t)			; show appt msg in echo area
+(setq appt-display-duration 30)		; seconds to display appointment msg
+					; (must be less than appt-display-interval!)
+(setq appt-display-interval 1)		; be a little more agressive
+
+(if (<= (safe-length command-line-args) 1)
+    (progn
+      ;; only if we're running a long-term session....
+      (setq appt-display-diary t)	; display diary at midnight (want?)
+      (setq appt-issue-message t)))	; enable appt msgs
+
+;; NOTE: this is really also the minimum interval allowed between appointments.
+;; Any more dense than this and they will clobber each other as only one can
+;; be shown at a time.
+(setq appt-message-warning-time 15)	; minutes of warning prior to appt
+
+;; This would help appointment messages stay visible 
+;;
+;;(setq appt-msg-window t)		; show appt message in a window!
+;;(setq appt-delete-window-function 'ignore) ; never delete the window automatically
+
+(setq appt-visible t)			; show appt msg in echo area (only if appt-msg-window is nil)
+
+(add-hook 'today-visible-calendar-hook 'calendar-mark-today)
+(add-hook 'diary-display-hook 'fancy-diary-display)
 (add-hook 'list-diary-entries-hook 'include-other-diary-files)
-(add-hook 'list-diary-entries-hook 'sort-diary-entries)
 (add-hook 'mark-diary-entries-hook 'mark-included-diary-files)
-(setq view-diary-entries-initially t)
+(add-hook 'list-diary-entries-hook 'sort-diary-entries)
+
+(if (<= (safe-length command-line-args) 1)
+    (progn
+      ;; only if we're running a long-term session....
+      (setq view-diary-entries-initially t) ; do diary-display on first invocation
+      (add-hook 'diary-display-hook 'appt-make-list)
+      (add-hook 'diary-display-hook 'diary-mail-entries)))
+
 (setq mark-diary-entries-in-calendar t) ; quite CPU expensive....
 (setq mark-holidays-in-calendar t)
-(setq diary-display-hook (list 'appt-make-list 'fancy-diary-display))
-(setq number-of-diary-entries [4 4 4 4 4 5 5])
+
+(setq diary-list-include-blanks t)	; include holidays in diary even if
+					; there is no diary entry for that day
+
+(setq number-of-diary-entries [4 4 4 4 4 5 5]) ; always enough to span a long weekend
+
 (setq all-christian-calendar-holidays t)
 (setq other-holidays
       '((holiday-sexp			; abs-easter stolen from holidays.el
@@ -2061,35 +2361,56 @@ current emacs server process..."
 	(holiday-fixed 11 11 "Remembrance Day (Canada)")
 	(holiday-fixed 12 6 "National Day of Remembrance and Action on Violence Against Women")))
 
-;;; don't need to do this -- was done above
-;;;      (add-hook 'initial-calendar-window-hook 'display-time)
-(autoload 'appt-make-list "appt.el" nil t)
+;;;;
+;;;; timeclock.el stuff
+;;;;
 
-;; Organization: CNUCE-CNR, Via S.Maria 36, Pisa - Italy +39-50-593211
-;; Message-ID: <x4d8xra1xr.fsf@fly.cnuce.cnr.it>
-;; References: <m0vKlHf-0003uLC@fly.cnuce.cnr.it>
-;; 	<rcu3r4poo5.fsf@emr.cs.uiuc.edu>
-;; Newsgroups: gnu.emacs.bug
-;; From: Francesco Potorti` <F.Potorti@cnuce.cnr.it>
-;; To: gnu-emacs-bug@cis.ohio-state.edu
-;; Date: 06 Nov 1996 12:38:24 +0100
-;; Subject: Re: list-diary-entries
-;; 
-;; To be removed if emacs modified.
-(defadvice list-diary-entries (before find-file-noselect activate)
-  "Unconditionally refresh diary-file from disk."
-  (let ((buf (find-buffer-visiting (substitute-in-file-name diary-file))))
-    (if (and buf (not (verify-visited-file-modtime buf)))
-	(save-excursion (set-buffer buf) (revert-buffer t t)))))
+;; You'll probably want to bind the timeclock commands to some handy
+;; keystrokes.  At the moment, C-c t is unused in Emacs 21 (and here in
+;; ~/.emacs.el):
+;;
+(require 'timeclock)
 
-;;; ;; Appointments every 3 minutes not every 1 minute!
-;;; (defadvice appt-check (around my-appt-advice activate)
-;;;    "Notify about appointments only if time is multiple of 3."
-;;;    (let ((cur-min (string-to-int
-;;; 		   (substring (current-time-string) 14 16))))
-;;;      (if (eq 0 (mod cur-min 3))
-;;; 	 ad-do-it)))
+(timeclock-modeline-display)
 
+;; There's probably a better way to do this....
+;;
+(defun timeclock-bindings-help ()
+  "Show help for timeclock bindings"
+  (interactive)
+  (message
+   "i - in, c - change, o - out, r - reread-log, u - update-mode, v - visit-log, w - when-to-leave"))
+
+(defun my-timeclock-generate-report (&optional html-p)
+  "Show help for timeclock bindings"
+  (interactive "p")
+  (setq html-p (> html-p 1))
+  (set-buffer (get-buffer-create (if html-p
+				     "*TimeClock HTML Report*"
+				   "*TimeClock Report*")))
+  (setq buffer-read-only nil)
+  (erase-buffer)
+  (timeclock-generate-report html-p)
+  (pop-to-buffer (current-buffer)))
+
+(define-key global-map "\C-ct?" 'timeclock-bindings-help) ; XXX should use help-char
+(define-key global-map "\C-cti" 'timeclock-in)
+(define-key global-map "\C-cto" 'timeclock-out)
+(define-key global-map "\C-ctc" 'timeclock-change)
+(define-key global-map "\C-cts" 'timeclock-status-string)
+(define-key global-map "\C-ctr" 'timeclock-reread-log)
+(define-key global-map "\C-ctu" 'timeclock-update-modeline)
+(define-key global-map "\C-ctv" 'timeclock-visit-timelog)
+(define-key global-map "\C-ctw" 'timeclock-when-to-leave-string)
+
+;;;;
+;;;; todo stuff....
+;;;;
+
+;; todo-mode autoloads itself and may even be autoloaded by calendar....
+
+(global-set-key "\C-cTs" 'todo-show) ;; switch to TODO buffer
+(global-set-key "\C-cTi" 'todo-insert-item) ;; insert new item
 
 ;;;;
 ;;;; mail-mode stuff....
@@ -2097,10 +2418,12 @@ current emacs server process..."
 
 (require 'sendmail)
 
-(define-key mail-mode-map "\C-ci" 'ispell-message)
-(define-key mail-mode-map "\C-i" 'mail-goto-next-header-or-insert)
-(define-key mail-mode-map "\M-S" 'ispell-message)
+(if (elisp-file-in-loadpath-p "ispell")
+    (progn
+      (define-key mail-mode-map "\C-ci" 'ispell-message)
+      (define-key mail-mode-map "\M-S" 'ispell-message)))
 
+(define-key mail-mode-map "\C-i" 'mail-goto-next-header-or-insert)
 (define-key mail-mode-map [S-tab] 'mail-goto-previous-header)
 
 (defun mail-goto-previous-header (&optional count)
