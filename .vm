@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	20.14	99/03/01 17:52:51 (woods)"
+;;;#ident	"@(#)HOME:.vm	20.15	99/03/17 13:57:53 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -861,6 +861,7 @@ message/rfc822 attachments."
 			      ("bind-users@" . "bind-users-l")
 			      ("bind-workers@" . "bind-workers-l")
 			      ("bitkeeper-users@" . "bitkeeper-users-l")
+			      ("bkl@" . "bitkeeper-license-l")
 			      ("bugtraq@" . "bugtraq-l")
 			      ("com-priv@.*psi.com" . "com-priv-l")
 			      ("devel-cvs@" . "devel-cvs-l")
@@ -995,6 +996,7 @@ message/rfc822 attachments."
 		      (recipient "cssc-users@")
 		      (recipient "prcs-list@")
 		      (recipient "bitkeeper-users@")
+		      (recipient "bkl@")
 		      (recipient "shape-l@"))))
 		("Datacentre-stuff"
 		 (("INBOX")
