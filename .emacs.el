@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	21.1	99/11/18 13:12:46 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	21.2	00/01/04 20:41:35 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -43,7 +43,7 @@
 
 (if (<= init-emacs-type 19)
     (progn
-      (message "Not running emacs v19 I see -- you'll have trouble with this .emacs!")
+      (message "Not running emacs v20 I see -- you'll have trouble with this .emacs!")
       (sit-for 5)))
 
 ;;; stolen by way of Len Tower from Noah Freidman from /home/fsf/friedman/etc/init/emacs/init.el
@@ -487,6 +487,7 @@ scripts (alias)." t)
 	   '(("/[Mm]ake[^/]*\\.am$" . makefile-mode)) ; XXX redundant?
 	   '(("/[Pp]\\.[Mm]ake[^/]*$" . makefile-mode))
 	   '(("/[Mm]\\.include$" . makefile-mode))
+	   '(("/[^/]+mk.conf[^/]*$" . makefile-mode))
 	   '(("/[^/]+\\.mk$" . makefile-mode))
 	   '(("/[^/]+\\.mk\\.in$" . makefile-mode))
 	   auto-mode-alist)))
