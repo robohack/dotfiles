@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	7.4	94/02/16 17:42:10 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	7.5	94/02/16 18:08:34 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs v18 or v19
 ;;;
@@ -200,14 +200,15 @@ Status: headers for O, or Forward to in mailboxes."
 ;;;From: ehgasm2@uts.mcc.ac.uk (Simon Marshall)
 ;;;Subject: Re: Quick routine to BOLDFACE directories in DIRED buffers
 ;;
-(defvar dired-font-lock-keywords
+(if window-system
+    (defvar dired-font-lock-keywords
       '(("\\S +\\([~%#]\\)$" . font-lock-doc-string-face)
 	("\\S +\\.\\([oszZ]\\|elc\\|gz\\)$" . font-lock-string-face)
 	("^  \\(/.+\\)$" 1 font-lock-type-face)
 	("[^ ]+ -> [^ ]+$" . font-lock-function-name-face)
 	("^..\\(.....w....\\|........w.\\)" 1 font-lock-comment-face)
 	("^[^ ].*$" 0 font-lock-comment-face t)
-	("^..d.* \\([^ ]+\\)$" 1 font-lock-keyword-face)))
+	("^..d.* \\([^ ]+\\)$" 1 font-lock-keyword-face))))
 
 (dont-compile
   (if (= init-emacs-type 18)
@@ -596,10 +597,12 @@ current emacs server process..."
 ;;;From: ehgasm2@uts.mcc.ac.uk (Simon Marshall)
 ;;;Subject: Re: Quick routine to BOLDFACE directories in DIRED buffers
 ;;
-(add-hook 'dired-mode-hook
-	  (function (lambda ()
-		      (font-lock-mode t)
-		      (setq font-lock-keywords dired-font-lock-keywords))))
+(if window-system
+    (add-hook 'dired-mode-hook
+	      (function (lambda ()
+			  (font-lock-mode t)
+			  (setq font-lock-keywords
+				dired-font-lock-keywords)))))
 
 (add-hook 'lisp-interaction-mode-hook
 	  (function 
