@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	21.10	01/08/26 01:24:15 (woods)"
+# ident	"@(#)HOME:.mailrc	22.1	01/10/17 12:09:45 (woods)"
 
 set keep
 set keepsave

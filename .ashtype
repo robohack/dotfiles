@@ -25,7 +25,7 @@
 # 4. This notice may not be removed or altered.
 # 
 #
-#ident	"@(#)HOME:.ashtype	21.1	99/11/18 13:12:59 (woods)"
+#ident	"@(#)HOME:.ashtype	22.1	01/10/17 12:09:46 (woods)"
 
 type () {
 	if [ $# -ne 1 ]
