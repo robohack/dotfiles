@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	21.1	99/11/18 13:12:54 (woods)"
+#ident	"@(#)HOME:.profile	21.2	99/12/23 12:42:46 (woods)"
 
 #
 # Assumptions that may cause breakage:
@@ -253,7 +253,7 @@ if [ -z "$X11BIN" ] ; then
 	export X11BIN
 fi
 
-dirappend PATH /usr/ccs/bin $X11BIN $LOCAL/bin $GNU/bin $CONTRIB/bin $PKG/bin /usr/ucb /usr/bsd
+dirappend PATH /usr/ccs/bin /usr/xpg4/bin $X11BIN $LOCAL/bin $GNU/bin $CONTRIB/bin $PKG/bin /usr/ucb /usr/bsd $OPT/gnu/bin
 dirappend PATH /usr/games $LOCAL/games $OPT/games/bin
 
 # CDPATH isn't supported in all shells, but it won't hurt....
@@ -515,14 +515,21 @@ fi
 
 if expr "`type less`" : '.* is .*/less$' >/dev/null 2>&1 ; then
 	PAGER="`type less`"
+	LESS="-eM" ; export LESS
+elif [ -x /usr/xpg4/bin/more ] ; then
+	# SunOS-5's, at least, has the 'G' command!
+	PAGER="/usr/xpg4/bin/more"
+	# use '-s' as it can't be turned on later during runtime
+	MORE="-s" ; export MORE
 elif expr "`type more`" : '.* is .*/more$' >/dev/null 2>&1 ; then
 	PAGER="`type more`"
+	# use '-s' as it can't be turned on later during runtime
+	MORE="-sw" ; export MORE
 else
 	PAGER="`type cat`"
 fi
 PAGER="`expr "$PAGER" : '^.*/\([^/]*\)$'`"; export PAGER
 MANPAGER="$PAGER -s"; export MANPAGER
-LESS="-eM" ; export LESS
 
 if [ -s "$HOME/.editor" ] ; then
 	# mktable just throws away comments....
