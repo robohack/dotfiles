@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	4.1	94/06/17 22:17:49 (woods)"
+#ident	"@(#)HOME:.kshrc	4.2	94/07/11 12:58:56 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -383,6 +383,8 @@ if [ "$TERM" = "xterm" ] ; then
 		trap "trap 0 1 2 3 15; clearban" 0 1 2 3 15
 		XTBANNER="PNotes $*"
 		setban
+		rm -f $HOME/.pn/.emacs_server
+		ln -f $HOME/.emacs_server $HOME/.pn
 		xpnerun pnotes "$@"
 	}
 
