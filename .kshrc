@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	5.5	95/01/30 15:04:03 (woods)"
+#ident	"@(#)HOME:.kshrc	5.6	95/02/02 17:04:09 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -547,20 +547,31 @@ fi
 #
 
 case "$UUNAME" in
-tar | kuma | sunweb )
-	if [ -z "$APCSRCDIR" ] ; then
+web )
+	APCCONFIG=/etc/apc ; export APCCONFIG
+	;;
+* )
+	# APCCONFIG and APCSRCDIR might be set in /etc/profile
+	#
+	if [ -z "$APCSRCDIR" -a -d /apcsoft/work.d/$LOGNAME ] ; then
 		APCSRCDIR=/apcsoft/work.d/$LOGNAME/apc ; export APCSRCDIR
 	fi
-	if [ -z "$APCCONFIG" ] ; then
+	#
+	# have to force this, since we don't want the installed configs
+	# when building new stuff (not sure it should even be conditional
+	# on the existence of the directory)
+	#
+	if [ -d $APCSRCDIR/configure ] ; then
 		APCCONFIG=$APCSRCDIR/configure ; export APCCONFIG
 	fi
 	apcmake ()
 	{
 		gmake -I $APCCONFIG APCSRCDIR=$APCSRCDIR APCCONFIG=$APCCONFIG APCINCDIR=$APCSRCDIR/include APCLIBDIR=$APCSRCDIR/lib ${1+"$@"}
 	}
-	;;
-web )
-	APCCONFIG=/etc/apc ; export APCCONFIG
+	if [ -d /apc ] ; then
+		alias apcsh='stty -g > $PNHOME/SANE; /apc/etc/bin/apcsh; stty $(cat $PNHOME/SANE)'
+		alias xapcsh='stty -g > $PNHOME/SANE; /apc/etc/bin/xapcsh; stty $(cat $PNHOME/SANE)'
+	fi
 	;;
 esac
 
