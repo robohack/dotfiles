@@ -1,12 +1,12 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	20.2	98/10/05 01:08:42 (woods)"
+#ident	"@(#)HOME:.ctwmrc	20.3	98/12/20 15:02:07 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
-# Private icon (xbm) collection goes in HOME/lib/bitmaps
-# Private icon (xpm) collection goes in HOME/lib/pixmaps
+# Private xbm icon collection goes in HOME/lib/bitmaps
+# Private xpm icon collection goes in HOME/lib/pixmaps
 # /usr/X11 should be a symlink to /usr/X11R6 or where-ever.
 # Sounds to play go in HOME/lib/sounds (eg "newmail").
 # Sounds are (in general) played by invoking "auplay".
@@ -27,6 +27,7 @@ changequote([, ])
 
 ifelse(eval(index(HOSTNAME, weird.com) >= 0), 1, [define(AT_WEIRD, [@weird.com])], [])
 ifelse(eval(index(HOSTNAME, planix.com) >= 0), 1, [define(AT_PLANIX, [@planix.com])], [])
+ifelse(eval(index(HOSTNAME, aci.on.ca) >= 0), 1, [define(AT_ACI, [@aci.on.ca])], [])
 ifelse(eval(index(HOSTNAME, web.net) >= 0), 1, [define(AT_WEB, [@web.net])], [])
 ifelse(eval(index(HOSTNAME, seachange.com) >= 0), 1, [define(AT_SEACHANGE, [@seachange.com])], [])
 ifelse(eval(index(HOSTNAME, leitch.com) >= 0), 1, [define(AT_LEITCH, [@leitch.com])], [])
@@ -37,8 +38,13 @@ ifelse(eval(index(HOSTNAME, leitch.com) >= 0), 1, [define(AT_LEITCH, [@leitch.co
 #
 ifelse(HOSTNAME, most.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
 	[ifelse(HOSTNAME, almost.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
-	[ifelse(HOSTNAME, very.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
-		 [define(OPT_ZICONBEEP, [])])])])
+		[ifelse(HOSTNAME, very.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
+			[ifelse(HOSTNAME, proven.weird.com, [define(OPT_ZICONBEEP, [-ziconbeep 1])],
+				[define(OPT_ZICONBEEP, [])]
+			)]
+		)]
+	)]
+)
 
 AutoRelativeResize
 AutoRaiseIcons
@@ -81,7 +87,7 @@ IconManagerShadowDepth		3
 MaxWindowSize			"WIDTH[x]HEIGHT"
 MenuShadowDepth			3
 MoveDelta			3
-OpaqueMoveThreshold		20
+OpaqueMoveThreshold		40	# window % of screen size
 #OpaqueResizeThreshold		80	# turned off above
 TitleButtonShadowDepth		3
 TitleShadowDepth		3
@@ -100,6 +106,8 @@ IconManagerFont	"-*-helvetica-bold-r-normal-*-*-80-100-100-*-*-*-*"
 # DefaultFunction must come after fonts....
 DefaultFunction f.beep
 
+
+# this really means if screen is >= 1600x1200
 ifelse(HOSTNAME, very.weird.com,
  [WorkSpaceManagerGeometry	"170x285-330+0" 2],
  [WorkSpaceManagerGeometry	"120x150-200+140" 2])
@@ -289,6 +297,7 @@ NoTitle {
 	"xclock"
 	"xcpustate"
 	"xeyes"
+	"xli"
 	"xload"
 	"xlogo"
 	"xnetload"
@@ -397,6 +406,11 @@ menu "quickies"
 	""			f.separator
 	"Xterm [@CLIENTHOST]"	!"xterm -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
 	"Xterm @x11server"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
+ ifdef([AT_WEIRD], [
+  ifelse(HOSTNAME, proven.weird.com, [], [
+	"Xterm @proven"	!"$RSH -n proven.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+  ])
+ ])
 	""			f.separator
 	"Toggle workspace"	f.togglestate
 	"Screen Refresh"	f.refresh
@@ -644,6 +658,7 @@ menu "graphics"
 	"Graphics Applications"		f.title
 	"Xv Everywhere..."		f.menu "xvs"
 	"GhostView's Everywhere..."	f.menu "ghostviews"
+	"xart"				!"xart &"
 	"xpaint"			!"xpaint &"
 	"xfig"				!"xfig &"
 	"tgif"				!"tgif &"
@@ -662,9 +677,6 @@ menu "graphics"
 menu "tools"
 {
 	"Miscellaneous Tools"		f.title
-	"xcalc"				!"xcalc &"
-	"xedit"				!"xedit &"
-	"xpostit"			!"xpostit &"
 	"xclipboard"			!"xclipboard &"
 	"xcutsel"			!"xcutsel &"
 	"xfontsel"			!"xfontsel &"
@@ -675,26 +687,28 @@ menu "tools"
 menu "miscapps"
 {
 	"Miscellaneous Applications"	f.title
-	"plan"				!"plan &"
- ifdef([AT_WEIRD], [
-	"plan @planix"			!"$RSH -n woffi.planix.com /usr/local/bin/plan -display $DISPLAY &"
- ])
-	"axe"				!"axe &"
-	"xcalendar"			!"xcalendar &"
 	"xalarm"			!"xalarm &"
-	"timekeeper"			!"timekeeper &"
-	"xvtdl"				!"xvtdl &"
-	"xplan"				!"xplan &"
+	"xcalc"				!"xcalc &"
+	"xcalendar"			!"xcalendar &"
+	"xedit"				!"xedit &"
+	"xfd"				!"xfd &"
 	"xftp"				!"xftp &"
+	"xmail"				!"xmail &"
+	"xman"				!"xman &"
+	"xmh"				!"xmh &"
+	"xpostit"			!"xpostit &"
+	"xplan"				!"xplan &"
+	"xrolodex"			!"xrolodex &"
 	"xtalk"				!"xtalk &"
 	"xhelp"				!"xhelp &"
+	"xrn"				!"xrn &"
 	"xshell"			!"xshell &"
-	"pan"				!"pan &"
-	"xmail"				!"xmail &"
 	"xvnews"			!"xvnews &"
-	"xmh"				!"xmh &"
-	"xman"				!"xman &"
-	"xfd"				!"xfd &"
+	"xvtdl"				!"xvtdl &"
+	"axe"				!"axe &"
+	"plan"				!"plan &"
+	"pan"				!"pan &"
+	"timekeeper"			!"timekeeper &"
 }
 
 menu "xvs"
@@ -705,6 +719,9 @@ menu "xvs"
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
 	"@most"			!"$RSH -n most.weird.com exec $X11BIN/xv -display $DISPLAY &"])
+  ifelse(HOSTNAME, proven.weird.com, [], [
+	"@proven"		!"$RSH -n proven.weird.com exec $X11BIN/xv -display $DISPLAY &"
+  ])
   ifelse(HOSTNAME, whats.weird.com, [], [
 	"@whats"		!"$RSH -n whats.weird.com exec $X11BIN/xv -display $DISPLAY &"
   ])
@@ -724,14 +741,24 @@ menu "emacs"
  ifelse(HOSTNAME, most.weird.com, [], [
 	"@most"			!"$RSH -n most.weird.com '. ./.localprofile; PATH='$HOME/bin:/bin:/usr/bin:/usr/bin/X11:/usr/local/bin:/usr/pkg/bin:/usr/games:$PATH'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /usr/pkg/bin/emacs -display '$DISPLAY' -i' &"
  ])
+ ifelse(HOSTNAME, proven.weird.com, [], [
+	"@proven"		!"$RSH -n proven.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /usr/pkg/bin/emacs -display '$DISPLAY' -i' &"
+ ])
  ifelse(HOSTNAME, whats.weird.com, [], [
-	"@whats"		!"$RSH -n whats.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
+	"@whats"		!"$RSH -n whats.weird.com '. ./.localprofile; PATH='$PATH'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /usr/pkg/bin/emacs -display '$DISPLAY' -i' &"
  ])
  ifelse(HOSTNAME, woffi.planix.com, [], [
 	"@woffi"		!"$RSH -n woffi.planix.com '. ./.localprofile; PATH='$PATH'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /local/bin/emacs -display '$DISPLAY' -i' &"
  ])
- ifelse(HOSTNAME, kuma.web.net, [], [
+ ifdef([AT_WEB], [
+  ifelse(HOSTNAME, kuma.web.net, [], [
 	"@kuma"			!"$RSH -n kuma.web.net '. ./.localprofile; PATH='$PATH'; export PATH; MAIL='/var/spool/mail/$LOGNAME'; export MAIL; exec /local/gnu/bin/emacs -display '$DISPLAY' -i' &"
+  ])
+ ])
+ ifdef([AT_ACI], [
+  ifelse(HOSTNAME, admin.aci.on.ca, [], [
+	"@admin"		!"$RSH -n admin.aci.on.ca '. ./.localprofile; PATH='$PATH'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /usr/pkg/bin/emacs -display '$DISPLAY' -i ' &"
+  ])
  ])
  ifdef([AT_SEACHANGE], [
   ifelse(HOSTNAME, clapton.seachange.com, [], [
@@ -765,8 +792,8 @@ menu "monitors"
 
   ifdef([AT_WEIRD], [
     ifelse(HOSTNAME, most.weird.com, [], [
-	"xbuffy @most w/-acmd"	!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"/usr/X11/bin/auplay -audio '$AUDIOSERVER' /home/most/woods/lib/sounds/newmail\"' &"
-	"xbuffy @most"		!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &"
+	"xbuffy @most"		!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"/usr/X11/bin/auplay -audio '$AUDIOSERVER' /home/most/woods/lib/sounds/newmail\"' &"
+	"xbuffy @proven"	!"$RSH -n proven.weird.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '\"/usr/X11/bin/auplay -audio '$AUDIOSERVER' /home/most/woods/lib/sounds/newmail\"' &"
     ])
   ])
   ifdef([AT_LEITCH], [
@@ -788,6 +815,7 @@ menu "monitors"
 	"tkined"		!"tkined &"
   ifdef([AT_WEIRD], [
 	"tkined in /usr/local/monitor" !"cd /usr/local/monitor ; tkined &"
+	"tkined @proven"	!"$ONX11SERVER /usr/pkg/bin/tkined &"
   ])
   ifdef([AT_PLANIX], [
 	"tkined in /local/monitor" !"cd /local/monitor ; tkined &"
@@ -807,12 +835,12 @@ menu "backgrounds"
 	"xearth"		!"xearth -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth nogrid"		!"xearth -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -wait 900 -nice 10 &"
 	"xearth orbiting"	!"xearth -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
-	"xearth orbiting fast"	!"xearth -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 0 &"
+	"xearth orbiting fast"	!"xearth -bigstars 10 -pos orbit,0.1,0 -rot 5 -label -labelpos +1+1 -grid -wait 0 &"
  ifelse(COLOR, Yes, [
 	"xearth -gamma 1.7"	!"xearth -gamma 1.7 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth -gamma 1.7 nogrid" !"xearth -gamma 1.7 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -wait 900 -nice 10 &"
 	"xearth -gamma 1.7 orbiting" !"xearth -gamma 1.7 -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
-	"xearth -gamma 1.7 orbiting fast" !"xearth -gamma 1.7 -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 0 &"
+	"xearth -gamma 1.7 orbiting fast" !"xearth -gamma 1.7 -bigstars 10 -pos orbit,0.1,0 -rot 5 -label -labelpos +1+1 -grid -wait 0 &"
 	"xearth on greyscale"	!"xearth -gamma 1.6 -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
  ], [
 	"xearth on mono"	!"xearth -mono -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
@@ -825,28 +853,17 @@ menu "backgrounds"
 menu "ghostviews"
 {
 	"GhostView"	f.title
-	"@localhost"	!"ghostview &"
-	"gv @localhost"	!"gv &"
-	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/ghostview &"
-	"gv @x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /usr/pkg/bin/gv &"
+	"@localhost"	!"gv &"
+	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/gv &"
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
-	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/ghostview &"
-	"gv @most"	!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/pkg/bin/gv &"
+	"@most"	!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/gv &"
+  ])
+  ifelse(HOSTNAME, proven.weird.com, [], [
+	"@proven"	!"$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/gv &"
   ])
   ifelse(HOSTNAME, whats.weird.com, [], [
-	"@whats"	!"$RSH -n whats.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/ghostview &"
-  ])
- ])
- ifdef([AT_PLANIX], [
-  ifelse(HOSTNAME, woffi.planix.com, [], [
-	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/bin/X11/bin/ghostview &"
-	"gv @woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/bin/X11/bin/gv &"
-  ])
- ])
- ifdef([AT_WEB], [
-  ifelse(HOSTNAME, kuma.web.net, [], [
-	"@kuma"		!"$RSH -n kuma.web.net exec env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
+	"@whats"	!"$RSH -n whats.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/gv &"
   ])
  ])
  ifdef([AT_SEACHANGE], [
@@ -865,7 +882,6 @@ menu "www"
 	"Chimera..."			f.menu "www-chimera"
 	""				f.separator
 	"Netscape..."			f.menu "www-netscape"
-	"Netscape -ncol 96..."		f.menu "www-netscape-96"
 	"Netscape -install cmap..."	f.menu "www-netscape-cmap"
 }
 
@@ -874,10 +890,33 @@ menu "www-mosaic"
 	"Mosaic Everywhere!"	f.title
 	"@localhost"	!"Mosaic &"
 	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/Mosaic &"
+ ifdef([AT_WEIRD], [
+  ifelse(HOSTNAME, most.weird.com, [], [
 	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY XKEYSYMDB=/usr/lib/X11/XKeysymDB XNLSPATH=/usr/lib/X11/nls $X11BIN/Mosaic &"
-	"@sometimes"	!"$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
-	"@always"	!"$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
-	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/Mosaic &"
+  ])
+  ifelse(HOSTNAME, proven.weird.com, [], [
+	"@proven"	!"$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/Mosaic &"
+  ])
+  ifelse(HOSTNAME, whats.weird.com, [], [
+	"@whats"	!"$RSH -n whats.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/Mosaic &"
+  ])
+  ifelse(HOSTNAME, sometimes.weird.com, [], [
+	"@sometimes"	!"$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/Mosaic &"
+  ])
+  ifelse(HOSTNAME, always.weird.com, [], [
+	"@always"	!"$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/Mosaic &"
+  ])
+ ])
+ ifdef([AT_PLANIX], [
+  ifelse(HOSTNAME, woffi.planix.com, [], [
+	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/Mosaic &"
+  ])
+ ])
+ ifdef([AT_ACI], [
+  ifelse(HOSTNAME, admin.aci.on.ca, [], [
+	"@admin"	!"$RSH -n admin.aci.on.ca exec env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/Mosaic &"
+  ])
+ ])
 }
 
 menu "www-mosaic-mono"
@@ -885,7 +924,11 @@ menu "www-mosaic-mono"
 	"Mosaic Monochrome Everywhere!"	f.title
 	"@localhost"	!"$LOCAL/bin/Mosaic -mono &"
 	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/Mosaic -mono &"
+ ifdef([AT_WEIRD], [
+  ifelse(HOSTNAME, most.weird.com, [], [
 	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY XKEYSYMDB=/usr/lib/X11/XKeysymDB XNLSPATH=/usr/lib/X11/nls $X11BIN/Mosaic -mono &"
+  ])
+ ])
 }
 
 menu "www-chimera"
@@ -893,7 +936,11 @@ menu "www-chimera"
 	"Chimera Everywhere!"	f.title
 	"@localhost"	!"chimera &"
 	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY $X11BIN/chimera &"
+ ifdef([AT_WEIRD], [
+  ifelse(HOSTNAME, most.weird.com, [], [
 	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY XKEYSYMDB=/usr/lib/X11/XKeysymDB XNLSPATH=/usr/lib/X11/nls $X11BIN/chimera &"
+  ])
+ ])
 }
 
 menu "www-netscape"
@@ -901,23 +948,34 @@ menu "www-netscape"
 	"Netscape Everywhere!"	f.title
 	"@localhost"	!"$LOCAL/bin/netscape -display $DISPLAY &"
 	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
-	"@weirdo"	!"$RSH -n ns.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
+ ifdef([AT_WEIRD], [
+  ifelse(HOSTNAME, most.weird.com, [], [
+	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, proven.weird.com, [], [
+	"@proven"	!"$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, whats.weird.com, [], [
+	"@whats"	!"$RSH -n whats.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, sometimes.weird.com, [], [
 	"@sometimes"	!"$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, always.weird.com, [], [
 	"@always"	!"$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, pretty.weird.com, [], [
 	"@pretty"	!"$RSH -n pretty.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
+  ])
+ ])
+ ifdef([AT_PLANIX], [
+  ifelse(HOSTNAME, woffi.planix.com, [], [
 	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
-}
-
-menu "www-netscape-96"
-{
-	"Netscape for 8-bit displays."	f.title
-	"@localhost"	!"$LOCAL/bin/netscape -ncol 96 -display $DISPLAY &"
-	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -ncol 96 -display $DISPLAY &"
-	"@weirdo"	!"$RSH -n ns.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -ncol 96 -display $DISPLAY &"
-	"@sometimes"	!"$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -ncol 96 -display $DISPLAY &"
-	"@always"	!"$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -ncol 96 -display $DISPLAY &"
-	"@pretty"	!"$RSH -n pretty.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -ncol 96 -display $DISPLAY &"
-	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -ncol 96 -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, whome.planix.com, [], [
+	"@whome"	!"$RSH -n whome.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -display $DISPLAY &"
+  ])
+ ])
 }
 
 menu "www-netscape-cmap"
@@ -925,45 +983,64 @@ menu "www-netscape-cmap"
 	"Netscape own colour map."	f.title
 	"@localhost"	!"$LOCAL/bin/netscape -install -display $DISPLAY &"
 	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -install -display $DISPLAY &"
-	"@weirdo"	!"$RSH -n ns.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
+ ifdef([AT_WEIRD], [
+  ifelse(HOSTNAME, most.weird.com, [], [
+	"@most"		!"$RSH -n most.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, proven.weird.com, [], [
+	"@proven"	!"$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, whats.weird.com, [], [
+	"@whats"	!"$RSH -n whats.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -install -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, sometimes.weird.com, [], [
 	"@sometimes"	!"$RSH -n sometimes.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -install -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, always.weird.com, [], [
 	"@always"	!"$RSH -n always.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -install -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, pretty.weird.com, [], [
 	"@pretty"	!"$RSH -n pretty.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
+  ])
+ ])
+ ifdef([AT_PLANIX], [
+  ifelse(HOSTNAME, woffi.planix.com, [], [
 	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
+  ])
+  ifelse(HOSTNAME, whome.planix.com, [], [
+	"@whome"	!"$RSH -n whome.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY &"
+  ])
+ ])
 }
-
-ifelse(
-[HOSTNAME], once.weird.com,
-	[define(OPT_GAMES_PATH_, [/opt/games/bin/])],
-[HOSTNAME], very.weird.com,
-	[define(OPT_GAMES_PATH_, [/opt/games/bin/])],
-	[define(OPT_GAMES_PATH_, [])]
-)
 
 menu "games"
 {
 	"X11 Games"		f.title
-	"xlife"			!"OPT_GAMES_PATH_[xlife] &"
+	"xlife"			!"xlife &"
 	"Xsol"			!"xsol -r &"
 	"Xsol for colour"	!"xsol +r &"
-	"Spider"		!"OPT_GAMES_PATH_[spider] &"
-	"mahjongg"		!"OPT_GAMES_PATH_[mahjongg] &"
+	"Spider"		!"spider &"
+	"mahjongg"		!"mahjongg &"
 	"xmahjongg"		!"xmahjongg &"
-	"xdragon (mahjongg)"	!"OPT_GAMES_PATH_[xdragon] -geometry 40x40 &"
+	"xdragon (mahjongg)"	!"xdragon -geometry 40x40 &"
 	"Xtetris"		!"xtetris -bw &"
 	"Xtetris for colour"	!"xtetris -color &"
-	"Tetris"		!"OPT_GAMES_PATH_[tetris] &"
-	"xcol (tetris)"		!"OPT_GAMES_PATH_[xcol] &"
+	"Tetris"		!"tetris &"
+	"xcol (tetris)"		!"xcol &"
 	"xminesweep"		!"xminesweep &"
-	"xvmines"		!"OPT_GAMES_PATH_[xvmines] &"
-	"sweeper"		!"OPT_GAMES_PATH_[sweeper] &"
+	"xvmines"		!"xvmines &"
+	"xdemineur"		!"xdemineur &"
+	"sweeper"		!"sweeper &"
 	"XPipeMan"		!"xpipeman &"
-	"xsokoban"		!"OPT_GAMES_PATH_[xsokoban] &"
-	"spheral"		!"OPT_GAMES_PATH_[spheral] &"
-	"xgal (galaga)"		!"OPT_GAMES_PATH_[xgal] &"
-	"x4war"			!"OPT_GAMES_PATH_[x4war] &"
-	"xctb"			!"OPT_GAMES_PATH_[xctb] &"
-	"leblon"		!"OPT_GAMES_PATH_[leblon] &"
+	"xbill"			!"xbill &"
+	"xjig"			!"xjig &"
+	"xsokoban"		!"xsokoban &"
+	"spheral"		!"spheral &"
+	"xgal (galaga)"		!"xgal &"
+	"galaxa"		!"galaxa &"
+	"x4war"			!"x4war &"
+	"xctb"			!"xctb &"
+	"leblon"		!"leblon &"
 	"vine"			!"vine -e &"
 	"vine -w"		!"vine -w &"
 	"ACM"			!"acm &"
@@ -994,6 +1071,9 @@ menu "xterm"
   ])
   ifelse(HOSTNAME, most.weird.com, [], [
 	"Xterm @most"	!"$RSH -n most.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+  ])
+  ifelse(HOSTNAME, proven.weird.com, [], [
+	"Xterm @proven"	!"$RSH -n proven.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
   ifelse(HOSTNAME, very.weird.com, [], [
 	"Xterm @very"	!"$RSH -n very.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
@@ -1098,6 +1178,7 @@ menu "slogin"
 	"Slogin's at ACI.on.ca..."	f.menu "slogin-aci"
 	"Slogin's at Log.on.ca..."	f.menu "slogin-logon"
 	"Slogin's at Rogers.WAVE.ca..." f.menu "slogin-rogers"
+	"Slogin's at Vex.net..."	f.menu "slogin-vex"
 	"Slogin's at Web.net..."	f.menu "slogin-web"
 }
 
@@ -1105,6 +1186,7 @@ menu "rlogin-weird"
 {
 	"Rlogin's At Weird.com"	f.title
 	"Rlogin @most"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin most.weird.com &"
+	"Rlogin @proven"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin proven.weird.com &"
 	"Rlogin @very"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin very.weird.com &"
 	"Rlogin @almost"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin almost.weird.com &"
 	"Rlogin @once"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin once.weird.com &"
@@ -1119,6 +1201,7 @@ menu "telnet-weird"
 {
 	"Telnet's At Weird.com"	f.title
 	"telnet @most"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet most.weird.com &"
+	"telnet @proven"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet proven.weird.com &"
 	"telnet @very"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e telnet very.weird.com &"
 	"telnet @almost"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet almost.weird.com &"
 	"telnet @once"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet once.weird.com &"
@@ -1133,6 +1216,7 @@ menu "slogin-weird"
 {
 	"Slogin's At Weird.com" f.title
 	"Slogin @most"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C most.weird.com &"
+	"Slogin @proven"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C proven.weird.com &"
 	"Slogin @very"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C very.weird.com &"
 	"Slogin @almost"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin -C almost.weird.com &"
 	"Slogin @once"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin -C once.weird.com &"
@@ -1252,6 +1336,8 @@ menu "rlogin-aci"
 {
 	"Rlogin's At ACI.on.ca"	f.title
 	"Rlogin @aci"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin aci.on.ca &"
+	"Rlogin @sunrise"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin sunrise.aci.on.ca &"
+	"Rlogin @dhcp"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin dhcp.aci.on.ca &"
 	"Rlogin @secret"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin secret.aci.on.ca &"
 }
 
@@ -1259,6 +1345,8 @@ menu "slogin-aci"
 {
 	"Slogin's At ACI.on.ca"	f.title
 	"Slogin @aci"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin aci.on.ca &"
+	"Slogin @sunrise"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin sunrise.aci.on.ca &"
+	"Slogin @dhcp"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin dhcp.aci.on.ca &"
 	"Slogin @secret"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin secret.aci.on.ca &"
 }
 
@@ -1300,6 +1388,7 @@ menu "rlogin-pageactive"
 	"Rlogin @warp"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e rlogin warp.pageactive.com &"
 	"Rlogin @deephaze"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin deephaze.pageactive.com &"
 	"Rlogin @dynamic"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e rlogin dynamic.pageactive.com &"
+	"Rlogin @zaire"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e rlogin zaire.globaleye.com &"
 }
 
 menu "slogin-pageactive"
@@ -1308,6 +1397,7 @@ menu "slogin-pageactive"
 	"Slogin @warp"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin warp.pageactive.com &"
 	"Slogin @deephaze"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin deephaze.pageactive.com &"
 	"Slogin @dynamic"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin dynamic.pageactive.com &"
+	"Slogin @zaire"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin zaire.globaleye.com &"
 }
 
 menu "rlogin-passport"
@@ -1344,6 +1434,12 @@ menu "rlogin-vex"
 {
 	"Rlogin's At Vex.net"	f.title
 	"Rlogin @vex"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin vex.net &"
+}
+
+menu "slogin-vex"
+{
+	"Slogin's At Vex.net"	f.title
+	"Slogin @vex"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin vex.net &"
 }
 
 menu "rlogin-reptiles"
