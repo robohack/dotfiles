@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	20.10	99/06/25 13:29:39 (woods)"
+#ident	"@(#)HOME:.ctwmrc	20.11	99/10/22 14:04:59 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -1257,6 +1257,7 @@ menu "slogin"
 	"Slogin's at Log.on.ca..."	f.menu "slogin-logon"
 	"Slogin's at Rogers.WAVE.ca..." f.menu "slogin-rogers"
 	"Slogin's at Vex.net..."	f.menu "slogin-vex"
+	"Slogin's at Reptiles.org..."	f.menu "slogin-reptiles"
 	"Slogin's at Web.net..."	f.menu "slogin-web"
 }
 
@@ -1526,9 +1527,17 @@ menu "slogin-vex"
 menu "rlogin-reptiles"
 {
 	"Rlogin's At Reptiles.Org" f.title
-	"Rlogin @komodo(FreeBSD)"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin iguana.reptiles.org &"
+	"Rlogin @komodo(FreeBSD)"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin komodo.reptiles.org &"
 	"Rlogin @iguana(sun3)"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin iguana.reptiles.org &"
 	"Rlogin @tuatara(NetBSD)"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin tuatara.reptiles.org &"
+}
+
+menu "slogin-reptiles"
+{
+	"Slogin's At Reptiles.Org" f.title
+	"Slogin @komodo(FreeBSD)"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin komodo.reptiles.org &"
+	"Slogin @iguana(sun3)"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin iguana.reptiles.org &"
+	"Slogin @tuatara(NetBSD)"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin tuatara.reptiles.org &"
 }
 
 menu "rlogin-vrx"
