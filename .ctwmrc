@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	1.5	97/12/01 02:17:35 (woods)"
+#ident	"@(#)HOME:.ctwmrc	1.6	97/12/01 07:04:05 (woods)"
 #
 
 AutoRelativeResize
@@ -1109,8 +1109,9 @@ menu "rlogin-vex"
 menu "rlogin-reptiles"
 {
 	"Rlogin's At Reptiles.Org" f.title
-	"Rlogin @iguana"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin iguana.reptiles.org &"
-	"Rlogin @tuatara"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin tuatara.reptiles.org &"
+	"Rlogin @komodo(FreeBSD)"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin iguana.reptiles.org &"
+	"Rlogin @iguana(sun3)"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin iguana.reptiles.org &"
+	"Rlogin @tuatara(NetBSD)"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin tuatara.reptiles.org &"
 }
 
 menu "rlogin-druid"
