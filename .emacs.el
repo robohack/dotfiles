@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.10	93/11/15 21:32:31 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	1.11	93/11/18 16:40:15 (woods)"
 ;;;
 ;;; per-user start-up functions
 ;;;
@@ -709,8 +709,21 @@ feeling, but you'll get used to it."
 ;; Date: 15 Nov 1993 20:53:02 GMT
 ;; Message-Id: <KIFER.93Nov15155303@sbkifer.cs.sunysb.edu>
 ;;
+;(if (= init-emacs-type '19) 
+;    (progn
+;      (setq 
+;       view-diary-entries-initially t
+;       mark-diary-entries-in-calendar t
+;       mark-holidays-in-calendar t
+;       diary-display-hook (list 'appt-make-list 'fancy-diary-display)
+;       appt-display-duration 14		; seconds to display appointment message
+;       appt-issue-message t)
+;      (autoload 'appt-make-list "appt.el" nil t)
+;      (add-hook 'initial-calendar-window-hook 'display-time)
+;      (calendar)))
 (if (= init-emacs-type '19) 
-    (progn
+    (defun my-calendar-start ()
+      (interactive)
       (setq 
        view-diary-entries-initially t
        mark-diary-entries-in-calendar t
