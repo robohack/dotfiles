@@ -3,12 +3,10 @@
 #
 #	.xinitrc - X Window System startup file
 #
-#ident        "@(#)HOME:.xinitrc     5.3     95/03/16 22:03:21 (woods)"
+#ident        "@(#)HOME:.xinitrc     5.4     95/03/16 22:11:31 (woods)"
 
 . /etc/profile
-
-PATH=$PATH:/usr/bin/X11:$HOME/bin
-export PATH
+. $HOME/.profile
 
 argv0="`basename $0`"
 
@@ -44,13 +42,13 @@ fi
 #
 xhost `hostname` localhost -
 
-if [ -s $HOME/.xhosts ]; then
+if [ -s $HOME/.xhosts ] ; then
 	while read HOST junk; do
 		case "$HOST" in
 		"" | '#'* )
 			;;
 		* )
-			if [ -n "$HOST" ]; then
+			if [ -n "$HOST" ] ; then
 				xhost +$HOST			
 			fi
 			;;
@@ -73,7 +71,7 @@ fi
 # if we're on the console,
 # TODO: and only if it's not already running courtesy of xdm....
 #
-if [ "$argv0" = .xinitrc -a `tty` = /dev/console ] ; then
+if [ "$argv0" = ".xinitrc" ] ; then
 	xconsole -geometry 500x100-4-4 &
 	sleep 1
 
@@ -100,7 +98,7 @@ fi
 if [ -x /usr/bin/X11/xsysstats ] ; then
 	xsysstats -geometry 120x137-205+4 -type load1 -type disk -sample 5 &
 	case "$DOMAINNAME" in
-	web.net)
+	.web.net)
 		xsysstats -geometry 120x137-205+150 -type load1 -host kuma -type disk -host kuma -sample 5 &
 		;;
 	esac
@@ -112,7 +110,7 @@ fi
 sleep 1
 
 # Ah!  Your Free localhost Window!
-xterm -geometry 80x24-4-130 -sl 500 -sb -sk -si -rw  -ls -T Primary &
+xterm -geometry 80x24-4-195 -sl 500 -sb -sk -si -rw  -ls -T Primary &
 
 # when the window manager exits so shall we...
 #
