@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	18.1	97/01/20 10:09:48 (woods)"
+#ident	"@(#)HOME:.kshrc	18.2	97/01/25 17:01:08 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -18,20 +18,8 @@
 #	$HOME/.kshdir		- dir autoload aliases set, if it is readable
 
 #set -o nolog		# no functions in $HISTFILE
-set -o monitor
-set -o trackall
 
 export PATH="$PATH"
-
-trap '
-	rc=$?;
-	if ((ERRNO > 0)); then
-		EMSG="; errno: $ERRNO"
-	else
-		EMSG=""
-	fi;
-	print "ksh: exit code: $rc$EMSG"
-' ERR
 
 if typeset -f dirappend >/dev/null ; then
 	unset -f dirappend
@@ -648,3 +636,16 @@ if [ -r $HOME/.kshdir ] ; then
 fi
 
 unset -f do_first_time
+
+trap '
+	rc=$?;
+	if ((ERRNO > 0)); then
+		EMSG="; errno: $ERRNO"
+	else
+		EMSG=""
+	fi;
+	print "ksh: exit code: $rc$EMSG"
+' ERR
+
+set -o monitor
+set -o trackall
