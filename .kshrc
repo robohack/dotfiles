@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	18.8	97/01/26 17:19:22 (woods)"
+#ident	"@(#)HOME:.kshrc	18.9	97/03/04 00:26:39 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -523,6 +523,10 @@ if [ "$(whence man)" = "/usr/bin/man" -a -x $LOCAL/bin/man ] ; then
 else
 	alias osman='MANPATH=$OMANPATH man'
 fi
+alias gman='MANPATH=$GNU/man man'
+alias lman='MANPATH=$LOCAL/share/man man'
+alias tkman='MANPATH=$LOCAL/share/man.tcltk man'
+alias x11man='MANPATH=$X11PATH/man man'
 
 if $HAVETPUT; then
 	alias c='tput clear'
