@@ -1,7 +1,7 @@
 #
 #	.ashrc - per-shell startup stuff for ash via $ENV
 #
-#ident	"@(#)HOME:.ashrc	1.3	95/06/07 21:29:21 (woods)"
+#ident	"@(#)HOME:.ashrc	2.1	95/07/01 10:44:10 (woods)"
 
 case $- in *i*)
 # everything in this file is for interactive use only

@@ -1,7 +1,7 @@
 #
 #	.shrc - per-shell startup stuff for /bin/sh
 #
-#ident	"@(#)HOME:.shrc	2.3	95/03/08 15:46:28 (woods)"
+#ident	"@(#)HOME:.shrc	3.1	95/07/01 10:44:26 (woods)"
 
 PATH="$PATH"
 export PATH

@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	8.17	95/06/25 20:39:34 (woods)"
+#ident	"@(#)HOME:.profile	9.1	95/07/01 10:44:20 (woods)"
 
 #
 # Assumptions:
