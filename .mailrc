@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc  20.15    99/07/06 19:34:53 (woods)"
+# ident	"@(#)HOME:.mailrc  20.16    99/07/08 17:04:57 (woods)"
 
 set keep
 set keepsave
@@ -79,6 +79,7 @@ alias andy	"andy@weird.com (Andy Mills)"
 alias andy-work	"andy@numetrix.com (Andy Mills)"
 alias bdb	"bdb@gts.net (Bruce Becker)"
 alias bernie	"becker@proxy.com (Bernard Becker)"
+alias blatte	"blatte@cock.roach.org (Blattidae Cucaracha)"
 alias bruce	"bdb@gts.net (Bruce Becker)"
 alias bryan	"bryan@aci.on.ca (Bryan Challenger)"
 alias dan	"dan@compus.ca (Dan Tomlinson)"
@@ -87,12 +88,14 @@ alias dave	"mason@tmsoftware.ca (Dave Mason)"
 alias david	"david@maxwell.net (David Maxwell)"
 alias dennis	"dennis@nebulus.net (Dennis Breckenridge VE6TCP)"
 alias dick	"rhl@the-wire.com (R. H. Lathwell)"
+alias dtw	"dtw@rom.on.ca (Deirdre Taylor-Wright)"
 alias dumais	"dumais@mad.scientist.com (Paul E. Dumais)"
 alias dwm	"david@fundy.ca (David Maxwell)"
 alias ecarroll	"ecarroll@rogers.wave.ca (Eric M. Carroll)"
 alias eric.carroll "eric.carroll@acm.org (Eric M. Carroll)"
 alias evan	"evan@telly.on.ca (Evan Leibovitch)"
 alias henry	"henry@utzoo.cs.utoronto.ca (Henry Spencer)"
+alias hugh	"Hugh_Gamble@iceinc.com"
 alias jeff	"jeff@aci.on.ca (Jeff Royle)"
 alias jerqs	"jerqs@clsc.utoronto.ca (jerq users)"
 alias jim	"jim@reptiles.org (Jim Mercer)"
@@ -105,6 +108,7 @@ alias planix	"planix@planix.com (Those planix Dudes)"
 alias peter	"peter@renzland.org (Peter Renzland)"
 alias rayan	"rayan@uunet.ca (Rayan Zachariassen)"
 alias sandu	"sandu@mail.on.rogers.wave.ca (Alexandru Sburlan)"
+alias strange	"strange@strange.com (Kristofer P. Cox)"
 alias woods	"woods@planix.com (Greg A. Woods)"
 
 # Local variables:
