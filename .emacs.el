@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.15	96/02/07 12:24:49 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.16	96/02/09 11:10:09 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -881,7 +881,9 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	       (progn
 		 (override-default-variable-settings)
 		 (local-set-key "\e\C-h" 'backward-kill-word)
-		 (local-set-key "\eS" 'spell-buffer)
+		 (if (elisp-file-in-loadpath-p "ispell")
+		     (local-set-key "\eS" 'ispell-buffer)
+		   (local-set-key "\eS" 'spell-buffer))
 		 (local-set-key "\e\C-e" 'compile)
 		 (setq abbrev-mode t)
 		 (setq fill-column 72)
