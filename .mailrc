@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	26.3	03/01/07 12:50:49 (woods)"
+# ident	"@(#)HOME:.mailrc	26.4	03/01/07 13:47:19 (woods)"
 
 # NOTE: Comments (lines with a leading '#') must have whitespace after the '#'
 
@@ -148,7 +148,7 @@ alias kris	"kris@corelan.com (Kris Cox)"
 alias kyle	"Kyle Jones <kyle_jones@wonderworks.com>"
 alias lcis	"professionals@bookclubservices.com (Library of Computer and Information Sciences)"
 alias marc	"marc@somanetworks.com (Marc Staveley)"
-alias me	'"Greg A. Woods" <woods@weird.com>'
+alias me	"woods@weird.com (Greg A. Woods)"
 alias netadmin-aci "netadmin@aci.on.ca (ACI Network Administrator)"
 alias nik	"habern@caledon.org (Nik Habermel)"
 alias norman	"norman@cs.yorku.ca (Norman Wilson)"
@@ -157,14 +157,14 @@ alias paul	"dumais@mad.scientist.com (Paul E. Dumais)"
 alias ped	"dumais@moosefactory.com (Paul E. Dumais)"
 alias peter	"peter@renzland.org (Peter Renzland)"
 alias peterm	"peterm@openphase.com (Peter G. Marshall)"
-alias planix	"planix@planix.com (Planix, Inc.)"
+alias planix	"planix@planix.com (Planix, Inc.)
 alias rayan	"rayan@uunet.ca (Rayan Zachariassen)"
 alias sandu	"sandu@mail.on.rogers.wave.ca (Alexandru Sburlan)"
 alias stever	"steve@petabit.com (Steve Rapaport)"
 alias strange	"strange@strange.com (Kristofer P. Cox)"
 alias support-aci "support@aci.on.ca (ACI Technical Support)"
 alias timo	"timo@aci.on.ca (Timo Janhunen)"
-alias woods	'"Greg A. Woods; Planix, Inc." <woods@planix.com>'
+alias woods	"woods@planix.com (Greg A. Woods; Planix, Inc.)"
 
 alias dduffey	"dduffey@slb.com (sandra's friend sending baby pictures)"
 
