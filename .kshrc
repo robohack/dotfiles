@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	20.3	98/10/25 17:28:14 (woods)"
+#ident	"@(#)HOME:.kshrc	20.4	99/01/27 18:54:23 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -476,21 +476,21 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	setban
 fi
 
-# just X11 stuff ehre....
+# just X11 stuff here....
 #
 if [ "$TERM" = xterm ] ; then
 	function roterm
 	{
 		$RSH -n "$1" "OPENWINHOME=/usr/openwin XFILESEARCHPATH=/usr/openwin/lib/%T/%N%S /usr/openwin/demo/xterm -cn -rw -sb -si -sk -sl 1024 -ls -display $DISPLAY:0 -T rsh:$1"
 	}
-
 	function rxterm
 	{
-		$RSH -n "$1" "$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls -display $DISPLAY:0 -T rsh:$1" &
+		$RSH -n "$1" "$X11BIN/xterm -ziconbeep 1 -cn -rw -sb -si -sk -sl 2048 -ls -display $DISPLAY:0 -T rsh:$1" &
 	}
-
-	alias lxterm='$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME &'
-
+	function lxterm
+	{
+		$X11BIN/xterm -ziconbeep 1 -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME $* &
+	}
 	setban
 fi
 
