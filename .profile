@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	9.14	96/01/12 22:39:52 (woods)"
+#ident	"@(#)HOME:.profile	9.15	96/01/16 08:37:45 (woods)"
 
 #
 # Assumptions:
@@ -228,7 +228,7 @@ if [ -x /usr/bin/sun ] ; then
 	if sun ; then
 		ISSUN=true
 		PATH=`echo $PATH | sed 's/^\/bin://'`
-		if [ `uname -r` -lt 5 ] ; then
+		if [ "`uname -r | sed 's/^\([0-9]*\).*$/\1/'`" -lt 5 ] ; then
 			if [ "$LOGNAME" != root ] ; then
 				dirprepend PATH /usr/5bin
 			else
