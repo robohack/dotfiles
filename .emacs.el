@@ -1,7 +1,7 @@
 ;;;
 ;;;	.emacs.el
 ;;;
-;;;#ident	"@(#)HOME:.emacs.el	1.12	93/11/19 20:09:02 (woods)"
+;;;#ident	"@(#)HOME:.emacs.el	1.13	93/11/25 17:20:36 (woods)"
 ;;;
 ;;; per-user start-up functions
 ;;;
@@ -28,8 +28,12 @@
 (if (= init-emacs-type '19)
     (setq load-path (append load-path
 			    (list (concat
-				   (getenv "LOCAL")
-				   "/gnu/lib/emacs/site-lisp")))))
+				   (cond 
+				    ((getenv "GNU")
+				     (getenv "GNU"))
+				    ((getenv "LOCAL")
+				     (concat (getenv "LOCAL") "/gnu")))
+				   "/lib/emacs/site-lisp")))))
 
 ;; This could probably be rewritten to use mapcar
 (defun elisp-file-in-loadpath-p (file-name)
@@ -424,6 +428,9 @@ If HOOK is void, it is first set to nil."
     (progn
       ;; I *USUALLY* EXPECT THE BACKSPACE KEY TO GENERATE AN ASCII BACKSPACE!
       (define-key function-key-map [backspace] [8])
+      (define-key function-key-map [backspace] [?\C-h])
+      (define-key function-key-map [C-backspace] [?\C-h])
+      (define-key function-key-map [M-backspace] [?\M-\C-h])
       (defun x-really-exit ()		; for those times we forget
 	"Query user if he really wants to exit since this will destroy the
 current emacs server process..."
@@ -548,13 +555,6 @@ current emacs server process..."
 (global-set-key "\e\C-?" 'kill-word)
 (global-set-key "\e?" 'help-command)		; smart enough to set itself up
 
-; Un-mess the X11 keymap interpretations....
-(if (= init-emacs-type '19)
-    (progn
-      (define-key function-key-map [backspace] [?\C-h])
-      (define-key function-key-map [C-backspace] [?\C-h])
-      (define-key function-key-map [M-backspace] [?\M-\C-h])))
-
 ; for fingers that forget....
 (global-set-key "\C-\\" 'search-forward)
 (global-set-key "\C-x\C-\\" 'save-buffer)
@@ -645,6 +645,40 @@ display-buffer for it"
 
 (setq temp-buffer-show-function 'display-buffer-in-frame-or-window)
 
+;; From: dsmith@spam.maths.adelaide.edu.au (David Smith)
+;; Subject: framepop.el: Display temporary buffers in dedicated frame
+;; Date: 08 Oct 1993 09:17:05 GMT
+;; Organization: The University of Adelaide
+;; Message-Id: <DSMITH.93Oct8184705@spam.maths.adelaide.edu.au>
+;;
+; let's leave this until frame management is a wee bit more mature
+;;
+;(if (elisp-file-in-loadpath-p "framepop")
+;    (progn
+;      (
+;      (define-key global-map "\C-cz" 'framepop-toggle-frame)
+;      (define-key global-map "\C-cv" 'framepop-scroll-frame)
+;      (define-key global-map "\C-cs" 'framepop-show-frame)
+;      (define-key global-map "\C-cx" 'framepop-iconify-frame)
+;      (define-key global-map "\C-cr" 'framepop-raise-frame)
+;      (define-key global-map "\C-cl" 'framepop-lower-frame)
+;      (cond (window-system (require 'framepop)))))
+
+;; From: ca@cs.umd.edu (Cengiz Alaetinoglu)
+;; Newsgroups: gnu.emacs.sources
+;; Subject: compile-frame.el version 1.1
+;; Date: 08 Oct 1993 20:28:22 GMT
+;; Organization: University of Maryland, Computer Science Department
+;; Lines: 126
+;; Distribution: world
+;; Message-Id: <CA.93Oct8162822@yangtze.cs.umd.edu>
+;; 
+(if (elisp-file-in-loadpath-p "compile-frame")
+    (progn
+      (require 'compile-frame)
+      (add-hook 'compilation-frame-selected-hook
+		'(lambda () (raise-frame compilation-frame-id)))))
+
 ;; From: kfogel@occs.cs.oberlin.edu (Karl Fogel)
 ;; Date: Mon, 1 Nov 1993 10:23:04 -0500
 ;; Message-Id: <9311011523.AA18545@occs.cs.oberlin.edu>
@@ -681,7 +715,7 @@ feeling, but you'll get used to it."
 		 (if (eq visip 'icon) (iconify-or-deiconify-frame))
 		 (redirect-frame-focus nowframe nextframe)
 		 (raise-frame nextframe)))))))
-  
+
 ;; Based on suggestions by David G. Grubbs <dgg@ksr.com> and Paul Palmer
 ;; <palmerp@math.orst.edu>.
 ;;
@@ -729,18 +763,26 @@ feeling, but you'll get used to it."
 ;      (add-hook 'initial-calendar-window-hook 'display-time)
 ;      (calendar)))
 (if (= init-emacs-type '19) 
-    (defun my-calendar-start ()
-      (interactive)
-      (setq 
-       view-diary-entries-initially t
-       mark-diary-entries-in-calendar t
-       mark-holidays-in-calendar t
-       diary-display-hook (list 'appt-make-list 'fancy-diary-display)
-       appt-display-duration 14		; seconds to display appointment message
-       appt-issue-message t)
-      (autoload 'appt-make-list "appt.el" nil t)
-      (add-hook 'initial-calendar-window-hook 'display-time)
-      (calendar)))
+    (progn
+      (require 'advice)
+      (defadvice appt-disp-window (around kn-appt-disp-win act)
+	(if (or (= min-to-app 20)
+		(and (<= min-to-app 6) (= (mod min-to-app 2) 0)))
+	    ad-do-it))
+      (eval-after-load "appt" '(ad-activate 'appt-disp-window))
+      (defun my-calendar-start ()
+	(interactive)
+	(setq 
+	 appt-message-warning-time 20
+	 view-diary-entries-initially t
+	 mark-diary-entries-in-calendar t
+	 mark-holidays-in-calendar t
+	 diary-display-hook (list 'appt-make-list 'fancy-diary-display)
+	 appt-display-duration 14	; seconds to display appointment message
+	 appt-issue-message t)
+	(autoload 'appt-make-list "appt.el" nil t)
+	(add-hook 'initial-calendar-window-hook 'display-time)
+	(calendar))))
 
 ; ;; Appointments every 3 minutes not every 1 minute!
 ; (defadvice appt-check (around my-appt-advice activate)
