@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	18.10	97/05/22 11:36:46 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	18.11	97/05/22 11:43:02 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -356,14 +356,19 @@ scripts (alias)." t)
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "vm")
-    (setq auto-mode-alist
-	  (append
-	   '(("/Letter$" . vm-mode))
-	   '(("mbox$" . vm-mode))
-	   '(("/Mail/.*$" . vm-mode))
-	   '(("/News/.*$" . vm-mode))
-	   '(("\\.shar[^/]*$" . vm-mode))
-	   auto-mode-alist)))
+    (progn
+      (if window-system
+	  (progn
+	    (define-key menu-bar-tools-menu [rmail] '("Read Mail" . vm))
+	    (define-key-after menu-bar-tools-menu [smail] '("Send Mail" . vm-mail) 'rmail)))
+      (setq auto-mode-alist
+	    (append
+	     '(("/Letter$" . vm-mode))
+	     '(("mbox$" . vm-mode))
+	     '(("/Mail/.*$" . vm-mode))
+	     '(("/News/.*$" . vm-mode))
+	     '(("\\.shar[^/]*$" . vm-mode))
+	     auto-mode-alist))))
 
 ;;;; ----------
 ;;;; special setup!
