@@ -1,11 +1,11 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	21.2	00/01/04 20:41:35 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	21.4	00/01/15 14:22:17 (woods)"
 ;;;;
-;;;; per-user start-up functions for GNU-emacs v19 only
+;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
-;;;; primarily tested on v20.3.
+;;;; primarily tested on v20.3, but now almost working on v20.5
 ;;;;
 
 ;;; This file should be stored in "~/.emacs.el".
@@ -1255,11 +1255,19 @@ it could check Status: headers for O, or Forward to in mailboxes."
 	     (override-local-key-settings)
 	     (override-default-variable-settings))))
 
-;;; GNU-Emacs' (Stallman's?) ideas about formatting C code suck!  Let's stick
-;;; to doing things the good old K&R standard way!!!!
+;;; GNU-Emacs' ideas about formatting C code suck!  Let's stick to doing things
+;;; the good old K&R standard way!!!!
+;;;
+;;; For reference my .indent.pro (for BSD indent) says:
+;;;
+;;;	-bad -ncdb -d0 -nfc1 -i8 -l256 -sc
+;;;
+;;; NOTE: Someday I want a simple flag I can toggle in a file's local variables
+;;; to turn off use of tab characters and do all indentation and alignment with
+;;; spaces only.
 ;;;
 (if (elisp-file-in-loadpath-p "cc-mode")
-    ;; the real thing, in 19.30(?) and above
+    ;; the real thing, in 19.30(?) and newer
     (progn
       ;; to quiet the v19 byte compiler
       (defvar c-basic-offset)
@@ -1279,8 +1287,8 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		(function
 		 (lambda ()
 		   "Private c-mode stuff."
-		   ;; damn c-mode is too over-bearing!  It seems to insist
-		   ;; re-setting these key bindings without regard to the
+		   ;; even cc-mode is sometimes too over-bearing.  It seems to
+		   ;; insist re-setting some key bindings without regard to the
 		   ;; global key map.
 		   (override-local-key-settings)
 		   (override-default-variable-settings)
