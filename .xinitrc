@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident        "@(#)HOME:.xinitrc     6.9     96/03/22 15:39:00 (woods)"
+#ident        "@(#)HOME:.xinitrc     6.10     96/03/22 15:40:13 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -52,6 +52,7 @@ if [ -z "$ONX11SERVER" ] ; then
 	*/most/*)
 		if [ "$XDMHOST" != most.weird.com ] ; then
 			ONX11SERVER="$RSH -n most.weird.com exec"
+			echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
 		fi
 		;;
 	esac
