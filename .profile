@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	6.9	94/12/03 18:19:39 (woods)"
+#ident	"@(#)HOME:.profile	6.10	94/12/03 20:36:48 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -33,8 +33,8 @@ if [ -z "$DOMAINNAME" ] ; then
 			DOMAINNAME="`domainname`" ; export DOMAINNAME
 		else
 			case "$UUNAME" in
-			foobar )
-				DOMAINNAME="" ; export DOMAINNAME
+			weirdo )
+				DOMAINNAME="weird.com" ; export DOMAINNAME
 				;;
 			* )
 				DOMAINNAME=".UUCP" ; export DOMAINNAME
@@ -92,7 +92,7 @@ case "$UUNAME" in
 robohack | kuma | araignee | tar | spinne | toile | wombat | weirdo )
 	;;
 * )
-	PATH="/bin" ; export PATH
+	PATH="/bin" ; export PATH	# start fresh...
 	dirappend PATH /usr/bin /usr/lbin
 	;;
 esac
@@ -117,7 +117,6 @@ if [ -z "$LOCAL" ] ; then
 	elif [ -d /usr/local ] ; then
 		LOCAL="/usr/local" ; export LOCAL
 	else
-		echo -- "$0: WARNING: this system doesn't seem to have a LOCAL root"
 		LOCAL="/local" ; export LOCAL
 	fi
 fi
@@ -128,8 +127,7 @@ if [ -z "$CONTRIB" ] ; then
 	elif [ -d /usr/contrib ] ; then
 		CONTRIB="/usr/contrib" ; export CONTRIB
 	else
-		echo -- "$0: WARNING: this system doesn't seem to have a CONTRIB root"
-		CONTRIB="/local" ; export CONTRIB
+		CONTRIB="/contrib" ; export CONTRIB
 	fi
 fi
 
@@ -141,7 +139,6 @@ if [ -z "$GNU" ] ; then
 	elif [ -d /usr/local/gnu ] ; then
 		GNU="/usr/local/gnu" ; export GNU
 	else
-		echo -- "$0: WARNING: this system doesn't seem to have a GNU root"
 		GNU="/gnu" ; export GNU
 	fi
 fi
@@ -186,6 +183,27 @@ if [ "$HOME" != "/" ] ; then
 	PATH="${PATH}:"
 fi
 
+if [ -r /usr/spool/smail/log/logfile ] ; then
+	MAILLOG="/usr/spool/smail/log/logfile" ; export MAILLOG
+elif [ -r /var/spool/smail/log/logfile ] ; then
+	MAILLOG="/var/spool/smail/log/logfile" ; export MAILLOG
+elif [ -r $LOCAL/lib/smail/logfile ] ; then
+	MAILLOG="$LOCAL/lib/smail/logfile" ; export MAILLOG
+elif [ -r $LOCAL/lib/smail/mail.log ] ; then
+	MAILLOG="$LOCAL/lib/smail/mail.log" ; export MAILLOG
+fi
+
+if expr "`type mktable`" : '.* is .*/mktable$' >/dev/null 2>&1 ; then
+	MKTABLE="mktable"
+else
+	mktable ()
+	{
+		sed '	/^[ 	]*#/d
+			/^[ 	]*$/d
+		' ${1+"$@"}
+	}
+fi
+
 HAVEMONTH=false ; export HAVEMONTH
 if expr "`type month`" : '.* is .*/month$' >/dev/null 2>&1 ; then
 	HAVEMONTH=true
@@ -212,16 +230,6 @@ if expr "`type fortune`" : '.* is .*/fortune$' >/dev/null 2>&1 ; then
 	HAVEFORTUNE=true
 fi
 
-if [ -r /usr/spool/smail/log/logfile ] ; then
-	MAILLOG="/usr/spool/smail/log/logfile" ; export MAILLOG
-elif [ -r /var/spool/smail/log/logfile ] ; then
-	MAILLOG="/var/spool/smail/log/logfile" ; export MAILLOG
-elif [ -r $LOCAL/lib/smail/logfile ] ; then
-	MAILLOG="$LOCAL/lib/smail/logfile" ; export MAILLOG
-elif [ -r $LOCAL/lib/smail/mail.log ] ; then
-	MAILLOG="$LOCAL/lib/smail/mail.log" ; export MAILLOG
-fi
-
 if expr "`type less`" : '.* is .*/less$' >/dev/null 2>&1 ; then
 	PAGER="`type less`"
 elif expr "`type more`" : '.* is .*/more$' >/dev/null 2>&1 ; then
@@ -233,32 +241,60 @@ PAGER="`expr "$PAGER" : '^.*/\([^/]*\)$'`"; export PAGER
 MANPAGER="$PAGER -s"; export MANPAGER
 LESS="-eM" ; export LESS
 
-if expr "`type emacs`" : '.* is .*/emacs$' >/dev/null 2>&1 ; then
-	EDITOR="`type emacs`"
-elif expr "`type jove`" : '.* is .*/jove$' >/dev/null 2>&1 ; then
-	EDITOR="`type jove`"
-else
-	EDITOR="`type ed`"
+if [ -s "$HOME/.editor" ] ; then
+	EDPREF=`mktable $HOME/.editor` ; export EDPREF
 fi
-EDITOR="`expr "$EDITOR" : '^.*/\([^/]*\)$'`"; export EDITOR
 
-if expr "`type emacs`" : '.* is .*/emacs$' >/dev/null 2>&1 ; then
-	VISUAL="`type emacs`"
-	if [ -n "$DISPLAY" -o "$TERM" = "xterm" ] ; then
-		if [ -x /usr/bin/id ] ; then
-			eval `id | sed 's/[^a-z0-9=].*//'`
-			if [ "${uid:=0}" -ne 0 ] ; then
-				VISUAL="`type emacsclient`"
+case "$EDPREF" in
+emacs | "" )
+	if expr "`type emacs`" : '.* is .*/emacs$' >/dev/null 2>&1 ; then
+		EDITOR="`type emacs`"
+	elif expr "`type jove`" : '.* is .*/jove$' >/dev/null 2>&1 ; then
+		EDITOR="`type jove`"
+	else
+		EDITOR="`type ed`"
+	fi
+	if expr "`type emacs`" : '.* is .*/emacs$' >/dev/null 2>&1 ; then
+		VISUAL="`type emacs`"
+		if [ -n "$DISPLAY" -o "$TERM" = "xterm" ] ; then
+			if [ -x /usr/bin/id ] ; then
+				eval `id | sed 's/[^a-z0-9=].*//'`
+				if [ "${uid:=0}" -ne 0 ] ; then
+					VISUAL="`type emacsclient`"
+				fi
 			fi
 		fi
+	elif expr "`type jove`" : '.* is .*/jove$' >/dev/null 2>&1 ; then
+		VISUAL="`type jove`"
+	else
+		VISUAL="`type vi`"
 	fi
-elif expr "`type jove`" : '.* is .*/jove$' >/dev/null 2>&1 ; then
-	VISUAL="`type jove`"
-else
-	VISUAL="`type vi`"
-fi
+	;;
+vi )
+	if expr "`type nvi`" : '.* is .*/nvi$' >/dev/null 2>&1 ; then
+		EDITOR="`type nvi`"
+	elif expr "`type vi`" : '.* is .*/vi$' >/dev/null 2>&1 ; then
+		EDITOR="`type vi`"
+	else
+		EDITOR="`type ed`"
+	fi
+	if expr "`type nvi`" : '.* is .*/nvi$' >/dev/null 2>&1 ; then
+		VISUAL="`type nvi`"
+	elif expr "`type vi`" : '.* is .*/vi$' >/dev/null 2>&1 ; then
+		VISUAL="`type vi`"
+	else
+		VISUAL="`type none`"
+	fi
+	;;
+* )
+	if expr "$EDPREF" : '.*/.*$' > /dev/null 2>&1 ; then
+		VISUAL="$EDPREF"
+	else
+		VISUAL="`type $EDPREF`"
+	fi
+esac
+EDITOR="`expr "$EDITOR" : '^.*/\([^/]*\)$'`"; export EDITOR
 VISUAL="`expr "$VISUAL" : '^.*/\([^/]*\)$'`"; export VISUAL
-
 EXINIT="set sm" ; export EXINIT
 
 if [ -n "$APCCONFIG" ] ; then
@@ -274,9 +310,16 @@ if [ -n "$APCCONFIG" ] ; then
 	dirappend PATH /usr/local/apc/bin /usr/local/apc/xbin
 	dirprepend MANPATH /usr/catman
 	dirappend MANPATH /apc/man
+	if [ -d $HOME/.pn ] ; then
+		echo "$TERM" > $HOME/.pn/TERM
+		stty -g > $HOME/.pn/SANE
+		echo "$TERMINFO" > $HOME/.pn/TERMINFO
+	fi
 fi
 
-CVSROOT="$LOCAL/src-CVS" ; export CVSROOT
+if [ -z "$CVSROOT" ] ; then
+	CVSROOT="$LOCAL/src-CVS" ; export CVSROOT
+fi
 
 ##ENSCRIPT="$ENSCRIPT -G" ; export ENSCRIPT
 
@@ -293,8 +336,14 @@ TRNINIT="$HOME/.trninit" ; export TRNINIT
 
 # set terminal type..
 case "$UUNAME" in
-robohack | kuma | toile | wombat | araignee | spinne | weirdo )
+robohack | toile | wombat | spinne | weirdo )
 	: we trust that everything is all set up as it should be....
+	;;
+kuma | araignee )
+	if $HAVEMUSH && /bin/mail -e ; then
+		echo 'You have mail:'
+		mush -H:n
+	fi
 	;;
 * )
 	echo "Re-setting terminal preferences...."
@@ -306,24 +355,16 @@ robohack | kuma | toile | wombat | araignee | spinne | weirdo )
 		stty cs8 -istrip -parenb
 		;;
 	esac
-	if [ -d $HOME/lib/terminfo ] ; then
-		case $TERM in
-		at386*|AT386*|386AT*|386at*)
-			TERMINFO=$HOME/lib/terminfo ; export TERMINFO
-			;;
-		esac
-	fi
-	if [ -d $HOME/.pn ] ; then
-		echo "$TERM" > $HOME/.pn/TERM
-		stty -g > $HOME/.pn/SANE
-		echo "$TERMINFO" > $HOME/.pn/TERMINFO
-	fi
-	if $HAVEMUSH && /bin/mail -e ; then
-		echo 'You have mail:'
-		mush -H:n
-	fi
 	;;
 esac
+
+if [ -d $HOME/lib/terminfo ] ; then
+	case $TERM in
+	at386*|AT386*|386AT*|386at*|dmd|dmd-myx)
+		TERMINFO=$HOME/lib/terminfo ; export TERMINFO
+		;;
+	esac
+fi
 
 if [ -r $HOME/.kshedit ] ; then
 	if grep "^set -o vi" $HOME/.kshedit ; then
@@ -344,7 +385,14 @@ if [ ${RANDOM:-0} -ne 0 ] ; then
 	[ -x $LOCAL/bin/ksh ] && export SHELL="$LOCAL/bin/ksh"
 	[ -z "$SHELL" -a -x /usr/bin/ksh ] && export SHELL="/usr/bin/ksh"
 	[ -z "$SHELL" -a -x /bin/ksh ] && export SHELL="/bin/ksh"
-	. $HOME/.kshlogin
+	if [ -r $HOME/.kshlogin ] ; then
+		. $HOME/.kshlogin
+	fi
+elif [ `echo ~` = $HOME ] ; then
+	# Ah Ha!  A semi-smart shell, such as BSDI
+	if [ -r $HOME/.shlogin ] ; then
+		. $HOME/.shlogin
+	fi
 else
 	if [ "$LOGNAME" = root ] ; then
 		PS1="[$TTYN]<$LOGNAME@$UUNAME> # "
@@ -448,6 +496,11 @@ if $HAVELAYERS && [ "$TERM" = "dmd" -a "`ismpx`" != "yes" ] ; then
 		fi
 		;;
 	esac
+fi
+
+if [ -s $HOME/.shell ] ; then
+	SHELL=`mktable $HOME/.shell` ; export SHELL
+	exec $SHELL
 fi
 
 # End Of File
