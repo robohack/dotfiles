@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc  20.17    99/07/26 14:22:55 (woods)"
+# ident	"@(#)HOME:.mailrc  20.18    99/07/29 22:36:33 (woods)"
 
 set keep
 set keepsave
@@ -45,6 +45,7 @@ alias port-sparc	"port-sparc@NetBSD.ORG (NetBSD/sparc Discussion List)"
 alias port-sun3		"port-sun3@NetBSD.ORG (NetBSD/sun3 Discussion List)"
 alias postfix-testers	"postfix-testers@postfix.org (Postfix Testers List)"
 alias postfix-users	"postfix-users@postfix.org (Postfix Users List)"
+alias tech-embed	"tech-embed@NetBSD.ORG (NetBSD for Embedded Systems Technical Discussion List)"
 alias tech-install	"tech-install@NetBSD.ORG (NetBSD Install Process Technical Discussion List)"
 alias tech-kern		"tech-kern@NetBSD.ORG (NetBSD Kernel Technical Discussion List)"
 alias tech-misc		"tech-misc@NetBSD.ORG (NetBSD Miscellaneous Technical Discussion List)"
