@@ -1,3 +1,6 @@
+!
+!#ident	"@(#)HOME:.Xdefaults	20.2	99/11/02 11:17:47 (woods)"
+!
 #ifdef COLOR
 *customization:			-color
 #endif
@@ -9,6 +12,8 @@ Netscape*blinkingEnabled:	False
 Netscape*documentColorsHavePriority:	False
 Netscape*progressInterval:	3
 Netscape*maxImageColors:	64
+Netscape*useStderrDialog: False
+Netscape*useStdoutDialog: False
 xosview*cpuDecay:	True
 xosview*usedLabelColor:	gray100
 xosview*swapDecay:	False
