@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.5	95/08/07 12:25:58 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.6	95/08/07 12:50:09 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -852,6 +852,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
       ;; to quiet the v19 byte compiler
       (defvar cvs-diff-flags)
       (defvar cvs-status-flags)
+      (defvar cvs-update-optional-flags)
       (defvar cvs-diff-ignore-marks)
       (add-hook 'cvs-mode-hook
 		(function
@@ -863,7 +864,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		   ;; List of strings to pass to ``cvs status''
 		   (setq cvs-status-flags '("-Q" "-v"))
 		   ;; List of strings to pass to ``cvs update''
-		   (setq cvs-update-flags '("-d" "-P"))
+		   (setq cvs-update-optional-flags '("-d" "-P"))
 		   ;; Non-nil if cvs-diff and cvs-mode-diff-backup
 		   ;; should ignore any marked files.
 		   (setq cvs-diff-ignore-marks t))))))
