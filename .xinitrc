@@ -3,8 +3,9 @@
 #
 #	.xinitrc - X Window System startup file
 #
-#ident	"@(#)HOME:.xinitrc	4.2	94/07/22 16:50:07 (woods)"
+#ident	"@(#)HOME:.xinitrc	4.3	94/07/22 20:38:37 (woods)"
 
+. /etc/profile
 
 PATH=$PATH:$HOME/bin
 export PATH
