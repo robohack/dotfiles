@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	4.8	94/11/23 13:18:05 (woods)"
+;;;#ident	"@(#)HOME:.vm	4.9	94/11/28 15:28:25 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -16,7 +16,7 @@
 				    " (" (user-full-name) ")"))
 (setq mail-header-separator ".")	; as close to nothing as possible
 
-(add-hook 'mail-mode-hook
+(add-hook 'vm-mail-mode-hook
 	  (function (lambda () (local-set-key "\C-ci" 'ispell-message))))
 
 (defvar mail-default-organization "~/.organization"
@@ -76,7 +76,8 @@ ORGANIZATION.  If not nil, takes precedence over the file
 
 ;; commented lines indicate changed values....  (from v5.72)
 ;;
-(setq vm-arrived-message-hook nil
+(setq
+;;;   vm-arrived-message-hook nil
       vm-auto-center-summary nil
       vm-auto-folder-alist '(
 			     ;; To: & Cc: entries here.
@@ -110,8 +111,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      )
 			     ;; From: entries here.
 			     ("from"
-			      ("gegai@.*\\.io\\.org"
-			       "from/andy")
+			      ("gegai@.*io\\.org" . "from/andy")
 			      ;; code to make auto-folder default to the user name of the sender.
 			      ;; this should be last in the auto folder alist since it tends to
 			      ;; always match something.
@@ -151,13 +151,13 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-digest-center-preamble t
       vm-digest-preamble-format "\"%s\" (%F)"
       vm-digest-send-type "rfc934"
-      vm-edit-message-hook nil
+;;;   vm-edit-message-hook nil
       vm-edit-message-mode 'indented-text-mode ; slightly better than text-mode
       vm-flush-interval t
       vm-folder-directory "~/Mail/"	; the usual place
 ;;;   vm-folder-read-only nil
       vm-follow-summary-cursor t	; operate on the currently pointed to message
-      vm-forward-message-hook nil
+;;;   vm-forward-message-hook nil
       vm-forwarded-headers nil
       vm-forwarding-digest-type "rfc934"
       vm-forwarding-subject-format "forwarded message from %F"
@@ -181,10 +181,10 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-mail-header-from (concat (user-login-name) "@" (vm-fqdn)
 				  " (" (user-full-name) ")") ; this is also for
 							     ; resent-from
-      vm-mail-hook nil
-      vm-mail-mode-hook nil
-      vm-mode-hook nil
-      vm-mode-hooks nil
+;;;   vm-mail-hook nil
+;;;   vm-mail-mode-hook nil
+;;;   vm-mode-hook nil
+;;;   vm-mode-hooks nil
       vm-move-after-deleting t		; keep on rolling
       vm-move-after-undeleting t	; keep on rolling
       vm-move-messages-physically nil
@@ -195,10 +195,11 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-preview-lines 4		; allow 4 lines of the body to show
       vm-preview-read-messages nil
       vm-primary-inbox "~/Mail/INBOX"	; keep everything in vm-folder-directory
-      vm-quit-hook nil
+;;;   vm-quit-hook nil
       vm-recognize-pop-maildrops "^[^:]+:[^:]+:[^:]+:[^:]+:[^:]+"
-      vm-reply-hook nil
-      vm-reply-ignored-addresses (concat (user-login-name) "@" (vm-fqdn))
+;;;   vm-reply-hook nil
+      vm-reply-ignored-addresses (list (concat (user-login-name) "\\(@.*\\."
+					       vm-local-domain-name "\\)?"))
 					; just me!
       vm-reply-ignored-reply-tos nil
       vm-reply-subject-prefix "Re: "	; please do the standard thing!
@@ -214,11 +215,11 @@ ORGANIZATION.  If not nil, takes precedence over the file
 				  "Keywords:"
 				  "X-"
 				  )
-      vm-resend-bounced-message-hook nil
+;;;   vm-resend-bounced-message-hook nil
       vm-resend-discard-header-regexp "\\(\\(X400-\\)?Received:\\|Resent-\\)"
       vm-resend-headers nil
-      vm-resend-message-hook nil
-      vm-retrieved-spooled-mail-hook nil
+;;;   vm-resend-message-hook nil
+;;;   vm-retrieved-spooled-mail-hook nil
       vm-rfc1153-digest-discard-header-regexp "\\(X400-\\)?Received:"
       vm-rfc1153-digest-headers '("Resent-"
 				  "Date:"
@@ -242,10 +243,10 @@ ORGANIZATION.  If not nil, takes precedence over the file
 				 "Keywords:"
 				 )
       vm-search-using-regexps nil
-      vm-select-message-hook nil
-      vm-select-new-message-hook nil
-      vm-select-unread-message-hook nil
-      vm-send-digest-hook nil
+;;;   vm-select-message-hook nil
+;;;   vm-select-new-message-hook nil
+;;;   vm-select-unread-message-hook nil
+;;;   vm-send-digest-hook nil
       vm-skip-deleted-messages nil	; try it this way for a while....
       vm-skip-read-messages nil
       vm-startup-with-summary 1		; pop up summary window right away
@@ -254,9 +255,9 @@ ORGANIZATION.  If not nil, takes precedence over the file
 					; ah, that's better! (except %02d
 					; doesn't put leading zeros out)
       vm-summary-highlight-face nil
-      vm-summary-mode-hook nil
-      vm-summary-mode-hooks nil
-      vm-summary-redo-hook nil
+;;;   vm-summary-mode-hook nil
+;;;   vm-summary-mode-hooks nil
+;;;   vm-summary-redo-hook nil
       vm-summary-show-threads nil
       vm-summary-subject-no-newlines t
       vm-summary-thread-indent-level 2
@@ -277,7 +278,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			   "Subject:"
 			   "Date:"
 			   )
-      vm-visit-folder-hook nil
+;;;   vm-visit-folder-hook nil
       vm-visit-when-saving nil		; try it this way for a while
       vm-window-configuration-file "~/.vm.windows"
       vm-window-configurations '((startup ((((top . 70) (left . 70)))
