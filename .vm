@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.13	95/10/09 17:42:50 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.14	95/10/24 22:24:27 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -114,6 +114,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("aegis-users@" . "aegis-users-l")
 			      ("auto-net@" . "auto-net-l")
 			      ("bind@" . "bind-l")
+			      ("bind-users@" . "bind-users-l")
 			      ("bind-workers@" . "bind-workers-l")
 			      ("com-priv@.*psi.com" . "com-priv-l")
 			      ("devel-cvs@" . "devel-cvs-l")
