@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	1.1	97/11/16 20:17:17 (woods)"
+#ident	"@(#)HOME:.ctwmrc	1.2	97/11/20 00:10:47 (woods)"
 #
 
 AutoRelativeResize
@@ -59,7 +59,7 @@ IconManagerFont	"-*-helvetica-bold-r-normal-*-*-80-100-100-*-*-*-*"
 # DefaultFunction must come after fonts....
 DefaultFunction f.beep
 
-WorkSpaceManagerGeometry        "160x295-340+0" 2
+WorkSpaceManagerGeometry        "160x285-340+0" 2
 
 WorkSpaces {
 	"Main"
@@ -781,20 +781,21 @@ menu "weird-xterms"
 	"weird.com hosts"	f.title
 	"Xterm @isit"	!"$RSH -n ns.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
 	"Xterm @most"	!"$RSH -n most.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
-	"Xterm @very"	!"$RSH -n very.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-	"Xterm @almost"	!"$RSH -n almost.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-	"Xterm @whats"	!"$RSH -n whats.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-	"Xterm @pretty"	!"$RSH -n pretty.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-	"Xterm @sometimes" !"$RSH -n sometimes.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-	"Xterm @always"	!"$RSH -n always.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+	"Xterm @very"	!"$RSH -n very.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm @almost"	!"$RSH -n almost.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm @whats"	!"$RSH -n whats.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm @pretty"	!"$RSH -n pretty.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm @sometimes" !"$RSH -n sometimes.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm @always"	!"$RSH -n always.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
 }
 
 menu "planix-xterms"
 {
 	"planix.com hosts" f.title
-	"Xterm @whome"	!"$RSH -n whome.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-	"Xterm @woffi"	!"$RSH -n woffi.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
-	"Xterm @warlord" !"$RSH -n warlord.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 512 -ls &"
+	"Xterm @whome"	!"$RSH -n whome.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm @woffi"	!"$RSH -n woffi.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm @weight"	!"$RSH -n weight.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm @warlord" !"$RSH -n warlord.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
 }
 
 menu "rlogin"
@@ -848,13 +849,13 @@ menu "rlogin-weird"
 {
 	"Rlogin's At Weird.com"	f.title
 	"Rlogin @most"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin most.weird.com &"
-	"Rlogin @very"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin very.weird.com &"
-	"Rlogin @almost"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin almost.weird.com &"
-	"Rlogin @whats"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin whats.weird.com &"
-	"Rlogin @pretty"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin pretty.weird.com &"
+	"Rlogin @very"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin very.weird.com &"
+	"Rlogin @almost"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin almost.weird.com &"
+	"Rlogin @whats"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin whats.weird.com &"
+	"Rlogin @pretty"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin pretty.weird.com &"
 	"Rlogin @weirdo"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin ns.weird.com &"
-	"Rlogin @sometimes"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin sometimes.weird.com &"
-	"Rlogin @always"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 -e rlogin always.weird.com &"
+	"Rlogin @sometimes"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin sometimes.weird.com &"
+	"Rlogin @always"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin always.weird.com &"
 }
 
 menu "telnet-weird"
@@ -893,14 +894,16 @@ menu "rlogin-planix"
 {
 	"Rlogin's At Planix.com" f.title
 	"Rlogin @woffi"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin woffi.planix.com &"
-	"Rlogin @warlord"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin warlord.planix.com &"
-	"Rlogin @worm"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin worm.planix.com &"
+	"Rlogin @weight"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin weight.planix.com &"
+	"Rlogin @warlord"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin warlord.planix.com &"
+	"Rlogin @worm"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e rlogin worm.planix.com &"
 }
 
 menu "telnet-planix"
 {
 	"Telnet's At Planix.com" f.title
 	"telnet @whome"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet whome.planix.com &"
+	"telnet @weight"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet weight.planix.com &"
 	"telnet @woffi"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet woffi.planix.com &"
 	"telnet @wind"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet wind.planix.com &"
 	"telnet @wish"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet wish.planix.com &"
@@ -913,9 +916,10 @@ menu "telnet-planix"
 menu "slogin-planix"
 {
 	"Slogin's At Planix.com" f.title
-	"Slogin @whome"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C whome.planix.com &"
-	"Slogin @woffi"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C woffi.planix.com &"
-	"Slogin @warlord"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C warlord.planix.com &"
+	"Slogin @whome"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e $LOCAL/bin/slogin -C whome.planix.com &"
+	"Slogin @woffi"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e $LOCAL/bin/slogin -C woffi.planix.com &"
+	"Slogin @weight"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e $LOCAL/bin/slogin -C weight.planix.com &"
+	"Slogin @warlord"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -e $LOCAL/bin/slogin -C warlord.planix.com &"
 }
 
 
@@ -931,7 +935,7 @@ menu "telnet-dancing"
 	"Telnet @lindy"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e telnet lindy.dancing.org &"
 }
 
-menu "llogin-dancing"
+menu "slogin-dancing"
 {
 	"Slogin's At Dancing.org" f.title
 	"Slogin @lindy"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin -C lindy.dancing.org &"
