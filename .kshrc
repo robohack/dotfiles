@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	4.7	94/12/12 11:45:58 (woods)"
+#ident	"@(#)HOME:.kshrc	4.8	94/12/19 13:34:23 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -163,7 +163,7 @@ if [ "$id" -eq 0 ] ; then
 	dirappend PATH $APCCONFIG/bin /apc/bin /apc/xbin /apc/lbin
 	dirappend PATH /usr/local/apc/bin /usr/local/apc/xbin
 	dirappend MANPATH /apc/man
-	if [ "$(ismpx)" = yes ] ; then
+	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		MYXBAN_R='$uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN'
 		PS1='[!] # '
 		dirappend PATH $DMD/bin $DMDSGS/bin/3b5 $DMD/local/bin
@@ -187,7 +187,7 @@ if [ "$id" -eq 0 ] ; then
 	# fix for ksh-11/16/88b
 	#alias passwd='/bin/passwd'
 elif [ "$uid" != "$LOGNAME" ] ; then
-	if [ "$(ismpx)" = yes ] ; then
+	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		MYXBAN_R='$uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN'
 		PS1='[!] $ '
 	elif [ "$TERM" = "xterm" ] ; then
@@ -196,7 +196,7 @@ elif [ "$uid" != "$LOGNAME" ] ; then
 		PS1='$TTYN:$uid($LOGNAME)@$UUNAME)[$LEV.!] ${PWD#$HOME} $ '
 	fi
 else
-	if [ "$(ismpx)" = yes ] ; then
+	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		MYXBAN_R='$LOGNAME{$gid}@$UUNAME[$LEV]:$TTYN'
 		PS1='[!] $ '
 	elif [ "$TERM" = "xterm" ] ; then
@@ -205,7 +205,8 @@ else
 		PS1='$TTYN:$LOGNAME@$UUNAME[$LEV.!] ${PWD#$HOME} $ '
 	fi
 fi
-if [ "$(ismpx)" = yes ] ; then
+
+if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	if [ "$LEV" -eq 0 ] ; then
 		do_first_time
 	fi
@@ -215,12 +216,17 @@ if [ "$(ismpx)" = yes ] ; then
 	MYXCLR="${MYXCLR_L}${MYXCLR_C}${MYXCLR_R}"
 	MYXBAN_L='$PWD'
 
+	alias clearban='echo "${MYXCLR}\c"'
+
 	function setban
 	{
-		echo "${MYXCLR}\c"
+		clearban
 		eval myxban -l "\"$MYXBAN_L\""
+		myxban -c "${WBANNER}"
 		eval myxban -r "\"$MYXBAN_R\""
 	}
+
+	alias umenu="echo 'cat /usr/spool/news/out.going/*/batchlog' | mkmenu NewsChkBatch ; echo 'uustat -m' | mkmenu UUSTAT"
 
 	unalias cd
 	alias cd='_cd'
@@ -229,14 +235,73 @@ if [ "$(ismpx)" = yes ] ; then
 		\cd $*
 		eval myxban -l "\"$MYXBAN_L\""
 	}
+fi
+
+if [ "$TERM" = "xterm" ] ; then
+	if [ "$LEV" -eq 0 ] ; then
+		do_first_time
+	fi
+
+	alias clearban='WBANNER=""; setban'
+
+	function setban
+	{
+		eval TBANNER='"${WBANNER:+$WBANNER | }$PWD | $uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN"'
+		echo "\033]0;$TBANNER\007\c"
+		WBANNER=""
+	}
+
+	unalias cd
+	alias cd='_cd'
+	function _cd
+	{
+		\cd $*
+		setban 
+	}
+fi
+
+if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
+	if [ "$VISUAL" = "emacsclient" -a -z "$DISPLAY" ] ; then
+		unalias emacs
+		alias emacs=_emacs
+		function _emacs
+		{
+			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			WBANNER="GNU Emacs @ $UUNAME"
+			setban
+			emacs "$@"
+		}
+	fi
+
+	if expr "$(type xpnerun)" : '.* is .*/xpnerun$' >/dev/null 2>&1 ; then
+		unalias pnotes
+		alias pnotes=_pnotes
+		function _pnotes
+		{
+			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			WBANNER="PNotes $*"
+			setban
+			if [ ! -d $HOME/.pn ] ; then
+				mkdir $HOME/.pn
+			fi
+			rm -f $HOME/.pn/.emacs_server
+			ln -f $HOME/.emacs_server $HOME/.pn
+			xpnerun pnotes "$@"
+		}
+	fi
 
 	unalias cu
 	alias cu=_cu
 	function _cu
 	{
-		trap "trap 0 1 2 3 15; mkmenu -; myxban -c" 0 1 2 3 15
-		myxban -c "cu $*"
-		myxsize -s
+		if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
+			trap "trap 0 1 2 3 15; mkmenu -; setban" 0 1 2 3 15
+			myxsize -s
+		else
+			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+		fi
+		WBANNER="cu $*"
+		setban
 		/usr/bin/cu "$@"
 	}
 
@@ -244,38 +309,59 @@ if [ "$(ismpx)" = yes ] ; then
 	alias ckermit=_ckermit
 	function _ckermit
 	{
-		trap "trap 0 1 2 3 15; mkmenu -; myxban -c" 0 1 2 3 15
-		myxban -c "C-Kermit"
-		myxsize -s
+		if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
+			trap "trap 0 1 2 3 15; mkmenu -; setban" 0 1 2 3 15
+			myxsize -s
+		else
+			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+		fi
+		WBANNER="C-Kermit $*"
+		setban
 		$LOCAL/bin/ckermit "$@"
 	}
 
-	unalias rlogin
-	alias rlogin=_rlogin
-	function _rlogin
-	{
-		trap "trap 0 1 2 3 15; mkmenu -; myxban -c" 0 1 2 3 15
-		myxban -c "rlogin $*"
-		/usr/ucb/rlogin "$@"
-	}
+	if expr "$(type rlogin)" : '.* is .*/rlogin$' >/dev/null 2>&1 ; then
+		RLOGIN="$(expr "$(type rlogin)" : '^.*/\([^/]*\)$')"; export RLOGIN
+		unalias rlogin
+		alias rlogin=_rlogin
+		function _rlogin
+		{
+			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			WBANNER="rlogin $*"
+			setban
+			$RLOGIN "$@"
+		}
+	fi
 
-	unalias telnet
-	alias telnet=_telnet
-	function _telnet
-	{
-		trap "trap 0 1 2 3 15; mkmenu -; myxban -c" 0 1 2 3 15
-		myxban -c "telnet $*"
-		/usr/ucb/telnet "$@"
-	}
+	if expr "$(type telnet)" : '.* is .*/telnet$' >/dev/null 2>&1 ; then
+		TELNET="$(expr "$(type telnet)" : '^.*/\([^/]*\)$')" ; export TELNET
+		unalias telnet
+		alias telnet=_telnet
+		function _telnet
+		{
+			if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
+				trap "trap 0 1 2 3 15; mkmenu -; setban" 0 1 2 3 15
+				myxsize -s
+			else
+				trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			fi
+			WBANNER="telnet $*"
+			setban
+			$TELNET "$@"
+		}
+	fi
 
-	unalias mushC
-	alias mushC=_mushC
-	function _mushC
-	{
-		trap "trap 0 1 2 3 15; mkmenu -; myxban -c" 0 1 2 3 15
-		myxban -c "MUSH $*"
-		mush -C "$@"
-	}
+	if $HAVEMUSH ; then
+		unalias mushC
+		alias mushC=_mushC
+		function _mushC
+		{
+			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			WBANNER="MUSH $*"
+			setban
+			mush -C "$@"
+		}
+	fi
 
 	unalias su
 	alias su=_su
@@ -292,8 +378,14 @@ if [ "$(ismpx)" = yes ] ; then
 	if [ -x $LOCAL/games/nethack ] ; then
 		function nethack
 		{
-			trap "trap 0 1 2 3 15; loadfont thin.9x14" 0 1 2 3 15
-			loadfont rogue.9x18
+			if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
+				trap "trap 0 1 2 3 15; loadfont thin.9x14; setban" 0 1 2 3 15
+				loadfont rogue.9x18
+			else
+				trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			fi
+			WBANNER="NetHack"
+			setban
 			$LOCAL/games/nethack
 		}
 	fi
@@ -302,126 +394,21 @@ if [ "$(ismpx)" = yes ] ; then
 	{
 		ps -ft $(tty | sed 's~/dev/xt~xt/~')
 	}
-	alias umenu="echo 'cat /usr/spool/news/out.going/*/batchlog' | mkmenu NewsChkBatch ; echo 'uustat -m' | mkmenu UUSTAT"
+
 	setban
 fi
 
-if [ "$TERM" = "xterm" ] ; then
-	if [ "$LEV" -eq 0 ] ; then
-		do_first_time
-	fi
-
-	function setban
-	{
-		eval TBANNER='"${XTBANNER:+$XTBANNER - }$PWD - $uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN"'
-		echo "\033]0;$TBANNER\007\c"
-		XTBANNER=""
-	}
-
-	alias clearban='XTBANNER=""; setban'
-
-	unalias cd
-	alias cd='_cd'
-	function _cd
-	{
-		\cd $*
-		setban 
-	}
-
-	unalias cu
-	alias cu=_cu
-	function _cu
-	{
-		trap "trap 0 1 2 3 15; clearban" 0 1 2 3 15
-		XTBANNER="cu $*"
-		setban
-		/usr/bin/cu "$@"
-	}
-
-	if [ "$VISUAL" = "emacsclient" -z "$DISPLAY" ] ; then
-		unalias emacs
-		alias emacs=_emacs
-		function _emacs
-		{
-			trap "trap 0 1 2 3 15; clearban" 0 1 2 3 15
-			XTBANNER="GNU Emacs @ $UUNAME"
-			setban
-			emacs "$@"
-		}
-	fi
-
-	unalias ckermit
-	alias ckermit=_ckermit
-	function _ckermit
-	{
-		trap "trap 0 1 2 3 15; clearban" 0 1 2 3 15
-		XTBANNER="C-Kermit $*"
-		setban
-		$LOCAL/bin/ckermit "$@"
-	}
-
-	unalias mushC
-	alias mushC=_mushC
-	function _mushC
-	{
-		trap "trap 0 1 2 3 15; clearban" 0 1 2 3 15
-		XTBANNER="MUSH $*"
-		setban
-		mush -C "$@"
-	}
-
-	unalias pnotes
-	alias pnotes=_pnotes
-	function _pnotes
-	{
-		trap "trap 0 1 2 3 15; clearban" 0 1 2 3 15
-		XTBANNER="PNotes $*"
-		setban
-		rm -f $HOME/.pn/.emacs_server
-		ln -f $HOME/.emacs_server $HOME/.pn
-		xpnerun pnotes "$@"
-	}
-
-	unalias rlogin
-	alias rlogin=_rlogin
-	function _rlogin
-	{
-		trap "trap 0 1 2 3 15; clearban" 0 1 2 3 15
-		XTBANNER="rlogin $*"
-		setban
-		/usr/ucb/rlogin "$@"
-	}
-
-	unalias su
-	alias su=_su
-	function _su
-	{
-		trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
-		if [ -x /usr/5bin/su ] ; then
-			/usr/5bin/su "$@"
-		else
-			/bin/su "$@"
-		fi
-	}
-
-	unalias telnet
-	alias telnet=_telnet
-	function _telnet
-	{
-		trap "trap 0 1 2 3 15; clearban" 0 1 2 3 15
-		XTBANNER="telnet $*"
-		setban
-		/usr/ucb/telnet "$@"
-	}
-
+# just X11 stuff ehre....
+#
+if [ "$TERM" = xterm ] ; then
 	function roterm
 	{
-		rsh -n "$1" "OPENWINHOME=/usr/openwin XFILESEARCHPATH=/usr/openwin/lib/%T/%N%S /usr/openwin/bin/xterm -ls -cn -rw -sb -si -sk -sl 1024 -vb -ut -display $UUNAME:0 -name rsh:$1"
+		rsh -n "$1" "OPENWINHOME=/usr/openwin XFILESEARCHPATH=/usr/openwin/lib/%T/%N%S /usr/openwin/bin/xterm -ls -cn -rw -sb -si -sk -sl 1024 -vb -ut -display $(hostname):0 -name rsh:$1"
 	}
 
 	function rxterm
 	{
-		rsh -n "$1" "/usr/bin/X11/xterm -ls -cn -rw -sb -si -sk -sl 1024 -vb -ut -display $UUNAME:0 -name rsh:$1"
+		rsh -n "$1" "/usr/bin/X11/xterm -ls -cn -rw -sb -si -sk -sl 1024 -vb -ut -display $(hostname):0 -name rsh:$1"
 	}
 
 #	alias xterm='/usr/bin/X11/xterm -cn -rw -sb -si -sk -sl 1024 -ut -fn 9x15 -fb 9x15bold -ls'
