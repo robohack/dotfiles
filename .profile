@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	21.3	99/12/28 23:04:44 (woods)"
+#ident	"@(#)HOME:.profile	21.4	00/02/13 10:16:52 (woods)"
 
 #
 # Assumptions that may cause breakage:
@@ -355,11 +355,11 @@ fi
 export MAILLOG
 
 HAVEPRINT=false ; export HAVEPRINT
-if expr "`type print`" : '^print is shell builtint$' >/dev/null 2>&1 ; then
+if expr "`type print`" : '^print is a shell builtin$' >/dev/null 2>&1 ; then
 	HAVEPRINT=true
 fi
 HAVEPRINTF=false ; export HAVEPRINTF
-if expr "`type printf`" : '^printf is shell builtint$' >/dev/null 2>&1 ; then
+if expr "`type printf`" : '^printf is a shell builtin$' >/dev/null 2>&1 ; then
 	HAVEPRINTF=true
 elif expr "`type printf`" : '.* is .*/printf$' >/dev/null 2>&1 ; then
 	HAVEPRINTF=true
