@@ -1,7 +1,7 @@
 #
 #	.shrc - per-shell startup stuff for /bin/sh
 #
-#ident	"@(#)HOME:.shrc	3.7	97/01/19 14:05:30 (woods)"
+#ident	"@(#)HOME:.shrc	3.8	97/01/19 16:48:27 (woods)"
 
 PATH="$PATH"
 export PATH
@@ -71,32 +71,11 @@ if [ "$id" -eq 0 ] ; then
 	fi
 	dirappend PATH /usr/lib/uucp /usr/lib
 	dirappend PATH $HOME/bin
-	case "$TERM" in
-	xterm)
-		PS1="]0;$TTYN:<$uid($LOGNAME)@$UUNAME>#$TTYN:<$LOGNAME@$UUNAME> # "
-		;;
-	*)
-		PS1="$TTYN:<$LOGNAME@$UUNAME> # "
-		;;
-	esac
+	PS1="$TTYN:<$LOGNAME@$UUNAME> # "
 elif [ "$uid" != "$LOGNAME" ] ; then
-	case "$TERM" in
-	xterm)
-		PS1="]0;$TTYN:<$uid($LOGNAME)@$UUNAME)>$TTYN:<$uid($LOGNAME)@$UUNAME)> $ "
-		;;
-	*)
-		PS1="$TTYN:<$uid($LOGNAME)@$UUNAME)> $ "
-		;;
-	esac
+	PS1="$TTYN:<$uid($LOGNAME)@$UUNAME)> $ "
 else
-	case "$TERM" in
-	xterm)
-		PS1="]0;$TTYN:<$LOGNAME@$UUNAME>$TTYN:<$LOGNAME@$UUNAME> $ "
-		;;
-	*)
-		PS1="$TTYN:<$LOGNAME@$UUNAME> $ "
-		;;
-	esac
+	PS1="$TTYN:<$LOGNAME@$UUNAME> $ "
 fi
 if type ismpx 2>&1 >/dev/null ; then
 	: might just be running layers
@@ -106,6 +85,64 @@ else
 	{
 		false
 	}
+fi
+
+if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
+	if [ "$LEV" -eq 0 ] ; then
+		do_first_time	# in xterms, we are a login shell, but not in layers
+	fi
+	MYXCLR_L="$(myxban -l)"
+	MYXCLR_C="$(myxban -c)"
+	MYXCLR_R="$(myxban -r)"
+	MYXCLR="${MYXCLR_L}${MYXCLR_C}${MYXCLR_R}"
+	MYXBAN_L='`pwd`'
+
+	alias clearban='print "${MYXCLR}\c"'
+
+	setban ()
+	{
+		clearban
+		eval myxban -l "\"$MYXBAN_L\""
+		myxban -c "${WBANNER}"
+		eval myxban -r "\"$MYXBAN_R\""
+	}
+
+# most versions of SysV sh always run builtins before functions
+#
+#	cd ()
+#	{
+#		chdir $*
+#		eval myxban -l "\"$MYXBAN_L\""
+#	}
+
+	setban
+fi
+
+if [ "$TERM" = "xterm" ] ; then
+	clearban ()
+	{
+		WBANNER=""
+		setban
+	}
+
+	setban ()
+	{
+		BANNERWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;'`
+		eval TBANNER='"${WBANNER:+$WBANNER | }${BANNERWD} | $uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN"'
+		echo "]0;$TBANNER\c"
+		WBANNER=""
+	}
+
+# most versions of SysV sh always run builtins before functions
+#
+#	cd ()
+#	{
+#		chdir $*
+#		BANNERWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;'`
+#		setban 
+#	}
+
+	setban
 fi
 
 if $ISSUN; then
