@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	21.5	00/05/26 09:59:40 (woods)"
+#ident	"@(#)HOME:.kshrc	21.6	01/10/17 11:53:17 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -100,17 +100,6 @@ function do_first_time
 	fi
 }
 
-# we don't need this, I don't think, since it is in .profile....
-#
-## we need to check this early, as otherwise we won't find ismpx below...
-##
-#if [ -d $LOCAL/dmdlayers/bin -a "$TERM" = "dmd" ] ; then
-#	DMD=$LOCAL/dmdlayers ; export DMD
-#	TOOLS=$DMD/local ; export TOOLS
-#	dirappend PATH $DMD/bin $TOOLS/bin
-#	dirprepend MANPATH $DMD/man $TOOLS/man
-#fi
-
 if type ismpx 2>&1 >/dev/null ; then
 	: might just be running layers
 else
@@ -132,18 +121,30 @@ else
 fi
 export LEV
 
-if [ "$LAYERSPID" -gt 0 -o "$TERM" = xterm ] ; then
-	if [ -z "$TTY" ] ; then
-		export TTY=$(tty)
-	fi
-	export TTYN=$(tty|sed 's;/dev/;;')
+if [ -z "$TTY" ] ; then
+	export TTY=$(tty)
 fi
+export TTYN=$(tty|sed 's|/dev/||')
 
 # UGLY, but it works
 #
-# WARNING: this sed expression breaks if there isn't a group-id for each gid
+# NOTE: there's a trick in here -- if there's no group-ID for your GID
+# then the last expression won't do anything.  However since we've
+# already pre-trimmed the extra "groups=..." stuff off the end the
+# only thing that'll be left is the original "gid=20" string, and
+# that'll have the same effect we want anyway.
 #
-eval "$(id|sed -e 's/^uid=\([0-9]*\)(\(..*\)) gid=[0-9]*(\([^) ]*\)).*$/id=\1 uid=\2 gid=\3/')"
+# That's why we call the variable which holds the primary group name
+# "gid" and not gname or group or whatever...
+#
+eval "$(id | sed -e 's/ groups=.*$//' \
+		 -e 's/uid=\([0-9]*\)(\(..*\)) /id=\1 uid=\2 /' \
+		 -e 's/gid=[0-9]*(\([^) ]*\)).*$/gid=\1/')"
+
+function krcmd
+{
+	kill -9 $(ps -axlc | awk '$1 == '${id}' && $3 == 1 && $13 == "rcmd" {print $2}')
+}
 
 if [ "$id" -eq 0 ] ; then
 	if [ -n "$HISTFILE" ] ; then
@@ -158,32 +159,33 @@ if [ "$id" -eq 0 ] ; then
 				-e 's/^\.://'	\
 				-e 's/:\.://'	\
 				-e 's/:\.$//')
+	# also get rid of the login user's ~/bin because it's usually first
+	LOGNAMEPATH=$(eval echo ~$LOGNAME/bin)
+	PATH=$(echo $PATH | sed -e "s|$LOGNAMEPATH:||")
 	# must have X11BIN before openwin if newer X on system....
 	dirappend PATH /usr/lbin /usr/ucb $X11BIN
 	if $ISSUN; then
-		PATH=$(echo $PATH | sed -e 's~^/bin:~~' -e 's~:/etc:~:~')
+		PATH=$(echo $PATH | sed -e 's|^/bin:||' -e 's|:/etc:|:|')
 		dirprepend PATH /usr/5bin
 		dirappend PATH /usr/openwin/bin
 	fi
 	if [ ! -d /usr/sbin ] ; then
-		dirprepend PATH /usr/etc
+		dirprepend PATH /usr/etc	# only old BSDs
 	fi
 	if [ ! -d /sbin -a ! -d /usr/etc ] ; then
-		dirprepend PATH /etc
+		dirprepend PATH /etc		# only really old systems...
 	fi
 	dirprepend PATH /sbin /usr/sbin
-	if [ -n "$LOCAL" ] ; then
-		dirappend PATH $LOCAL/sbin $LOCAL/bin
-		if [ ! -d $LOCAL/sbin ] ; then
-			dirappend PATH $LOCAL/etc
-		fi
-	fi
-	if [ -n "$GNU" ] ; then
-		dirappend PATH $GNU/sbin $GNU/bin
-		if [ ! -d $GNU/sbin ] ; then
-			dirappend PATH $GNU/etc
-		fi
-	fi
+	dirappend PATH /usr/libexec/uucp /usr/lib/uucp /usr/lib
+	# we need to re-order the next paths so first we remove them
+	PATH=$(echo $PATH | sed -e "s|$CONTRIB/bin:||"	\
+				-e "s|$CONTRIB/sbin:||"	\
+				-e "s|$PKG/bin:||"	\
+				-e "s|$PKG/sbin:||"	\
+				-e "s|$LOCAL/bin:||"	\
+				-e "s|$LOCAL/sbin:||"	\
+				-e "s|$GNU/bin:||"	\
+				-e "s|$GNU/sbin:||" )
 	if [ -n "$CONTRIB" ] ; then
 		dirappend PATH $CONTRIB/sbin $CONTRIB/bin
 		if [ ! -d $CONTRIB/sbin ] ; then
@@ -196,17 +198,31 @@ if [ "$id" -eq 0 ] ; then
 			dirappend PATH $PKG/etc
 		fi
 	fi
-	dirappend PATH /usr/lib/uucp /usr/lib
+	if [ -n "$LOCAL" ] ; then
+		dirappend PATH $LOCAL/sbin $LOCAL/bin
+		if [ ! -d $LOCAL/sbin ] ; then
+			dirappend PATH $LOCAL/etc
+		fi
+	fi
+	if [ -n "$GNU" ] ; then
+		dirappend PATH $GNU/sbin $GNU/bin
+		if [ ! -d $GNU/sbin ] ; then
+			dirappend PATH $GNU/etc
+		fi
+	fi
 	dirappend PATH $HOME/bin
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		MYXBAN_R='$uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN'
-		PS1='[!] # '
 		dirappend PATH $DMD/bin $DMDSGS/bin/3b5 $DMD/local/bin
-	elif [ "$TERM" = "xterm" ] ; then
-		PS1='[!] # '
-	else
-		PS1='$TTYN:$LOGNAME@$UUNAME[$LEV.!] ${PWD#$HOME} # '
 	fi
+	case "$TERM" in
+	xterm* | dmd-myx)
+		PS1='[!] # '
+		;;
+	*)
+		PS1='$TTYN:$LOGNAME@$UUNAME[$LEV.!] ${PWD#$HOME} # '
+		;;
+	esac
 	MAILPATH=${MAILDIR}/${LOGNAME}:${MAILDOR}/root:${MAILDIR}/uucp:${MAILDIR}/usenet
 	if [ "$VISUAL" = "emacsclient" ] ; then
 		export VISUAL="emacs -nw"
@@ -214,30 +230,43 @@ if [ "$id" -eq 0 ] ; then
 	if [ "$EDITOR" = "emacsclient" ] ; then
 		export EDITOR="emacs -nw"
 	fi
-	alias krcmd="kill -9 \$(ps -axc | awk '\$5 == \"rcmd\" {print \$1}')"
+	function krcmd
+	{
+		# WARNING: this version kills everyone's rcmd procs!
+		kill -9 $(ps -axlc | awk '$3 == 1 && $13 == "rcmd" {print $2}')
+	}
+	# I don't know if this is right, or not, but let's try for now...
+	cd
 elif [ "$uid" != "$LOGNAME" ] ; then
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		MYXBAN_R='$uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN'
 		PS1='[!] $ '
-	elif [ "$TERM" = "xterm" ] ; then
-		PS1='[!] $ '
-	else
-		PS1='$TTYN:$uid($LOGNAME)@$UUNAME)[$LEV.!] ${PWD#$HOME} $ '
 	fi
-	alias krcmd="kill -9 \$(ps -xc | awk '\$5 == \"rcmd\" {print \$1}')"
+	case "$TERM" in
+	xterm* | dmd-myx)
+		PS1='[!] $ '
+		;;
+	*)
+		PS1='$TTYN:$uid($LOGNAME)@$UUNAME)[$LEV.!] ${PWD#$HOME} $ '
+		;;
+	esac
 else
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		MYXBAN_R='$LOGNAME{$gid}@$UUNAME[$LEV]:$TTYN'
 		PS1='[!] $ '
-	elif [ "$TERM" = "xterm" ] ; then
-		PS1='[!] $ '
-	else
-		PS1='$TTYN:$LOGNAME@$UUNAME[$LEV.!] ${PWD#$HOME} $ '
 	fi
-	alias krcmd="kill -9 \$(ps -xc | awk '\$5 == \"rcmd\" {print \$1}')"
+	case "$TERM" in
+	xterm* | dmd-myx)
+		PS1='[!] $ '
+		;;
+	*)
+		PS1='$TTYN:$LOGNAME@$UUNAME[$LEV.!] ${PWD#$HOME} $ '
+		;;
+	esac
 fi
 
 if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
+
 	if [ "$LEV" -eq 0 ] ; then
 		do_first_time	# in xterms, we are a login shell, but not in layers
 	fi
@@ -267,12 +296,13 @@ if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 
 	function psm
 	{
-		ps -ft $(tty | sed 's~/dev/xt~xt/~')
+		ps -ft $(tty | sed 's|/dev/xt|xt/|')
 	}
 
 fi
 
-if [ "$TERM" = "xterm" ] ; then
+case "$TERM" in
+xterm*)
 	alias clearban='WBANNER=""; setban'
 
 	function setban
@@ -289,9 +319,10 @@ if [ "$TERM" = "xterm" ] ; then
 		\cd $*
 		setban 
 	}
-fi
+	;;
+esac
 
-if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
+if type setban > /dev/null ; then
 	if [ "$VISUAL" = "emacsclient" -a -z "$DISPLAY" ] ; then
 		unalias emacs
 		alias emacs=_emacs
@@ -472,21 +503,31 @@ fi
 
 # just X11 stuff here....
 #
-if [ "$TERM" = xterm ] ; then
+case "$TERM" in
+xterm*)
 	function roterm
 	{
-		$RSH -n "$1" "OPENWINHOME=/usr/openwin XFILESEARCHPATH=/usr/openwin/lib/%T/%N%S /usr/openwin/demo/xterm -cn -rw -sb -si -sk -sl 1024 -ls -display $DISPLAY:0 -T rsh:$1"
+		rhost=$1
+		shift
+		rsh -n "$rhost" "OPENWINHOME=/usr/openwin XFILESEARCHPATH=/usr/openwin/lib/%T/%N%S /usr/openwin/demo/xterm -cn -rw -sb -si -sk -sl 1024 -ls -display $DISPLAY -T rsh:$rhost $*" &
+	}
+	function loterm
+	{
+		OPENWINHOME=/usr/openwin XFILESEARCHPATH=/usr/openwin/lib/%T/%N%S /usr/openwin/demo/xterm -cn -rw -sb -si -sk -sl 1024 -ls -T $HOSTNAME $* &
 	}
 	function rxterm
 	{
-		$RSH -n "$1" "$X11BIN/xterm -ziconbeep 1 -cn -rw -sb -si -sk -sl 2048 -ls -display $DISPLAY:0 -T rsh:$1" &
+		rhost=$1
+		shift
+		rsh -n "$rhost" "$X11BIN/xterm -ziconbeep 1 -cn -rw -sb -si -sk -sl 2048 -ls -display $DISPLAY -T rsh:$rhost $*" &
 	}
 	function lxterm
 	{
 		$X11BIN/xterm -ziconbeep 1 -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME $* &
 	}
 	setban
-fi
+	;;
+esac
 
 export SECONDS="$(date '+3600*%H+60*%M+%S')"
 typeset -Z2 _h _m
@@ -535,6 +576,7 @@ fi
 
 # NOTE: never forget this -- it's the most incredible sed script!!!!
 alias blstrip='sed "/./,/^$/!d"'
+# XXX write one to collapse back-slash continued lines too!
 alias ds='$PAGER'
 alias e='${VISUAL:-$EDITOR}'
 alias ealias='e $ENV'
@@ -554,11 +596,14 @@ alias lsa='/bin/ls -a'
 alias logout='exit 0'
 alias nosgr='echo '
 alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok'
-alias maillog='$PAGER -e -p ": \[[0-9]*\] remote [A-Z ]*:" +G $MAILLOG'
+alias maillog='$PAGER -en -p ": \[[0-9]*\] remote [A-Z ]*:" +G $MAILLOG'
+alias rblcount='fgrep " matched " $MAILLOG | cut -d " " -f 13 | cut -d . -f 5- | sort | uniq -c'
+alias rblstats='fgrep " matched " $MAILLOG | cut -d " " -f 10- | sort | uniq -c | sort -n | ds'
 alias realias='let LEV=$LEV-1;exec ksh'		# useless?
 alias rstty='stty $SANE'
 alias scvs='export CVSROOT="$(cat CVS/Root)"; print "CVSROOT=$CVSROOT"'
 alias wcvs='print $CVSROOT'
+alias zds='zmore'
 
 # these are only useful on SysV
 #alias fw='who -HurTbA'
@@ -602,6 +647,13 @@ else
 	alias __C=''		# right arrow
 	alias __D=''		# left arrow
 	alias __H=''		# beginning of line, HOME key
+fi
+
+if [ -n "$KSH_VERSION" ] ; then
+	#
+	# this is probably pdksh
+	#
+	set -o braceexpand
 fi
 
 #
