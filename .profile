@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	19.3	98/03/04 21:59:38 (woods)"
+#ident	"@(#)HOME:.profile	19.4	98/04/26 16:04:05 (woods)"
 
 #
 # Assumptions:
@@ -244,6 +244,23 @@ fi
 
 dirappend PATH /usr/ccs/bin $X11BIN $LOCAL/bin $GNU/bin $CONTRIB/bin $PKG/bin /usr/ucb /usr/bsd
 dirappend PATH /usr/games $LOCAL/games $OPT/games/bin
+
+# CDPATH isn't supported in all shells, but it won't hurt....
+#
+# make sure these directories are fixed in even if they are not
+# present at login time.
+#
+export CDPATH=":$HOME:$WORKPATH:$HOME/src:$HOME/src/lib:$HOME/lib"
+
+dirappend CDPATH /usr/src /usr/src/lib /usr/src/cmd /usr/src/add-on /usr/src/uts
+dirappend CDPATH /usr/src/bin /usr/src/distrib /usr/src/domestic /usr/src/etc
+dirappend CDPATH /usr/src/games /usr/src/gnu /usr/src/include /usr/src/lib
+dirappend CDPATH /usr/src/libexec /usr/src/regress /usr/src/sbin /usr/src/share
+dirappend CDPATH /usr/src/sys /usr/src/usr.bin /usr/src/usr.sbin
+dirappend CDPATH /usr/src/local /usr/src/local/lib /usr/src/local/cmd
+dirappend CDPATH $LOCAL/src $LOCAL/src/lib $LOCAL/src/gnu $LOCAL/src/bsd
+dirappend CDPATH /usr/src/ucbcmd /usr/src/ucblib
+dirappend CDPATH $LOCAL $LOCAL/lib /opt /usr/lib /usr/spool / /usr
 
 OMANPATH="$MANPATH" ; export OMANPATH
 
