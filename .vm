@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	3.2	94/04/11 10:35:56 (woods)"
+;;;#ident	"@(#)HOME:.vm	3.3	94/05/04 16:52:05 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -15,6 +15,9 @@
 (setq mail-default-reply-to (concat (user-login-name) "@" (vm-fqdn)
 				    " (" (user-full-name) ")"))
 (setq mail-header-separator ".")	; as close to nothing as possible
+
+(add-hook 'mail-mode-hook
+	  (function (lambda () (local-set-key "\C-ci" 'ispell-message))))
 
 (defvar mail-default-organization "~/.organization"
   "The default name of your organization (or filename containing a string
@@ -170,7 +173,8 @@ ORGANIZATION.  If not nil, takes precedence over the file
      vm-summary-show-threads nil
      vm-summary-subject-no-newlines t
      vm-summary-thread-indent-level 2
-     vm-summary-uninteresting-senders nil
+     vm-summary-uninteresting-senders (concat (user-login-name) "\\(@.*\\."
+					      vm-local-domain-name "\\)?")
      vm-summary-uninteresting-senders-arrow "To: "
      vm-tale-is-an-idiot nil
      vm-unforwarded-header-regexp "only-drop-this-header"
