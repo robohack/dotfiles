@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	22.1	01/10/17 12:09:46 (woods)"
+#ident	"@(#)HOME:.xinitrc	22.2	01/10/20 02:44:48 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -222,7 +222,7 @@ if [ -z "$ONX11SERVER" ] ; then
 			# this is a large, hi-res, display with an optical mouse....
 			xset m 9 5
 			# now start special programs we like for this scenario
-			$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x130-200+148 -hl grey90 &
+			$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x64-200+72 -hl grey90 &
 			$ONX11SERVER $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 -acmd '"/usr/X11/bin/auplay -audio '$AUDIOSERVER' -v 25 '$HOME'/lib/sounds/newmail"' &
 			$RSH -n proven.weird.com /usr/pkg/bin/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-0+275 -shortnames -header 0 -acmd '"/usr/pkg/bin/auplay -audio '$AUDIOSERVER' -v 25 '$HOME'/lib/sounds/newmail"' &
 			$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
@@ -328,7 +328,10 @@ else
 fi
 
 case $DISPLAY in
+
 very.weird.com:*)
+	$RSH -n proven.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x64-200+144 -hl grey90 &
+	$RSH -n starting-out.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x64-200+216 -hl grey90 &
 	xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
@@ -337,22 +340,20 @@ very.weird.com:*)
 	$RSH -n becoming.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	$RSH -n sometimes.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+533 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	;;
+
 xtremely.weird.com:*)
+	# start xv first -- it needs to be running before we try our tkined trick...
+	xv -owncm -iconic &
 	xearth -gamma 1.3 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
 	xload -geometry 190x60-0+233 -hl red &
 	xclock -geometry 190x30-0+196 -digital &
+	$RSH -n proven.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x60-200+233 -hl red &
 	if [ -x /usr/bin/X11/swisswatch ] ; then
 		swisswatch -name swissclock -geometry 190x190-0+0 &
 	else
 		xclock -geometry 190x190-0+0 &
 	fi
 	xterm -display $DISPLAY -geometry 80x42-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	xv -owncm -iconic &
-	echo "pausing while xv starts...."
-	sleep 5
-	$RSH -n proven.weird.com exec /usr/local/bin/tkined1.5.0 -display $DISPLAY -use $(xwininfo -name "xv 3.10a(PNG) <unregistered>" | awk '/xwininfo/ {print $4}') -geometry 1200x925+0-0 $HOME/tkined-3.tki &
-	$RSH -n proven.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x60-200+233 -hl red &
-##	$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/local/bin/netscape -install -display $DISPLAY -geometry 935x990+0+0 &
 	$RSH -n proven.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY /usr/pkg/bin/mozilla -display $DISPLAY -geometry 935x990+0+0 &
 
 	# first column....
@@ -371,21 +372,36 @@ xtremely.weird.com:*)
 	xterm -display $DISPLAY -geometry 80x24-0-410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Cn02 -T "Console-02 [BEST-UPS]" -e telnet tserv 2002 &
 	xterm -display $DISPLAY -geometry 80x24-0-205 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Cn04 -T "Console-04 [RAID-00 /work]" -e telnet tserv 2004 &
 	xterm -display $DISPLAY -geometry 80x24-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Cn05 -T "Console-05 [RAID-01 /cvs]" -e telnet tserv 2005 &
+
+	# start tkined last -- hoping xv above is running already
+	$RSH -n proven.weird.com exec /usr/local/bin/tkined1.5.0 -display $DISPLAY -use $(xwininfo -name "xv 3.10a(PNG) <unregistered>" | awk '/xwininfo/ {print $4}') -geometry 1200x925+0-0 $HOME/tkined-3.tki &
 	;;
+
 worm.planix.com:*)
 	xearth -gamma 1.3 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
 	xload -geometry 190x60-0+233 -hl red &
 	xclock -geometry 190x30-0+196 -digital &
-	if [ -x /usr/bin/X11/swisswatch ] ; then
+	if [ -x $X11BIN/swisswatch ] ; then
 		swisswatch -name swissclock -geometry 190x190-0+0 &
 	else
 		xclock -geometry 190x190-0+0 &
 	fi
 	xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	xterm -display $DISPLAY -geometry 80x42-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	netscape -install -display $DISPLAY -geometry 935x990+0+0 &
+	mozilla -display $DISPLAY -geometry 935x990+0+0 &
 	;;
 *)
+	if [ $SCREENDEPTH -eq 1 ] ; then
+		xload -geometry 100x50-0+150 -hl grey90 &
+	else
+		xload -geometry 100x50-0+150 -hl red &
+	fi
+	xclock -geometry 100x30-0+110 -digital &
+	if [ -x $X11BIN/swisswatch ] ; then
+		swisswatch -name swissclock -geometry 100x100-0+0 &
+	else
+		xclock -geometry 100x100-0+0 &
+	fi
 	xterm -display $DISPLAY -geometry 80x42-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	;;
 esac
