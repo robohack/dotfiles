@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	22.1	01/10/17 12:09:45 (woods)"
+;;;#ident	"@(#)HOME:.vm	22.2	01/11/04 13:40:55 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -1199,7 +1199,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;; else
 ;; 	rsh $NETSCAPEHOST $NETSCAPEPATH -display $DISPLAY 
 ;; fi
-      vm-netscape-program "mozilla"
+      vm-netscape-program "netscape"
       vm-netscape-program-switches (list "-display" my-vm-netscape-display)
 ;;;;      vm-netscape-program "netscape"
 ;;;;      vm-netscape-program-switches (list "-display" my-vm-netscape-display "-install")
