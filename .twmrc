@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.19	96/05/28 11:48:35 (woods)"
+#ident	"@(#)HOME:.twmrc	2.20	96/05/28 15:08:03 (woods)"
 #
 
 AutoRelativeResize
@@ -325,6 +325,26 @@ function "start-quicksilver-rlogin" {
 
 function "start-cyberia-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin cyberia.infoshare.net &"
+}
+
+#	for rlogin-hmpg menu
+#
+function "start-box-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin 199.246.214.50 &"
+}
+
+function "start-box-r-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin 199.246.214.17 &"
+}
+
+#	for slogin-hmpg menu
+#
+function "start-box-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin 199.246.214.50 &"
+}
+
+function "start-box-r-slogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e $LOCAL/bin/slogin 199.246.214.17 &"
 }
 
 #	for rlogin-aci menu
@@ -871,6 +891,7 @@ menu "rlogin"
 	"Rlogin's at Weird.com..."	f.menu "rlogin-weird"
 	"Rlogin's at Cyclic.com..."	f.menu "rlogin-cyclic"
 	"Rlogin's at Planix.com..."	f.menu "rlogin-planix"
+	"Rlogin's at HmPg.com..."	f.menu "rlogin-hmpg"
 	"Rlogin's at Infoshare.net..."	f.menu "rlogin-infoshare"
 	"Rlogin's at ACI.on.ca..."	f.menu "rlogin-aci"
 	"Rlogin's at Log.on.ca..."	f.menu "rlogin-logon"
@@ -889,8 +910,9 @@ menu "rlogin"
 menu "slogin"
 {
 	"Slogin's Everywhere"		f.title
-	"Rlogin's at Weird.com..."	f.menu "slogin-weird"
-	"Rlogin's at Planix.com..."	f.menu "slogin-planix"
+	"Slogin's at Weird.com..."	f.menu "slogin-weird"
+	"Slogin's at Planix.com..."	f.menu "slogin-planix"
+	"Slogin's at HmPg.com..."	f.menu "slogin-hmpg"
 }
 
 menu "rlogin-weird"
