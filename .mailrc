@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	21.3	00/02/06 09:39:39 (woods)"
+# ident	"@(#)HOME:.mailrc	21.4	00/02/08 14:16:05 (woods)"
 
 set keep
 set keepsave
@@ -39,6 +39,7 @@ alias netbsd-bugs	"netbsd-bugs@NetBSD.ORG (NetBSD Bugs and PR posting List)"
 alias netbsd-gnats	"gnats-bugs@gnats.netbsd.org (NetBSD GNATS submissions and followups)"
 alias netbsd-current	"current-users@NetBSD.ORG (NetBSD-current Discussion List)"
 alias netbsd-help	"netbsd-help@NetBSD.ORG (NetBSD Questions List)"
+alias netbsd-ports	"netbsd-ports@NetBSD.ORG (NetBSD Ports Discussion List)"
 alias netbsd-source-changes	"source-changes@NetBSD.ORG (NetBSD CVS Logs)"
 alias netbsd-users	"netbsd-users@NetBSD.ORG (NetBSD User's Discussion List)"
 alias port-alpha	"port-alpha@NetBSD.ORG (NetBSD/alpha Discussion List)"
