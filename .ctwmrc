@@ -1,7 +1,7 @@
 #-*-m4-*-
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	26.4	03/06/23 11:52:55 (woods)"
+#ident	"@(#)HOME:.ctwmrc	26.5	03/07/25 18:20:58 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -315,7 +315,7 @@ Cursors {
 # geometry in pixels, as given here.
 #
 ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [WorkSpaceManagerGeometry	"170x285-330+0" 2],
- [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [WorkSpaceManagerGeometry	"130x235-112+0" 2],
+ [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [WorkSpaceManagerGeometry	"115x235-202+0" 2],
   [WorkSpaceManagerGeometry	"130x235-188+0" 2]
  )]
 )
