@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	18.3	97/01/20 22:25:02 (woods)"
+#ident	"@(#)HOME:.twmrc	18.4	97/01/22 15:48:21 (woods)"
 #
 
 AutoRelativeResize
@@ -1174,6 +1174,7 @@ menu "quickies"
 	"Move"			f.move
 	"Resize"		f.resize
 	"Lower"			f.lower
+	"Raise"			f.raise
 	"Iconify"		f.iconify
 	""			f.nop
 	"WinDelete"		f.delete
