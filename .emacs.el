@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	18.9	97/05/18 14:06:12 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	18.10	97/05/22 11:36:46 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -155,7 +155,7 @@ directory in the list PATHLIST, otherwise nil."
 	 window-system)
     (progn
       (require 'func-menu)
-      (define-key global-map [S-down-mouse-1]
+      (define-key global-map [S-down-mouse-2]
 	'function-menu)))
 
 (if (elisp-file-in-loadpath-p "shwtmpbuf")
