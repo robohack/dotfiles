@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	24.4	02/10/28 16:31:55 (woods)"
+#ident	"@(#)HOME:.kshrc	24.5	02/11/25 15:17:10 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -768,6 +768,11 @@ function typeof
 	# should expand to allow '-l{lib}'
 	egrep -i "$1" $LLIBDIR/llib-lc $LLIBDIR/llib-lm $LLIBDIR/llib-lcurses
 	unset LLIBDIR
+}
+
+function zhead
+{
+	zcat $* | head
 }
 
 if [ -f /usr/adm/lastlog.ut -a -x /usr/lib/acct/fwtmp ] ; then
