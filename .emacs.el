@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.33	96/11/26 18:35:20 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.34	96/11/26 20:27:01 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1205,21 +1205,45 @@ it could check Status: headers for O, or Forward to in mailboxes."
 
 ;;; first off, we do some fancy stuff to make C-h work "properly," but still
 ;;; have good access to the help functions!
-;;;
-;;; NOTE: this *should* work by simply reading termio for current erase char.
-;;;
+;;
+;; NOTE: this *should* work by simply reading termio for current erase char.
+;; There is a proposal afoot do do just this, but it has a twisted agenda.
+;;
+;; Remember to call override-local-key-settings in the appropriate hooks to fix
+;; up modes which violate global user preferences....
+;;
 (global-set-key "\C-h" 'delete-backward-char)
 (global-set-key "\C-?" 'delete-char)
 (global-set-key "\e\C-h" 'backward-kill-word)
 (global-set-key "\e\C-?" 'kill-word)
-(global-set-key "\e?" 'help-command)	; smart enough to set itself up
-(global-set-key "\e?F" 'view-emacs-FAQ)	; well, almost....
 
-;; I *USUALLY* EXPECT THE BACKSPACE KEY TO GENERATE AN ASCII BACKSPACE!
-(define-key function-key-map [backspace] [8])
+
+;;; OK, now we diddle with help....
+;;
+;; Oddly, the help interface in emacs is extremely scatter-brained, with
+;; several slightly different ways of doing the same thing.  This is probably
+;; due to the fact that several different programmers have implemented various
+;; bits and pieces of the help systems.  See help.el and help-macro.el, but try
+;; not to tear your hair out when you find out help-event-list in 19.34 is
+;; essentially bogus, since it is simply an extension to a "standard" list.
+;;
+;; Remember to call override-local-key-settings in the appropriate hooks to fix
+;; up modes which violate global user preferences....
+;;
+(global-set-key "\e?" 'help-command)	; this is the first step
+(global-set-key "\e?F" 'view-emacs-FAQ)	; in 19.34 it needs more help...
+(setq help-char ?\M-?)			; this should "fix" the rest.
+
+;;; I USUALLY EXPECT THE BACKSPACE KEY TO WORK LIKE AN ASCII BACKSPACE!
+;;
+;; For some entirely un-fathomable reason the default function bindings make
+;; the 'backspace' and 'delete' keys synonymous!
+;;
 (define-key function-key-map [backspace] [?\C-h])
-(define-key function-key-map [C-backspace] [?\C-h])
 (define-key function-key-map [M-backspace] [?\M-\C-h])
+;;(define-key function-key-map [C-backspace] [?\C-h]) ; sometimes *is* DEL....
+
+;;; OK, that's the end of the stuff to fix GNU Emacs' C-h brain damage.
 
 ;;; for fingers that forget and terminals that are brain-dead....
 (global-set-key "\C-\\" 'isearch-forward)
