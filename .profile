@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	21.6	00/05/26 10:02:01 (woods)"
+#ident	"@(#)HOME:.profile	21.7	01/10/17 11:51:26 (woods)"
 
 #
 # Assumptions that may cause breakage:
@@ -270,6 +270,7 @@ dirappend CDPATH /usr/src/libexec /usr/src/regress /usr/src/sbin /usr/src/share
 dirappend CDPATH /usr/src/sys /usr/src/usr.bin /usr/src/usr.sbin
 dirappend CDPATH /usr/src/local /usr/src/local/lib /usr/src/local/cmd
 dirappend CDPATH /usr/src/gnu/usr.bin /usr/src/gnu/lib /usr/src/gnu/libexec
+dirappend CDPATH /usr/xsrc/xc/programs
 dirappend CDPATH /usr/pkgsrc
 dirappend CDPATH /usr/src/ucbcmd /usr/src/ucblib
 dirappend CDPATH $LOCAL/src $LOCAL/src/lib $LOCAL/src/gnu $LOCAL/src/bsd
@@ -338,6 +339,11 @@ fi
 
 # turn this off by default, turn it on by hand?
 mesg n
+
+case "$TERM" in
+xterm*)
+	;;
+esac
 
 if [ -r /var/log/smail/logfile ] ; then
 	MAILLOG="/var/log/smail/logfile"
@@ -555,14 +561,18 @@ emacs | "" )
 	fi
 	if expr "`type emacs`" : '.* is .*/emacs$' >/dev/null 2>&1 ; then
 		VISUAL="`type emacs`"
-		if [ -n "$DISPLAY" -o "$TERM" = "xterm" ] ; then
-			if [ -x /usr/bin/id ] ; then
-				eval `id | sed 's/[^a-z0-9=].*//'`
-				# TODO: maybe not?
-				if [ "${uid:=0}" -ne 0 ] ; then
-					VISUAL="`type emacsclient`"
+		if [ -n "$DISPLAY" ] ; then
+			case "$TERM" in
+			xterm*)
+				if [ -x /usr/bin/id ] ; then
+					eval `id | sed 's/[^a-z0-9=].*//'`
+					# TODO: maybe not?
+					if [ "${uid:=0}" -ne 0 ] ; then
+						VISUAL="`type emacsclient`"
+					fi
 				fi
-			fi
+			;;
+			esac
 		fi
 	elif expr "`type jove`" : '.* is .*/jove$' >/dev/null 2>&1 ; then
 		VISUAL="`type jove`"
@@ -706,7 +716,7 @@ if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 
 		# try setting up for X11 if possible....
 		case "$TERM" in
-		xterm|sun|pc3|ibmpc3)
+		xterm*|sun|pc3|ibmpc3)
 			# users will have to set their own $DISPLAY....
 			dirappend PATH $X11PATH/bin
 			dirappend MANPATH $X11PATH/man
