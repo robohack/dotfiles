@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.29	96/09/07 21:57:25 (woods)"
+#ident	"@(#)HOME:.twmrc	2.30	96/09/07 23:29:52 (woods)"
 #
 
 AutoRelativeResize
@@ -691,11 +691,14 @@ menu "quickies"
 	"Move"			f.move
 	"Resize"		f.resize
 	""			f.nop
+	"Xterm"			f.function "start-local-xterm"
+	"Xtalk"			!"xtalk &"
+	""			f.nop
 	"Screen Refresh"	f.refresh
 	"Window Refresh"	f.winrefresh
 	"Save"			f.saveyourself
 	""			f.nop
-	"xlock"			!"xlock -mode flame &"
+	"Xlock"			!"xlock -mode flame &"
 	""			f.nop
 	"Exit..."		f.menu "exit"
 }
@@ -904,6 +907,7 @@ menu "miscapps"
 	"xmail"				!"xmail &"
 	"xmh"				!"xmh &"
 	"xman"				!"xman &"
+	"xtalk"				!"xtalk &"
 	"xcalc"				!"xcalc &"
 	"xcalendar"			!"xcalendar &"
 	"xalarm"			!"xalarm &"
