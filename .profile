@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, bash, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	21.4	00/02/13 10:16:52 (woods)"
+#ident	"@(#)HOME:.profile	21.5	00/03/23 11:43:02 (woods)"
 
 #
 # Assumptions that may cause breakage:
@@ -364,18 +364,26 @@ if expr "`type printf`" : '^printf is a shell builtin$' >/dev/null 2>&1 ; then
 elif expr "`type printf`" : '.* is .*/printf$' >/dev/null 2>&1 ; then
 	HAVEPRINTF=true
 fi
+# always use ``$echo'' if any of the other variables are used...
+#	$nl - print a newline (always required at end of line if desired)
+#	$n - option to turn off final newline
+#	$c - escape sequence to turn off final newline
+# usage for a prompt is:
+#	$echo $n "prompt: $c"
+# and for a normal line
+#	$echo "message$nl"
+#
 if $HAVEPRINT ; then
-	# use ``$echo'' if any of the other variables...
 	echo=print
 	nl='\n'
-	n=''
-	c='\c'
+	n='-n'
+	# XXX in theory '\c' is equivalent of '-n' in most shells
+	c=''
 elif $HAVEPRINTF ; then
-	# use ``$echo'' if any of the other variables...
 	echo=printf
 	nl='\n'
 	n=''
-	c='\c'
+	c=''
 else
 	echo=echo
 	(echo "hi there\c" ; echo " ") >$HOME/echotmp
@@ -664,7 +672,7 @@ if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 					TERM="$ttytype"
 				else
 					echo "Sorry, I don't know that terminal type."
-					$echo "Use 'dumb' if you are stuck.${nl}"
+					echo "Use 'dumb' if you are stuck."
 				fi
 			done
 			unset newttytype
@@ -888,7 +896,8 @@ elif [ -x $LOCAL/games/fortune ] ; then
 	$LOCAL/games/fortune
 fi
 if [ -r calendar -o -r .month ] ; then
-	$echo "${nl}Today's Events:"
+	echo ""
+	echo "Today's Events:"
 	if $HAVEMONTH && [ -r .month ] ; then
 		month -B
 		#		monthd -i5
@@ -900,7 +909,8 @@ fi
 if [ -d $HOME/notes ] ; then
 	(
 		cd $HOME/notes
-		echo "${nl}You have notes on:"
+		echo ""
+		echo "You have notes on:"
 		ls -C
 	)
 fi
