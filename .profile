@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	9.1	95/07/01 10:44:20 (woods)"
+#ident	"@(#)HOME:.profile	9.2	95/07/01 16:38:04 (woods)"
 
 #
 # Assumptions:
@@ -39,34 +39,36 @@ fi
 
 if [ -z "$UUNAME" ] ; then
 	if expr "`type uuname`" : '.* is .*/uuname$' >/dev/null 2>&1 ; then
-		UUNAME="`uuname -l`" ; export UUNAME
+		UUNAME="`uuname -l`"
 	else
-		UUNAME="`hostname`" ; export UUNAME
+		UUNAME="`hostname`"
 	fi
+	export UUNAME
 fi
 
 if [ -z "$DOMAINNAME" ] ; then
 	case "$UUNAME" in
 	toile | oldweb )		# 386/ix machines
-		DOMAINNAME=".web.apc.org" ; export DOMAINNAME
+		DOMAINNAME=".web.apc.org"
 		;;
 	* )
 		if expr "`type domainname`" : '.* is .*/domainname$' >/dev/null 2>&1 ; then
-			DOMAINNAME="`domainname`" ; export DOMAINNAME
+			DOMAINNAME="`domainname`"
 		else
 			# these cases for machines without domainname....
 			#
 			case "$UUNAME" in
 			weirdo )
-				DOMAINNAME=".weird.com" ; export DOMAINNAME
+				DOMAINNAME=".weird.com"
 				;;
 			* )
-				DOMAINNAME=".UUCP" ; export DOMAINNAME
+				DOMAINNAME=".UUCP"
 				;;
 			esac
 		fi
 		;;
 	esac
+	export DOMAINNAME
 fi
 
 if [ -z "$TTY" ] ; then
@@ -125,34 +127,37 @@ esac
 
 if [ -z "$LOCAL" ] ; then
 	if [ -d /local -a -d /local/bin ] ; then
-		LOCAL="/local" ; export LOCAL
+		LOCAL="/local"
 	elif [ -d /usr/local -a -d /usr/local/bin ] ; then
-		LOCAL="/usr/local" ; export LOCAL
+		LOCAL="/usr/local"
 	else
-		LOCAL="/NO-local-FOUND" ; export LOCAL
+		LOCAL="/NO-local-FOUND"
 	fi
+	export LOCAL
 fi
 
 if [ -z "$CONTRIB" ] ; then
 	if [ -d /contrib -a -d /contrib/bin ] ; then
-		CONTRIB="/contrib" ; export CONTRIB
+		CONTRIB="/contrib"
 	elif [ -d /usr/contrib -a -d /usr/contrib/bin ] ; then
-		CONTRIB="/usr/contrib" ; export CONTRIB
+		CONTRIB="/usr/contrib"
 	else
-		CONTRIB="/NO-contrib-FOUND" ; export CONTRIB
+		CONTRIB="/NO-contrib-FOUND"
 	fi
+	export CONTRIB
 fi
 
 if [ -z "$GNU" ] ; then
 	if [ -d /local/gnu -a -d /local/gnu/bin ] ; then
-		GNU="/local/gnu" ; export GNU
+		GNU="/local/gnu"
 	elif [ -d /usr/gnu -a -d /usr/gnu/bin ] ; then
-		GNU="/usr/gnu" ; export GNU
+		GNU="/usr/gnu"
 	elif [ -d /usr/local/gnu -a -d /usr/local/gnu/bin ] ; then
-		GNU="/usr/local/gnu" ; export GNU
+		GNU="/usr/local/gnu"
 	else
-		GNU="/NO-gnu-FOUND" ; export GNU
+		GNU="/NO-gnu-FOUND"
 	fi
+	export GNU
 fi
 
 # TODO: explore more options for this....  (xmkmf?)
@@ -160,29 +165,38 @@ fi
 #
 if [ -z "$X11PATH" ] ; then
 	if [ -d /local/X11R? ] ; then
-		X11PATH="`echo /local/X11R?`" ; export X11PATH
+		X11PATH="`echo /local/X11R?`"
 	elif [ -d /usr/X11R? ] ; then
-		X11PATH="`echo /usr/X11R?`" ; export X11PATH
+		X11PATH="`echo /usr/X11R?`"
 	elif [ -d /usr/X? ] ; then
-		X11PATH="`echo /usr/X11R?`" ; export X11PATH
+		X11PATH="`echo /usr/X11R?`"
 	elif [ -d /usr/local/X11R? ] ; then
-		X11PATH="`echo /usr/local/X11R?`" ; export X11PATH
+		X11PATH="`echo /usr/local/X11R?`"
 	else
-		X11PATH="/NO-X11-FOUND" ; export X11PATH
+		X11PATH="/NO-X11-FOUND"
 	fi
+	export X11PATH
+	# TODO: this is a best guess that might fail for remote hosts
+	if [ -d /usr/bin/X11 ] ; then
+		X11BIN=/usr/bin/X11
+	else
+		X11BIN=$X11PATH/bin
+	fi
+	export X11BIN
 fi
 
-dirappend PATH /usr/bin/X11 $LOCAL/bin $GNU/bin $CONTRIB/bin /usr/ucb
+dirappend PATH $X11BIN $LOCAL/bin $GNU/bin $CONTRIB/bin /usr/ucb /usr/openwin/demo
 dirappend PATH /usr/games $LOCAL/games
 
 # don't set MANPATH with 4.4BSD man....
 #
 if [ -z "$MANPATH" -a ! -r /etc/man.conf ] ; then
 	if [ -d /usr/share/man ] ; then
-		MANPATH="/usr/share/man" ; export MANPATH
+		MANPATH="/usr/share/man"
 	else
-		MANPATH="/usr/man" ; export MANPATH
+		MANPATH="/usr/man"
 	fi
+	export MANPATH
 fi
 OMANPATH="$MANPATH" ; export OMANPATH
 dirprepend MANPATH $LOCAL/share/man $GNU/man $CONTRIB/man $X11PATH/man
@@ -224,14 +238,15 @@ if [ "$HOME" != "/" ] ; then
 fi
 
 if [ -r /usr/spool/smail/log/logfile ] ; then
-	MAILLOG="/usr/spool/smail/log/logfile" ; export MAILLOG
+	MAILLOG="/usr/spool/smail/log/logfile"
 elif [ -r /var/spool/smail/log/logfile ] ; then
-	MAILLOG="/var/spool/smail/log/logfile" ; export MAILLOG
+	MAILLOG="/var/spool/smail/log/logfile"
 elif [ -r $LOCAL/lib/smail/logfile ] ; then
-	MAILLOG="$LOCAL/lib/smail/logfile" ; export MAILLOG
+	MAILLOG="$LOCAL/lib/smail/logfile"
 elif [ -r $LOCAL/lib/smail/mail.log ] ; then
-	MAILLOG="$LOCAL/lib/smail/mail.log" ; export MAILLOG
+	MAILLOG="$LOCAL/lib/smail/mail.log"
 fi
+export MAILLOG
 
 HAVEPRINTF=false ; export HAVEPRINTF
 if expr "`type printf`" : '.* is .*/printf$' >/dev/null 2>&1 ; then
