@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	7.3	95/02/02 17:03:51 (woods)"
+#ident	"@(#)HOME:.profile	7.4	95/02/14 11:17:36 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -182,6 +182,7 @@ fi
 if expr "`type mktable`" : '.* is .*/mktable$' >/dev/null 2>&1 ; then
 	MKTABLE="mktable"
 else
+	# a little ditty to throw away comments....
 	mktable ()
 	{
 		sed '	/^[ 	]*#/d
@@ -507,6 +508,16 @@ if $HAVEX && [ "`tty`" = "/dev/console" ] ; then
 	esac
 fi
 
+if $HAVEX && [ "$TERM" = "xterm" ] ; then
+	$HAVEFORTUNE && fortune
+	if $HAVEMONTH && [ -r .month ] ; then
+		monthd -i5
+	fi
+	if [ -r $HOME/.trninitX11 ] ; then
+		TRNINIT="$HOME/.trninitX11" ; export TRNINIT
+	fi
+fi
+
 if $HAVELAYERS && [ "$TERM" = "dmd" -a "`ismpx`" != "yes" ] ; then
 	trap '' 2
 	echo "\nDo you want to start layers? ([y]/n/debug) \c"
@@ -519,12 +530,15 @@ if $HAVELAYERS && [ "$TERM" = "dmd" -a "`ismpx`" != "yes" ] ; then
 		else
 			layers=layers
 		fi
-		TRNINIT="$HOME/.trninitdmd" ; export TRNINIT
+		if [ -r $HOME/.trninitdmd ] ; then
+			TRNINIT="$HOME/.trninitdmd" ; export TRNINIT
+		fi
 		if [ "$VISUAL" = "emacs" ] ; then
 			VISUAL="emacsclient" ; export VISUAL
 		fi
 		LAYERSPID=$$ ; export LAYERSPID
 		rc=.${TERM}rc
+		# TODO: think about dmdmyx here....
 		TERM=dmd; export TERM
 		stty -ixon -ixoff -ixany
 		if [ -s $HOME/$rc ] ; then
@@ -544,6 +558,7 @@ if $HAVELAYERS && [ "$TERM" = "dmd" -a "`ismpx`" != "yes" ] ; then
 fi
 
 if [ -s $HOME/.shell ] ; then
+	# mktable just throws away comments....
 	exec `mktable $HOME/.shell`
 fi
 
