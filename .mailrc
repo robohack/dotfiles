@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	20.22	99/09/14 16:09:44 (woods)"
+# ident	"@(#)HOME:.mailrc	20.23	99/10/24 01:46:00 (woods)"
 
 set keep
 set keepsave
@@ -52,6 +52,8 @@ alias smail3-wizards	"smail3-wizards@cs.athabascau.ca (Smail-3 Wizards Mailing L
 alias smail3-users	"smail3-users@cs.athabascau.ca (Smail-3 Users Mailing List)"
 alias spamtools		"spamtools@abuse.net (Spam Tools Mailing List)"
 alias ssh		"ssh@clinet.fi (SSH Users Mailing List)"
+alias sun-rescue	"rescue@sunhelp.org (Sun Rescue List)"
+alias sunhelp		"rescue@sunhelp.org (Sun Rescue List)"
 alias suns-at-home	"suns-at-home@net-kitchen.com (Suns-at-Home Mailing List)"
 alias tech-embed	"tech-embed@NetBSD.ORG (NetBSD for Embedded Systems Technical Discussion List)"
 alias tech-install	"tech-install@NetBSD.ORG (NetBSD Install Process Technical Discussion List)"
