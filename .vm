@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	18.4	97/03/14 18:09:29 (woods)"
+;;;#ident	"@(#)HOME:.vm	18.5	97/04/04 09:09:45 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -274,9 +274,10 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			      ("newdom@iiia.org" . "newdom-l")
 			      ("pcl-cvs@" . "pcl-cvs-l")
 			      ("pcl-cvs-auto-bugs@" . "pcl-cvs-l")
+			      ("prcs-list@" . "prcs-l")
 			      ("qotd@" . "qotd-l")
 			      ("rc@hawkwind.utcs.toronto.edu" . "rc-l")
-			      ("rs-info@internic.net" . "rs-info-l")
+			      ("rs-info@" . "rs-info-l")
 			      ("shared-tld@" . "shared-tld-l")
 			      ("smail3-bugs-fwd@" . "smail3-bugs-fwd-l")
 			      ("smail3-devel@" . "smail3-devel-l")
