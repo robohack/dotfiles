@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	8.4	95/03/02 10:53:14 (woods)"
+#ident	"@(#)HOME:.profile	8.5	95/03/08 15:32:16 (woods)"
 
 if [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} ] ; then
 	trap '. $HOME/.kshlogout ; exit $?' 0
@@ -120,7 +120,7 @@ do_first_time ()
 }
 
 case "$UUNAME" in
-robohack | kuma | araignee | tar | spinne | toile | wombat | weirdo )
+robohack | kuma | araignee | tar | spinne | toile | wombat | weirdo | most | very | isit )
 	;;
 * )
 	PATH="/bin" ; export PATH	# start fresh...
@@ -410,7 +410,7 @@ TRNINIT="$HOME/.trninit" ; export TRNINIT
 
 # set terminal type...
 case "$UUNAME" in
-robohack | toile | wombat | spinne | weirdo )
+robohack | toile | wombat | spinne | weirdo | isit | most | very )
 	: we trust that everything is all set up as it should be....
 	;;
 * )
@@ -428,7 +428,7 @@ esac
 
 # check your mail...
 case "$UUNAME" in
-robohack | toile | wombat | spinne | weirdo )
+robohack | toile | wombat | spinne | weirdo | isit | most | very )
 	: /etc/profile does this for us
 	;;
 * )
@@ -475,6 +475,7 @@ if [ ${RANDOM:-0} -ne 0 ] ; then
 		. $HOME/.kshlogin
 	fi
 elif [ `echo ~` = $HOME ] ; then
+	# actually, maybe this should be a Posix shell environ...
 	if [ -r $HOME/.ashlogin ] ; then
 		. $HOME/.ashlogin
 	fi
