@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file
 #
-#ident        "@(#)HOME:.xinitrc     6.1     95/07/01 10:44:30 (woods)"
+#ident        "@(#)HOME:.xinitrc     6.2     95/07/01 16:41:35 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -15,16 +15,26 @@ argv0="`basename $0`"
 echo "$0: current PATH='$PATH'"
 echo "$argv0: starting on $DISPLAY...."
 
+if [ -z "$X11HOST" ] ; then
+	# assume HOSTNAME & DOMAINNAME are set by profile(s)
+	X11HOST="${X11HOST:-${HOSTNAME}${DOMAINNAME}}"	# used by .twmrc
+	echo "$argv0: have set X11HOST='$X11HOST'"
+fi
 case "$DISPLAY" in
 ":0" | ":0.0" | "" )
-	# TODO: need to check existence of domainname and results
-	X11HOST="${X11HOST:-`hostname``domainname`}"	# used by .twmrc
 	DISPLAY="$X11HOST:0.0"
+	echo "$argv0: have set DISPLAY='$DISPLAY'"
 	;;
 esac
 export DISPLAY X11HOST
 
-echo "$argv0: have set DISPLAY='$DISPLAY'"
+# TODO: think about using `type` ala .profile
+if [ -x /usr/ucb/rsh ] ; then
+	RSH=/usr/ucb/rsh
+else
+	RSH=/usr/bin/rsh
+fi
+export RSH				# used by .twmrc
 
 if [ -z "$LOGNAME" ] ; then
 	LOGNAME="$USER"
@@ -59,10 +69,12 @@ if [ -s $HOME/.xhosts ] ; then
 	done < $HOME/.xhosts
 fi
 
+# argv0 is .xinitrc if called by xinit or startc
+#
 if [ "$argv0" = .xinitrc ] ; then
-	if [ -x /usr/bin/X11/xearth ] ; then
+	if [ -x $X11BIN/xearth ] ; then
 		xearth &
-	elif [ -x /usr/bin/X11/xphoon ] ; then
+	elif [ -x $X11BIN/xphoon ] ; then
 		xphoon -t 10 &
 	elif [ -r /usr/include/X11/bitmaps/escherknot ] ; then
 		xsetroot -bitmap /usr/include/X11/bitmaps/escherknot
@@ -71,8 +83,7 @@ if [ "$argv0" = .xinitrc ] ; then
 	fi
 fi
 
-# if we're on the console,
-# TODO: and only if it's not already running courtesy of xdm....
+# TODO: always if we're not on the console....
 #
 if [ "$argv0" = ".xinitrc" ] ; then
 	xconsole -geometry 500x100-4-4 &
@@ -84,7 +95,7 @@ if [ "$argv0" = ".xinitrc" ] ; then
 	xclock -geometry 190x190-4+4 &
 fi
 
-if [ -x /usr/bin/X11/xmailwatcher ] ; then
+if [ -x $X11BIN/xmailwatcher ] ; then
 	xmailwatcher -geometry 300x100-4+240 -iconic -icongeometry -140+240 -iconic -mailbox $MAILPATH &
 	# TODO; get rid of these host name dependencies....
 	if [ -r /kuma/$MAILPATH ] ; then
@@ -98,7 +109,7 @@ fi
 # Grrr.... xsol doesn't take standard toolkit args....
 #xsol -geometry 32x48-4+260 -iconic &
 
-if [ -x /usr/bin/X11/xsysstats ] ; then
+if [ -x $X11BIN/xsysstats ] ; then
 	xsysstats -geometry 120x137-205+4 -type load1 -type disk -sample 5 &
 	case "$DOMAINNAME" in
 	.web.net)
