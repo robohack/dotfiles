@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	25.4	02/11/30 17:45:45 (woods)"
+#ident	"@(#)HOME:.kshrc	25.5	02/12/12 22:26:48 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -722,6 +722,15 @@ fi
 #
 #	more functions
 #
+
+function cvsupdateroot
+{
+	newroot=$1
+
+	find . -name Root -print | fgrep CVS/Root | while read rootfile ; do
+		echo $newroot > $rootfile
+	done
+}
 
 function errno
 {
