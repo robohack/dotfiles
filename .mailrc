@@ -1,7 +1,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc  19.15    98/06/24 03:28:35 (woods)"
+# ident	"@(#)HOME:.mailrc  19.16    98/07/05 17:32:19 (woods)"
 
 set keep
 set keepsave
@@ -15,6 +15,7 @@ set crt=24
 #
 alias aegis-users	"aegis-users@canb.auug.org.au (Aegis Users Mailing List)"
 alias automake		"automake@gnu.org (GNU Automake Mailing List)"
+alias bitkeeper-users	"bitkeeper-users@bitmover.com (BitKeeper Discussion List)"
 alias bug-cvs		"bug-cvs@gnu.org (CVS-II Bugs Mailing List)"
 alias bug-gnu-emacs	"bug-gnu-emacs@@gnu.org (GNU Emacs Bugs Mailing List)"
 alias bug-vm		"bug-vm@UUnet.UU.net (ViewMail Bugs Mailing List)"
