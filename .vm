@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	3.6	94/06/13 15:10:07 (woods)"
+;;;#ident	"@(#)HOME:.vm	3.7	94/06/16 15:14:31 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -27,7 +27,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 
 (setq mail-default-headers
       (concat
-       (concat "X-Mailer: VM Version "
+       (concat "X-Mailer: ViewMail (vm) Version "
 	       (vm-version)
 	       "\n\twith "
 	       (emacs-version)
