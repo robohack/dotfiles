@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.23	99/08/10 20:19:46 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.24	99/08/10 20:22:16 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1892,6 +1892,10 @@ current emacs server process..."
 	  (and (<= min-to-app 6) (= (mod min-to-app 2) 0)))
       ad-do-it))
 (eval-after-load "appt" '(ad-activate 'appt-disp-window))
+;;
+;; For 61 Lorraine Drive:
+;; This is according to mapblast.com: 43.77681 N  79.420865 W
+;; the GPS essentially agrees:  43 46 36.9 N  79 25 15.1 W
 (setq calendar-latitude 43.77681)
 (setq calendar-longitude -79.420865)
 (setq today-visible-calendar-hook 'calendar-mark-today)
