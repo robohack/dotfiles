@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident        "@(#)HOME:.xinitrc     6.5     96/02/20 21:03:30 (woods)"
+#ident        "@(#)HOME:.xinitrc     6.6     96/03/14 16:50:05 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -181,7 +181,7 @@ exec twm
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident        "@(#)HOME:.xinitrc     6.5     96/02/20 21:03:30 (woods)"
+#ident        "@(#)HOME:.xinitrc     6.6     96/03/14 16:50:05 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -278,6 +278,8 @@ if [ "$argv0" = .xinitrc ] ; then
 		xearth $XEGAMMA -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
 	elif [ -x $X11BIN/xphoon ] ; then
 		xphoon -t 10 &
+	elif [ -r /usr/X11R6/include/bitmaps/X11/escherknot ] ; then
+		xsetroot -bitmap /usr/X11R6/include/X11/bitmaps/escherknot
 	elif [ -r /usr/include/X11/bitmaps/escherknot ] ; then
 		xsetroot -bitmap /usr/include/X11/bitmaps/escherknot
 	elif [ -r /usr/openwin/share/include/X11/bitmaps/escherknot ] ; then
