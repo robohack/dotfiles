@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	1.11	97/12/11 01:41:29 (woods)"
+#ident	"@(#)HOME:.ctwmrc	1.12	97/12/13 00:24:50 (woods)"
 #
 
 # Ideas on how to use more powerful M4 processing on this file:
@@ -869,6 +869,7 @@ menu "rlogin"
 	"Rlogin's at SOLS.on.ca..."	f.menu "rlogin-sols"
 	"Rlogin's at Vex.net..."	f.menu "rlogin-vex"
 	"Rlogin's at Reptiles.org..."	f.menu "rlogin-reptiles"
+	"Rlogin's at vrx.net..."	f.menu "rlogin-vrx"
 	"Rlogin's at Druid.net..."	f.menu "rlogin-druid"
 	"Rlogin's at Web.net..."	f.menu "rlogin-web"
 	"Rlogin's at Cyclic.com..."	f.menu "rlogin-cyclic"
@@ -1129,6 +1130,13 @@ menu "rlogin-reptiles"
 	"Rlogin @komodo(FreeBSD)"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin iguana.reptiles.org &"
 	"Rlogin @iguana(sun3)"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin iguana.reptiles.org &"
 	"Rlogin @tuatara(NetBSD)"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin tuatara.reptiles.org &"
+}
+
+menu "rlogin-vrx"
+{
+	"Rlogin's At vrx.net" f.title
+	"Rlogin @ns1(FreeBSD)"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin ns1.vrx.net &"
+	"Rlogin @ns3(FreeBSD)"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin ns3.vrx.net &"
 }
 
 menu "rlogin-druid"
