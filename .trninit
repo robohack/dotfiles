@@ -1,4 +1,7 @@
 -v
+-b
+-q
+-B
 -M
 -S
 -i=8
@@ -6,9 +9,7 @@
 -F"> "
 -X3
 -x6
--p
 -G
--EMAILPOSTER="Rnmush -h %h"
 -EEXSAVER="%e <%A"
 -EUNSHAR="unshar -s"
 -ESUBJLINE="%(%[subject]                                           \
