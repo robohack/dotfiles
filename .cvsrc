@@ -1,5 +1,5 @@
 checkout	-P
-diff	-N -u
+diff	-N -c
 export	-kv
 status	-v
 update	-d -P
