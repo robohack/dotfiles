@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	3.3	94/05/10 12:35:08 (woods)"
+#ident	"@(#)HOME:.kshrc	3.4	94/05/10 12:36:21 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -447,6 +447,10 @@ fi
 
 if $ISSUN; then
 	alias df="/usr/bin/df"
+fi
+
+if [ "$(whence man)" = "/usr/bin/man" -a -x $LOCAL/bin/man ] ; then
+	alias man=$LOCAL/bin/man
 fi
 
 alias blstrip='sed "/./,/^$/!d"'
