@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident        "@(#)HOME:.xinitrc     6.7     96/03/22 15:26:05 (woods)"
+#ident        "@(#)HOME:.xinitrc     6.8     96/03/22 15:33:54 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -26,6 +26,7 @@ fi
 ONCONSOLE=false; export ONCONSOLE
 case "$DISPLAY" in
 ":0"|":0.0"|"")
+	# don't bother with this unless it'll do us some good...
 	if [ -w /dev/console ] ; then
 		ONCONSOLE=true; export ONCONSOLE
 		exec 1>/dev/console 2>&1
@@ -44,6 +45,16 @@ if [ -z "$RSH" ] ; then
 		RSH=/usr/bin/rsh
 	fi
 	export RSH					# used by .twmrc
+fi
+
+if [ -z "$ONX11SERVER" ] ; then
+	case "$HOME" in
+	*/most/*)
+		if [ "$XDMHOST" != most.weird.com ] ; then
+			ONX11SERVER="$RSH -n most.weird.com"
+		fi
+		;;
+	esac
 fi
 
 if [ -z "$LOGNAME" ] ; then
@@ -86,7 +97,7 @@ if [ -s $HOME/.xhosts ] ; then
 fi
 
 # argv0 is .xinitrc if called by xinit or startx
-# TODO: always do, but only if we're not on the console....
+# TODO:  always do, but only if we're not on the console....
 #
 if [ "$argv0" = .xinitrc ] ; then
 	xconsole -geometry 500x160-4-4 &
@@ -133,7 +144,7 @@ else
 			;;
 		esac
 	else
-		# it's in the MIT distribution....
+		# it's in the MIT X11R5 distribution....
 		xload -geometry 120x137-205+4 -hl grey90 &
 		case "$HOME" in
 		*/most/*)
