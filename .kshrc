@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	20.8	99/06/27 20:09:29 (woods)"
+#ident	"@(#)HOME:.kshrc	20.9	99/08/28 01:08:05 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -214,6 +214,7 @@ if [ "$id" -eq 0 ] ; then
 	if [ "$EDITOR" = "emacsclient" ] ; then
 		export EDITOR="emacs -nw"
 	fi
+	alias krcmd="kill -9 \$(ps -ax | awk '\$5 == \"rcmd\" {print \$1}')"
 elif [ "$uid" != "$LOGNAME" ] ; then
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		MYXBAN_R='$uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN'
@@ -223,6 +224,7 @@ elif [ "$uid" != "$LOGNAME" ] ; then
 	else
 		PS1='$TTYN:$uid($LOGNAME)@$UUNAME)[$LEV.!] ${PWD#$HOME} $ '
 	fi
+	alias krcmd="kill -9 \$(ps -x | awk '\$5 == \"rcmd\" {print \$1}')"
 else
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		MYXBAN_R='$LOGNAME{$gid}@$UUNAME[$LEV]:$TTYN'
@@ -232,6 +234,7 @@ else
 	else
 		PS1='$TTYN:$LOGNAME@$UUNAME[$LEV.!] ${PWD#$HOME} $ '
 	fi
+	alias krcmd="kill -9 \$(ps -x | awk '\$5 == \"rcmd\" {print \$1}')"
 fi
 
 if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
@@ -539,7 +542,6 @@ alias elc='emacs -batch -q -no-site-file -f batch-byte-compile'
 alias f='finger'
 alias h='fc -l | tail'
 alias j='jobs -l'
-alias krcmd="kill -9 \$(ps -x | awk '\$5 == \"rcmd\" {print \$1}')"
 alias l='/bin/ls -CF'
 alias la='/bin/ls -CFa'
 alias ll='/bin/ls -lis'
