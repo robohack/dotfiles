@@ -2,12 +2,10 @@
 ;;;	~/.zenirc.el -- stuff for ZenIRC
 ;;;
 
-;;;#ident	"@(#)HOME:.zenirc.el	20.1	98/07/20 11:23:48 (woods)"
+;;;#ident	"@(#)HOME:.zenirc.el	20.2	98/09/18 02:01:29 (woods)"
 
-;; A good way to use this is to add something like
-;;(autoload 'zenirc
-;;  (expand-file-name "~/.zenirc")
-;;  "Major mode to waste time" t nil)
+;; A good way to use this is to add something like to .emacs(.el)
+;;(autoload 'zenirc (expand-file-name "~/.zenirc") "Major mode to waste time" t nil)
 
 (require 'zenirc)
 
@@ -45,10 +43,12 @@
   (process-send-string proc "MODE #Planix +is\n")
   (process-send-string proc "WHO #Planix\n")
 
+  ;; Now we invite anyone at weird.com to join #secrets
   (zenirc-dotowho "*weird.com" '(process-send-string proc
 						     (concat "INVITE "
 							     (aref whoreply 7)
 							     " #secrets\n")))
+  ;; Now we invite anyone at planix.com to join #Planix
   (zenirc-dotowho "*planix.com" '(process-send-string proc
 						      (concat "INVITE "
 							     (aref whoreply 7)
@@ -68,7 +68,7 @@
   ;;	("irc.sdsc.edu" 6667)
   ;;	("cs-pub.bu.edu" 6666)
   ;;    ("irc.rift.com"))		; 205.150.226.4
-  (setq zenirc-server-default "205.150.226.4") ; emacs vs. resolver problems...
+  (setq zenirc-server-default "irc.rift.com")
 
   (setq case-fold-search t)		; K.I.S.S.
 
@@ -107,6 +107,10 @@
   (setq zenirc-timestamp t
 	zenirc-timestamp-prefix "["
 	zenirc-timestamp-suffix "]")
+
+  ;; if WHOIS returns no-such-nick, setting this variable to t will make 
+  ;; the client automaticall issue an WHOWAS command
+  (setq zenirc-whowas-on-401 nil)
 
   ;; if you want ZenIRC to send out ERRMSG on bogus CTCP queries
   (setq zenirc-send-ctcp-errmsg-on-unknown t)
@@ -168,15 +172,20 @@
   (require 'zenirc-history)
 
   ;; use the following to get an ircII like /ignore command
-  ;;(require 'zenirc-ignore)
+  (require 'zenirc-ignore)
 
   ;; use the following to make ZenIRC output netsplits nicer
-  ;;(require 'zenirc-netsplit)
+  (require 'zenirc-netsplit)
 
   ;; use the following to get an ircII like /notify command
   (require 'zenirc-notify)
   (setq zenirc-notify-list		; a list of notificated people
-	'("dreamzz" "hmmmm" "robo2" "robohacker" "robotester" "pope13"))
+	'("dreamzz"
+	  "hmmmm"
+	  "pope13"
+	  "robo2"
+	  "robotest"
+	  "whome"))
 
   ;; allow CTCP "iwantop <channel>" commands to work automatically....
   (require 'zenirc-iwantop)
@@ -187,6 +196,20 @@
   ;; use the following to make ZenIRC popup buffers when things happen
   (require 'zenirc-popup)
   (setq zenirc-popup-available-frames t)
+
+  ;; This ZenIRC extensions allows you to colourise input from specific
+  ;; sources.  Use the "/color #victim <COLOR>" command to start
+  ;; colourizing a certain victim's output, "/uncolor #victim" to stop.
+  (require 'zenirc-color)
+  (zenirc-color-mode)
+  (zenirc-add-color-victim "purple" "dreamzz")
+  (zenirc-add-color-victim "red" "druidz")
+  (zenirc-add-color-victim "green" "whome")
+  (zenirc-add-color-victim "blue" "robotest")
+  (zenirc-add-color-victim "steelblue" "robo2")
+  (zenirc-add-color-victim "yellow" "hmmmm")
+
+  ;; end of zenirc-custom-startup
 )
 
 (zenirc-add-hook 'zenirc-startup-hook 'zenirc-custom-startup)
