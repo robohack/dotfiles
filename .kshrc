@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	18.10	97/03/07 23:40:03 (woods)"
+#ident	"@(#)HOME:.kshrc	18.11	97/03/07 23:45:28 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -152,9 +152,14 @@ if [ "$id" -eq 0 ] ; then
 		HISTFILE="/.sh_history"
 	fi
 	# got to get rid of lone ":" or any "." in PATH
-	PATH="`echo $PATH | sed -e 's/::/:/g' -e 's/^://' -e 's/:$//' -e 's/^\.://' -e 's/:\.://' -e 's/:\.$//'`"
+	PATH=$(echo $PATH | sed -e 's/::/:/g'	\
+				-e 's/^://'	\
+				-e 's/:$//'	\
+				-e 's/^\.://'	\
+				-e 's/:\.://'	\
+				-e 's/:\.$//')
 	if $ISSUN; then
-		PATH="`echo $PATH | sed -e 's~^/bin:~~' -e 's~:/etc:~:~'`"
+		PATH=$(echo $PATH | sed -e 's~^/bin:~~' -e 's~:/etc:~:~')
 		dirprepend PATH /usr/5bin
 		dirappend PATH /usr/openwin/bin
 	else
@@ -387,7 +392,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		}
 	fi
 
-	if expr "`type irc`" : '.* is .*/irc$' >/dev/null 2>&1 ; then
+	if expr "$(type irc)" : '.* is .*/irc$' >/dev/null 2>&1 ; then
 		unalias irc
 		alias irc=_irc
 		function _irc
@@ -404,7 +409,7 @@ if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		}
 	fi
 
-	if expr "`type trn`" : '.* is .*/trn$' >/dev/null 2>&1 ; then
+	if expr "$(type trn)" : '.* is .*/trn$' >/dev/null 2>&1 ; then
 		unalias trn
 		alias trn=_trn
 		function _trn
