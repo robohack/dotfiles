@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file
 #
-#ident	"@(#)HOME:.xinitrc	3.3	94/05/27 18:31:00 (woods)"
+#ident	"@(#)HOME:.xinitrc	3.4	94/06/17 20:54:06 (woods)"
 
 PATH=$PATH:$HOME/bin
 export PATH
@@ -36,7 +36,7 @@ elif [ -f "$OPENWINHOME/lib/Xdefaults" ] ; then
 	xrdb $OPENWINHOME/lib/Xdefaults	# Load Default X11 resource database
 fi
 
-xhost kuma araignee spinne.web.net
+xhost kuma.web.net araignee.web.net spinne.web.net
 
 if [ "$argv0" = .xinitrc ] ; then
 	#xsetroot -bitmap /usr/openwin/share/include/X11/bitmaps/escherknot
