@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	19.7	98/02/01 21:26:56 (woods)"
+#ident	"@(#)HOME:.ctwmrc	19.8	98/02/02 10:52:35 (woods)"
 #
 
 changequote([, ])
@@ -719,7 +719,7 @@ menu "monitors"
 	"xbuffy @most"		!"$RSH -n most.weird.com exec $X11BIN/xbuffy -mail /var/spool/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &"
     ])
     ifdef([AT_LEITCH],
-    [	"xbuffy @bitter"	!"$RSH -n bitter.leitch.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &"
+    [	"xbuffy @bitter"	!"$RSH -n bitter.zeus.leitch.com exec $X11BIN/xbuffy -mail /var/mail/$LOGNAME -display $DISPLAY -geometry 90x25-100+235 -shortnames -header 0 &"
     ])
 	""			f.separator
 	"xload"			!"xload -geometry 120x130-200+0 -hl grey90 &"
