@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	9.19	96/03/10 11:17:49 (woods)"
+;;;#ident	"@(#)HOME:.vm	9.20	96/03/10 14:03:01 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -384,7 +384,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-virtual-folder-alist nil
       vm-virtual-mirror t
       vm-visible-headers '("Newsgroups:"
-			   "X-[^V]"		; try to avoid X-VM-*
+			   "X-[^VF]"		; try to avoid X-VM-* and X-Face
 			   "Resent-[^M]"	; try to avoid Resent-Message-ID:
 			   "Original-[^M]"	; try to avoid Original-Message-ID:
 			   "From:"
