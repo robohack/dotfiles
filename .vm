@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	4.11	94/12/07 10:16:01 (woods)"
+;;;#ident	"@(#)HOME:.vm	4.12	94/12/07 14:29:45 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -119,6 +119,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			     ;; From: entries here.
 			     ("from"
 			      ("gegai@.*io\\.org" . "from/andy")
+			      ("gnats-bugs@netbsd.org" . "netbsd/gnats-bugs")
 			      ;; code to make auto-folder default to the user name of the sender.
 			      ;; this should be last in the auto folder alist since it tends to
 			      ;; always match something.
