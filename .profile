@@ -1,7 +1,7 @@
 #
 #	.profile - for either sh, ksh, or ash (if type is defined).
 #
-#ident	"@(#)HOME:.profile	9.15	96/01/16 08:37:45 (woods)"
+#ident	"@(#)HOME:.profile	9.16	96/02/07 11:35:33 (woods)"
 
 #
 # Assumptions:
@@ -199,7 +199,7 @@ if [ -z "$X11PATH" ] ; then
 	export X11BIN
 fi
 
-dirappend PATH /usr/ccs/bin $X11BIN $LOCAL/bin $GNU/bin $CONTRIB/bin /usr/ucb
+dirappend PATH /usr/ccs/bin $X11BIN $LOCAL/bin $GNU/bin $CONTRIB/bin /usr/ucb /usr/bsd
 dirappend PATH /usr/games $LOCAL/games
 
 # don't set MANPATH with 4.4BSD man....
