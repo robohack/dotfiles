@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	2.2	94/03/08 13:35:00 (woods)"
+#ident	"@(#)HOME:.kshrc	2.3	94/03/16 11:38:55 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -211,6 +211,16 @@ if [ "$(ismpx)" = yes ] ; then
 		/usr/bin/cu "$@"
 	}
 
+	unalias ckermit
+	alias ckermit=_ckermit
+	function _ckermit
+	{
+		trap "trap 0 1 2 3 15; mkmenu -; myxban -c" 0 1 2 3 15
+		myxban -c "C-Kermit"
+		myxsize -s
+		$LOCAL/bin/ckermit "$@"
+	}
+
 	unalias rlogin
 	alias rlogin=_rlogin
 	function _rlogin
@@ -316,6 +326,16 @@ if [ "$TERM" = "xterm" ] ; then
 		XTBANNER="cu $*"
 		setban
 		/usr/bin/cu "$@"
+	}
+
+	unalias ckermit
+	alias ckermit=_ckermit
+	function _ckermit
+	{
+		trap "trap 0 1 2 3 15; clearban" 0 1 2 3 15
+		XTBANNER="C-Kermit $*"
+		setban
+		$LOCAL/bin/ckermit "$@"
 	}
 
 	unalias rlogin
