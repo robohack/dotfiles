@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	23.2	02/02/21 13:04:08 (woods)"
+;;;#ident	"@(#)HOME:.vm	23.3	02/07/04 17:17:54 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -11,8 +11,25 @@
 
 (setq vm-version-number (string-to-number vm-version))
 
+;;; Netscape (and Mozilla) use X Window properties to implement the "remote"
+;;; control protocol.  So long as you have only one browser per user-id running
+;;; on any given display then all you need to do is set the display and all
+;;; should work just fine....
+;;;
 (defvar my-vm-netscape-display "xtremely:0"
   "Display name to pass to netscape in vm-netscape-program-switches.")
+
+(defvar my-vm-galeon-program "galeon"
+  "Name of program to use to run Galeon.")
+
+(defvar my-vm-galeon-program-switches (list "--disable-sound")
+  "List of command line switches to pass to Galeon (not including -n).")
+
+(defun my-vm-mouse-send-url-to-galeon (url)
+  (message "Sending URL to Galeon (opening new tab)...")
+  (apply 'vm-run-background-command my-vm-galeon-program
+	 (append my-vm-galeon-program-switches (list "-n" url)))
+  (message "Sending URL to Galeon... done (opened new tab)"))
 
 ;;; Kyle's filladapt from http://www.wonderworks.com/
 ;;;
@@ -85,6 +102,16 @@ See also variable `dired-vm-read-only-folders'."
 ;;;
 
 (define-key vm-mode-map "/" 'vm-isearch-forward)
+
+;; Kyle suggests this as the q&d way to be able to see all the parts of a
+;; multipart/alternative message....
+;;
+(defun my-vm-unbind-vm-mime-display-internal-multipart/alternative ()
+  "Get rid of vm-mime-display-internal-multipart/alternative so that buttons
+for all parts will be displayed."
+  (require 'vm-mime)
+  (fmakunbound 'vm-mime-display-internal-multipart/alternative))
+(add-hook 'vm-mode-hook 'my-vm-unbind-vm-mime-display-internal-multipart/alternative)
 
 ;; this is too "easy" -- need a confirmation, or just use the pull-down menu!
 ;(define-key vm-mode-map "+" 'vm-print-message)
@@ -528,10 +555,20 @@ forbidden in URL encoding."
 ;    (insert "FCC: " (format-time-string "~/Mail/%Y-%B.sent\n"))))
 
 (defvar mail-default-organization "~/.organization"
-  "The default name of your organization (or filename containing a string
+  "The default name of your organization (or a filename containing a string
 defining the organization name), if not set in the environment variable
 ORGANIZATION.  If not nil, takes precedence over the file
 {$LOCAL,/usr}/lib/news/organization.")
+
+(defvar mail-x-face-file "~/.face"
+  "The name of a file containing the content for your `X-face' header.")
+
+(defvar mail-default-x-face
+  " *Vqm<\"ErD\"t5{*PViZ^>nLZo*Td+y(r1f3)jj\\>&1O=,q?:pt6cR]Hi6h|*f#8nBBgD@\\+D
+ 7Cf5&(Wg'RA|/+Ee`$\"V>se7P7j2O-MG?rIJW=EBcaQf7k\\KnmT0^375!h\\._mc>~9'd_
+"
+  "The default x-face content in `compface' output format (leading space on
+every line, with a trailing newline).")
 
 (setq mail-default-headers
       (concat
@@ -541,6 +578,26 @@ ORGANIZATION.  If not nil, takes precedence over the file
 		   "\n\twith "
 		   (emacs-version)
 		   "\n"))
+       (if (or mail-x-face-file
+	       mail-default-x-face)
+	   (let* ((x-face-file (expand-file-name mail-x-face-file "~"))
+		  (x-face nil))
+	     (if (file-exists-p x-face-file)
+		 (let ((x-face-buffer (generate-new-buffer
+				      (generate-new-buffer-name
+				       "x-facebuf"))))
+		   (save-excursion
+		     (set-buffer x-face-buffer)
+		     (insert-file-contents x-face-file)
+		     (goto-char (point-max))
+		     (setq x-face (buffer-string))
+		     (not-modified)
+		     (kill-buffer nil))))
+	     (if (and (not x-face)	; XXX SOMETHING does this!
+		     mail-default-x-face)
+		 (concat "X-face:"
+			 (or x-face mail-default-x-face))
+	       nil)))
        (concat "Organization: "
 	       (let* ((org-list (list (getenv "ORGANIZATION")
 				      mail-default-organization
@@ -933,6 +990,8 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-highlighted-header-regexp "^From:\\|^Resent-[fF]rom:\\|^Subject:" ; highlight these headers
       vm-honor-page-delimiters nil
 ;;;   vm-image-directory "/usr/local/share/emacs/site-lisp/vm/"
+      vm-imagemagick-convert-program nil
+      vm-imagemagick-identify-program nil
       vm-imap-bytes-per-session nil
       vm-imap-expunge-after-retrieving nil ; we'll do this manually
       vm-imap-max-message-size nil
@@ -1098,10 +1157,12 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-mime-type-converter-alist '(("application/msword"	"text/plain"	"catdoc -")
 				     ("application/ms-word"	"text/plain"	"catdoc -")
 				     )	; why I should even mention this, I do not know....
+      vm-mime-use-image-strips t
+      vm-mime-use-w3-for-text/html nil	; we don't do no stinking HTLM in e-mail!!!
       vm-mime-uuencode-decoder-program "uudecode"
       vm-mime-uuencode-decoder-switches nil
 ;;;   vm-mode-hook nil
-;;;   vm-mode-hooks nil			; >6.0?
+;;;   vm-mode-hooks nil			; old name, pre-6.0
       vm-mode-line-format '("" "  %&%& "
 			    ("VM: " minor-mode-alist " "
 			     (vm-folder-read-only "read-only ")
@@ -1139,6 +1200,7 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;;; because of the silly way call-process works, and the horrid syntax
 ;;; of netscape's -remote option you'll need a script like this in order
 ;;; to start netscape on a remote host:
+;;;
 ;; #! /bin/sh
 ;; 
 ;; NETSCAPEHOST=proven
@@ -1149,10 +1211,8 @@ ORGANIZATION.  If not nil, takes precedence over the file
 ;; else
 ;; 	rsh $NETSCAPEHOST $NETSCAPEPATH -display $DISPLAY 
 ;; fi
-      vm-netscape-program "netscape"
+      vm-netscape-program "mozilla"
       vm-netscape-program-switches (list "-display" my-vm-netscape-display)
-;;;;  vm-netscape-program "netscape"
-;;;;  vm-netscape-program-switches (list "-display" my-vm-netscape-display "-install")
       vm-page-continuation-glyph "...press SPACE to see more..."
 ;;; defaults to (default-value 'fill-column)
 ;;;   vm-paragraph-fill-column
@@ -1267,7 +1327,9 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-trust-From_-with-Content-Length nil
 ;;;   vm-undisplay-buffer-hook nil
       vm-unforwarded-header-regexp "x-uidl:"	; hmmmm?
-      vm-url-browser 'vm-mouse-send-url-to-netscape ; don't use w3!
+;;;   vm-url-browser 'vm-mouse-send-url-to-netscape ; don't use w3!
+      vm-url-browser 'vm-mouse-send-url ; don't use w3!
+;;;   vm-url-browser 'my-vm-mouse-send-url-to-galeon	; don't use w3!
       vm-url-retrieval-methods '(lynx wget url-w3)
       vm-url-search-limit 1000000	; the more the merrier
       vm-use-menus '(folder motion send mark label sort virtual undo dispose emacs
