@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	8.4	95/05/16 23:47:50 (woods)"
+;;;#ident	"@(#)HOME:.vm	8.5	95/05/17 00:09:57 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -88,6 +88,17 @@ ORGANIZATION.  If not nil, takes precedence over the file
       vm-auto-folder-alist '(
 			     ;; To: & Cc: entries here.
 			     ("^\\(to\\|cc\\|apparently-to\\)"
+			      ("aegis-users@" . "aegis-users-l")
+			      ("auto-net@" . "auto-net-l")
+			      ("bind@" . "bind-l")
+			      ("bind-workers@" . "bind-workers-l")
+			      ("\\(hyperbole\\|hyperbole-announce\\)@" . "hyperbole-l")
+			      ("info-vm@" . "bug-vm")
+			      ("jet-fuel@" . "jet-fuel-l")
+			      ("smail3-maintainers@" . "smail3-maintainers-l")
+			      ("smail3-users@" . "smail3-users-l")
+			      ("smail3-wizards@" . "smail3-wizards-l")
+			      ;; various netbsd lists
 			      ("source-changes@NetBSD.ORG" . "netbsd/source-changes")
 			      ("\\(current-users@NetBSD.ORG\\|apana-lists-os-netbsd-general@\\|source@NetBSD.ORG\\)" .
 			       "netbsd/current-users")
@@ -99,18 +110,13 @@ ORGANIZATION.  If not nil, takes precedence over the file
 			       (concat "netbsd/"
 				       (buffer-substring (match-beginning 1)
 							 (match-end 1))))
-			      ("\\(hyperbole\\|hyperbole-announce\\)@" . "hyperbole-l")
-			      ("aegis-users@" . "aegis-users-l")
-			      ("auto-net@" . "auto-net-l")
-			      ("bind@" . "bind-l")
-			      ("bind-workers@" . "bind-workers-l")
+			      ;; various other <type>-<subj>@ lists....
 			      ("\\(bug-[^@%]+\\)[@%]" .
 			       (concat (buffer-substring (match-beginning 1)
 							 (match-end 1))))
 			      ("\\(gnu-[^@%]+\\)[@%]" .
 			       (concat (buffer-substring (match-beginning 1)
 							 (match-end 1))))
-			      ("info-vm" . "bug-vm")
 			      ("\\(info-[^@%]+\\)[@%]" .
 			       (concat (buffer-substring (match-beginning 1)
 							 (match-end 1))))
