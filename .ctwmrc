@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	20.8	99/06/13 22:34:08 (woods)"
+#ident	"@(#)HOME:.ctwmrc	20.9	99/06/24 15:46:59 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -920,8 +920,8 @@ menu "www"
 	""				f.separator
 	"Chimera..."			f.menu "www-chimera"
 	""				f.separator
-	"Netscape..."			f.menu "www-netscape"
-	"Netscape -ncols 96..."		f.menu "www-netscape-ncols"
+	"Netscape... (for >16bit displays)"	f.menu "www-netscape"
+	"Netscape -ncols 96 (for GIFs)..." f.menu "www-netscape-ncols"
 	"Netscape -install cmap..."	f.menu "www-netscape-cmap"
 }
 
@@ -985,7 +985,7 @@ menu "www-chimera"
 
 menu "www-netscape"
 {
-	"Netscape Everywhere!"	f.title
+	"Netscape Everywhere! (for >16bit displays)"	f.title
 	"@localhost"	!"$LOCAL/bin/netscape -display $DISPLAY &"
 	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
  ifdef([AT_WEIRD], [
@@ -1020,7 +1020,7 @@ menu "www-netscape"
 
 menu "www-netscape-ncols"
 {
-	"Netscape own colour map."	f.title
+	"Netscape w/ 96 colours for GIFs."	f.title
 	"@localhost"	!"$LOCAL/bin/netscape -ncols 96 -display $DISPLAY &"
 	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -ncols 96 -display $DISPLAY &"
  ifdef([AT_WEIRD], [
@@ -1055,7 +1055,7 @@ menu "www-netscape-ncols"
 
 menu "www-netscape-cmap"
 {
-	"Netscape own colour map."	f.title
+	"Netscape with its own colour map."	f.title
 	"@localhost"	!"$LOCAL/bin/netscape -install -display $DISPLAY &"
 	"@x11server"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -install -display $DISPLAY &"
  ifdef([AT_WEIRD], [
