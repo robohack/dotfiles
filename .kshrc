@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	8.5	96/02/02 12:00:39 (woods)"
+#ident	"@(#)HOME:.kshrc	8.6	96/02/06 22:54:07 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -407,16 +407,15 @@ fi
 if [ "$TERM" = xterm ] ; then
 	function roterm
 	{
-		rsh -n "$1" "OPENWINHOME=/usr/openwin XFILESEARCHPATH=/usr/openwin/lib/%T/%N%S /usr/openwin/bin/xterm -ls -cn -rw -sb -si -sk -sl 1024 -vb -ut -display $(hostname):0 -name rsh:$1"
+		$RSH -n "$1" "OPENWINHOME=/usr/openwin XFILESEARCHPATH=/usr/openwin/lib/%T/%N%S /usr/openwin/demo/xterm -cn -rw -sb -si -sk -sl 1024 -ls -display $DISPLAY:0 -T rsh:$1"
 	}
 
 	function rxterm
 	{
-		rsh -n "$1" "/usr/bin/X11/xterm -ls -cn -rw -sb -si -sk -sl 1024 -vb -ut -display $(hostname):0 -name rsh:$1"
+		$RSH -n "$1" "$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls -display $DISPLAY:0 -T rsh:$1" &
 	}
 
-#	alias xterm='/usr/bin/X11/xterm -cn -rw -sb -si -sk -sl 1024 -ut -fn 9x15 -fb 9x15bold -ls'
-	alias xterm='/usr/bin/X11/xterm -cn -rw -sb -si -sk -sl 1024 -ut -ls'
+	alias xterm='$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME &'
 
 	function attention
 	{
@@ -517,12 +516,6 @@ fi
 
 if [ -x /usr/ucb/rsh -a -x /bin/rsh ] ; then
 	alias rsh=/usr/ucb/rsh
-fi
-
-if [ -n "$X11HOME" -a "$TERM" != xterm ] ; then
-	alias X='xinit -a 2 -p 1 -s 15'
-	alias Xtwm='WindowMgr=twm xinit -a 2 -p 1 -s 15'
-	alias Xmwm='WindowMgr=mwm xinit -a 2 -p 1 -s 15'
 fi
 
 if [ -r $HOME/.kshsccs ] ; then
