@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	8.2	95/08/11 00:20:25 (woods)"
+#ident	"@(#)HOME:.kshrc	8.3	95/11/07 21:57:28 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -462,18 +462,26 @@ else
 	alias osman='MANPATH=$OMANPATH man'
 fi
 
+if $HAVETPUT; then
+	alias c='tput clear'
+	alias clear='tput clear'
+else
+	alias c='clear'
+fi
+
+if $HAVEMUSH; then
+	alias mfrom='mush -H:n'
+	alias mhdrs='mush -H -f'
+fi
+
+# NOTE: never forget this -- it's the most incredible sed script!!!!
 alias blstrip='sed "/./,/^$/!d"'
-alias c='tput clear'
-alias clear='tput clear'
 alias ds='$PAGER'
 alias e='${VISUAL:-$EDITOR}'
 alias ealias='e $ENV'
-alias ee='e -p Errors'
 alias f='finger'
-alias mfrom='mush -H:n'
 alias fw='who -HurTbA'
 alias h='fc -l | tail'
-alias mhdrs='mush -H -f'
 alias j='jobs -l'
 alias l='/bin/ls -CF'
 alias la='/bin/ls -CFa'
@@ -486,17 +494,20 @@ alias lr='/bin/ls -CFR'
 alias lra='/bin/ls -CFRa'
 alias lsa='/bin/ls -a'
 alias logout='exit 0'
-#alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok rows $LINES cols $COLUMNS'
 alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok'
-alias psa='ps -af | sort -n +1'
-alias pse='ps -ef | sort -n +1'
 alias maillog='$PAGER -e +G $MAILLOG'
-alias realias='let LEV=$LEV-1;exec ksh'
-#alias rstty='stty $SANE; stty rows ${LINES:-$(tput lines)} cols ${COLUMNS:-$(tput cols)}'
+alias realias='let LEV=$LEV-1;exec ksh'		# useless?
 alias rstty='stty $SANE'
 alias scvs='export CVSROOT="$(cat CVS/Root)"; echo "CVSROOT=$CVSROOT"'
-alias uuq='uustat -a'
 alias wcvs='echo $CVSROOT'
+
+# TODO: find a test so these are usable.
+#alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok rows $LINES cols $COLUMNS'
+#alias rstty='stty $SANE; stty rows ${LINES:-$(tput lines)} cols ${COLUMNS:-$(tput cols)}'
+
+# TODO: find a way to test if HoneyDanBer UUCP or not....
+# (other than [ -d /etc/uucp ])
+alias uuq='uustat -a'
 
 if [ -d /var/spool/uucp ] ; then
 	alias uufollow='xtail /var/spool/uucp/.[AL]*/*'
