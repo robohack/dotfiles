@@ -1,7 +1,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	1.13	98/01/04 22:47:17 (woods)"
+#ident	"@(#)HOME:.ctwmrc	1.14	98/01/11 20:50:56 (woods)"
 #
 
 # Ideas on how to use more powerful M4 processing on this file:
@@ -667,9 +667,9 @@ menu "monitors"
 	"xbiff"			!"xbiff -rv -bw 0 &"
 	"xbiff @x11server"	!"$ONX11SERVER $X11BIN/xbiff -rv -bw 0 -display $DISPLAY &"
 	"xlbiff"		!"xlbiff &"
-	"xbuffy"		!"xbuffy -geometry 100x25-0+250 -shortnames -header 0 -acmd '/opt/games/bin/auplay /local/audio/newmail1.au' &"
-	"xbuffy @x11server"	!"$ONX11SERVER $X11BIN/xbuffy -mail $MAILPATH -display $DISPLAY -geometry 100x25-0+250 -shortnames -header 0 -acmd '/opt/games/bin/auplay /local/audio/newmail1.au' &"
-	"xbuffy @most"		!"$ONX11SERVER $X11BIN/xbuffy -mail /var/spool/mail/$LOGNAME -display $DISPLAY -geometry 100x25-0+250 -shortnames -header 0 -acmd '/opt/games/bin/auplay /local/audio/newmail1.au' &"
+	"xbuffy"		!"xbuffy -geometry 100x25-0+250 -shortnames -header 0 -acmd 'auplay -audio $AUDIOSERVER HOME/sounds/newmail' &"
+	"xbuffy @x11server"	!"$ONX11SERVER $X11BIN/xbuffy -mail $MAILPATH -display $DISPLAY -geometry 100x25-0+250 -shortnames -header 0 -acmd '\"/opt/games/bin/auplay -audio $AUDIOSERVER HOME/sounds/newmail\"' &"
+	"xbuffy @most"		!"$ONX11SERVER $X11BIN/xbuffy -mail /var/spool/mail/$LOGNAME -display $DISPLAY -geometry 100x25-0+250 -shortnames -header 0 -acmd '\"/opt/games/bin/auplay -audio $AUDIOSERVER /local/audio/newmail1.au\"' &"
 	""			f.separator
 	"xload"			!"xload -geometry 120x130-200+0 -hl grey90 &"
 	"xload @x11server"	!"$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x130-200+148 -hl grey90 &"
