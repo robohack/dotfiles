@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	18.8	97/05/15 03:21:54 (woods)"
+;;;#ident	"@(#)HOME:.vm	18.9	97/08/01 09:28:42 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -238,6 +238,13 @@ ORGANIZATION.  If not nil, takes precedence over the file
       (vm-auto-archive-messages)))
 
 (define-key vm-mode-map "A" 'my-vm-auto-archive-messages)
+
+(defun my-vm-quit ()
+  (interactive)
+  (if (y-or-n-p "Are you sure you want to quit?")
+      (vm-quit)))
+
+(define-key vm-mode-map "q" 'my-vm-quit)
 
 ;;; Message-ID: <4vnura$cgr@nnrp1.news.primenet.com>
 ;;; From: edwinh@primenet.com (Edwin Huffstutler)
