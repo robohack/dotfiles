@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	1.2	93/11/18 16:27:02 (woods)"
+#ident	"@(#)HOME:.kshrc	1.3	93/11/29 11:25:49 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -120,7 +120,7 @@ if [ "$id" -eq 0 ] ; then
 	fi
 	dirappend PATH /usr/etc /usr/lbin /usr/ucb /usr/bin/X11
 	if [ -n "$LOCAL" ] ; then
-		dirappend PATH $LOCAL/etc $LOCAL/bin $LOCAL/gnu/bin $LOCAL/lib
+		dirappend PATH $LOCAL/etc $LOCAL/bin $GNU/bin $LOCAL/lib
 	fi
 	dirappend PATH /usr/lib/uucp /usr/lib
 	dirappend PATH /usr/ot/bin
