@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	18.12	97/04/15 17:42:24 (woods)"
+#ident	"@(#)HOME:.twmrc	18.13	97/05/11 00:11:46 (woods)"
 #
 
 AutoRelativeResize
@@ -1615,7 +1615,7 @@ menu "weird-xterms"
 	"Xterm @isit"			f.function "start-isit-xterm"
 	"Xterm @most"			f.function "start-most-xterm"
 	"Xterm @very"			f.function "start-very-xterm"
-	"Xterm @almost"			f.function "start-very-xterm"
+	"Xterm @almost"			f.function "start-almost-xterm"
 	"Xterm @whats"			f.function "start-whats-xterm"
 	"Xterm @pretty"			f.function "start-pretty-xterm"
 	"Xterm @sometimes"		f.function "start-sometimes-xterm"
