@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	19.4	98/03/08 18:44:47 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	19.5	98/03/23 19:50:35 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -54,6 +54,8 @@
       "Inhibit standard-display-european from disabling multibyte-character mode."
       (let ((enable-multibyte-characters enable-multibyte-characters))
 	ad-do-it)))
+
+(standard-display-european t)		; This forces iso8859-1
 
 ;;; Load VM.
 ;(require 'vm)
@@ -281,7 +283,7 @@ scripts (alias)." t)
 ;;
 (if (eq window-system 'x)
     (setq preferred-frame-font
-	  "-adobe-*-medium-r-normal--0-110-*-*-m-100-iso8859-1"))
+	  "-adobe-*-medium-r-normal--0-120-*-*-m-*-iso8859-1"))
 
 (require 'frame)
 (defun set-frame-face-to-preferred-frame-font (frame)
@@ -295,9 +297,7 @@ scripts (alias)." t)
 (add-hook 'after-make-frame-functions 'set-frame-face-to-preferred-frame-font)
 
 ;; this gets the current frame, which already exists....
-(set-frame-font preferred-frame-font)
-
-(standard-display-european)		; This forces iso8859-1
+(set-default-font preferred-frame-font)
 
 (setq auto-save-timeout 300)		; 30 seconds is insane!
 (setq backup-by-copying t)		; copy, thus preserving modes and owner
