@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	20.4	98/10/15 21:11:15 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	20.5	98/10/20 23:34:20 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -700,27 +700,6 @@ If not `nil' and not `t', query for each instance."
                     (query-replace-regexp "[ \t]+$" "")))))))
   ;; always return nil, in case this is on write-file-hooks.
   nil)
-
-;;;; For mail reading or looking at man pages (courtesy Mark Moraes)
-(defun remove-nroff-bs ()
-  "remove all nroff overstriking from a buffer"
-  (interactive "*")
-  ;; call removebs from start to end, replacing input with output, display
-  ;; after command completion. Removebs is a simple program in my bin -
-  ;; could have used col -b, but it is slower, and the equivalent emacslisp
-  ;; (like nuke-nroff-bs from man.el) is much slower.
-  (call-process-region (point-min) (point-max) "removebs" t t nil)
-  (goto-char (point-min)))
-
-;;; So I can conveniently do this from MH mode (also Mark Moraes)
-(defun remove-nroff-bs-in-other-window ()
-  "remove all nroff overstriking from the buffer in the other window"
-  (interactive)
-  (let ((thiswin (selected-window)))
-    (other-window 1)
-    (remove-nroff-bs)
-    (select-window thiswin)))
-(global-set-key "\C-x4z" 'remove-nroff-bs-in-other-window)
 
 (defun scroll-one-line-up (&optional arg)
   "Scroll the selected window up (forward in the text) one line (or N lines)."
@@ -1589,7 +1568,9 @@ it could check Status: headers for O, or Forward to in mailboxes."
       (global-set-key "\C-x51" 'delete-other-frames)
       (global-set-key "\C-x5i" 'iconify-frame)
       (global-set-key "\C-x5l" 'lower-frame)
-      (global-set-key "\C-x5T" 'find-tag-other-frame)))
+      (global-set-key "\C-x5T" 'find-tag-other-frame)
+      (if (fboundp 'make-frame-on-display)
+	  (global-set-key "\C-x5O" 'make-frame-on-display))))
 
 ;;; Message-Id: <199504171641.KAA21020@async.cs.utah.edu>
 ;;; Original-To: bug-gnu-emacs@prep.ai.mit.edu
