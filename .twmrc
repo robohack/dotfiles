@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	18.2	97/01/20 12:32:16 (woods)"
+#ident	"@(#)HOME:.twmrc	18.3	97/01/20 22:25:02 (woods)"
 #
 
 AutoRelativeResize
@@ -1445,6 +1445,7 @@ menu "monitors"
 	"Monitors"			f.title
 	"xclock"			!"xclock -geometry 190x190-4+4 &"
 	"xclock -digital"		!"xclock -geometry 190x30-4+196 -digital &"
+	""				f.nop
 	"xbiff"				!"xbiff -rv -bw 0 &"
 	"xbiff @x11server"		!"$ONX11SERVER $X11BIN/xbiff -rv -bw 0 -display $DISPLAY &"
 	"xlbiff"			!"xlbiff &"
@@ -1453,8 +1454,11 @@ menu "monitors"
 	"xbuffy @clapton"		!"$RSH -n clapton.seachange.com /usr/local/bin/xbuffy -display $DISPLAY -geometry 90x30-4+235 -mail /var/mail/woods -shortnames -header 5 &"
 	"xmailwatcher"			!"xmailwatcher -geometry 300x100-4+240 -iconic -icongeometry -4+235 -iconic -mailbox $MAILPATH &"
 	"xmailwatcher @x11server"	!"$ONX11SERVER $X11BIN/xmailwatcher -display $DISPLAY -geometry 300x100-4+235 -iconic -icongeometry -4+235 -iconic -mailbox $MAILPATH &"
+	""				f.nop
 	"xload"				!"xload -geometry 120x137-205+4 -hl grey90 &"
 	"xload @x11server"		!"$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x137-205+150 -hl grey90 &"
+	"xcpustate"			!"xcpustate -geometry 190x20-4+230 -shorten -wait -cpu -disk &"
+	"xcpustate @x11server"		!"$ONX11SERVER $X11BIN/xcpustate -display $DISPLAY -geometry 190x20-4+230 -shorten -wait -cpu -disk &"
 }
 
 menu "locks"
@@ -1469,6 +1473,7 @@ menu "backgrounds"
 {
 	"Backgrounds"			f.title
 	"xearth"			!"xearth -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
+	"xearth orbiting"		!"xearth -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth on greyscale"		!"xearth -gamma 1.6 -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth on mono"		!"xearth -mono -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xphoon"			!"xphoon -t 10 &"
