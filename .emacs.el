@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	14.6	94/12/12 16:43:05 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	14.7	94/12/16 13:22:16 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -30,7 +30,99 @@
 			      (t 19)))
 
 (if (/= init-emacs-type '19)
-    (message "Not running emacs v19 I see -- you'll have trouble with this .emacs!")) 
+    (message "Not running emacs v19 I see -- you'll have trouble with this .emacs!"))
+
+;;;_  - add-hook definition for divergent emacsen
+;;;_   > add-hook (hook function &optional append)
+(load-library "subr")
+(if (not (fboundp 'run-hooks))
+    ;; Hook manipulation functions. (borrowed from newer versions of subr.el)
+    (progn
+      (defun run-hooks (&rest hooklist)
+	"Takes hook names and runs each one in turn.  Major mode functions use this.
+Each argument should be a symbol, a hook variable.
+These symbols are processed in the order specified.
+If a hook symbol has a non-nil value, that value may be a function
+or a list of functions to be called to run the hook.
+If the value is a function, it is called with no arguments.
+If it is a list, the elements are called, in order, with no arguments."
+	(while hooklist
+	  (let ((sym (car hooklist)))
+	    (and (boundp sym)
+		 (symbol-value sym)
+		 (let ((value (symbol-value sym)))
+		   (if (and (listp value) (not (eq (car value) 'lambda)))
+		       (let ((functions value))
+			 (while value
+			   (funcall (car value))
+			   (setq value (cdr value))))
+		     (funcall value)))))
+	  (setq hooklist (cdr hooklist))))
+
+      ;; Tell C code how to call this function.
+      (defconst run-hooks 'run-hooks
+	"Variable by which C primitives find the function `run-hooks'.
+Don't change it.")))
+
+(if (not (fboundp 'run-hook-with-args))
+    (defun run-hook-with-args (hook &rest args)
+      "Run HOOK with the specified arguments ARGS.
+HOOK should be a symbol, a hook variable.  If HOOK has a non-nil
+value, that value may be a function or a list of functions to be
+called to run the hook.  If the value is a function, it is called with
+the given arguments and its return value is returned.  If it is a list
+of functions, those functions are called, in order,
+with the given arguments ARGS.
+It is best not to depend on the value return by `run-hook-with-args',
+as that may change."
+      (and (boundp hook)
+	   (symbol-value hook)
+	   (let ((value (symbol-value hook)))
+	     (if (and (listp value) (not (eq (car value) 'lambda)))
+		 (mapcar '(lambda (foo) (apply foo args))
+			 value)
+	       (apply value args))))))
+
+(if (not (fboundp 'add-hook))
+    (defun add-hook (hook function &optional append)
+      "Add to the value of HOOK the function FUNCTION.
+FUNCTION is not added if already present.
+FUNCTION is added (if necessary) at the beginning of the hook list
+unless the optional argument APPEND is non-nil, in which case
+FUNCTION is added at the end.
+
+HOOK should be a symbol, and FUNCTION may be any valid function.  If
+HOOK is void, it is first set to nil.  If HOOK's value is a single
+function, it is changed to a list of functions."
+      (or (boundp hook) (set hook nil))
+      ;; If the hook value is a single function, turn it into a list.
+      (let ((old (symbol-value hook)))
+	(if (or (not (listp old)) (eq (car old) 'lambda))
+	    (set hook (list old))))
+      (or (if (consp function)
+	      (member function (symbol-value hook))
+	    (memq function (symbol-value hook)))
+	  (set hook
+	       (if append
+		   (nconc (symbol-value hook) (list function))
+		 (cons function (symbol-value hook)))))))
+
+(if (not (fboundp 'remove-hook))
+    (defun remove-hook (hook function)
+      "Remove from the value of HOOK the function FUNCTION.
+HOOK should be a symbol, and FUNCTION may be any valid function.  If
+FUNCTION isn't the value of HOOK, or, if FUNCTION doesn't appear in the
+list of hooks to run in HOOK, then nothing is done.  See `add-hook'."
+      (if (or (not (boundp hook))	;unbound symbol, or
+	      (null (symbol-value hook)) ;value is nil, or
+	      (null function))		;function is nil, then
+	  nil				;Do nothing.
+	(let ((hook-value (symbol-value hook)))
+	  (if (consp hook-value)
+	      (setq hook-value (delete function hook-value))
+	    (if (equal hook-value function)
+		(setq hook-value nil)))
+	  (set hook hook-value)))))
 
 ;;;; ----------
 ;;;; What to do after this file has been loaded...
@@ -245,12 +337,12 @@ directory in the list PATHLIST, otherwise nil."
   (and (fboundp 'setenv)
        ;; Set the PATH environment variable from the exec-path so
        ;; that child processes will inherit anything emacs uses.
-       (setenv "PATH" 
-               (mapconcat 
-                '(lambda (string) string) 
-                exec-path 
+       (setenv "PATH"
+               (mapconcat
+                '(lambda (string) string)
+                exec-path
                 ":"))
-       ;; So that subprocesses will use emacs for editing. 
+       ;; So that subprocesses will use emacs for editing.
        (setenv "EDITOR" "emacsclient")
        (setenv "VISUAL" "emacsclient")))
 
@@ -262,7 +354,7 @@ directory in the list PATHLIST, otherwise nil."
   "remove all nroff overstriking from a buffer"
   (interactive "*")
   ;; call removebs from start to end, replacing input with output, display
-  ;; after command completion. Removebs is a simple program in my bin - 
+  ;; after command completion. Removebs is a simple program in my bin -
   ;; could have used col -b, but it is slower, and the equivalent emacslisp
   ;; (like nuke-nroff-bs from man.el) is much slower.
   (call-process-region (point-min) (point-max) "removebs" t t nil)
@@ -403,7 +495,7 @@ BUFFER-NAME.  Optional command args to process supplied by ARGS"
   (setq buffer-read-only t))
 (global-set-key "\^x4\^r" 'find-file-read-only-other-window)
 
-;;; More stuff stolen from Roland. 
+;;; More stuff stolen from Roland.
 (defun make-interactive (symbol &rest interactive-args)
   "Make the function definition of SYMBOL an interactive command.
 Remaining arguments, if any, are passed to interactive in the function."
@@ -437,7 +529,7 @@ Remaining arguments, if any, are passed to interactive in the function."
 	))
     (fset symbol func)))
 
-(defun override-default-variable-settings () 
+(defun override-default-variable-settings ()
   "User defined function.  Intended to be called within various hooks to
 override the value of buffer-local variables whose default values
 might have been overridden by the major mode."
@@ -450,9 +542,9 @@ might have been overridden by the major mode."
 ;;; Date: Fri, 21 Jan 94 08:54:28 GMT
 ;;; To: bug-gnu-emacs@prep.ai.mit.edu
 ;;; Subject: [19.22]: `match-string': Short but sweet function
-;;; 
+;;;
 ;;; In GNU Emacs 19.22.1 of Tue Nov 30 1993 on tracy (berkeley-unix)
-;;; 
+;;;
 ;;; I think I got some version from someone else, but here's a nice function
 ;;; to alleviate the (substring string (match-beginning 1) (match-end 1))
 ;;; blues.  Now you can just (match-string 1 string) to your heart's delight...
@@ -513,7 +605,7 @@ the window showing completions."
 
 ;;; From: jimb@totoro.bio.indiana.edu (Jim Blandy)
 ;;; To: gnu-emacs-sources@prep.ai.mit.edu
-;;; Subject: Finding function sources 
+;;; Subject: Finding function sources
 ;;; Date: Fri, 18 Mar 94 12:49:11 -0500
 ;;;
 ;;; These two functions show the name of the file from which a given Emacs
@@ -534,7 +626,7 @@ If FUNCTION is a subr, or a lisp function dumped with Emacs, return nil."
   (interactive
    (let ((fn (function-called-at-point)) ; note, this requires help.el to have
 					 ; been loaded!
-	 (enable-recursive-minibuffers t)	     
+	 (enable-recursive-minibuffers t)
 	 val)
      (setq val (completing-read (if fn
 				    (format "Find function (default %s): " fn)
@@ -558,7 +650,7 @@ If FUNCTION is a subr, or a lisp function dumped with Emacs, return nil."
     (if (interactive-p)
         (message
          (cond
-          ((stringp file) 
+          ((stringp file)
            (format "Function %s loaded from \"%s\"." function file))
           ((null file)
            (format "Function %s loaded from a buffer without a file."
@@ -592,7 +684,7 @@ suffixes `.elc' or `.el' to the specified name FILE."
             (setq pathified-name
                   (cond
                    ((and (not nosuffix)
-                         (file-readable-p 
+                         (file-readable-p
                           (setq extended (concat expanded ".elc")))
                          (not (file-directory-p extended)))
                     extended)
@@ -627,7 +719,7 @@ suffixes `.elc' or `.el' to the specified name FILE."
       (setq server-temp-file-regexp
 	    "/tmp/Re\\|/draft$\\|/\\.letter$\\|/\\.article$/\\|/tmp/[^/]*\\.ed\\|/tmp/[^/]*nf")
       ;; From: qhslali@aom.ericsson.se (Lars Lindberg EHS/PBE 80455 2122 { tom
-      ;;	-> 940531  ansv. EHS/PBE Christer Nilsson }) 
+      ;;	-> 940531  ansv. EHS/PBE Christer Nilsson })
       ;; Message-Id: <9402170914.AA18291@aom.ericsson.se>
       ;; Subject: [19.22] emacsclient server should have a hook for kill-buffer
       (add-hook 'server-visit-hook
@@ -696,15 +788,15 @@ current emacs server process..."
 		 ;;
 		 ;; must appear after display-time is invoked (thus after
 		 ;; time.el is loaded)
-		 ;; 
+		 ;;
 		 (defun display-time-file-nonempty-p (file)
 		   "This function returns 'nil, as it would only be useful if
 it could check Status: headers for O, or Forward to in mailboxes."
 		   nil))))))
 
 (add-hook 'lisp-interaction-mode-hook
-	  (function 
-	   (lambda () 
+	  (function
+	   (lambda ()
 	     "Private lisp-interaction-mode-hook."
 	     (setq mode-name "LispInteraction")
 	     (override-default-variable-settings))))
@@ -813,7 +905,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
       ;; to quiet the v19 byte compiler
       (defvar ksh-indent)
       (defvar ksh-group-indent)
-      (defvar ksh-brace-indent)   
+      (defvar ksh-brace-indent)
       (defvar ksh-case-item-indent)
       (defvar ksh-case-indent)
       (defvar ksh-match-and-tell)
@@ -823,7 +915,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		   "Private ksh-mode stuff."
 		   (setq ksh-indent 8)
 		   (setq ksh-group-indent -8)
-		   (setq ksh-brace-indent 0)   
+		   (setq ksh-brace-indent 0)
 		   (setq ksh-case-item-indent 0)
 		   (setq ksh-case-indent 8)
 		   (setq ksh-match-and-tell t))))))
@@ -943,7 +1035,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 ;;;;-------
 ;;;; more goodies
 
-;;;(if (= init-emacs-type '19) 
+;;;(if (= init-emacs-type '19)
 ;;;      (dont-compile
 ;;;	(defun display-buffer-in-frame-or-window (buf)
 ;;;	  "Try to find buffer BUF in another (visible) frame, otherwise call
@@ -985,7 +1077,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 ;;; Lines: 126
 ;;; Distribution: world
 ;;; Message-Id: <CA.93Oct8162822@yangtze.cs.umd.edu>
-;;; 
+;;;
 (if (and (elisp-file-in-loadpath-p "compile-frame")
 	 window-system)
     (progn
@@ -1007,7 +1099,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 ;;; Message-Id: <9311011523.AA18545@occs.cs.oberlin.edu>
 ;;; To: gnu-emacs-sources@prep.ai.mit.edu
 ;;; Subject: frame hopping from the keyboard
-;;; 
+;;;
 ;;;         I wanted a something to move among frames without using the
 ;;; mouse.  Emacs 19 apparently has no native function to do this
 ;;; (corrections?  I couldn't find it, at least...), so here is one.  I
@@ -1017,7 +1109,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 ;;; me know if you find it useful or have any suggestions/fixes.  As you
 ;;; can see, it's quite short (shorter than this paragraph, okay), but I
 ;;; have hardly touched my mouse since I started using it :-)
-;;; 
+;;;
 ;;; (if window-system
 ;;;     (progn
 ;;;       (global-set-key "\C-co" 'keyboard-focus-next-or-previous-frame)
@@ -1086,9 +1178,9 @@ it could check Status: headers for O, or Forward to in mailboxes."
 ;;; Date: 15 Nov 1993 20:53:02 GMT
 ;;; Message-Id: <KIFER.93Nov15155303@sbkifer.cs.sunysb.edu>
 ;;;
-;;;(if (= init-emacs-type '19) 
+;;;(if (= init-emacs-type '19)
 ;;;    (progn
-;;;      (setq 
+;;;      (setq
 ;;;       view-diary-entries-initially t
 ;;;       mark-diary-entries-in-calendar t
 ;;;       mark-holidays-in-calendar t
@@ -1107,7 +1199,7 @@ it could check Status: headers for O, or Forward to in mailboxes."
 (setq calendar-latitude 43.75)
 (setq calendar-longitude -79.45)
 (setq today-visible-calendar-hook 'calendar-mark-today)
-(setq calendar-time-display-form 
+(setq calendar-time-display-form
       '(24-hours ":" minutes
 		 (if time-zone " (") time-zone (if time-zone ")")))
 (setq appt-message-warning-time 20) ; minutes of warning prior to appt
@@ -1141,7 +1233,7 @@ Violence Against Women")
 ;;; ;; Appointments every 3 minutes not every 1 minute!
 ;;; (defadvice appt-check (around my-appt-advice activate)
 ;;;    "Notify about appointments only if time is multiple of 3."
-;;;    (let ((cur-min (string-to-int 
+;;;    (let ((cur-min (string-to-int
 ;;; 		   (substring (current-time-string) 14 16))))
 ;;;      (if (eq 0 (mod cur-min 3))
 ;;; 	 ad-do-it)))
