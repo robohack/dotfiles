@@ -1,24 +1,28 @@
-;;;
-;;;	.vm.el
-;;;
-;;;#ident	"@(#)HOME:.vm	2.1	94/03/10 18:57:25 (woods)"
+;;;;
+;;;;	.vm.el
+;;;;
+;;;#ident	"@(#)HOME:.vm	2.2	94/03/26 15:58:17 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
 
-;;
-;; some stuff for sendmail....
-;;
+;;;
+;;;some stuff for sendmail....
+;;;
+
 (setq mail-signature t)			; auto-insert ~/.signature
 (setq mail-archive-file-name "~/Mail/.outgoing") ; for posterity
-(setq mail-default-headers (concat "Organization: "
-				   (or (getenv "ORGANIZATION")
-				       (getenv "ORGANIZATION")
-				       "PlanIX, Inc.; Toronto, Ontario; Canada")))
+;; mail-mode needs the trailing newline, VM will cope either way
+(setq mail-default-headers
+      (concat "Organization: "
+	      (or (getenv "ORGANIZATION")
+		  "PlanIX, Inc.; Toronto, Ontario; Canada")
+	      "\n"))
 
-;;
-;;	VM related things
-;;
+;;;
+;;;	VM related things
+;;;
+
 ;; commented lines indicate changed values....  (from v5.62)
 ;;
 (setq
