@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	19.21	98/06/24 03:27:08 (woods)"
+;;;#ident	"@(#)HOME:.vm	19.22	98/06/24 03:27:52 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
@@ -1038,6 +1038,7 @@ message/rfc822 attachments."
 		  (or (recipient "tech-install@")
 		      (recipient "tech-kern@")
 		      (recipient "tech-net@")
+		      (recipient "tech-pkg@")
 		      (recipient "tech-ports@")
 		      (recipient "tech-security@")
 		      (recipient "tech-toolchain@")
