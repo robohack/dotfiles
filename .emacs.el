@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	21.9	00/03/26 16:31:55 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	21.10	00/03/26 16:34:11 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -494,7 +494,7 @@ scripts (alias)." t)
 ;; assume the autoloads are done for this...
 (if (or (elisp-file-in-loadpath-p "makefile")
 	(elisp-file-in-loadpath-p "make-mode"))
-    (mapcar add-to-auto-mode-alist
+    (mapcar 'add-to-auto-mode-alist
 	    (list
 	     '("/[Mm]ake[^/]*$" . makefile-mode)
 	     '("/[Mm]ake[^/]*\\.am$" . makefile-mode)
@@ -522,7 +522,7 @@ scripts (alias)." t)
 	    (defvar menu-bar-tools-menu)
 	    (define-key menu-bar-tools-menu [rmail] '("Read Mail" . vm))
 	    (define-key-after menu-bar-tools-menu [smail] '("Send Mail" . vm-mail) 'rmail)))
-      (mapcar add-to-auto-mode-alist
+      (mapcar 'add-to-auto-mode-alist
 	      (list
 	       '("/Letter$" . vm-mode)
 	       '("mbox$" . vm-mode)
