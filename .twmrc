@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	2.14	96/03/25 17:53:07 (woods)"
+#ident	"@(#)HOME:.twmrc	2.15	96/03/27 20:34:45 (woods)"
 #
 
 AutoRelativeResize
@@ -301,8 +301,8 @@ function "start-deephaze-rlogin" {
 	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin deephaze.pageactive.com &"
 }
 
-function "start-insanity-rlogin" {
-	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin insanity.pageactive.com &"
+function "start-dynamic-rlogin" {
+	f.exec "$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 -e rlogin dynamic.pageactive.com &"
 }
 
 #	for rlogin-passport menu
@@ -873,7 +873,7 @@ menu "rlogin-pageactive"
 {
 	"Rlogin's At Pageactive.com"	f.title
 	"Rlogin @deephaze"		f.function "start-deephaze-rlogin"
-	"Rlogin @insanity"		f.function "start-insanity-rlogin"
+	"Rlogin @dynamic"		f.function "start-dynamic-rlogin"
 }
 
 menu "rlogin-passport"
