@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	17.38	97/01/04 13:52:55 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	17.39	97/01/18 15:49:34 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19 only
 ;;;;
@@ -1388,8 +1388,27 @@ it could check Status: headers for O, or Forward to in mailboxes."
 (if window-system
     (progn
       (global-set-key "\C-xp" 'previous-multiframe-window)
+      (global-set-key "\C-x51" 'delete-other-frames)
       (global-set-key "\C-x5i" 'iconify-frame)
+      (global-set-key "\C-x5l" 'lower-frame)
       (global-set-key "\C-x5T" 'find-tag-other-frame)))
+
+;;; Message-Id: <199504171641.KAA21020@async.cs.utah.edu>
+;;; Original-To: bug-gnu-emacs@prep.ai.mit.edu
+;;; From: willrich@async.cs.utah.edu (William F Richardson)
+;;; Subject: GNU Emacs suggestions/contributions
+;;; Date: Mon, 17 Apr 1995 10:41:54 -0600 (MDT)
+;;;
+;; This is only useful under X windows.
+(defun delete-other-frames ()
+  "Delete all frames other than the currently selected one."
+  (interactive)
+  (let ((me (selected-frame))
+	(list (frame-list)))
+    (while (car list)
+      (if (not (eq me (car list)))
+	  (delete-frame (car list)))
+      (setq list (cdr list)))))
 
 ;;; Bindings to make it look like Jove (or old Emacs :-)
 ;;; (courtesy Mark Moraes)
@@ -1478,27 +1497,6 @@ it could check Status: headers for O, or Forward to in mailboxes."
 		 (lambda ()
 		   "Private compilation-frame stuff."
 		   (raise-frame compilation-frame-id))))))
-
-;;; Message-Id: <199504171641.KAA21020@async.cs.utah.edu>
-;;; Original-To: bug-gnu-emacs@prep.ai.mit.edu
-;;; From: willrich@async.cs.utah.edu (William F Richardson)
-;;; Subject: GNU Emacs suggestions/contributions
-;;; Date: Mon, 17 Apr 1995 10:41:54 -0600 (MDT)
-;;;
-(if window-system
-    (progn
-      (global-set-key "\C-x51" 'delete-other-frames)))
-;;;
-;; This is only useful under X windows.
-(defun delete-other-frames ()
-  "Delete all frames other than the currently selected one."
-  (interactive)
-  (let ((me (selected-frame))
-	(list (frame-list)))
-    (while (car list)
-      (if (not (eq me (car list)))
-	  (delete-frame (car list)))
-      (setq list (cdr list)))))
 
 (if (or window-system server-process)
     (progn
