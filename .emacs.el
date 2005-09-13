@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	27.1	03/11/23 19:15:50 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	27.2	05/09/13 14:26:50 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -44,15 +44,16 @@
 ;;;; ----------
 ;;;; stolen from cl.el -- find out where we are!
 
-(defvar init-emacs-type
-  (cond ((boundp 'emacs-major-version)	; first available in 19.23
-	 emacs-major-version)
-	((or (and (fboundp 'epoch::version)
-		  (symbol-value 'epoch::version))
-	     (string-lessp emacs-version "19"))
-	 18)				; was there ever anything less?
-	(t 19))				; what else could it be?
-  "Emacs major version for testing compatibility.")
+(eval-and-compile
+  (defvar init-emacs-type
+    (cond ((boundp 'emacs-major-version)	; first available in 19.23
+	   emacs-major-version)
+	  ((or (and (fboundp 'epoch::version)
+		    (symbol-value 'epoch::version))
+	       (string-lessp emacs-version "19"))
+	   18)				; was there ever anything less?
+	  (t 19))				; what else could it be?
+    "Emacs major version for testing compatibility."))
 
 (if (<= init-emacs-type 19)
     (progn
@@ -156,6 +157,33 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 	      '("/usr/pkg/libexec/cssc")
 	    nil))))
 
+;; colour is nice, but without it vc-annotate generates invisble text.
+;;
+;; unfortunately there's no vc-annotate-hook to run to first test if the
+;; current frame is colour-capable or not so this is all-or-nothing....
+;;
+(require 'vc)
+(setq vc-annotate-background nil)
+(setq vc-annotate-color-map
+   '(( 26.3672 . "black")
+    ( 52.7344 . "black")
+    ( 79.1016 . "black")
+    (105.4688 . "black")
+    (131.8359 . "grey3")
+    (158.2031 . "grey3")
+    (184.5703 . "grey3")
+    (210.9375 . "grey3")
+    (237.3047 . "grey3")
+    (263.6719 . "grey3")
+    (290.0391 . "grey3")
+    (316.4063 . "grey3")
+    (342.7734 . "grey3")
+    (369.1406 . "grey3")
+    (395.5078 . "grey3")
+    (421.8750 . "grey3")
+    (448.2422 . "grey3")))
+(setq vc-annotate-very-old-color "grey1")
+
 ;;; This could probably be rewritten to use mapcar
 ;;;
 (defun elisp-file-in-loadpath-p (file-name)
@@ -199,9 +227,12 @@ directory in the list PATHLIST, otherwise nil."
 (if (elisp-file-in-loadpath-p "filladapt")
     (progn
       (require 'filladapt)
-      (defvar filladapt-mode)
+      (eval-when-compile
+	(defvar filladapt-mode))
       (setq-default filladapt-mode t)	; it is a "Good Thing(tm)!"
-      (add-hook 'text-mode-hook 'turn-on-filladapt-mode))) ; it is a "Really Good Thing(tm)!"
+      (add-hook 'text-mode-hook 'turn-on-filladapt-mode) ; it is a "Really Good Thing(tm)!"
+      (add-hook 'sh-mode-hook 'turn-on-filladapt-mode)  ; ... especially in sh-mode :-)
+      (add-hook 'c-mode-hook 'turn-on-filladapt-mode))) ; ... even in c-mode :-)
 
 ;; hyperbole auto-loading
 (if (elisp-file-in-loadpath-p "hyperbole")
@@ -246,24 +277,6 @@ scripts (alias)." t)
 (if (elisp-file-in-loadpath-p "foldout")
     (eval-after-load "outline" '(load "foldout")))
 
-;;; Message-ID: <u7ybihq0jg.fsf@wmperry.oz.net>
-;;; X-Face: O~Rn;(l][/-o1sALg4A@xpE:9-"'IR[%;,,!m7</SYF`{vYQ(&RI1&EiH[FvT;J}@f!4kfz
-;;;  x_!Y#=y{Uuj9GvUi=cPuajQ(Z42R[wE@{G,sn$qGr5g/wnb*"*ktI+,CD}1Z'wxrM2ag-r0p5I6\nA
-;;;  [WJopW_J.WY;
-;;; From: William Perry <wmperry@aventail.com>
-;;; To: info-vm@uunet.uu.net
-;;; Date: 10 Sep 1996 18:54:11 -0700
-;;; Subject: Re: configuring SMPT server
-;;;
-;(if (elisp-file-in-loadpath-p "smtpmail")
-;    (progn
-;      (defvar vm-local-domain-name)	; to quiet the v19 byte compiler
-;      (setq send-mail-function 'smtpmail-send-it)
-;      (setq smtpmail-default-smtp-server (concat "mail" vm-local-domain-name))
-;      (setq smtpmail-smtp-service "smtp")
-;      (setq smtpmail-local-domain vm-local-domain-name)
-;      (require 'smtpmail)))
-
 ;;;; ----------
 ;;;; some property defintions...
 
@@ -284,8 +297,9 @@ scripts (alias)." t)
 (setq-default case-fold-search nil)	; unless set, don't ignore case
 (setq-default indent-tabs-mode t)	; allow tabs in indentation
 (setq-default require-final-newline 1)	; needed by some unix programs
-(if (< init-emacs-type 21)
-    (defvar indicate-empty-lines))
+(eval-when-compile
+  (if (< init-emacs-type 21)
+      (defvar indicate-empty-lines)))
 (setq-default indicate-empty-lines t)	; show which lines are past the EOF
 
 ;;;; ----------
@@ -296,6 +310,8 @@ scripts (alias)." t)
 ;;; Organization: Manchester Computing Centre, Manchester, England
 ;;; From: ehgasm2@uts.mcc.ac.uk (Simon Marshall)
 ;;; Subject: Re: Quick routine to BOLDFACE directories in DIRED buffers
+;;;
+;;; XXX probably should use \\' instead of $ to match end of string
 ;;;
 (if window-system
     (defvar dired-font-lock-keywords
@@ -406,8 +422,9 @@ when our preferred font is not available."
 (setq next-line-add-newlines nil)	; I hate it when it does that!  ;-)
 (setq search-highlight 1)		; not sure when this begins to work
 (setq sentence-end-double-space t)	; just to be absolutely sure!
-(if (< init-emacs-type 21)
-    (defvar tab-always-indent))
+(eval-when-compile
+  (if (< init-emacs-type 21)
+      (defvar tab-always-indent)))
 (setq tab-always-indent nil)		; silly
 (setq track-eol nil)			; too hard to control (it's sticky!)
 (setq window-min-height 1)		; don't be snobbish
@@ -425,9 +442,9 @@ when our preferred font is not available."
 
 ;; (require 'time)			; this isn't provided by time.el!
 (setq display-time-day-and-date t)	; what day is it again?
-(defvar display-time-24hr-format)	; to quiet the v19 byte compiler
+(eval-when-compile
+  (defvar display-time-24hr-format))	; not defvar'ed!
 (setq display-time-24hr-format t)	; time in 24hour-mode
-;(defvar display-time-interval)		; to quiet the v19 byte compiler
 ;(if (or (string-equal (system-name) "robohack")
 ;	(string-equal (system-name) "almost.weird.com")
 ;	(string-equal (system-name) "always.weird.com"))
@@ -448,8 +465,8 @@ when our preferred font is not available."
     (setq baud-rate 153600))		; let's make things more efficient
 
 (if (and (string-match "-sunos4" system-configuration)
-	 (or (string-match "^/bin/sh$" shell-file-name)
-	     (string-match "^/usr/bin/sh$" shell-file-name)))
+	 (or (string-match "\\`/bin/sh\\'" shell-file-name)
+	     (string-match "\\`/usr/bin/sh\\'" shell-file-name)))
     (setq cannot-suspend t))		; no jobs support!  ;-)
 
 ;; Something more detailed, like this, really should be the default!
@@ -538,7 +555,8 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 	(menu-bar-lines . 0)))
 
 ;; Format string for PR summary text.
-(defvar gnats::format-string)
+(eval-when-compile
+  (defvar gnats::format-string))
 (setq gnats::format-string
       "%5n %-14,14c %,1e%,1p %-8,8r %,6L %,4s %-4*4S %-12*-12R %j\n")
 
@@ -559,7 +577,8 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
         list-directory-verbose-switches "-lbaFg"
         list-directory-brief-switches "-abCFg")))
 
-(defvar tags-revert-without-query)	; avoid needing (require 'etags)
+(eval-when-compile
+  (defvar tags-revert-without-query))	; avoid needing (require 'etags)
 (setq tags-revert-without-query t)	; always revert to a newer TAGS file
 
 ;;;; ----------
@@ -574,48 +593,54 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 ;; directory portion unless you always visit the file using the directory
 ;; pathname explicitly.
 ;;
-;; note: no cvs backup files listed, they match "\\.#.*\\.[.0-9]+$"
+;; note: no cvs backup files listed, they match "\\.#.*\\.[.0-9]+\\'"
+;;
+;; note "\\'" matches the empty string, but only at the end of the buffer or
+;; string being matched against.
 ;;
 (mapcar 'add-to-auto-mode-alist
 	(list
-	 '("[Cc]onfig[^/\\.]*$" . sh-mode)	; sh-mode, in 19.28 and newer
-	 '("[^/]*rc$" . sh-mode)
-	 '("/rc\\.[^/]*$" . sh-mode)
-	 '("/rc\\.[^/]+/[^/]*$" . sh-mode)	; anything in an rc.* directory
-	 '("[-\\.]ash[^/\\.]*$" . sh-mode)
-	 '("[-\\.]ksh[^/\\.]*$" . sh-mode)
-	 '("[-\\.]sh[^/\\.]*$" . sh-mode)
+	 '("[Cc]onfig[^/\\.]*\\'" . sh-mode)	; sh-mode, in 19.28 and newer
+	 '("[^/]*rc\\'" . sh-mode)
+	 '("/rc\\.[^/]*\\'" . sh-mode)
+	 '("/rc\\.[^/]+/[^/]*\\'" . sh-mode)	; anything in an rc.* directory
+	 '("[-\\.]ash[^/\\.]*\\'" . sh-mode)
+	 '("[-\\.]ksh[^/\\.]*\\'" . sh-mode)
+	 '("[-\\.]sh[^/\\.]*\\'" . sh-mode)
 	 '("\\.[^/]*profile" . sh-mode)
-	 '("DEINSTALL$" . sh-mode)		; NetBSD pkgsrc
-	 '("DESCR$" . indented-text-mode)	; NetBSD pkgsrc
-	 '("INSTALL$" . sh-mode)		; NetBSD pkgsrc (clashes with
+	 '("DEINSTALL\\'" . sh-mode)		; NetBSD pkgsrc
+	 '("DESCR\\'" . indented-text-mode)	; NetBSD pkgsrc
+	 '("INSTALL\\'" . sh-mode)		; NetBSD pkgsrc (clashes with
 						;   GNU standard INSTALL doc)
-	 '("MESSAGE$" . indented-text-mode)	; NetBSD pkgsrc
-	 '("PLIST$" . sh-mode)			; NetBSD pkgsrc (not sh, but...)
-	 '("REQUIRE$" . sh-mode)		; NetBSD pkgsrc
-	 '("\\.java$" . java-mode)		; cc-mode
-	 '("\\.[0-9][a-z]?$" . nroff-mode)	; man page
-	 '("\\.[0-9][a-z]?\\.in$" . nroff-mode) ; man page
-	 '("\\.[m]?an$" . nroff-mode)		; man page
-	 '("\\.t[imes]*$" . nroff-mode)		; nroff+tbl
-	 '("\\.t[imes]*\\.in$" . nroff-mode)	; nroff+tbl
-	 '("[cC][hH][aA][nN][gG][eE][sS][^/\\.]*$" . indented-text-mode)
-	 '("[iI][nN][sS][tT][aA][lL][lL][^/\\.]*$" . indented-text-mode)
-	 '("[aA][uU][tT][hH][oO][rR][sS][^/\\.]*$" . indented-text-mode)
-	 '("[cC][oO][pP][yY][^/\\.]*$" . indented-text-mode)
-	 '("[nN][eE][wW][sS][^/\\.]*$" . indented-text-mode)
-	 '("[tT][oO][dD][oO][^/\\.]*$" . indented-text-mode)
-	 '("[tT][hH][aA][nN][kK][^/\\.]*$" . indented-text-mode)
-	 '("[rR][eE][aA][dD][^/]*[mM][eE][^/\\.]*$" . indented-text-mode)
-	 '("\\.te?xt$" . indented-text-mode)
-	 '("\\.notes?$" . indented-text-mode)
-	 '("\\.article$" . indented-text-mode)
-	 '("\\.letter$" . indented-text-mode)
-	 '("\\.mail[^/]*$" . mail-mode)
-	 '("\\.vm$" . emacs-lisp-mode)		; VM init file
-	 '("notes/.+$" . indented-text-mode)	; for ~/notes/*, but must not use "^/"
-	 '("/tmp/[^/]*\\.ed[^/]*$" . indented-text-mode) ; mail edit buffer
-	 '("/tmp/[^/]*nf[^/]*$" . indented-text-mode))) ; notesfile compose buf
+	 '("MESSAGE\\'" . indented-text-mode)	; NetBSD pkgsrc
+	 '("PLIST\\'" . sh-mode)			; NetBSD pkgsrc (not sh, but...)
+	 '("REQUIRE\\'" . sh-mode)		; NetBSD pkgsrc
+	 '("\\.java\\'" . java-mode)		; cc-mode
+	 '("\\.[0-9][a-z]?\\'" . nroff-mode)	; man page
+	 '("\\.[0-9][a-z]?\\.in\\'" . nroff-mode) ; man page
+	 '("\\.[m]?an\\'" . nroff-mode)		; man page
+	 '("\\.t[imes]*\\'" . nroff-mode)		; nroff+tbl
+	 '("\\.t[imes]*\\.in\\'" . nroff-mode)	; nroff+tbl
+	 '("[rR][eE][lL][eE][aA][sS][eE]\\([-.][^/]*\\)?\\'" . indented-text-mode)
+	 '("[cC][hH][aA][nN][gG][eE][sS]\\([-.][^/]*\\)?\\'" . indented-text-mode)
+	 '("[iI][nN][sS][tT][aA][lL][lL]\\([-.][^/]*\\)?\\'" . indented-text-mode)
+	 '("[aA][uU][tT][hH][oO][rR][sS]\\([-.][^/]*\\)?\\'" . indented-text-mode)
+	 '("[cC][oO][pP][yY][^/.]*\\([-.][^/]*\\)?\\'" . indented-text-mode)
+	 '("[nN][eE][wW][sS]\\([-.][^/]*\\)?\\'" . indented-text-mode)
+	 '("[tT][oO][dD][oO]\\([-.][^/]*\\)?\\'" . indented-text-mode)
+	 '("[tT][hH][aA][nN][kK][^/.]*\\([-.][^/]*\\)?\\'" . indented-text-mode)
+	 '("[rR][eE][aA][dD]\\([-.]\\)?[mM][eE]\\([-.][^/]*\\)?\\'" . indented-text-mode)
+	 '("\\.te?xt\\'" . indented-text-mode)
+	 '("\\.notes?\\'" . indented-text-mode)
+	 '("\\.article\\'" . indented-text-mode)
+	 '("\\.letter\\'" . indented-text-mode)
+	 '("\\.mail[^/]*\\'" . mail-mode)
+	 '("\\.vm\\'" . emacs-lisp-mode)		; VM init file
+	 '("/tmp/[^/]*\\.ed[^/]*\\'" . indented-text-mode) ; mail edit buffer
+	 '("/tmp/[^/]*nf[^/]*\\'" . indented-text-mode))) ; notesfile compose buf
+
+(add-to-auto-mode-alist
+ (cons (concat "\\`" (getenv "HOME") "/notes/.+\\'") 'indented-text-mode))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "diff-mode")
@@ -626,23 +651,24 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 	(elisp-file-in-loadpath-p "make-mode"))
     (mapcar 'add-to-auto-mode-alist
 	    (list
-	     '("/[Mm]ake[^/]*$" . makefile-mode)
-	     '("/[Mm]ake[^/]*\\.am$" . makefile-mode)
-	     '("/[Pp]\\.[Mm]ake[^/]*$" . makefile-mode)
-	     '("/[Mm]\\.include$" . makefile-mode)
-	     '("/[^/]*mk.conf[^/]*$" . makefile-mode)
-	     '("/[^/]+\\.mk$" . makefile-mode)
-	     '("/[^/]+\\.mk\\.in$" . makefile-mode))))
+	     '("[Mm]ake[^/]*\\.am\\'" . makefile-mode)
+	     '("[Mm]ake[^/]*\\.inc\\'" . makefile-mode)
+	     '("[Mm]ake[^/]*\\'" . makefile-mode)
+	     '("[Pp]\\.[Mm]ake[^/]*\\'" . makefile-mode)
+	     '("[Mm]\\.include\\'" . makefile-mode)
+	     '("[^/]*mk.conf[^/]*\\'" . makefile-mode)
+	     '("[^/]+\\.mk\\'" . makefile-mode)
+	     '("[^/]+\\.mk\\.in\\'" . makefile-mode))))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "lout-mode")
-    (add-to-auto-mode-alist '("/[^/]+\\.lout$" . lout-mode)))
+    (add-to-auto-mode-alist '("/[^/]+\\.lout\\'" . lout-mode)))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "autoconf")
-    (add-to-auto-mode-alist '("/configure.in$" . autoconf-mode))
+    (add-to-auto-mode-alist '("/configure.in\\'" . autoconf-mode))
   (if (elisp-file-in-loadpath-p "m4-mode")
-      (add-to-auto-mode-alist '("/configure.in$" . m4-mode))))
+      (add-to-auto-mode-alist '("/configure.in\\'" . m4-mode))))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "vm")
@@ -651,16 +677,17 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 	       (boundp 'menu-bar-tools-menu))
 	  (progn
 	    ;; to quiet the v19 byte compiler
-	    (defvar menu-bar-tools-menu)
+	    (eval-when-compile
+	      (defvar menu-bar-tools-menu))
 	    (define-key menu-bar-tools-menu [rmail] '("Read Mail" . vm))
 	    (define-key-after menu-bar-tools-menu [smail] '("Send Mail" . vm-mail) 'rmail)))
       (mapcar 'add-to-auto-mode-alist
 	      (list
-	       '("/Letter$" . vm-mode)
-	       '("mbox$" . vm-mode)
-	       '("/Mail/.*$" . vm-mode)
-	       '("/News/.*$" . vm-mode)
-	       '("\\.shar[^/]*$" . vm-mode)))))
+	       '("/Letter\\'" . vm-mode)
+	       '("mbox\\'" . vm-mode)
+	       '("/Mail/.*\\'" . vm-mode)
+	       '("/News/.*\\'" . vm-mode)
+	       '("\\.shar[^/]*\\'" . vm-mode)))))
 
 ;;;; ----------
 ;;;; special setup!
@@ -700,6 +727,15 @@ next ARG-1 words if ARG is greater than 1), moving over."
     (goto-char lastpoint)))
 (global-set-key "\ec" 'upcase-initials-word)
 (global-set-key "\eC" 'capitalize-word)
+
+(defun get-buffer-file-name ()
+  "Echo the current buffer's file name and put it into the kill ring"
+  (interactive)
+  (let ((bn (buffer-file-name nil)))
+   (kill-new bn)
+   (message "%s" bn)))
+
+(global-set-key "\M-?-B" 'get-buffer-file-name)
 
 ;; Message-ID: <14865.20524.263889.867670@vegemite.chem.nottingham.ac.uk>
 ;; Date: Tue, 14 Nov 2000 14:46:04 +0000
@@ -1002,6 +1038,13 @@ If not `nil' and not `t', query for each instance."
 	(setq list (cdr list))
 	(setq buffer (car list))))
     (switch-to-buffer buffer)))
+
+;;; like not-modified, but silent, and can toggle
+;;;
+(defun toggle-buffer-modified ()
+  "Toggle the buffer-modified status."
+  (interactive)
+  (set-buffer-modified-p (not (buffer-modified-p))))
 
 ;;; Snarfed from Steve Humble
 (defun ascii-table (new)
@@ -1387,7 +1430,7 @@ no `.'-separated extension), then make it executable with
 	       (goto-char (point-min))
 	       (save-match-data
 		 (looking-at "^#!"))))
-	   (string-match "/[^/.]+$" (buffer-file-name)))
+	   (string-match "/[^/.]+\\'" (buffer-file-name)))
       (make-buffer-file-executable)))
 
 (defun make-buffer-file-executable ()
@@ -1449,8 +1492,9 @@ Use `list-faces-display' to see all available faces")
 	     (string-equal (getenv "VISUAL") "emacsclient")))
     (progn
       ;; to quiet the v19 byte compiler
-      (defvar server-process)
-      (defvar server-temp-file-regexp)
+      (eval-when-compile
+	(defvar server-process)
+	(defvar server-temp-file-regexp))
       (eval-and-compile
 	(autoload 'server-buffer-done "server"
 	  "Mark BUFFER as \"done\" for its client(s)."
@@ -1484,7 +1528,8 @@ Use `list-faces-display' to see all available faces")
 
 ;;; gdb (aka gud -- Grand Unified Debugger mode) wants to use ^X^A as a key-map
 ;;; prefix, but since we do that in here, it just doesn't work!
-(defvar gud-key-prefix)
+(eval-when-compile
+  (defvar gud-key-prefix))
 (setq gud-key-prefix "\C-x\C-g")	; this makes more sense anyway....
 
 ;;; Date: Wed, 2 Feb 1994 12:49:31 GMT
@@ -1532,7 +1577,8 @@ Use `list-faces-display' to see all available faces")
 	  (function
 	   (lambda ()
 	     "Private cvs-mode hook to get rid of that horrid `z' key binding!"
-	     (defvar cvs-mode-map)
+	     (eval-when-compile
+	       (defvar cvs-mode-map))
 	     (define-key cvs-mode-map "z" 'nil))))
 
 ;;; GNU-Emacs' ideas about formatting C code really suck!  Let's stick to doing
@@ -1632,7 +1678,7 @@ Use `list-faces-display' to see all available faces")
 		       scope-operator)) ; (scope-operator)
     (c-comment-continuation-stars . "# ")
     (c-comment-only-line-offset . (0 . 0))
-    (c-comment-prefix-regexp . "#*")
+    (c-comment-prefix-regexp . "# *")
     (c-comment-start-regexp . "#[ 	]*")
     ;; ACTION can be either a function symbol or a list containing any
     ;; combination of the symbols `before' or `after'.  If the list is empty,
@@ -1731,8 +1777,8 @@ Use `list-faces-display' to see all available faces")
 	indent-tabs-mode t))
 
 ;; XXX c-default-style does not work properly for awk-mode in cc-mode 5.28
-;; (e.g. in 21.3) because awk-mode is just a derived mode.  See
-;; my-awk-mode-hook below for the hack around this bug.
+;; (e.g. in 21.3) because awk-mode is just a derived mode.  See the setting of
+;; awk-mode-hook below for the attempt to hack around this bug.
 ;;
 (setq c-default-style
       '((awk-mode . "PERSONAL-AWK")
@@ -1746,8 +1792,9 @@ Use `list-faces-display' to see all available faces")
   (setq tab-width 8)			; normal, standard, default TAB chars
   (setq fill-column 79)
   (setq comment-column 40)
-  (if (< init-emacs-type 21)
-    (defvar comment-style))
+  (eval-when-compile
+    (if (< init-emacs-type 21)
+	(defvar comment-style)))
   (setq comment-style 'extra-line)	; not used, but maybe someday?
   (setq indent-tabs-mode t)		; only use tabs
 
@@ -1784,9 +1831,9 @@ Use `list-faces-display' to see all available faces")
 
 ;; Derived modes don't have their major-mode (or mode-name) set until after the
 ;; parent mode has been initialized.  For example this causes c-default-style
-;; to be useless with any modes derived from c-mode.  This silly function works
-;; around that bug and can be used in the child mode initialization hook for
-;; any such mode derived from c-mode.
+;; to be useless with any modes derived from c-mode.  This silly function
+;; attempts to work around that bug and can be used in the initialization hook
+;; for any such mode derived from c-mode (such as awk-mode).
 ;;
 (defun my-derived-c-mode-hook ()
   "Silly setup hook to be called by modes derived from c-mode."
@@ -1806,9 +1853,10 @@ Use `list-faces-display' to see all available faces")
 ;;;
 
 ;; to quiet the v19 byte compiler
-(defvar vc-command-messages)
-(defvar vc-initial-comment)
-(defvar vc-checkout-carefully)
+(eval-when-compile
+  (defvar vc-command-messages)
+  (defvar vc-initial-comment)
+  (defvar vc-checkout-carefully))
 (add-hook 'vc-mode-hook
 	  (function
 	   (lambda ()
@@ -1817,7 +1865,8 @@ Use `list-faces-display' to see all available faces")
 	     (setq vc-checkout-carefully t)
 	     (setq vc-command-messages t)
 	     (setq vc-initial-comment t)
-	     (defvar vc-maximum-comment-ring-size) ; not defvar'ed!
+	     (eval-when-compile
+	       (defvar vc-maximum-comment-ring-size)) ; not defvar'ed!
 	     (setq vc-maximum-comment-ring-size 64) ; 32 is too small!
 	     (add-hook 'vc-checkin-hook
 		       'vc-comment-to-change-log))))
@@ -1885,18 +1934,19 @@ Use `list-faces-display' to see all available faces")
 (if (elisp-file-in-loadpath-p "sh-script")
     (progn
       ;; to quiet the v19 bytecompiler...
-      (defvar sh-alias-alist)
-      (defvar sh-indentation)
-      (defvar sh-basic-offset)
-      (defvar sh-learn-basic-offset)
-      (defvar sh-indent-comment)
-      (defvar sh-indent-for-case-label)
-      (defvar sh-indent-for-case-alt)
-      (defvar sh-indent-for-do)
-      (defvar sh-indent-for-then)
-      (defvar sh-indent-after-switch)
-      (defvar sh-indent-after-case)
-      (defvar sh-indent-after-do)
+      (eval-when-compile
+	(defvar sh-alias-alist)
+	(defvar sh-indentation)
+	(defvar sh-basic-offset)
+	(defvar sh-learn-basic-offset)
+	(defvar sh-indent-comment)
+	(defvar sh-indent-for-case-label)
+	(defvar sh-indent-for-case-alt)
+	(defvar sh-indent-for-do)
+	(defvar sh-indent-for-then)
+	(defvar sh-indent-after-switch)
+	(defvar sh-indent-after-case)
+	(defvar sh-indent-after-do))
       (setq sh-alias-alist
 	    '((ksh . posix)		; most shells are really posix
 	      (bash2 . posix)
@@ -1939,8 +1989,9 @@ Use `list-faces-display' to see all available faces")
 (if (elisp-file-in-loadpath-p "tcl")
     (progn
       ;; to quiet the v19 bytecompiler...
-      (defvar tcl-indent-level)
-      (defvar tcl-continued-indent-level)
+      (eval-when-compile
+	(defvar tcl-indent-level)
+	(defvar tcl-continued-indent-level))
       (setq tcl-indent-level 8)
       (setq tcl-continued-indent-level 8)
       (add-hook 'tcl-mode-hook
@@ -1958,12 +2009,13 @@ Use `list-faces-display' to see all available faces")
 	 (not (elisp-file-in-loadpath-p "sh-script")))
     (progn
       ;; to quiet the v19 byte compiler
-      (defvar ksh-indent)
-      (defvar ksh-group-indent)
-      (defvar ksh-brace-indent)
-      (defvar ksh-case-item-indent)
-      (defvar ksh-case-indent)
-      (defvar ksh-match-and-tell)
+      (eval-when-compile
+	(defvar ksh-indent)
+	(defvar ksh-group-indent)
+	(defvar ksh-brace-indent)
+	(defvar ksh-case-item-indent)
+	(defvar ksh-case-indent)
+	(defvar ksh-match-and-tell))
       (add-hook 'ksh-mode-hook
 		(function
 		 (lambda ()
@@ -2069,7 +2121,7 @@ Use `list-faces-display' to see all available faces")
       ad-do-it
     (toggle-read-only)))
 
-;;; much of the remainder is to get back some Jove/Gosmacs comaptability, but
+;;; some of the remainder is to get back some Jove/Gosmacs comaptability, but
 ;;; without getting it all....
 ;;;
 (global-set-key "\e\C-r" 'isearch-backward-regexp)
@@ -2086,6 +2138,9 @@ Use `list-faces-display' to see all available faces")
 (global-set-key "\e " 'set-mark-command)
 (global-set-key "\C-x " 'fixup-whitespace)
 (global-set-key "\C-xt" 'goto-line)
+
+(global-set-key [?\C-\M-\(] 'beginning-of-defun)
+(global-set-key [?\C-\M-\)] 'end-of-defun)
 
 (global-set-key "\e!" 'shell)
 (global-set-key "\C-x!" 'shell-command)
@@ -2223,7 +2278,8 @@ Use `list-faces-display' to see all available faces")
 	 window-system)
     (progn
       ;; to quiet the v19 byte compiler
-      (defvar compilation-frame-id)
+      (eval-when-compile
+	(defvar compilation-frame-id))
       (require 'compile-frame)
       (eval-and-compile
 	(autoload 'raise-frame "frame"	; actually in frame.c
@@ -2298,11 +2354,12 @@ current emacs server process..."
 	 (file-in-pathlist-p "ispell" exec-path))
     (progn
       ;; to quiet the v19 byte compiler
-      (defvar ispell-filter-hook)
-      (defvar ispell-filter-hook-args)
-      (defvar plain-TeX-mode-hook)
-      (defvar LaTeX-mode-hook)
-      (defvar nroff-mode-hook)
+      (eval-when-compile
+	(defvar ispell-filter-hook)
+	(defvar ispell-filter-hook-args)
+	(defvar plain-TeX-mode-hook)
+	(defvar LaTeX-mode-hook)
+	(defvar nroff-mode-hook))
       (require 'ispell)
       (define-key global-map "\M-S" 'ispell-buffer)
       (setq plain-TeX-mode-hook
@@ -2328,6 +2385,11 @@ current emacs server process..."
 ;;;  "Magic!"
 ;;;  (setq spell-command (concat "deroff | " spell-command)))
 
+;;; GNU Aspell has custom filter modes built into it
+;;;
+(if (and (elisp-file-in-loadpath-p "ispell")
+	 (file-in-pathlist-p "aspell" exec-path))
+    (setq-default ispell-program-name "aspell"))
 
 ;;;;
 ;;;; calendar and appointment stuff
@@ -2502,8 +2564,9 @@ current emacs server process..."
       ;;
       (require 'timeclock)
 
-      (if (< init-emacs-type 21)
-	  (defvar timeclock-use-display-time))
+      (eval-when-compile
+	(if (< init-emacs-type 21)
+	    (defvar timeclock-use-display-time)))
       (setq timeclock-use-display-time t)
 
       ;; NOTE:  you must have a ~/.timelog file or this will crap out...
@@ -2550,8 +2613,9 @@ current emacs server process..."
     (progn
       ;; todo-mode autoloads itself and may even be autoloaded by calendar....
 
-      (if (< init-emacs-type 21)
-	  (defvar todo-prefix))
+      (eval-when-compile
+	(if (< init-emacs-type 21)
+	    (defvar todo-prefix)))
       (setq todo-prefix "&%%(equal (calendar-current-date) date)")
 
       (global-set-key "\C-cTs" 'todo-show) ;; switch to TODO buffer
@@ -2559,10 +2623,97 @@ current emacs server process..."
       ))
 
 ;;;;
-;;;; mail-mode stuff....
+;;;; mail-mode stuff
+;;;;
+
+(setq read-mail-command 'vm)
+
+;;;;
+;;;; for sendmail.el et al....
 ;;;;
 
 (require 'sendmail)
+
+;; With Smail's content filtering we will get an error if we try to post
+;; something that's forbidden -- however the current stupid `sendmail-send-it'
+;; seems to ignore errors from the mailer unless `mail-interactive' is set.
+;;
+;; Unfortunately interactive delivery will appear to fail if the mailer returns
+;; EX_TEMPFAIL even though the message may have been successfully queued for
+;; later delivery.  Arguably the mailer shouldn't return EX_TEMPFAIL in this
+;; situation, but some do (eg. some versions Smail).
+;;
+;; The right thing to do is to rewrite sendmail-send-it to properly handle all
+;; errors all the time.
+;;
+(setq mail-interactive nil)
+
+(setq mail-specify-envelope-from nil)	; not ususually permitted anyway
+
+(setq mail-yank-prefix "> ")
+(setq mail-header-separator ".")	; as close to nothing as possible
+
+(setq mail-archive-file-name "~/Mail/.outgoing") ; for non-VM use
+
+(defconst mail-default-domains-completion-alist
+  '(
+    ("weird.com")
+    ("weird.ca")
+    ("weird.toronto.on.ca")
+    ("robohack.ca")
+    ("planix.com")
+    ("robohack.planix.com")
+    ("planix.ca")
+    ("planix.net")
+    ("reptiles.org")
+    ("vex.net")
+    ("aci.on.ca")
+    ("proxy.net")
+    ("accumarkpg.com")
+    ("protagon.com")
+   )
+  "*Default list of domains for mail-local-domain-name.")
+
+(defvar mail-local-domain-name (or (let ((envvalue (getenv "DOMAINNAME")))
+				     (if (or (null envvalue)
+					     (string-equal envvalue ""))
+					 nil
+				       (if (string-equal "." (substring envvalue 0 1))
+					   (substring envvalue 1)
+					 envvalue)))
+				   (if (string-match "\\." (system-name))
+				       (substring (system-name) (match-end 0)))
+				   (completing-read "Domain name (without host part): "
+						    mail-default-domains-completion-alist))
+  "*Local domain name to be used for mail purposes.")
+
+(defun mail-reset-mail-local-domain-name-users ()
+  "Run after chaning `mail-local-domain-name'."
+  (setq mail-default-reply-to (concat "\"" (user-full-name) "\" <"
+				      (user-login-name) "@"
+				      mail-local-domain-name ">"))
+  (my-mail-signature-selector))
+
+(add-hook 'after-init-hook 'mail-reset-mail-local-domain-name-users)
+
+(defun set-new-mail-local-domain-name (new-domain)
+  "Set a new value for `mail-local-domain-name'."
+  (interactive
+   ;; protect value of last-command and this-command
+   (let ((last-command last-command)
+	 (this-command this-command)
+	 new-domain)
+     (setq new-domain (completing-read "Domain name (without host part): "
+				       mail-default-domains-completion-alist))
+     (list new-domain)))
+  ;; strip any leading dot...
+  (if (string-equal "." (substring new-domain 0 1))
+      (setq new-domain (substring new-domain 1)))
+  (setq mail-local-domain-name new-domain)
+  (mail-reset-mail-local-domain-name-users))
+
+;; xxx need to do something to set mail-host-address correctly!!!
+;; (doing that should give user-mail-address the "right" value)
 
 (if (elisp-file-in-loadpath-p "ispell")
     (progn
@@ -2621,6 +2772,27 @@ to the other end and continue."
 (defvar mail-x-face-file "~/.face"
   "Name of file containing contents for X-Face header")
 
+(defvar mail-x-face-file "~/.face"
+  "The name of a file containing the content for your `X-Face' header in
+`compface' output format.")
+
+(defvar mail-default-x-face
+  " *Vqm<\"ErD\"t5{*PViZ^>nLZo*Td+y(r1f3)jj\\>&1O=,q?:pt6cR]Hi6h|*f#
+ 8nBBgD@\\+D7Cf5&(Wg'RA|/+Ee`$\"V>se7P7j2O-MG?rIJW=EBcaQf7k\\KnmT0^375!h
+ \\._mc>~9'd_
+"
+  "The default x-face content in `compface' output format (i.e. with a leading
+space on every line, and a trailing newline).")
+
+(defvar mail-alternate-x-face
+  " G=jn*S]P-JmPX0[GAK;)7Yo0p?#U/0m{g!*j3XGvT80*#5pX0kPN$4+azk{O#@ZE
+ ZV9BS:4y;\9utXK@+?.mCT.k%G&Ix2XEj-`bBt{TituWYrQ5npZb+:ERfmRt-((lW:itQr$
+ C|B~;vhJ:>2,{tA}#)P'g3h6eE8JT|Qfcm50pUoy{zb8=jvof2?lY}EYTEt4z=5*i%OJ136
+ \?S8^g~^>,s&,jBb'=K|ryeVtUX5
+"
+  "An alternate x-face file -- this one is a cute little BSD daemon.
+Use it by evaluating `(setq mail-default-x-face mail-alternate-x-face)'")
+
 (defun mail-insert-x-face ()
   "Insert an X-Face header containing the contents of mail-x-face-file."
   (if (file-exists-p mail-x-face-file)
@@ -2630,9 +2802,11 @@ to the other end and continue."
 	(beginning-of-line nil)
 	(insert "X-Face:")
 	(insert-file mail-x-face-file))))
-
+;;
 (add-hook 'mail-setup-hook 'mail-insert-x-face)
 
+;; always a good thing!
+;;
 (add-hook 'mail-setup-hook 'mail-abbrevs-setup)
 
 ;; it would be nice to have mail-abbrev-next-header and maybe
@@ -2646,21 +2820,226 @@ the same key is used in global-map."
 			     mail-mode-map global-map))
 (add-hook 'mail-setup-hook 'my-mail-abbrevs-fix-next-line)
 
+;; If t, it means to insert the contents of the file `mail-signature-file'.
+;; If a string, that string is inserted.
+;;
+;; Otherwise, it should be an expression; which will be evaluated by
+;; `mail-signature' and that expression should return a string containing
+;; whatever text you want to insert.
+;;
+;; Note the expression magic is not currently documented.
+;;
+(defvar default-mail-signature-file mail-signature-file
+  "Original value of `mail-signature-file' for safe keeping.")
+(setq mail-signature t)
+
+(defun my-mail-signature-selector ()
+  "Select an appropriate signature file"
+  (let ((custom-sigfile (concat mail-signature-file "-" mail-local-domain-name)))
+    (if (file-exists-p custom-sigfile)
+	(setq mail-signature-file custom-sigfile)
+      (setq mail-signature-file default-mail-signature-file))))
+
+(add-hook 'after-init-hook 'my-mail-signature-selector)
+
+;; more fancy .sig handling adapted from:
+;; <URL:http://www-xray.ast.cam.ac.uk/~gmorris/dotvm.txt>
+;;
+(defun my-mail-goto-signature ()
+  "Move point to the signature separator, if present.  Otherwise go to the end
+and return nil."
+  (goto-char (point-max))
+  (re-search-backward message-signature-separator (mail-text-start) t))
+
+(defun my-mail-signature-start ()
+  "Return start position of signature in current buffer, or nil if none."
+  (save-excursion
+    (goto-char (point-max))
+    (and (re-search-backward message-signature-separator nil t)
+         (point))))
+
+(defface my-signature-face
+  '((((class color)
+      (background dark))
+     (:foreground "light pink"))
+    (((class color)
+      (background light))
+     (:background "light pink"))
+    (t
+     (:italic t)))
+  "My signature face")
+
+(defun my-signature-highlight ()
+  "Highlight the signature in an article with `my-signature-face'."
+  (interactive)
+  (save-excursion
+    (let ((start (my-mail-signature-start)))
+      (and start
+           (facep 'my-signature-face)
+           (overlay-put (make-overlay start (point-max))
+                        'face 'my-signature-face)))))
+
+(defun my-signature-insert (sig &optional replace highlight)
+  "Insert SIG as signature at end of current buffer, unless a signature is
+already present, in which case REPLACE must be supplied.  If a file matching
+string SIG exists, its contents will be inserted, otherwise SIG is treated as a
+literal string. With HIGHLIGHT, highlight the new signature."
+  (save-excursion
+    (let ((sigsep "\n-- \n")	; should match message-signature-separator
+	  (exists (my-mail-goto-signature))) ; moves point
+      (when (and exists replace)
+	(delete-region (point) (point-max))
+	(delete-char -1))
+      (when (or (not exists) (and exists replace))
+	(insert sigsep)
+	(if (file-exists-p sig) (insert-file-contents sig)
+	  (insert sig))
+	(and highlight (my-signature-highlight))))))
+
+(defun my-signature-kill ()
+  "Remove signature in current buffer."
+  (interactive)
+  (save-excursion
+    (and (my-mail-goto-signature) (delete-region (point) (point-max)))))
+
+(defvar my-randomsig-file "~/quotes"
+  "")
+(defvar my-randomsig-delimiter-pattern "\n\n"
+  "")
+(defvar my-randomsig-comment-pattern "#c#"
+  "")
+(defvar my-randomsig-sigflag-pattern ""	; "#s#"
+  "")
+
+(defun my-get-random-quote (&optional include-commented lines sigflag)
+  "Return a random quote from `my-randomsig-file'.
+If INCLUDE-COMMENTED is non-nil, include private quotes.
+If LINES is non-nil, do not return a quote with more than LINES lines.
+If SIG is non-nil, only return quotes marked as sig-suitable, ignoring
+any line-limit."
+  (interactive)
+  (or (file-exists-p my-randomsig-file)
+      (error "File `%s' not found" my-randomsig-file))
+    (with-temp-buffer
+      (insert-file-contents my-randomsig-file)
+      (goto-char (point-min))
+      (let ((sigcount 0)
+            (try 0)
+            (maxtry 100)
+            found sigstring selected)
+	;; Count number of signatures.
+	(while (re-search-forward my-randomsig-delimiter-pattern nil t)
+	  (setq sigcount (1+ sigcount)))
+	;; search for a suitable signature...
+        (while (not sigstring)
+          (while (and (not found) (< try maxtry))
+            ;; Select random signature.
+            (setq try (1+ try))
+	    (setq selected (1+ (random sigcount)))
+            (goto-char (point-min))
+            ;; Note this expects a separator before first quote.
+            (or (re-search-forward my-randomsig-delimiter-pattern
+                                   (point-max) t selected)
+                (error "Failed to find selected quote"))
+            (setq found (if (looking-at my-randomsig-comment-pattern)
+			    include-commented
+			  t))
+            ;; If requested, reject those not explicitly marked as sigs.
+            ;; Ugly.
+            (and found
+                 (setq found
+		       (or (not sigflag) 
+			   (re-search-forward 
+			    my-randomsig-sigflag-pattern 
+			    (line-end-position) t)))))
+          (or found (error "Tried %s quotes and failed" maxtry))
+          ;; Cut signature and return it.
+          (let ((start (point))
+                (end (save-excursion
+                       (and (re-search-forward
+                             my-randomsig-delimiter-pattern (point-max) 'move)
+                            (beginning-of-line))
+                       (point)))
+                thislines)
+            ;; Move to end, or comment section.
+            (and (re-search-forward my-randomsig-comment-pattern end 'move)
+                 (beginning-of-line))
+            (setq end (point)
+                  sigstring (buffer-substring start end)
+                  thislines (count-lines start end))
+            ;; Reject signature if too long.
+            (and lines (not sigflag) (> thislines lines)
+                 (setq found nil sigstring nil))))
+        (if (interactive-p) (message "%s" sigstring)
+          sigstring))))
+
+;; This is bogus, but serves as an example.
+;;
+;; what we really want is just to replace the quotation part, not the whole .sig
+;;
+(defun my-sig-replace-random-and-highlight (&optional prefix)
+  "Insert and highlight random signature, from those marked OK.
+With PREFIX, select from all quotes."
+  (interactive "*P")			; suitable for keybinding
+  (my-signature-insert (my-get-random-quote prefix nil nil) t t))
+
 ;;;;
-;;;; message.el stuff....
+;;;; maybe someday some smtpmail.el stuff....
 ;;;;
 
-(require 'message)
-
-(setq message-user-organization t)
-(if (file-exists-p "~/.organization")
-    (setq message-user-organization-file "~/.organization"))
+;;; Message-ID: <u7ybihq0jg.fsf@wmperry.oz.net>
+;;; X-Face: O~Rn;(l][/-o1sALg4A@xpE:9-"'IR[%;,,!m7</SYF`{vYQ(&RI1&EiH[FvT;J}@f!4kfz
+;;;  x_!Y#=y{Uuj9GvUi=cPuajQ(Z42R[wE@{G,sn$qGr5g/wnb*"*ktI+,CD}1Z'wxrM2ag-r0p5I6\nA
+;;;  [WJopW_J.WY;
+;;; From: William Perry <wmperry@aventail.com>
+;;; To: info-vm@uunet.uu.net
+;;; Date: 10 Sep 1996 18:54:11 -0700
+;;; Subject: Re: configuring SMPT server
+;;;
+;(if (elisp-file-in-loadpath-p "smtpmail")
+;    (progn
+;      (require 'smtpmail)
+;      (setq send-mail-function 'smtpmail-send-it)
+;      (setq smtpmail-default-smtp-server (concat "mail" mail-local-domain-name))
+;      (setq smtpmail-smtp-service "smtp")
+;      (setq smtpmail-local-domain mail-local-domain-name)))
 
 ;;;
 ;;; GNUS specific stuff
 ;;;
 
-(defvar gnus-read-active-file)
+(eval-when-compile
+  (defvar message-from-style)
+  (defvar message-sendmail-f-is-evil)
+  (defvar message-generate-headers-first)
+  (defvar message-interactive)
+  (defvar message-user-organization)
+  (defvar gnus-read-active-file))
+
+(setq message-from-style 'angles)	; true RFC-[2]822
+(setq message-sendmail-f-is-evil t)	; indeed it is!
+(setq message-generate-headers-first t)	; seems much nicer
+
+;; With Smail's content filtering we will get an error if we try to post
+;; something that's forbidden -- however the current stupid
+;; `message-send-mail-with-sendmail' ignores errors from the mailer unless
+;; `message-interactive' is set.
+;;
+;; Unfortunately interactive delivery will appear to fail if the mailer returns
+;; EX_TEMPFAIL even though the message may have been successfully queued for
+;; later delivery.  Arguably the mailer shouldn't return EX_TEMPFAIL in this
+;; situation, but some do (eg. some versions Smail).
+;;
+;; Unfortunately there's not even any other way to specify other custom options
+;; to `sendmail-program' or else we could just add our own "-odb -oem" without
+;; having to turn off `message-interactive'.
+;;
+(setq message-interactive t)
+
+(setq message-user-organization t)
+(if (file-exists-p "~/.organization")
+    (setq message-user-organization-file "~/.organization"))
+
 (setq gnus-read-active-file t)		; default of 'some causes it to hang
 
 
