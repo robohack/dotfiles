@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	1.1	05/09/29 18:08:24 (woods)"
+;;;;#ident	"@(#)HOME:.wl	1.2	05/09/29 18:13:23 (woods)"
 ;;;;
 
 ;; one can apparently use `mime-preview-toggle-content' with C-c C-t C-c to
@@ -229,6 +229,10 @@ into too much confusion."
 (setq signature-file-alist
       '((("From" . "@planix\\.") . "~/.signature-planix.com")
 	(("From" . ".") . "~/.signature")))
+
+;; mail-sent-via is a big useless pile of crap.
+;; 
+(define-key wl-draft-mode-map "\C-c\C-v" nil)
 
 (setq wl-default-folder "^%INBOX@mail.weird.com")
 
