@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	1.2	05/09/29 18:13:23 (woods)"
+;;;;#ident	"@(#)HOME:.wl	1.3	05/09/29 18:14:16 (woods)"
 ;;;;
 
 ;; one can apparently use `mime-preview-toggle-content' with C-c C-t C-c to
@@ -108,7 +108,7 @@ into too much confusion."
 
 ;; turn off dangerous commands with too-simple-to-hit keys
 ;;
-(define-key wl-summary-mode-map "x" 'self-insert-command)
+(define-key wl-summary-mode-map "x" nil)
 (define-key wl-summary-mode-map "X" 'my-wl-summary-exec-and-rescan)
 
 ;; XXX GRRR!  It seems this is impossible to do from here!
