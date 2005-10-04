@@ -1,11 +1,8 @@
 #
 #	.kshpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.kshpwd	27.1	03/11/23 19:15:51 (woods)"
+#ident	"@(#)HOME:.kshpwd	27.2	05/10/04 16:36:45 (woods)"
 
-if [ "$PWD" = "$HOME" ] ; then
-	PWD='~'
-fi
 unalias cd
 alias cd='_cd'
 function _cd
@@ -14,6 +11,12 @@ function _cd
 	case "$PWD" in
 	*/work.d/*)
 		PWD='work.d:'"${PWD#*/work.d/}"
+		;;
+	/work/${LOGNAME}/*)
+		PWD='mywrk:'"${PWD#/work/${LOGNAME}/}"
+		;;
+	/work/*)
+		PWD='work:'"${PWD#/work/}"
 		;;
 	${HOME})
 		PWD='~'
@@ -24,11 +27,14 @@ function _cd
 	/home/*)
 		PWD='~'"${PWD#/home/}"
 		;;
-	/apc/usr/web/webadmin/*)
-		PWD='~'"${PWD#/apc/usr/web/webadmin/}"
+	/usr/src/*)
+		PWD='src:'"${PWD#/usr/src/}"
 		;;
-	*/src/*)
-		PWD='src:'"${PWD#*/src/}"
+	/usr/pkgsrc/*)
+		PWD='pkgsrc:'"${PWD#/usr/pkgsrc/}"
+		;;
+	/usr/xsrc/*)
+		PWD='xsrc:'"${PWD#/usr/xsrc/}"
 		;;
 	*)
 		PWD="${PWD#/}"
@@ -42,5 +48,5 @@ function _cd
 	fi
 }
 
-# make sure PWD is now set right...
+# make sure PWD is now set as we want it...
 cd; cd -
