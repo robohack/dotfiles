@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	27.3	05/10/10 12:26:19 (woods)"
+#ident	"@(#)HOME:.xinitrc	27.4	05/10/10 14:23:39 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -399,6 +399,7 @@ xtremely.weird.com:*)
 		xclock -geometry 190x190-0+0 &
 	fi
 	xterm -display $DISPLAY -geometry 80x42-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n always.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 
 	# first column....
 	xterm -display $DISPLAY -geometry 88x24+0+0   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:isit -T "Console [isit.weird.com]" -e console -S isit &
