@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	27.2	05/10/04 16:35:43 (woods)"
+#ident	"@(#)HOME:.xinitrc	27.3	05/10/10 12:26:19 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -216,7 +216,7 @@ if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
 		# now start server programs we like for this scenario
 		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x40-200+48 -hl grey90 &
 		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-###		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 		;;
 	*)
 		# not setting ONX11SERVER just makes the WM run clients on
@@ -370,15 +370,14 @@ very.weird.com:*)
 	$RSH -n whats.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	$RSH -n always.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	$RSH -n starting-out.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n becoming.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	$RSH -n sometimes.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	# oddly using 130x64 turns into 163x55 with the font change!
 	# this one's supposed to go in virtualscreen "Mail"
-###	$RSH -n proven.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -display $DISPLAY -geometry 130x75+0+0" &
+###	$RSH -n building.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -display $DISPLAY -geometry 130x75+0+0" &
 	# this one's supposed to go in virtualscreen "Coding"
-###	$RSH -n proven.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -i -display $DISPLAY -geometry 130x75+0+0" &
-	# this one should go in the virtualscreen "News" 
 ###	$RSH -n building.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -i -display $DISPLAY -geometry 130x75+0+0" &
+	# this one should go in the virtualscreen "News" 
+###	$RSH -n whats.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -i -display $DISPLAY -geometry 130x75+0+0" &
 	;;
 
 xtremely.weird.com:*)
