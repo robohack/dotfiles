@@ -2,7 +2,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	27.3	05/10/04 16:31:17 (woods)"
+#ident	"@(#)HOME:.ctwmrc	27.4	05/10/21 11:48:21 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -1080,7 +1080,7 @@ menu "www"
 {
 	"WWW Browsers Everywhere!"	f.title
 	"Mozilla..."			f.menu "www-mozilla"
-	"Galeon..."			f.menu "www-galeon"
+	"Firefox..."			f.menu "www-firefox"
 }
 
 # NOTE: should use either PLANES or BITS_PER_RGB to do this right
@@ -1116,7 +1116,7 @@ menu "www-mozilla"
  ])
 }
 
-menu "www-firefox
+menu "www-firefox"
 {
 	"Firefox Everywhere!"	f.title
 	"@localhost"	!"firefox OPT_MOZ_INSTALL &"
@@ -1198,7 +1198,7 @@ menu "samplegames"
 
 menu "xterm"
 {
-	"Xterm's Everywhere"	f.title
+	"Xterms Everywhere"	f.title
 	"Xterm @localhost"	!"$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls &"
 	"Xterm @x11server"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
  ifdef([AT_WEIRD], [
@@ -1248,41 +1248,41 @@ menu "xterm"
 
 menu "rlogin"
 {
-	"Rlogin's Everywhere"		f.title
-	"Rlogin's at Weird.com..."	f.menu "rlogin-weird"
+	"Rlogins Everywhere"		f.title
+	"Rlogins at Weird.com..."	f.menu "rlogin-weird"
  ifdef([AT_PLANIX], [
-	"Rlogin's at Planix.com..."	f.menu "rlogin-planix"
+	"Rlogins at Planix.com..."	f.menu "rlogin-planix"
  ])
  ifdef([AT_ACI], [
-	"Rlogin's at ACI.on.ca..."	f.menu "rlogin-aci"
+	"Rlogins at ACI.on.ca..."	f.menu "rlogin-aci"
  ])
 }
 
 menu "telnet"
 {
-	"Telnet's Everywhere"		f.title
-	"Telnet's at Weird.com..."	f.menu "telnet-weird"
+	"Telnets Everywhere"		f.title
+	"Telnets at Weird.com..."	f.menu "telnet-weird"
  ifdef([AT_PLANIX], [
-	"Telnet's at Planix.com..."	f.menu "telnet-planix"
+	"Telnets at Planix.com..."	f.menu "telnet-planix"
  ])
 }
 
 menu "slogin"
 {
-	"Slogin's Everywhere"		f.title
-	"Slogin's at Weird.com..."	f.menu "slogin-weird"
-	"Slogin's at Planix.com..."	f.menu "slogin-planix"
-	"Slogin's at Dancing.org..."	f.menu "slogin-dancing"
-	"Slogin's at Proxy.com..."	f.menu "slogin-proxy"
-	"Slogin's at sols.org..."	f.menu "slogin-sols"
-	"Slogin's at ACI.on.ca..."	f.menu "slogin-aci"
-	"Slogin's at Vex.net..."	f.menu "slogin-vex"
-	"Slogin's at Reptiles.org..."	f.menu "slogin-reptiles"
+	"Slogins Everywhere"		f.title
+	"Slogins at Weird.com..."	f.menu "slogin-weird"
+	"Slogins at Planix.com..."	f.menu "slogin-planix"
+	"Slogins at Dancing.org..."	f.menu "slogin-dancing"
+	"Slogins at Proxy.com..."	f.menu "slogin-proxy"
+	"Slogins at sols.org..."	f.menu "slogin-sols"
+	"Slogins at ACI.on.ca..."	f.menu "slogin-aci"
+	"Slogins at Vex.net..."	f.menu "slogin-vex"
+	"Slogins at Reptiles.org..."	f.menu "slogin-reptiles"
 }
 
 menu "rlogin-weird"
 {
-	"Rlogin's At Weird.com"	f.title
+	"Rlogins At Weird.com"	f.title
 	"Rlogin @most"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin most.weird.com &"
 	"Rlogin @proven"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin proven.weird.com &"
 	"Rlogin @building"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin building.weird.com &"
@@ -1299,7 +1299,7 @@ menu "rlogin-weird"
 
 menu "telnet-weird"
 {
-	"Telnet's At Weird.com"	f.title
+	"Telnets At Weird.com"	f.title
 	"telnet @most"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet most.weird.com &"
 	"telnet @proven"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet proven.weird.com &"
 	"telnet @building"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet building.weird.com &"
@@ -1315,7 +1315,7 @@ menu "telnet-weird"
 
 menu "slogin-weird"
 {
-	"Slogin's At Weird.com" f.title
+	"Slogins At Weird.com" f.title
 	"Slogin @most"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C most.weird.com &"
 	"Slogin @proven"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C proven.weird.com &"
 	"Slogin @building"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C building.weird.com &"
@@ -1332,7 +1332,7 @@ menu "slogin-weird"
 ifdef([AT_PLANIX], [
 menu "rlogin-planix"
 {
-	"Rlogin's At Planix.com" f.title
+	"Rlogins At Planix.com" f.title
 	"Rlogin @whome"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin whome.planix.com &"
 	"Rlogin @woffi"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin woffi.planix.com &"
 	"Rlogin @warlord"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin warlord.planix.com &"
@@ -1342,7 +1342,7 @@ menu "rlogin-planix"
 ifdef([AT_PLANIX], [
 menu "telnet-planix"
 {
-	"Telnet's At Planix.com" f.title
+	"Telnets At Planix.com" f.title
 	"telnet @whome"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet whome.planix.com &"
 	"telnet @weight"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet weight.planix.com &"
 	"telnet @woffi"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet woffi.planix.com &"
@@ -1358,7 +1358,7 @@ menu "telnet-planix"
 
 menu "slogin-planix"
 {
-	"Slogin's At Planix.com" f.title
+	"Slogins At Planix.com" f.title
 	"Slogin @whome"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C whome.planix.com &"
 	"Slogin @woffi"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C woffi.planix.com &"
 	"Slogin @weight"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C weight.planix.com &"
@@ -1370,14 +1370,14 @@ menu "slogin-planix"
 
 menu "slogin-dancing"
 {
-	"Slogin's At Dancing.org" f.title
+	"Slogins At Dancing.org" f.title
 	"Slogin @lindy"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin -C lindy.dancing.org &"
 }
 
 
 menu "slogin-proxy"
 {
-	"Slogin's At Proxy.com"	f.title
+	"Slogins At Proxy.com"	f.title
 	"Slogin @server.proxy.com" !"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin server.proxy.com &"
 	"Slogin @apple.proxy.com" !"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin apple.proxy.com &"
 }
@@ -1385,7 +1385,7 @@ menu "slogin-proxy"
 ifdef([AT_ACI], [
 menu "rlogin-aci"
 {
-	"Rlogin's At ACI.on.ca"	f.title
+	"Rlogins At ACI.on.ca"	f.title
 	"Rlogin @admin"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin admin.sec.aci.on.ca &"
 	"Rlogin @public"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin public.sec.aci.on.ca &"
 	"Rlogin @oldpub"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin oldpub.sec.aci.on.ca &"
@@ -1396,7 +1396,7 @@ menu "rlogin-aci"
 
 menu "slogin-aci"
 {
-	"Slogin's At ACI.on.ca"	f.title
+	"Slogins At ACI.on.ca"	f.title
 	"Slogin @admin"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin admin.aci.on.ca &"
 	"Slogin @public"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin public.aci.on.ca &"
 	"Slogin @corporate"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin corporate.aci.on.ca &"
@@ -1406,20 +1406,20 @@ menu "slogin-aci"
 
 menu "slogin-sols"
 {
-	"Slogin's At sols.org" f.title
+	"Slogins At sols.org" f.title
 	"Slogin @solsinfo"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin solsinfo.sols.org &"
 	"Slogin @solsweb"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin solsweb.sols.org &"
 }
 
 menu "slogin-vex"
 {
-	"Slogin's At Vex.net"	f.title
+	"Slogins At Vex.net"	f.title
 	"Slogin @vex"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin vex.net &"
 }
 
 menu "slogin-reptiles"
 {
-	"Slogin's At Reptiles.Org" f.title
+	"Slogins At Reptiles.Org" f.title
 	"Slogin @komodo(FreeBSD)"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin komodo.reptiles.org &"
 	"Slogin @iguana(sun3)"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin iguana.reptiles.org &"
 	"Slogin @tuatara(NetBSD)"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin tuatara.reptiles.org &"
