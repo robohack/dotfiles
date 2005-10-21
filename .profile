@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	27.3	04/10/10 19:51:59 (woods)"
+#ident	"@(#)HOME:.profile	27.4	05/10/21 11:54:25 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -33,16 +33,6 @@
 
 umask 022
 
-# force nproc, data, stack, and nofiles limits equal to their maximum
-# hard limit.
-#
-# (assume time, file, and coredump are already unlimited)
-#
-ulimit -S -p `ulimit -H -p`
-ulimit -S -d `ulimit -H -d`
-ulimit -S -s `ulimit -H -s`
-ulimit -S -n `ulimit -H -n`
-
 if [ -r $HOME/.bashlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} -a -n "${BASH}" ] ; then
 	trap '. $HOME/.bashlogout ; exit $?' 0
 elif [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} -a -z "${BASH}" ] ; then
@@ -54,14 +44,42 @@ fi
 # the I/O re-direction doesn't actually get rid of the "type: not
 # found" message from the old Ash implementation...
 #
-if type > /dev/null 2>&1 ; then
+if ( type ) > /dev/null 2>&1 ; then
 	:
 elif [ -r $HOME/.ashtype ]; then
 	. $HOME/.ashtype
+	ENV=$HOME/.ashrc
+	export ENV
 fi
 
 if [ "`echo ~`" = "$HOME" -a ${RANDOM:-0} -eq ${RANDOM:-0} ] ; then
-	: apparently a POSIX capable shell
+	#
+	# apparently a POSIX capable shell
+	#
+	: OK POSIX is good -- that is all for now...
+fi
+
+if expr "`type ulimit 2> /dev/null`" : 'ulimit is a shell builtin$' > /dev/null 2>&1 ; then
+	#
+	# force nproc, data, stack, and nofiles limits equal to their maximum
+	# hard limit.
+	#
+	# (assume time, file, and coredump are already unlimited)
+	#
+	ulimit -S -p `ulimit -H -p`
+	ulimit -S -d `ulimit -H -d`
+	ulimit -S -s `ulimit -H -s`
+	ulimit -S -n `ulimit -H -n`
+else
+	# force nproc, data, stack, and nofiles limits equal to their maximum
+	# hard limit.
+	#
+	# (assume time, filesize, and coredump are already unlimited)
+	#
+	limit maxproc `limit -h maxproc | awk '{print $2}'`
+	limit datasize `limit -h datasize | awk '{print $2 * 1024}'`
+	limit stacksize `limit -h stacksize | awk '{print $2 * 1024}'`
+	limit openfiles `limit -h openfiles | awk '{print $2}'`
 fi
 
 if [ -z "$LOGNAME" ] ; then
@@ -410,7 +428,12 @@ mesg n
 case "$TERM" in
 xterm*|wsvt25*)
 	# this lets those pesky high-bit chars show through....
-	LESSCHARSET=iso8859; export LESSCHARSET
+	#
+	# NOTE:  with older versions of less 'latin1' is the only way
+	# to express "ISO 8859", while with newer versions 'latin1' is
+	# merely an alias for "iso8859"
+	#
+	LESSCHARSET="latin1"; export LESSCHARSET
 	;;
 esac
 
@@ -1080,7 +1103,7 @@ fi
 # TODO: do something with msgs(1) if needed....
 
 # NOTE: trick 4.4BSD shell into -E by putting it in here, 'cause you can't
-# "set -o emacs" in .ashrc, as that'll cause it to dump core....
+# "set -o emacs" in .ashrc, as that'll cause some versions of it to dump core....
 #
 if [ -s $HOME/.shell -a "X$argv0" != "X.xinitrc" -a "X$argv0" != "X.xsession" ] ; then
 	# mktable just throws away comments....
