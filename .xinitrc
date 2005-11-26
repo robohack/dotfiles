@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	27.4	05/10/10 14:23:39 (woods)"
+#ident	"@(#)HOME:.xinitrc	27.5	05/11/26 14:51:52 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -216,7 +216,7 @@ if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
 		# now start server programs we like for this scenario
 		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x40-200+48 -hl grey90 &
 		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 		;;
 	*)
 		# not setting ONX11SERVER just makes the WM run clients on
@@ -279,7 +279,7 @@ fi
 # argv0 is .xinitrc if called by xinit or startx
 #
 if [ "$argv0" = ".xinitrc" ] ; then
-	xconsole -geometry 500x130-0-0 -notify -verbose &
+	xconsole -geometry 500x120-0-0 -notify -verbose &
 	# wait a wee bit in hopes xconsole gets running to display any errors....
 	sleep 1
 	case $DISPLAY in
@@ -290,7 +290,7 @@ if [ "$argv0" = ".xinitrc" ] ; then
 		echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
 		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x40-200+48 -hl grey90 &
 		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 		# for the "Main" workspace...
 		xterm -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
 		;;
@@ -323,12 +323,12 @@ else
 	#	we're probably signing in on an independent xterm....
 	#
 	if [ -r $HOME/.xsession-errors-$DISPLAY ] ; then
-		xconsole -geometry 500x130-0-0 -notify -verbose -file $HOME/.xsession-errors-$DISPLAY &
+		xconsole -geometry 500x120-0-0 -notify -verbose -file $HOME/.xsession-errors-$DISPLAY &
 	elif [ "$XODISPLAY" != "$DISPLAY" -a -r $HOME/.xsession-errors-$XODISPLAY ] ; then
-		xconsole -geometry 500x130-0-0 -notify -verbose -file $HOME/.xsession-errors-$XODISPLAY &
+		xconsole -geometry 500x120-0-0 -notify -verbose -file $HOME/.xsession-errors-$XODISPLAY &
 	else
 		echo "$argv0: didn't find ~/.xsession-errors-$DISPLAY, assuming old XDM config in use"
-		xconsole -geometry 500x130-0-0 -notify -verbose -file $HOME/.xsession-errors &
+		xconsole -geometry 500x120-0-0 -notify -verbose -file $HOME/.xsession-errors &
 	fi
 fi
 
@@ -364,13 +364,13 @@ very.weird.com:*)
 	$RSH -n whats.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+242 -hl grey90 &
 	$RSH -n always.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-70+242 -hl grey90 &
 	# All the small lower-right command terminals (starting with our own first one)
-	xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n building.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n whats.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n always.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n starting-out.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n sometimes.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+530 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n building.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n whats.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n always.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n starting-out.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n sometimes.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	# oddly using 130x64 turns into 163x55 with the font change!
 	# this one's supposed to go in virtualscreen "Mail"
 ###	$RSH -n building.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -display $DISPLAY -geometry 130x75+0+0" &
