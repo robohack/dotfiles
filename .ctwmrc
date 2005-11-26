@@ -2,7 +2,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	27.4	05/10/21 11:48:21 (woods)"
+#ident	"@(#)HOME:.ctwmrc	27.5	05/11/26 14:50:37 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -1020,9 +1020,9 @@ menu "emacs"
 menu "monitors"
 {
 	"Monitors"		f.title
-	"xconsole"		!"xconsole -geometry 500x160-0-0 -notify -verbose &"
-	"xconsole x-errors"	!"xconsole -geometry 500x160-0-0 -notify -verbose -file HOME/.xsession-errors &"
-	"xconsole x-errors-DISPLAY" !"xconsole -geometry 500x160-0-0 -notify -verbose -file HOME/.xsession-errors-`echo $DISPLAY | sed 's/\.[[0-9]]*$//'` &"
+	"xconsole"		!"xconsole -geometry 500x120-0-0 -notify -verbose &"
+	"xconsole x-errors"	!"xconsole -geometry 500x120-0-0 -notify -verbose -file HOME/.xsession-errors &"
+	"xconsole x-errors-DISPLAY" !"xconsole -geometry 500x120-0-0 -notify -verbose -file HOME/.xsession-errors-`echo $DISPLAY | sed 's/\.[[0-9]]*$//'` &"
 	""			f.separator
 	"xclock"		!"xclock -geometry 190x190-0+0 &"
 	"xclock -digital"	!"xclock -geometry 190x30-0+192 -digital &"
