@@ -1,5 +1,5 @@
 !
-!#ident	"@(#)HOME:.Xdefaults	27.2	05/06/13 13:56:02 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	27.3	06/10/29 19:42:36 (woods)"
 !
 #ifdef COLOR
 *customization:			-color
@@ -7,6 +7,8 @@
 *installCmap:			true
 xpdf.installCmap:		true
 #endif
+!
+xpdf.toolTipEnable:		false
 !
 *cursorBlink:			true
 *deleteIsDEL:			true
