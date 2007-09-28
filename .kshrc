@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	27.2	04/01/19 16:52:35 (woods)"
+#ident	"@(#)HOME:.kshrc	27.3	07/09/28 13:41:11 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -65,6 +65,24 @@ function dirprepend
 	unset varname varvalue
 }
 
+if typeset -f lnotes >/dev/null ; then
+	unset -f lnotes
+fi
+
+function lnotes
+{
+	if [ -d $HOME/notes ] ; then
+	(
+		# in a subshell
+		cd $HOME/notes
+		if [ $(ls|wc -w) != 0 ] ; then
+			print '\nYou have notes on:' 
+			ls -C *[!~]
+		fi
+	)
+	fi
+}
+
 if typeset -f do_first_time >/dev/null ; then
 	unset -f do_first_time
 fi
@@ -87,14 +105,7 @@ function do_first_time
 			calendar
 		fi
 	fi
-	if [ -d $HOME/notes ] ; then
-		(
-			cd $HOME/notes
-			if [ $(ls|wc -w) != 0 ] ; then
-				print '\nNotes on: ' *
-			fi
-		)
-	fi
+	lnotes
 	if [ -r $HOME/.trninit$TERM ] ; then
 		TRNINIT="$HOME/.trninit$TERM" ; export TRNINIT
 	fi
@@ -235,6 +246,16 @@ if [ "$id" -eq 0 ] ; then
 	if [ "$EDITOR" = "emacsclient" ] ; then
 		export EDITOR="emacs -nw"
 	fi
+
+	if [ -n "$DISPLAY" ]; then
+		#
+		# XXX if root is using this .kshrc then perhaps we
+		# should try copying the "xauth" information for the
+		# current display to $HOME/.Xauthority
+		#
+		echo "The X11 display '$DISPLAY' may be unusable without authorization."
+	fi
+
 	function krcmd
 	{
 		# WARNING: this version kills everyone's rcmd procs!
@@ -295,7 +316,7 @@ if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	alias cd='_cd'
 	function _cd
 	{
-		\cd $*
+		\cd "$@"
 		eval myxban -l "\"$MYXBAN_L\""
 	}
 
@@ -312,7 +333,11 @@ xterm*)
 
 	function setban
 	{
-		eval TBANNER='"${WBANNER:-sh}://$UUNAME/$PWD | $uid{$gid}($LOGNAME)[$LEV]:$TTYN"'
+		if [ "$uid" = "$LOGNAME" ]; then
+			eval TBANNER='"${WBANNER:-sh}://$UUNAME/$PWD | $uid[$LEV]:$TTYN"'
+		else
+			eval TBANNER='"${WBANNER:-sh}://$UUNAME/$PWD | $uid($LOGNAME)[$LEV]:$TTYN"'
+		fi
 		print "\033]0;$TBANNER\007\c"
 		WBANNER=""
 	}
@@ -321,7 +346,7 @@ xterm*)
 	alias cd='_cd'
 	function _cd
 	{
-		\cd $*
+		\cd "$@"
 		setban 
 	}
 	;;
@@ -337,7 +362,7 @@ if type setban > /dev/null ; then
 			WBANNER="GNU Emacs "
 			setban
 			mesg n
-			emacs ${1+"$@"}
+			emacs "$@"
 			setban
 		}
 	fi
@@ -355,7 +380,7 @@ if type setban > /dev/null ; then
 		WBANNER="CU $* "
 		setban
 		mesg n
-		/usr/bin/cu ${1+"$@"}
+		/usr/bin/cu "$@"
 		setban
 	}
 
@@ -372,7 +397,7 @@ if type setban > /dev/null ; then
 		WBANNER="C-Kermit $* "
 		setban
 		mesg n
-		$LOCAL/bin/ckermit ${1+"$@"}
+		$LOCAL/bin/ckermit "$@"
 		setban
 	}
 
@@ -386,7 +411,7 @@ if type setban > /dev/null ; then
 			WBANNER="RLOGIN $* "
 			setban
 			mesg n
-			$RLOGIN ${1+"$@"}
+			$RLOGIN "$@"
 			setban
 		}
 	fi
@@ -401,7 +426,7 @@ if type setban > /dev/null ; then
 			WBANNER="SLOGIN $* "
 			setban
 			mesg n
-			$SLOGIN ${1+"$@"}
+			$SLOGIN "$@"
 			setban
 		}
 	fi
@@ -416,7 +441,7 @@ if type setban > /dev/null ; then
 			WBANNER="CONSOLE $* "
 			setban
 			mesg n
-			$CONSOLE ${1+"$@"}
+			$CONSOLE "$@"
 			setban
 		}
 	fi
@@ -436,7 +461,7 @@ if type setban > /dev/null ; then
 			WBANNER="TELNET $* "
 			setban
 			mesg n
-			$TELNET ${1+"$@"}
+			$TELNET "$@"
 			setban
 		}
 	fi
@@ -450,7 +475,7 @@ if type setban > /dev/null ; then
 			WBANNER="MUSH $* "
 			setban
 			mesg n
-			mush -C ${1+"$@"}
+			mush -C "$@"
 			setban
 		}
 	fi
@@ -464,7 +489,7 @@ if type setban > /dev/null ; then
 			WBANNER="IRC $* "
 			setban
 			mesg n
-			irc ${1+"$@"}
+			irc "$@"
 			setban
 		}
 	fi
@@ -478,7 +503,7 @@ if type setban > /dev/null ; then
 			WBANNER="TRN $* "
 			setban
 			mesg n
-			trn ${1+"$@"}
+			trn "$@"
 			setban
 		}
 	fi
@@ -488,8 +513,8 @@ if type setban > /dev/null ; then
 	function _su
 	{
 		trap "trap 1 2 3 15; setban" 1 2 3 15
-		showargs=${*-"root"}
-		if [ $showargs = "root" ]; then
+		showargs="${*-root}"
+		if [ "$showargs" = "root" ]; then
 			\cd /
 			PWD=/
 			showargs=""
@@ -498,11 +523,11 @@ if type setban > /dev/null ; then
 		setban
 		mesg n
 		if [ -x /usr/5bin/su ] ; then
-			/usr/5bin/su ${1+"$@"}
+			/usr/5bin/su "$@"
 		elif [ -x /usr/bin/su ] ; then
-			/usr/bin/su ${1+"$@"}
+			/usr/bin/su "$@"
 		else
-			/bin/su ${1+"$@"}
+			/bin/su "$@"
 		fi
 		\cd -
 		PWD=$(pwd)
@@ -639,9 +664,12 @@ if $HAVEMUSH; then
 	alias mhdrs='mush -H -f'
 fi
 
+alias backslashjoin='sed -e :a -e "/\\\\$/N; s/\\\\\\n//; ta"'
 alias badsenders='fgrep RHSBL: $MAILLOG | sed "s/[<>]/ /g" | awk "{print \$8}" | sort -u'
 # NOTE: never forget this -- it's the most incredible sed script!!!!
-alias blstrip='sed "/./,/^$/!d"'
+alias blsqueeze='sed "/./,/^$/!d"'
+alias blstrip='sed "/./!d"'
+alias deadlinks='find . -type l -a ! \( -follow -type f \) -print'
 # XXX write one to collapse back-slash continued lines too!
 alias dlog='$PAGER -en +G /var/log/debug'
 alias ds='$PAGER'
@@ -649,6 +677,7 @@ alias e='${VISUAL:-$EDITOR}'
 alias ealias='e $ENV'
 alias elc='emacs -batch -q -no-site-file -f batch-byte-compile'
 alias f='finger'
+alias funclist='typeset +f'
 alias h='fc -l | tail'
 alias ilog='$PAGER -en +G /var/log/important'
 alias j='jobs -l'
@@ -665,12 +694,16 @@ alias llra='/bin/ls -lisaR'
 alias lr='/bin/ls -CFR'
 alias lra='/bin/ls -CFRa'
 alias lsa='/bin/ls -a'
-alias deadlinks='find . -type l -a ! \( -follow -type f \) -print'
 alias logout='exit 0'
+alias maildate='LANG=c date "+%a, %d %b %Y %T %z"'
+# Warning: less (at least as of v. 374) has a limitation of about 95
+# chars to the length of the '-p' parameter.
+alias maillog='$PAGER -enM -p ": \[[0-9]+\] (\[.+\] )?((remote[A-Z ]*:)|remote ..LO: (rejected: inv[^:]*:|refusing) )|^.*kill.*" +G $MAILLOG'
+alias mlog='$PAGER -en +G /var/log/messages'
+alias mynotes='( \cd ~/notes && /bin/ls -CF *[!~] )'
 alias nosgr='echo '
 alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok'
-alias maillog='$PAGER -en -p ": \[[0-9]*\] remote [A-Z ]*:" +G $MAILLOG'
-alias mlog='$PAGER -en +G /var/log/messages'
+alias pkg_sizes="pkg_info -s \* | sed -e '/^$/d' -e 's/Information for //' | sed -e :a -e '$!N;s/\nSize of this package in bytes:/ /;ta' -e 'P;D'"
 alias rblcount='fgrep " matched " $MAILLOG | cut -d " " -f 13 | cut -d . -f 5- | sort | uniq -c'
 alias rblstats='fgrep " matched " $MAILLOG | cut -d " " -f 10- | sort | uniq -c | sort -n | ds'
 alias realias='let LEV=$LEV-1;exec ksh'		# useless?
@@ -678,6 +711,8 @@ alias rehash='_SV_PATH=$PATH; PATH=$_SV_PATH; unset _SV_PATH'
 alias rinfo='rlog -L -h -l RCS/*'
 alias rstty='stty $SANE'
 alias scvs='export CVSROOT="$(< CVS/Root)"; print "CVSROOT=$CVSROOT"'
+alias snmpoidinfo='snmptranslate -T d -O f'
+alias syncdotfiles='rsync -v -lptHS --stats --files-from=building.weird.com:dotfiles.list building.weird.com:. $HOME'
 alias wcvs='print $CVSROOT'
 alias zds='zmore'
 
@@ -736,6 +771,29 @@ fi
 #	more functions
 #
 
+if type killall 2>&1 >/dev/null ; then
+	: already have a good killall?
+else
+	function killall
+	{
+		if [ $# -eq 1 ]; then
+			signal="-TERM"
+			cmd=$1
+		elif [ $# -eq 2 ]; then
+			signal=$1
+			cmd=$2
+		fi
+		kill $signal $(ps -axuc | awk '$11 == "'$cmd'" { print $2}')
+	}
+fi
+
+if [ -f /usr/share/misc/na.phone ]; then
+	function areacode
+	{
+		fgrep "$@" /usr/share/misc/*.phone
+	}
+fi
+
 function cvsupdateroot
 {
 	newroot=$1
@@ -748,6 +806,18 @@ function cvsupdateroot
 function errno
 {
 	grep "^#define[ 	]*[A-Z][A-Z]*[ 	]*$1[ 	]" /usr/include/sys/errno.h
+}
+
+function ipaddrsort
+{
+	sed 's/\./ /g' ${1} |
+	  sort -b -n -k 1 \
+		  -n -k 2 \
+		  -n -k 3 \
+		  -n -k 4 |
+	  sed -E -e 's/([0-9]) /\1./' \
+		 -e 's/([0-9]) /\1./' \
+		 -e 's/([0-9]) /\1./'
 }
 
 function kall
@@ -766,7 +836,47 @@ function kall
 
 function lastcmd
 {
-	tr '[\001-\007]' '[\012*]' < .sh_history | tr '[\176-\377]' '[ *]' | egrep -v '[	 }#]|^$' | tail ${1+"$@"}
+	tr '[\001-\007]' '[\012*]' < .sh_history | tr '[\176-\377]' '[ *]' | egrep -v '[	 }#]|^$' | tail "$@"
+}
+
+function mailclients
+{
+	awk '$4 == "remote" && $5 == "connection" && $6 == "from" {
+		sub(/\[.*$/, "", $7);
+		print $7;
+	}' $*
+}
+
+function mailsizes
+{
+	awk '$5 == "Received" {
+		for (fn = 6; fn <= NF; fn++) {
+			if (substr($fn, 1, 5) == "SIZE:") {
+				size = substr($fn, 6) + 0;
+				break;          
+			}
+		}
+		print size;
+	}' $*
+}
+
+function sedjoinnext
+{
+	# pattern that starts the lines to be appended to their previous lines
+	# (note a blank is inserted in place of the newline)
+	#
+	start=$1
+
+	sed -e ':a' -e '$!N;s/\n'"$start"'/ \1/;ta' -e 'P;D'
+}
+
+function sedjoinnext
+{
+	# pattern that ends the lines to be joined with to their previous lines
+	#
+	end=$1
+
+	sed -e :a -e '/\\$/N; s/\\\n//; ta'
 }
 
 function signm
