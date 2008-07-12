@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	27.6	06/08/11 12:11:33 (woods)"
+#ident	"@(#)HOME:.xinitrc	27.7	08/07/12 16:07:29 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -49,7 +49,10 @@ case "$DISPLAY" in
 		ONCONSOLE=true
 		echo "$argv0: redirecting stdout and stderr to /dev/console."
 		exec 1>/dev/console 2>&1
-		echo "$argv0: redirected stdout and stderr to /dev/console."
+		echo "$argv0: redirected stdout and stderr to /dev/console, starting xconsole"
+		xconsole -geometry 500x120-0-0 -notify -verbose &
+		# wait a wee bit in hopes xconsole gets running to display any errors....
+		sleep 1
 	else
 		echo "$argv0: WARNING: display was '$DISPLAY' but /dev/console not writable by $USER!"
 		ls -l /dev/console
@@ -169,11 +172,7 @@ esac
 xhost
 xhost +`hostname` +localhost -
 
-# TODO:  What we really need to do is to setup and use Xauth properly.
-# I think this means we want to find our new "cookie" and then in some
-# fairly secure way we run 'xauth add $COOKIE' on each host we'll
-# permit connections from.  Note that some applications (eg. emacs
-# ver-19.34?) seem to require xhost in any case.
+# deprecated xhost crap
 #
 if [ -r $HOME/.xhosts ] ; then
 	while read XHOST junk; do
@@ -200,6 +199,9 @@ if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
 		ONX11SERVER="$RSH -n $X11SERVER exec"
 		export X11SERVER ONX11SERVER
 		echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
+		# now move our AUTH cookies over to the server in case it
+		# doesn't have a shared $HOME...
+		xauth extract - $DISPLAY | rsh $X11SERVER $X11BIN/xauth merge -
 		# now start server programs we like for this scenario
 		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x40-200+48 -hl grey90 &
 		;;
@@ -208,6 +210,9 @@ if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
 		ONX11SERVER="$RSH -n $X11SERVER exec"
 		export X11SERVER ONX11SERVER
 		echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
+		# now move our AUTH cookies over to the server in case it
+		# doesn't have a shared $HOME...
+		xauth extract - $DISPLAY | rsh $X11SERVER $X11BIN/xauth merge -
 		# now start server programs we like for this scenario
 		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x40-200+48 -hl grey90 &
 		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
@@ -218,6 +223,7 @@ if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
 		# the current login host....
 		unset X11SERVER ONX11SERVER
 		echo "$argv0: have unset X11SERVER and ONX11SERVER; XDMHOST is $XDMHOST"
+		# leave AUTH cookie handling to the user
 		;;
 	esac
 fi
@@ -274,15 +280,16 @@ fi
 # argv0 is .xinitrc if called by xinit or startx
 #
 if [ "$argv0" = ".xinitrc" ] ; then
-	xconsole -geometry 500x120-0-0 -notify -verbose &
-	# wait a wee bit in hopes xconsole gets running to display any errors....
-	sleep 1
 	case $DISPLAY in
 	very.weird.com:*)
 		X11SERVER=${X11SERVER:-"most.weird.com"}
 		ONX11SERVER="$RSH -n $X11SERVER exec"
 		export X11SERVER ONX11SERVER
 		echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
+		# now move our AUTH cookies over to the server in case it
+		# doesn't have a shared $HOME...
+		xauth extract - $DISPLAY | rsh $X11SERVER $X11BIN/xauth merge -
+		# and then start some useful programs...
 		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x40-200+48 -hl grey90 &
 		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
@@ -343,30 +350,40 @@ case $DISPLAY in
 
 very.weird.com:*)
 	# very has a large, hi-res, display with an optical mouse....
-	xset m 10 5
+###	xset m 10 5
+	# very has a large, hi-res, display....
+	xset m 5 10
+	# new XFree86 server doesn't autorepeat without this
+	# (maybe because the Xfree86-Misc extension is missing?)
+	xset r rate 500 60
+	xset r
 	# monitors (these could/should be started by xdm)
 	xload -geometry 120x40-200+0 -hl grey90 &
-	xclock -geometry 190x30-0+196 -digital &
+	xclock -norender -geometry 190x30-0+196 -digital -chime &
 	if $HAVESWISSWATCH; then
 		swisswatch -name swissclock -geometry 190x190-0+0 &
 	else
-		xclock -geometry 190x190-0+0 &
+		xclock -norender -geometry 190x190-0+0 &
 	fi
 	# local server performance levels we want to be aware of
-	$RSH -n building.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+96 -hl grey90 &
-	$RSH -n proven.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+144 -hl grey90 &
-	$RSH -n sometimes.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+192 -hl grey90 &
-	$RSH -n whats.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+242 -hl grey90 &
-	$RSH -n always.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-70+242 -hl grey90 &
+	# (NOTE: in stacked order, 48 pixels apart)
+	$RSH -n once.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+96 -hl grey90 &
+#	$RSH -n starting-out.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+144 -hl grey90 &
+#	$RSH -n sometimes.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+192 -hl grey90 &
+#	$RSH -n whats.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+242 -hl grey90 &
+	# (and room for one over under the clock)
+#	$RSH -n always.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-70+242 -hl grey90 &
+
 	# All the small lower-right command terminals (starting with our own first one)
-	# XXX should use "-geometry 80x42-0-155" to properly ride above the xconsole window
-	xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n proven.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n building.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n whats.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n always.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n starting-out.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n sometimes.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	# note the -155 is the height of the normal xconsole window, at 120, plus its decorations (I think)
+	xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n once.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+
+	# All the big main area terminals (starting with our own first one)
+	xterm -display $DISPLAY -geometry  176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	$RSH -n once.weird.com $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+
+	# All the normal emacs windows...
 	# oddly using 130x64 turns into 163x55 with the font change!
 	# this one's supposed to go in virtualscreen "Mail"
 ###	$RSH -n building.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -display $DISPLAY -geometry 130x75+0+0" &
@@ -376,16 +393,16 @@ very.weird.com:*)
 ###	$RSH -n whats.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -i -display $DISPLAY -geometry 130x75+0+0" &
 	;;
 
-xceptionally.weird.com:*)
+xceptionally*:*)
 	# xceptionally also has a large, hi-res, display....
 	xset m 10 5
 	# monitors (these could/should be started by xdm)
 	xload -geometry 120x40-200+0 -hl grey90 &
-	xclock -geometry 190x30-0+196 -digital &
+	xclock -norender -geometry 190x30-0+196 -digital &
 	if $HAVESWISSWATCH; then
 		swisswatch -name swissclock -geometry 190x190-0+0 &
 	else
-		xclock -geometry 190x190-0+0 &
+		xclock -norender -geometry 190x190-0+0 &
 	fi
 	if $HAVEXEARTH ; then
 		xearth -gamma 1.3 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
@@ -398,32 +415,37 @@ xceptionally.weird.com:*)
 	fi
 	# local server performance levels we want to be aware of
 	$RSH -n most.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+48 -hl grey90 &
-	$RSH -n proven.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+144 -hl grey90 &
-	$RSH -n starting-out.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+192 -hl grey90 &
-	$RSH -n whats.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+242 -hl grey90 &
-	$RSH -n always.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-70+242 -hl grey90 &
+	$RSH -n once.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+144 -hl grey90 &
+#	$RSH -n starting-out.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+192 -hl grey90 &
+#	$RSH -n whats.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+242 -hl grey90 &
+#	$RSH -n always.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-70+242 -hl grey90 &
+
 	# All the small lower-right command terminals (starting with our own first one)
 	xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 
+	# All the consoles:
 	# first column....
 	xterm -display $DISPLAY -geometry 102x24+0+0   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:isit -T "Console [isit.weird.com]" -e console -S isit &
 	xterm -display $DISPLAY -geometry 102x24+0+205 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Con:hubly -T "Console [hubly.weird.com]" -e console -S hubly &
-	xterm -display $DISPLAY -geometry 102x24+0+410 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Con:centrally -T "Console [centrally.weird.com]" -e console -S omniswitch &
+	xterm -display $DISPLAY -geometry 102x24+0+410 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Con:flipping -T "Console [flipping.weird.com]" -e console -S flipping &
 	xterm -display $DISPLAY -geometry 102x24+0+615 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:building -T "Console [building.weird.com]" -e console -S building &
 	xterm -display $DISPLAY -geometry 102x24+0+820 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:whats -T "Console [whats.weird.com]" -e console -S whats &
 
+	# first column, from the bottom...
+	xterm -display $DISPLAY -geometry 80x24+0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Con:RAID0 -T "Console [RAID-00 most:/var]" -e console -S raid-00 &
+
+
 	# second column....
-#	xterm -display $DISPLAY -geometry 102x24+475+0   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:most -T "Console [most.weird.com]" -e console -S most &
-	xterm -display $DISPLAY -geometry 102x24+545+0 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:proven -T "Console [proven.weird.com]" -e console -S proven &
+#	xterm -display $DISPLAY -geometry 102x24+545+0 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:proven -T "Console [proven.weird.com]" -e console -S proven &
+	xterm -display $DISPLAY -geometry 102x24+545+0 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:once -T "Console [once.weird.com]" -e console -S once &
 	xterm -display $DISPLAY -geometry 102x24+545+205 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:sometimes -T "Console [sometimes.weird.com]" -e console -S sometimes &
 	xterm -display $DISPLAY -geometry 102x24+545+410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:always -T "Console [always.weird.com]" -e console -S always &
 	xterm -display $DISPLAY -geometry 102x24+545+615 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:starting-out -T "Console [starting-out.weird.com]" -e console -S starting-out &
 	xterm -display $DISPLAY -geometry 102x24+545+820 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n CallerID -T "very:/dev/ttyb [Caller ID Box]" -e console -S callerid &
 
-	# right side...
-#	xterm -display $DISPLAY -geometry 80x24-0-420 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:best-0 -T "Console [BEST-3.1-UPS-0]" -e console -S best-3.1-0 &
+	# second column, from the bottom...
 	xterm -display $DISPLAY -geometry 102x24+545-0 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:best-1 -T "Console [BEST-3.1-UPS-1]" -e console -S best-3.1-1 &
-	xterm -display $DISPLAY -geometry 80x24+0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Con:RAID0 -T "Console [RAID-00 most:/var]" -e console -S raid-00 &
+
 
 	# start xv first, in a subshell that sleeps first for a bit
 	# -- it needs to be running before we try our tkined trick, but after the window manager
@@ -433,37 +455,17 @@ xceptionally.weird.com:*)
 ###	( sleep 40; $RSH -n building.weird.com exec /usr/local/bin/tkined1.5.0 -display $DISPLAY -use $(xwininfo -name "xv 3.10a(PNG) <unregistered>" | awk '/xwininfo/ {print $4}') -geometry 1200x925+0-0 /home/building/woods/tkined-3.tki & ) &
 	;;
 
-xtremely.weird.com:*)
+xtremely*:*)
 	xload -geometry 190x50-0+233 -hl red &
-	xclock -geometry 190x30-0+196 -digital &
+	xclock -norender -geometry 190x30-0+196 -digital &
 	$RSH -n always.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x50-198+233 -hl red &
 	if $HAVESWISSWATCH; then
 		swisswatch -name swissclock -geometry 190x190-0+0 &
 	else
-		xclock -geometry 190x190-0+0 &
+		xclock -norender -geometry 190x190-0+0 &
 	fi
 	# All the small lower-right command terminals (starting with our own first one)
 	xterm -display $DISPLAY -geometry 80x42-0-0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-
-	# first column....
-	xterm -display $DISPLAY -geometry 88x24+0+0   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:isit -T "Console [isit.weird.com]" -e console -S isit &
-	xterm -display $DISPLAY -geometry 88x24+0+205 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Con:hubly -T "Console [hubly.weird.com]" -e console -S hubly &
-	xterm -display $DISPLAY -geometry 88x24+0+410 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Con:flipping -T "Console [flipping.weird.com]" -e console -S omniswitch &
-	xterm -display $DISPLAY -geometry 88x24+0+615 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:building -T "Console [building.weird.com]" -e console -S building &
-	xterm -display $DISPLAY -geometry 88x24+0+820 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:whats -T "Console [whats.weird.com]" -e console -S whats &
-
-	# second column....
-#	xterm -display $DISPLAY -geometry 88x24+475+0   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:most -T "Console [most.weird.com]" -e console -S most &
-	xterm -display $DISPLAY -geometry 88x24+475+0 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:proven -T "Console [proven.weird.com]" -e console -S proven &
-	xterm -display $DISPLAY -geometry 88x24+475+205 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:sometimes -T "Console [sometimes.weird.com]" -e console -S sometimes &
-	xterm -display $DISPLAY -geometry 88x24+475+410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:always -T "Console [always.weird.com]" -e console -S always &
-	xterm -display $DISPLAY -geometry 88x24+475+615 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:starting-out -T "Console [starting-out.weird.com]" -e console -S starting-out &
-	xterm -display $DISPLAY -geometry 88x24+475+820 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n CallerID -T "very:/dev/ttyb [Caller ID Box]" -e console -S callerid &
-
-	# right side...
-	xterm -display $DISPLAY -geometry 80x24-0-420 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:best-0 -T "Console [BEST-3.1-UPS-0]" -e console -S best-3.1-0 &
-	xterm -display $DISPLAY -geometry 80x24-0-212 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:best-1 -T "Console [BEST-3.1-UPS-1]" -e console -S best-3.1-1 &
-	xterm -display $DISPLAY -geometry 80x24-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Con:RAID0 -T "Console [RAID-00 most:/var]" -e console -S raid-00 &
 
 	;;
 
@@ -485,7 +487,7 @@ xtremely.weird.com:*)
 	else
 		xload -geometry 100x50-0+150 -hl red &
 	fi
-	xclock -geometry 100x30-0+110 -digital &
+	xclock -norender -geometry 100x30-0+110 -digital &
 	if $HAVESWISSWATCH ; then
 		swisswatch -name swissclock -geometry 100x100-0+0 &
 	else
@@ -503,7 +505,7 @@ exec $WM
 
 # and if that fails then we try a last-ditch trick
 #
-xterm -geometry 80x24+0+0
+xterm -geometry 80x24+0+0 -cn -rw -sb -si -sk -ls -n FailSafe
 exit 1
 
 # Local Variables:
