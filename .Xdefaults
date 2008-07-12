@@ -1,5 +1,5 @@
 !
-!#ident	"@(#)HOME:.Xdefaults	27.3	06/10/29 19:42:36 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	27.4	08/07/12 16:07:45 (woods)"
 !
 #ifdef COLOR
 *customization:			-color
@@ -225,10 +225,14 @@ plan*weekHourFont:      -*-helvetica-*-r-*-*-14-*
 plan*weekNoteFont:      -*-helvetica-*-r-*-*-14-*
 #endif
 
-GV*beNiceToColormap:	True
+GV.beNiceToColormap:	True
+GV.autoResize:		False
+GV.fallbackPageMedia:	letter
 
 #ifdef COLOR
-GV*antialias:		True
+GV.antialias:		True
 #else
-GV*antialias:		False
+GV.antialias:		False
+GV.gsX11Device:		-sDEVICE=x11mono
+GV.gsArguments:		-sDEVICE=x11mono
 #endif
