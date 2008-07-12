@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	27.4	05/10/21 11:54:25 (woods)"
+#ident	"@(#)HOME:.profile	27.5	08/07/12 16:02:57 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -44,7 +44,7 @@ fi
 # the I/O re-direction doesn't actually get rid of the "type: not
 # found" message from the old Ash implementation...
 #
-if ( type ) > /dev/null 2>&1 ; then
+if ( type type ) > /dev/null 2>&1 ; then
 	:
 elif [ -r $HOME/.ashtype ]; then
 	. $HOME/.ashtype
@@ -197,8 +197,24 @@ if "${PATH_IS_OKAY:-false}" ; then
 else
 	# otherwise start fresh...
 	OPATH=$PATH
+
+	# XXX on FreeBSD systems using their half-assed virtual
+	# environment system based on their jail(2) system call, /bin
+	# (and /usr/bin) will potentially be a symlink pointing to
+	# some shared storage, eg. /basejail/bin (and
+	# /basejail/usr/bin).  However since it's difficult to
+	# portably detect the target of a symlink (there is a
+	# "readlink" utility on FreeBSD, a variant of the stat(1)
+	# command), we'll just depend on use of $PATH_IS_OKAY for now
+	# to work around the problem.
+	# 
+	# originally this code was to avoid having /bin in $PATH if
+	# /bin were pointing to /usr/bin (i.e. making it redundant)
+
+###	if [ -h /bin -a `ls -l /bin | awk '{print $NF}'` = "/usr/bin" ] ; then
 	if [ -h /bin ] ; then
 		PATH="/usr/bin"
+###	if [ -h /usr/bin -a `ls -l /usr/bin | awk '{print $NF}'` = "/bin" -o ! -d "/usr/bin" ] ; then
 	elif [ -h /usr/bin -o ! -d /usr/bin ] ; then
 		PATH="/bin"
 	else
@@ -490,9 +506,8 @@ elif $HAVEPRINTF ; then
 	c=''
 else
 	echo=echo
-	(echo "hi there\c" ; echo " ") >$HOME/echotmp
-	# Configure checks to make sure grep returns a status...
-	if grep c $HOME/echotmp >/dev/null 2>&1 ; then
+	c=`echo "xyzzy\c" | sed 's/[^c]//g'`
+	if test -n "$c" ; then
 		nl=''
 		n='-n'
 		c=''
@@ -501,7 +516,6 @@ else
 		n=''
 		c='\c'
 	fi
-	rm -f $HOME/echotmp
 fi
 
 # NOTE: we don't export $echo et al -- they're just in the current shell
@@ -509,13 +523,15 @@ fi
 if expr "`type mktable`" : '.* is .*/mktable$' >/dev/null 2>&1 ; then
 	MKTABLE="mktable"
 else
-	# a little ditty to throw away comments....
-	# TODO: should call mkline (ala smail-3) if available....
+	# a little ditty to throw away comment lines....
+	# TODO: could call mkline (ala smail-3) if available....
+	# TODO: should this remove trailing comments too? (-e '/#.*$//')
 	mktable ()
 	{
-		sed '	/^[ 	]*#/d
-			/^[ 	]*$/d
-		' ${1+"$@"}
+		sed				\
+			-e '/^[ 	]*#/d'	\
+			-e '/^[ 	]*$/d'	\
+		${1+"$@"}
 	}
 fi
 
@@ -653,7 +669,7 @@ fi
 
 if expr "`type less`" : '.* is .*/less$' >/dev/null 2>&1 ; then
 	PAGER="`type less`"
-	LESS="-eM" ; export LESS
+	LESS="-M" ; export LESS
 	if [ ! -f $HOME/.less ] ; then
 		if [ ! -f $HOME/.lesskey ] ; then
 			echo "N	next-file" > $HOME/.lesskey
@@ -674,7 +690,9 @@ else
 	PAGER="`type cat`"
 fi
 PAGER="`expr "$PAGER" : '.*/\([^/]*\)$'`"; export PAGER
-MANPAGER="$PAGER -s"; export MANPAGER
+if [ "$PAGER" = "less" ]; then
+	MANPAGER="$PAGER -si"; export MANPAGER
+fi
 
 if [ -s "$HOME/.editor" ] ; then
 	# mktable just throws away comments....
@@ -789,6 +807,8 @@ if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 		. $HOME/.stty
 	else
 		stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
+		# a separate command as it is a non-standard parameter
+		stty status '^t'
 	fi
 	if [ "$EMACS" = t -o "$TERM" = emacs ]; then
 		echo "Turning off echo for an emacs shell...."
