@@ -1,7 +1,7 @@
 #
 #	.kshpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.kshpwd	27.2	05/10/04 16:36:45 (woods)"
+#ident	"@(#)HOME:.kshpwd	27.3	08/07/12 15:59:17 (woods)"
 
 unalias cd
 alias cd='_cd'
@@ -10,34 +10,34 @@ function _cd
 	\cd $*
 	case "$PWD" in
 	*/work.d/*)
-		PWD='work.d:'"${PWD#*/work.d/}"
+		BANNER_PWD='work.d:'"${PWD#*/work.d/}"
 		;;
 	/work/${LOGNAME}/*)
-		PWD='mywrk:'"${PWD#/work/${LOGNAME}/}"
+		BANNER_PWD='mywrk:'"${PWD#/work/${LOGNAME}/}"
 		;;
 	/work/*)
-		PWD='work:'"${PWD#/work/}"
+		BANNER_PWD='work:'"${PWD#/work/}"
 		;;
 	${HOME})
-		PWD='~'
+		BANNER_PWD='~'
 		;;
 	$(dirname ${HOME})/*)
-		PWD='~'"${PWD#$(dirname $HOME)/}"
+		BANNER_PWD='~'"${PWD#$(dirname $HOME)/}"
 		;;
 	/home/*)
-		PWD='~'"${PWD#/home/}"
+		BANNER_PWD='~'"${PWD#/home/}"
 		;;
 	/usr/src/*)
-		PWD='src:'"${PWD#/usr/src/}"
+		BANNER_PWD='src:'"${PWD#/usr/src/}"
 		;;
 	/usr/pkgsrc/*)
-		PWD='pkgsrc:'"${PWD#/usr/pkgsrc/}"
+		BANNER_PWD='pkgsrc:'"${PWD#/usr/pkgsrc/}"
 		;;
 	/usr/xsrc/*)
-		PWD='xsrc:'"${PWD#/usr/xsrc/}"
+		BANNER_PWD='xsrc:'"${PWD#/usr/xsrc/}"
 		;;
 	*)
-		PWD="${PWD#/}"
+		BANNER_PWD="${PWD#/}"
 		;;
 	esac
 	if [ "$(ismpx)" = yes ] ; then
@@ -48,5 +48,11 @@ function _cd
 	fi
 }
 
-# make sure PWD is now set as we want it...
-cd; cd -
+# make sure BANNER_PWD is now set as we want it,
+# but _ONLY_ for interactive shells!
+#
+case "$0" in
+-*)
+	cd; cd -
+	;;
+esac
