@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	27.3	07/09/28 13:41:11 (woods)"
+#ident	"@(#)HOME:.kshrc	27.4	08/07/12 16:11:36 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -194,14 +194,14 @@ if [ "$id" -eq 0 ] ; then
 	dirprepend PATH /sbin /usr/sbin
 	dirappend PATH /usr/libexec/uucp /usr/lib/uucp /usr/lib
 	# we need to re-order the next paths so first we remove them
-	PATH=$(echo $PATH | sed -e "s|$CONTRIB/bin:||"	\
-				-e "s|$CONTRIB/sbin:||"	\
-				-e "s|$PKG/bin:||"	\
-				-e "s|$PKG/sbin:||"	\
-				-e "s|$LOCAL/bin:||"	\
-				-e "s|$LOCAL/sbin:||"	\
-				-e "s|$GNU/bin:||"	\
-				-e "s|$GNU/sbin:||" )
+	PATH=$(echo $PATH | sed -e "s|${CONTRIB:-/NONE}/bin:||"	\
+				-e "s|${CONTRIB:-/NONE}/sbin:||"\
+				-e "s|${PKG:-/NONE}/bin:||"	\
+				-e "s|${PKG:-/NONE}/sbin:||"	\
+				-e "s|${LOCAL:-/NONE}/bin:||"	\
+				-e "s|${LOCAL:-/NONE}/sbin:||"	\
+				-e "s|${GNU:-/NONE}/bin:||"	\
+				-e "s|${GNU:-/NONE}/sbin:||" )
 	if [ -n "$CONTRIB" ] ; then
 		dirappend PATH $CONTRIB/sbin $CONTRIB/bin
 		if [ ! -d $CONTRIB/sbin ] ; then
@@ -236,7 +236,7 @@ if [ "$id" -eq 0 ] ; then
 		PS1='[!] # '
 		;;
 	*)
-		PS1='$TTYN:$LOGNAME@$UUNAME[$LEV.!] ${PWD#$HOME} # '
+		PS1='$TTYN:$LOGNAME@$UUNAME[$LEV.!] ${BANNER_PWD#$HOME} # '
 		;;
 	esac
 	MAILPATH=${MAILDIR}/${LOGNAME}:${MAILDOR}/root:${MAILDIR}/uucp:${MAILDIR}/usenet
@@ -273,7 +273,7 @@ elif [ "$uid" != "$LOGNAME" ] ; then
 		PS1='[!] $ '
 		;;
 	*)
-		PS1='$TTYN:$uid($LOGNAME)@$UUNAME)[$LEV.!] ${PWD#$HOME} $ '
+		PS1='$TTYN:$uid($LOGNAME)@$UUNAME)[$LEV.!] ${BANNER_PWD#$HOME} $ '
 		;;
 	esac
 else
@@ -286,7 +286,7 @@ else
 		PS1='[!] $ '
 		;;
 	*)
-		PS1='$TTYN:$LOGNAME@$UUNAME[$LEV.!] ${PWD#$HOME} $ '
+		PS1='$TTYN:$LOGNAME@$UUNAME[$LEV.!] ${BANNER_PWD#$HOME} $ '
 		;;
 	esac
 fi
@@ -300,23 +300,30 @@ if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	MYXCLR_C="$(myxban -c)"
 	MYXCLR_R="$(myxban -r)"
 	MYXCLR="${MYXCLR_L}${MYXCLR_C}${MYXCLR_R}"
-	MYXBAN_L='$PWD'
+	MYXBAN_L='$BANNER_PWD'
 
 	alias clearban='print "${MYXCLR}\c"'
 
 	function setban
 	{
 		clearban
+		if [ -z "$BANNER_PWD" ]; then
+			BANNER_PWD=$(pwd)
+		fi
 		eval myxban -l "\"$MYXBAN_L\""
 		myxban -c "${WBANNER}"
 		eval myxban -r "\"$MYXBAN_R\""
 	}
 
+	# NOTE:  may be re-defined in ~/.kshpwd
 	unalias cd
 	alias cd='_cd'
 	function _cd
 	{
 		\cd "$@"
+		if [ -z "$BANNER_PWD" ]; then
+			BANNER_PWD=$(pwd)
+		fi
 		eval myxban -l "\"$MYXBAN_L\""
 	}
 
@@ -333,15 +340,19 @@ xterm*)
 
 	function setban
 	{
+		if [ -z "$BANNER_PWD" ]; then
+			BANNER_PWD=$(pwd)
+		fi
 		if [ "$uid" = "$LOGNAME" ]; then
-			eval TBANNER='"${WBANNER:-sh}://$UUNAME/$PWD | $uid[$LEV]:$TTYN"'
+			eval TBANNER='"${WBANNER:-sh}://$UUNAME/$BANNER_PWD | $uid[$LEV]:$TTYN"'
 		else
-			eval TBANNER='"${WBANNER:-sh}://$UUNAME/$PWD | $uid($LOGNAME)[$LEV]:$TTYN"'
+			eval TBANNER='"${WBANNER:-sh}://$UUNAME/$BANNER_PWD | $uid($LOGNAME)[$LEV]:$TTYN"'
 		fi
 		print "\033]0;$TBANNER\007\c"
 		WBANNER=""
 	}
 
+	# NOTE:  may be re-defined in ~/.kshpwd
 	unalias cd
 	alias cd='_cd'
 	function _cd
@@ -358,7 +369,10 @@ if type setban > /dev/null ; then
 		alias emacs=_emacs
 		function _emacs
 		{
-			trap "trap 1 2 3 15; setban" 1 2 3 15
+			trap "trap 1; setban; kill -1 $$" 1
+			trap "trap 2; setban; kill -2 $$" 2
+			trap "trap 3; setban; kill -3 $$" 3
+			trap "trap 15; setban; kill -15 $$" 15
 			WBANNER="GNU Emacs "
 			setban
 			mesg n
@@ -375,7 +389,10 @@ if type setban > /dev/null ; then
 			trap "trap 1 2 3 15; mkmenu -; setban" 1 2 3 15
 			myxsize -s
 		else
-			trap "trap 1 2 3 15; setban" 1 2 3 15
+			trap "trap 1; setban; kill -1 $$" 1
+			trap "trap 2; setban; kill -2 $$" 2
+			trap "trap 3; setban; kill -3 $$" 3
+			trap "trap 15; setban; kill -15 $$" 15
 		fi
 		WBANNER="CU $* "
 		setban
@@ -392,7 +409,10 @@ if type setban > /dev/null ; then
 			trap "trap 1 2 3 15; mkmenu -; setban" 1 2 3 15
 			myxsize -s
 		else
-			trap "trap 1 2 3 15; setban" 1 2 3 15
+			trap "trap 1; setban; kill -1 $$" 1
+			trap "trap 2; setban; kill -2 $$" 2
+			trap "trap 3; setban; kill -3 $$" 3
+			trap "trap 15; setban; kill -15 $$" 15
 		fi
 		WBANNER="C-Kermit $* "
 		setban
@@ -407,7 +427,10 @@ if type setban > /dev/null ; then
 		alias rlogin=_rlogin
 		function _rlogin
 		{
-			trap "trap 1 2 3 15; setban" 1 2 3 15
+			trap "trap 1; setban; kill -1 $$" 1
+			trap "trap 2; setban; kill -2 $$" 2
+			trap "trap 3; setban; kill -3 $$" 3
+			trap "trap 15; setban; kill -15 $$" 15
 			WBANNER="RLOGIN $* "
 			setban
 			mesg n
@@ -422,7 +445,10 @@ if type setban > /dev/null ; then
 		alias slogin=_slogin
 		function _slogin
 		{
-			trap "trap 1 2 3 15; setban" 1 2 3 15
+			trap "trap 1; setban; kill -1 $$" 1
+			trap "trap 2; setban; kill -2 $$" 2
+			trap "trap 3; setban; kill -3 $$" 3
+			trap "trap 15; setban; kill -15 $$" 15
 			WBANNER="SLOGIN $* "
 			setban
 			mesg n
@@ -437,7 +463,10 @@ if type setban > /dev/null ; then
 		alias console=_console
 		function _console
 		{
-			trap "trap 1 2 3 15; setban" 1 2 3 15
+			trap "trap 1; setban; kill -1 $$" 1
+			trap "trap 2; setban; kill -2 $$" 2
+			trap "trap 3; setban; kill -3 $$" 3
+			trap "trap 15; setban; kill -15 $$" 15
 			WBANNER="CONSOLE $* "
 			setban
 			mesg n
@@ -456,7 +485,10 @@ if type setban > /dev/null ; then
 				trap "trap 1 2 3 15; mkmenu -; setban" 1 2 3 15
 				myxsize -s
 			else
-				trap "trap 1 2 3 15; setban" 1 2 3 15
+				trap "trap 1; setban; kill -1 $$" 1
+				trap "trap 2; setban; kill -2 $$" 2
+				trap "trap 3; setban; kill -3 $$" 3
+				trap "trap 15; setban; kill -15 $$" 15
 			fi
 			WBANNER="TELNET $* "
 			setban
@@ -471,7 +503,10 @@ if type setban > /dev/null ; then
 		alias mushC=_mushC
 		function _mushC
 		{
-			trap "trap 1 2 3 15; setban" 1 2 3 15
+			trap "trap 1; setban; kill -1 $$" 1
+			trap "trap 2; setban; kill -2 $$" 2
+			trap "trap 3; setban; kill -3 $$" 3
+			trap "trap 15; setban; kill -15 $$" 15
 			WBANNER="MUSH $* "
 			setban
 			mesg n
@@ -485,7 +520,10 @@ if type setban > /dev/null ; then
 		alias irc=_irc
 		function _irc
 		{
-			trap "trap 1 2 3 15; setban" 1 2 3 15
+			trap "trap 1; setban; kill -1 $$" 1
+			trap "trap 2; setban; kill -2 $$" 2
+			trap "trap 3; setban; kill -3 $$" 3
+			trap "trap 15; setban; kill -15 $$" 15
 			WBANNER="IRC $* "
 			setban
 			mesg n
@@ -499,7 +537,10 @@ if type setban > /dev/null ; then
 		alias trn=_trn
 		function _trn
 		{
-			trap "trap 1 2 3 15; setban" 1 2 3 15
+			trap "trap 1; setban; kill -1 $$" 1
+			trap "trap 2; setban; kill -2 $$" 2
+			trap "trap 3; setban; kill -3 $$" 3
+			trap "trap 15; setban; kill -15 $$" 15
 			WBANNER="TRN $* "
 			setban
 			mesg n
@@ -512,7 +553,10 @@ if type setban > /dev/null ; then
 	alias su=_su
 	function _su
 	{
-		trap "trap 1 2 3 15; setban" 1 2 3 15
+		trap "trap 1; setban; kill -1 $$" 1
+		trap "trap 2; setban; kill -2 $$" 2
+		trap "trap 3; setban; kill -3 $$" 3
+		trap "trap 15; setban; kill -15 $$" 15
 		showargs="${*-root}"
 		if [ "$showargs" = "root" ]; then
 			\cd /
@@ -529,7 +573,9 @@ if type setban > /dev/null ; then
 		else
 			/bin/su "$@"
 		fi
-		\cd -
+		if [ "${*-root}" = "root" ]; then
+			\cd -
+		fi
 		PWD=$(pwd)
 		setban
 	}
@@ -541,7 +587,10 @@ if type setban > /dev/null ; then
 				trap "trap 1 2 3 15; loadfont thin.9x14; setban" 1 2 3 15
 				loadfont rogue.9x18
 			else
-				trap "trap 1 2 3 15; setban" 1 2 3 15
+				trap "trap 1; setban; kill -1 $$" 1
+				trap "trap 2; setban; kill -2 $$" 2
+				trap "trap 3; setban; kill -3 $$" 3
+				trap "trap 15; setban; kill -15 $$" 15
 			fi
 			WBANNER="NetHack"
 			setban
@@ -870,14 +919,14 @@ function sedjoinnext
 	sed -e ':a' -e '$!N;s/\n'"$start"'/ \1/;ta' -e 'P;D'
 }
 
-function sedjoinnext
-{
-	# pattern that ends the lines to be joined with to their previous lines
-	#
-	end=$1
-
-	sed -e :a -e '/\\$/N; s/\\\n//; ta'
-}
+#function sedjoinnext
+#{
+#	# pattern that ends the lines to be joined with to their previous lines
+#	#
+#	end=$1
+#
+#	sed -e :a -e '/\\$/N; s/\\\n//; ta'
+#}
 
 function signm
 {
@@ -896,13 +945,18 @@ function snmpmiblist
 
 function typeof
 {
-	if $ISSUN; then
-		LLIBDIR=/usr/lib/lint
-	else
-		LLIBDIR=/usr/lib
+	if [ -z "$LLIBDIR" ]; then
+		if $ISSUN; then
+			LLIBDIR=/usr/lib/lint
+		elif [ -d /usr/libdata/lint ]; then
+			# XXX not quite so useful when these are for xlint...
+			LLIBDIR=/usr/libdata/lint
+		else
+			LLIBDIR=/usr/lib
+		fi
 	fi
 	# should expand to allow '-l{lib}'
-	egrep -i "$1" $LLIBDIR/llib-lc $LLIBDIR/llib-lm $LLIBDIR/llib-lcurses
+	egrep -i "$1" $LLIBDIR/llib-l*
 	unset LLIBDIR
 }
 
@@ -943,5 +997,11 @@ trap '
 	print "${0#-}: exit code: $rc$EMSG"
 ' ERR
 
-set -o monitor
+# NOTE: some versions of some shells complain here if not connected to a tty
+#
+case "$0" in
+-*)
+	set -o monitor
+	;;
+esac
 set -o trackall
