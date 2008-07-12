@@ -2,7 +2,7 @@
 ;;;	~/.zenirc.el -- stuff for ZenIRC
 ;;;
 
-;;;#ident	"@(#)HOME:.zenirc.el	27.1	03/11/23 19:15:57 (woods)"
+;;;#ident	"@(#)HOME:.zenirc.el	27.2	08/07/12 16:12:29 (woods)"
 
 ;; A good way to use this is to add something like to .emacs(.el)
 ;;(autoload 'zenirc (expand-file-name "~/.zenirc") "Major mode to waste time" t nil)
@@ -21,7 +21,8 @@
   "*Comma separated string of channels to join during startup")
 
 ;; Use "/query <channel>" to switch between these ones...
-(setq zenirc-startup-channels "#srh,&internex,#NetBSD,#secrets,#Planix")
+;(setq zenirc-startup-channels "#srh,#NetBSD,#weird,#Planix")
+(setq zenirc-startup-channels "#NetBSD,#weird,#Planix")
 
 (defun zenirc-startup-join (proc parsedmsg)
   "*Hook function run in zenirc-server-001-hook."
@@ -38,11 +39,11 @@
 
   ;; obviously this only works sometimes
   ;;
-  (process-send-string proc "TOPIC #secrets\n")
+  (process-send-string proc "TOPIC #weird\n")
   (process-send-string proc
-		       "TOPIC #secrets :.... The Secrets of the *WEIRD* ....\n")
-  (process-send-string proc "MODE #secrets +ip\n")
-  (process-send-string proc "WHO #secrets\n")
+		       "TOPIC #weird :.... The Secrets of the *WEIRD* ....\n")
+  (process-send-string proc "MODE #weird +ip\n")
+  (process-send-string proc "WHO #weird\n")
 
   ;; obviously this only works sometimes
   ;;
@@ -52,11 +53,11 @@
   (process-send-string proc "MODE #Planix +is\n")
   (process-send-string proc "WHO #Planix\n")
 
-  ;; Now we invite anyone at weird.com to join #secrets
+  ;; Now we invite anyone at weird.com to join #weird
   (zenirc-dotowho "*weird.com" '(process-send-string proc
 						     (concat "INVITE "
 							     (aref whoreply 7)
-							     " #secrets\n")))
+							     " #weird\n")))
   ;; Now we invite anyone at planix.com to join #Planix
   (zenirc-dotowho "*planix.com" '(process-send-string proc
 						      (concat "INVITE "
@@ -66,25 +67,26 @@
 
 (zenirc-add-hook 'zenirc-server-001-hook 'zenirc-startup-join)
 
-(defvar zenirc-auto-invite-secrets-list nil
-  "*List of nicknames to invite to #secrets.  Must be lower-case.")
+(defvar zenirc-auto-invite-weird-list nil
+  "*List of nicknames to invite to #weird.  Must be lower-case.")
 
-(setq zenirc-auto-invite-secrets-list '("dreamzz"
-					"ghoti"
-					"hmmm-"
-					"robo2"
-					"robohack"
-					"robotest"))
+(setq zenirc-auto-invite-weird-list '("ghoti"
+				      "hmmm-"
+				      "EhloKitty"
+				      "vambo"
+				      "robo2"
+				      "robohack"
+				      "robotest"))
 
-(defun zenirc-auto-invite-secrets (proc nick)
+(defun zenirc-auto-invite-weird (proc nick)
   "*For use on zenirc-notify-is-on-hook."
-  (if (member (downcase nick) zenirc-auto-invite-secrets-list)
+  (if (member (downcase nick) zenirc-auto-invite-weird-list)
       (progn
-	(zenirc-message proc "[debug] Auto-inviting %s to #secrets...." nick)
+	(zenirc-message proc "[debug] Auto-inviting %s to #weird...." nick)
 	(zenirc-dotowho nick '(process-send-string proc
 						 (concat "INVITE "
 							 (aref whoreply 7)
-							 " #secrets\n"))))))
+							 " #weird\n"))))))
 
 (defvar zenirc-auto-invite-planix-list nil
   "*List of nicknames to invite to #planix.  Must be lower-case.")
@@ -139,7 +141,8 @@
   (setq case-fold-search t)		; K.I.S.S.
 
   ;; this is your default nickname
-  (setq zenirc-nick-default "RoboHack")
+  (setq zenirc-nick-default "Robo2")
+  ;(setq zenirc-nick-default "RoboHack")
 
   ;; this is what you reply to CTCP USERINFO
   (setq zenirc-userinfo "The Robo-Hacker!(tm)")
@@ -148,8 +151,10 @@
   ;; from nickserv, anything with the word "fnord" in it, and messages from
   ;; the major dweeb craig.
   (setq zenirc-ignorance-list 
-	'("^:NickServ!Nickserv@hpsystem2.informatik.tu-muenchen.de" "fnord"
-	  "^:craig!craig@netsys1.netsys.com" ".*.*.*.*"))
+	'("^:NickServ!Nickserv@hpsystem2.informatik.tu-muenchen.de"
+	  "fnord"
+	  "^:craig!craig@netsys1.netsys.com"
+	  ".*.*.*.*"))
 
   ;; ZenIRC can beep when it notices something
   (setq zenirc-beep-on-signal t)
@@ -246,21 +251,24 @@
   ;; use the following to get an ircII like /notify command
   (require 'zenirc-notify)
   (setq zenirc-notify-list		; a list of notificated people
-	'("dreamzz"
-	  "hmmm-"
+	'("hmmm-"
+	  "vambo"
+	  "punchy"
+	  "EhloKitty"
 	  "pope13"
+	  "RoboHack"
 	  "robo2"
 	  "robotest"
 	  "whome"
 	  "who-me"))
-  (zenirc-add-hook 'zenirc-notify-is-on-hook 'zenirc-auto-invite-secrets)
+  (zenirc-add-hook 'zenirc-notify-is-on-hook 'zenirc-auto-invite-weird)
   (zenirc-add-hook 'zenirc-notify-is-on-hook 'zenirc-auto-invite-planix)
 
   ;; allow CTCP "iwantop <channel>" commands to work automatically....
   (require 'zenirc-iwantop)
   (setq zenirc-iwantop-alist
-	'(("\#secrets"	".*weird.com" ".*planix.com" "dreamzz!.*")
-	  ("\#planix"	".*planix.com" ".*weird.com" ".*!peter@.*passport.ca" ".*!yoda@.*passport.ca")))
+	'(("\#weird"	".*weird.com" ".*planix.com")
+	  ("\#planix"	".*planix.com" ".*weird.com")))
 
   ;; use the following to make ZenIRC popup buffers when things happen
   (require 'zenirc-popup)
@@ -269,16 +277,26 @@
   ;; This ZenIRC extensions allows you to colourise input from specific
   ;; sources.  Use the "/color #victim <COLOR>" command to start
   ;; colourizing a certain victim's output, "/uncolor #victim" to stop.
-  (require 'zenirc-color)
-  (zenirc-color-mode)
-  (zenirc-add-color-victim "purple" "#secrets")
-  (zenirc-add-color-victim "red" "#planix")
-  (zenirc-add-color-victim "orange" "#netbsd")
-  (zenirc-add-color-victim "blue" "&internex")
-  (zenirc-add-color-victim "darkgreen" "#srh")
-  (zenirc-add-color-victim "green" "robotest")
-  (zenirc-add-color-victim "yellow" "robo2")
-  (zenirc-add-color-victim "steelblue" "hmmm-")
+  (setq zenirc-color-mode t)
+
+  ;; TODO: set up faces so we can use new `zenirc-color-alist' to choose default colors
+;  (setq zenirc-color-alist
+;	'(("^<robo2" face-variable-color-yellow)
+;	  ("#planix" face-variable-color-red)
+;	  ("#srh" face-variable-color-darkgreen)
+;	  ("#weird" face-variable-color-purple)))
+
+;  (require 'zenirc-color)
+;  (zenirc-color-mode)
+;  (zenirc-add-color-victim "purple" "#weird")
+;  (zenirc-add-color-victim "red" "#planix")
+;  (zenirc-add-color-victim "orange" "#netbsd")
+;  (zenirc-add-color-victim "blue" "&internex")
+;  (zenirc-add-color-victim "darkgreen" "#srh")
+;  (zenirc-add-color-victim "green" "robotest")
+;  (zenirc-add-color-victim "yellow" "robo2")
+;  (zenirc-add-color-victim "steelblue" "hmmm-")
+
   ;; TODO: modify "/color" to print the list when given no args...
 
   ;; end of zenirc-custom-startup
