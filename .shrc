@@ -1,7 +1,7 @@
 #
 #	.shrc - per-shell startup stuff for non-POSIX compatible /bin/sh
 #
-#ident	"@(#)HOME:.shrc	27.1	03/11/23 19:15:56 (woods)"
+#ident	"@(#)HOME:.shrc	27.2	08/07/12 15:54:31 (woods)"
 
 PATH="$PATH"
 export PATH
@@ -41,6 +41,70 @@ dirprepend ()
 	done
 	unset varname varvalue
 }
+
+lnotes ()
+{
+	if [ -d $HOME/notes ] ; then
+	(
+		# in a subshell
+		cd $HOME/notes
+		if [ `ls|wc -w` != 0 ] ; then
+			echo 'You have notes on:' 
+			ls -C *[!~]
+		fi
+	)
+	fi
+}
+
+# for window systems which don't emulate login sessions in each window
+#
+do_first_time ()
+{
+	if [ -x /usr/games/fortune ] ; then
+		/usr/games/fortune
+	elif [ -x "$FORTUNE" ] ; then
+		$FORTUNE
+	fi
+	if [ -r calendar -o -r .month ] ; then
+		print "\nToday's Events:"
+		if [ -r .month ] ; then
+			month -B
+		fi
+		if [ -r calendar ] ; then
+			calendar
+		fi
+	fi
+	lnotes
+	if [ -r $HOME/.trninit$TERM ] ; then
+		TRNINIT="$HOME/.trninit$TERM" ; export TRNINIT
+	fi
+}
+
+#
+# always use ``$echo'' if any of the other variables are used...
+#	$nl - print a newline (always required at end of line if desired)
+#	$n - option to turn off final newline
+#	$c - escape sequence to turn off final newline
+# usage for a prompt is:
+#	$echo $n "prompt: $c"
+# and for a normal line
+#	$echo "message$nl"
+#
+echo=echo
+(echo "hi there\c" ; echo " ") >$HOME/echotmp
+# Configure checks to make sure grep returns a status...
+if grep c $HOME/echotmp >/dev/null 2>&1 ; then
+	nl=''
+	n='-n'
+	c=''
+else
+	nl='\n'
+	n=''
+	c='\c'
+fi
+rm -f $HOME/echotmp
+
+# NOTE: we don't export $echo et al -- they're just in the current shell
 
 # UGLY, but it works
 #
@@ -112,7 +176,7 @@ if [ "`ismpx`" = yes -o "$TERM" = "dmd-myx" ] ; then
 	MYXCLR="${MYXCLR_L}${MYXCLR_C}${MYXCLR_R}"
 	MYXBAN_L='`pwd`'
 
-	alias clearban='print "${MYXCLR}\c"'
+	alias clearban='${echo} "${MYXCLR}${c}"'
 
 	setban ()
 	{
@@ -126,7 +190,7 @@ if [ "`ismpx`" = yes -o "$TERM" = "dmd-myx" ] ; then
 #
 #	cd ()
 #	{
-#		chdir $*
+#		chdir ${1+"$@"}
 #		eval myxban -l "\"$MYXBAN_L\""
 #	}
 
@@ -144,7 +208,7 @@ if [ "$TERM" = "xterm" ] ; then
 	{
 		BANNERWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;'`
 		eval TBANNER='"${WBANNER:-sh}://$UUNAME/${BANNERWD} | $uid{$gid}($LOGNAME)[$LEV]:$TTYN"'
-		echo "]0;$TBANNER\c"
+		$echo "]0;$TBANNER$c"
 		WBANNER=""
 	}
 
@@ -152,7 +216,7 @@ if [ "$TERM" = "xterm" ] ; then
 #
 #	cd ()
 #	{
-#		chdir $*
+#		chdir ${1+"$@"}
 #		BANNERWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;'`
 #		setban 
 #	}
@@ -163,7 +227,7 @@ fi
 if $ISSUN; then
 	df ()
 	{
-		/usr/bin/df $*
+		/usr/bin/df ${1+"$@"}
 	}
 fi
 if [ -d /var/spool/uucp ] ; then
@@ -181,12 +245,19 @@ fi
 if [ -x /usr/ucb/rsh -a -x /bin/rsh ] ; then
 	rsh ()
 	{
-		/usr/ucb/rsh $*
+		/usr/ucb/rsh ${1+"$@"}
 	}
 fi
 
 if [ -r $HOME/.shsccs ] ; then
 	. $HOME/.shsccs
+fi
+
+if [ -f /usr/share/misc/na.phone ]; then
+	areacode ()
+	{
+		grep ${1+"$@"} /usr/share/misc/*.phone
+	}
 fi
 
 errno ()
@@ -229,17 +300,21 @@ typeof ()
 	unset LLIBDIR
 }
 
+#
+# the rest are implementations of favourite ksh aliases as functions
+#
+
 blstrip ()
 {
 	sed "/./,/^$/!d"
 }
 ds ()
 {
-	$PAGER $*
+	$PAGER ${1+"$@"}
 }
 e ()
 {
-	${VISUAL:-$EDITOR} $*
+	${VISUAL:-$EDITOR} ${1+"$@"}
 }
 elc ()
 {
@@ -247,39 +322,39 @@ elc ()
 }
 l ()
 {
-	/bin/ls -CF $*
+	/bin/ls -CF ${1+"$@"}
 }
 la ()
 {
-	/bin/ls -CFa $*
+	/bin/ls -CFa ${1+"$@"}
 }
 ll ()
 {
-	/bin/ls -lis $*
+	/bin/ls -lis ${1+"$@"}
 }
 lla ()
 {
-	/bin/ls -lisa $*
+	/bin/ls -lisa ${1+"$@"}
 }
 llr ()
 {
-	/bin/ls -lisR $*
+	/bin/ls -lisR ${1+"$@"}
 }
 llra ()
 {
-	/bin/ls -lisaR $*
+	/bin/ls -lisaR ${1+"$@"}
 }
 lr ()
 {
-	/bin/ls -CFR $*
+	/bin/ls -CFR ${1+"$@"}
 }
 lra ()
 {
-	/bin/ls -CFRa $*
+	/bin/ls -CFRa ${1+"$@"}
 }
 lsa ()
 {
-	/bin/ls -a $*
+	/bin/ls -a ${1+"$@"}
 }
 nstty ()
 {
