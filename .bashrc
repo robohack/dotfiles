@@ -1,7 +1,7 @@
 #
 #	.bashrc - per-shell startup stuff for bash via $ENV
 #
-#ident	"@(#)HOME:.bashrc	27.1	03/11/23 19:15:59 (woods)"
+#ident	"@(#)HOME:.bashrc	27.2	08/07/12 15:56:24 (woods)"
 
 # Assumptions:
 
@@ -187,7 +187,7 @@ if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 
 	cd ()
 	{
-		builtin cd $*
+		builtin cd "$@"
 		eval myxban -l "\"$MYXBAN_L\""
 	}
 
@@ -206,7 +206,7 @@ if [ "$TERM" = "xterm" ] ; then
 
 	cd ()
 	{
-		builtin cd $*
+		builtin cd "$@"
 		BANNERWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;' -e 's;^/;;'`
 # not yet implemented in 4.4BSD ash...
 #		BANNERWD=`pwd`
