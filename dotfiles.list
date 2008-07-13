@@ -3,7 +3,6 @@
 .Xmodmap-ncd-108
 .Xmodmap-sun-compact-1
 .ashlogin
-.ashlogout
 .ashrc
 .ashtype
 .bashlogin
@@ -40,3 +39,5 @@
 .xinitrc
 .xsession
 .zenirc.el
+copyright
+dotfiles.list
