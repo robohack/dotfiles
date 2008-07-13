@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	27.2	05/09/13 14:26:50 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	27.3	08/07/13 09:15:19 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -186,36 +186,38 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 
 ;;; This could probably be rewritten to use mapcar
 ;;;
-(defun elisp-file-in-loadpath-p (file-name)
-  "Returns t if there is an emacs lisp-library of the name FILENAME in
-the load-path list. Matching is first done by looking for the file
-with an .elc extension, an .el extension, and finally with no
-extension at all, and returning t if any of the three are found. Nil
-is returned otherwise."
-  (let ((extension-list (list ".elc" ".el" ""))
-        (file-found-p nil)
-        name-to-try)
-    (while (and (not file-found-p) (not (null extension-list)))
-      (setq name-to-try (concat file-name (car extension-list)))
-      (setq extension-list (cdr extension-list))
-      (setq file-found-p (file-in-loadpath-p name-to-try)))
-    (eval 'file-found-p)))
+(eval-and-compile
+  (defun elisp-file-in-loadpath-p (file-name)
+    "Returns t if there is an emacs lisp-library of the name FILENAME in the
+load-path list. Matching is first done by looking for the file with an .elc
+extension, an .el extension, and finally with no extension at all, and
+returning t if any of the three are found. Nil is returned otherwise."
+    (let ((extension-list (list ".elc" ".el" ""))
+	  (file-found-p nil)
+	  name-to-try)
+      (while (and (not file-found-p) (not (null extension-list)))
+	(setq name-to-try (concat file-name (car extension-list)))
+	(setq extension-list (cdr extension-list))
+	(setq file-found-p (file-in-loadpath-p name-to-try)))
+      (eval 'file-found-p))))
 
-(defun file-in-loadpath-p (file-name)
-  "Returns t if the string argument FILENAME is a file name present in a
+(eval-and-compile
+  (defun file-in-loadpath-p (file-name)
+    "Returns t if the string argument FILENAME is a file name present in a
 directory in the load-path list, otherwise returns nil."
-  (file-in-pathlist-p file-name load-path))
+    (file-in-pathlist-p file-name load-path)))
 
-(defun file-in-pathlist-p (file-name path-list)
-  "Returns t if the string FILENAME is a file name which occurs in a
+(eval-and-compile
+  (defun file-in-pathlist-p (file-name path-list)
+    "Returns t if the string FILENAME is a file name which occurs in a
 directory in the list PATHLIST, otherwise nil."
-  (let (try-path (file-found-in-path-p nil))
-    (while (not (or file-found-in-path-p (null path-list)))
-      (setq try-path (car path-list)
-            path-list (cdr path-list))
-      (if (file-exists-p (concat try-path "/" file-name)) ; path-separator :-)
-          (setq file-found-in-path-p t)))
-    (eval 'file-found-in-path-p)))
+    (let (try-path (file-found-in-path-p nil))
+      (while (not (or file-found-in-path-p (null path-list)))
+	(setq try-path (car path-list)
+	      path-list (cdr path-list))
+	(if (file-exists-p (concat try-path "/" file-name)) ; path-separator :-)
+	    (setq file-found-in-path-p t)))
+      (eval 'file-found-in-path-p))))
 
 ;;;; ----------
 ;;;; some default packages we'd like...
@@ -388,7 +390,8 @@ when our preferred font is not available."
 						orig-default-frame-font)))))
   (run-hooks 'after-setting-font-hook 'after-setting-font-hooks)
   ;; Update faces that want a bold or italic version of the default font.
-  ;; unnecessary in 21.1 and newer.
+  ;; unnecessary in 21.1 and newer.  Ignore the "no longer necessary" warning.
+  ;; (XXX can't use eval-and-compile here because of local variable "frame")
   (if (not (and (>= init-emacs-type 21)
 		(>= emacs-version-minor 1)))
       (frame-update-faces frame)))
@@ -458,11 +461,72 @@ when our preferred font is not available."
     (progn
       (require 'tool-bar)
       (if (fboundp 'tool-bar-mode)
-	  (tool-bar-mode -1))))		; major space waster!
+	  (tool-bar-mode -1))))		; major screen-space waster!
 
 (if window-system
-    (setq mouse-yank-at-point t)	; yank at click is DANGEROUS!!!!
-    (setq baud-rate 153600))		; let's make things more efficient
+    (progn
+      (setq mouse-yank-at-point t)	; yank at click is DANGEROUS!!!!
+      (setq baud-rate 153600)))		; let's make things more efficient
+
+(if (elisp-file-in-loadpath-p "browse-url")
+    (progn
+      (require 'browse-url)
+      (if window-system
+	  (progn
+	    (global-set-key [S-mouse-2] 'browse-url-at-mouse)))
+      
+      ;;(setq browse-url-netscape-arguments '("-install"))
+
+      ;; Always save modified buffers before displaying the file in a browser:
+      ;;
+      (setq browse-url-save-file t)
+
+      ;; Bind the browse-url commands to keys with the `C-c C-z' prefix
+      ;; (as used by html-helper-mode):
+      ;;
+      (global-set-key "\C-c\C-z." 'browse-url-at-point)
+      (global-set-key "\C-c\C-zb" 'browse-url-of-buffer)
+      (global-set-key "\C-c\C-zr" 'browse-url-of-region)
+      (global-set-key "\C-c\C-zu" 'browse-url)
+      (global-set-key "\C-c\C-zv" 'browse-url-of-file)
+      (add-hook 'dired-mode-hook
+		(lambda ()
+		  (local-set-key "\C-c\C-zf" 'browse-url-of-dired-file)))
+
+      ;; To just use the Emacs w3 browser when not running under X11:
+      ;;(or (eq window-system 'x)
+      ;;    (setq browse-url-browser-function 'browse-url-w3))
+
+      (setq browse-url-browser-function '(("^mailto:" . browse-url-mail)))
+
+      (setq browse-url-new-window-flag t)	; always a good idea??? (or just for mail?)
+
+      (eval-when-compile
+	(if (elisp-file-in-loadpath-p "browse-url")
+	    (require 'browse-url)))
+      (defun browse-url-links-xterm (url &optional new-window)
+	;; new-window ignored
+	"Ask the Links WWW browser to load URL.
+Default to the URL around or before point.  A new Links process is run
+in an Xterm window using the Xterm program named by `browse-url-xterm-program'
+with possible additional arguments `browse-url-xterm-args'."
+	(interactive (browse-url-interactive-arg "Links URL: "))
+	(apply #'start-process `(,(concat "links-" url) nil ,browse-url-xterm-program
+				 ,@browse-url-xterm-args "-T" ,(concat "WWW-Browser:" url) "-e" ,browse-url-links-program
+				 ,url)))
+
+      ;; NOTE:  all custom settings for browse-url-browser-function must be done
+      ;; prior to this point!
+      ;;
+      (if (eq window-system 'x)
+	  (progn
+	    (setq browse-url-browser-function
+		  (append browse-url-browser-function '(("." . browse-url-links-xterm))))
+	    (setq browse-url-xterm-args '("-cn" "-rw" "-sb" "-si" "-sk" "-ls" "-ziconbeep" "1" "-n" "WWW" ))
+	    (setq browse-url-links-program "links"))
+	(setq browse-url-browser-function
+	      (append browse-url-browser-function '(("." . browse-url-lynx-emacs)))))
+      )) ; (require 'browse-url) END
 
 (if (and (string-match "-sunos4" system-configuration)
 	 (or (string-match "\\`/bin/sh\\'" shell-file-name)
@@ -472,13 +536,15 @@ when our preferred font is not available."
 ;; Something more detailed, like this, really should be the default!
 ;;
 ;; note that the octal escapes are for iso-8859-1 encodings....
+;; note also that \240, the Icelandic "eth", doesn't always appear in
+;; iso-8859-1 faces
 ;;
 (setq list-faces-sample-text
       "abcdefghijklmnopqrstuvwxyz\n\
 ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 0123456789\n\
 !@\#$%^&*()_+-=\\[];'`,./|{}:\"~<>?\n\
-\241\242\243\244\245\246\247\
+\240\241\242\243\244\245\246\247\
 \250\251\252\253\254\255\256\257\
 \260\261\262\263\264\265\266\267\
 \270\271\272\273\274\275\276\277\n\
@@ -505,52 +571,68 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 	"*ielm*"
 	"*scheme*")) ; *info* nixed
 
+(setq special-display-regexps
+      '((".*\\*Apropos\\*.*"
+	 '((top . 0)
+	   (left . -1)
+	   (height . 50)
+	   (width . 80)
+	   (tool-bar-lines . 0)
+	   (menu-bar-lines . 0)))
+	(".*\\*Help\\*.*"
+	 '((top . 0)
+	   (left . -1)
+	   (height . 30)
+	   (width . 80)
+	   (tool-bar-lines . 0)
+	   (menu-bar-lines . 0)))
+	(".*\\*info\\*.*"
+	 '((top . 0)
+	   (left . -1)
+	   (height . 50)
+	   (width . 80)
+	   (tool-bar-lines . 0)
+	   (menu-bar-lines . 0)))
+	(".*\\*scratch\\*.*"
+	 '((top . 300)
+	   (left . -0)
+	   (height . 44)
+	   (width . 90)
+	   (tool-bar-lines . 0)
+	   (menu-bar-lines . 0)))
+;	(".*"
+;	 '((top . 0)
+;	   (left . -1)
+;	   (height . 16)
+;	   (width . 80)
+;	   (unsplittable . t)		; ?????  Should they all be?
+;	   (tool-bar-lines . 0)
+;	   (menu-bar-lines . 0)))
+	))
+
+;; frame parameters for plain buffer names are supplied by
+;; special-display-frame-alist, set below
+;;
 (setq special-display-buffer-names
       '("*compilation*"
 	"*grep*"
 	"*tex-shell*"))
 
-;; Gerd Moellmann says that the menu-bar and tool-bar can be controlled on
-;; individual frames by managing these frame-parameters: `menu-bar-lines' and
-;; `tool-bar-lines
-;;
-(setq special-display-regexps
-      '((".*\\*Apropos\\*.*" '((top . 0)
-			       (left . -1)
-			       (height . 40)
-			       (width . 80)
-			       (tool-bar-lines . 0)
-			       (menu-bar-lines . 0)))
-	(".*\\*Help\\*.*" '((top . 0)
-			    (left . -1)
-			    (height . 40)
-			    (width . 80)
-			    (tool-bar-lines . 0)
-			    (menu-bar-lines . 0)))
-	(".*\\*info\\*.*" '((top . 0)
-			    (left . -1)
-			    (height . 40)
-			    (width . 80)
-			    (tool-bar-lines . 0)
-			    (menu-bar-lines . 0)))
-	(".*\\*scratch\\*.*" '((top . 300)
-			       (left . -0)
-			       (height . 44)
-			       (width . 90)
-			       (tool-bar-lines . 0)
-			       (menu-bar-lines . 0)))))
-
 ;; special buffers also shouldn't have a menu-bar either....
 ;;
+;; These apply to `special-display-buffer-names' and `special-display-regexps'
+;;
 ;; Hmmm....
-;; these seem to over-ride those set in special-display-regexps above...
+;;
+;; Actually these seem to completely override the frame parameters that are
+;; explicitly set in special-display-regexps above.  That must be a bug!
 ;;
 (setq special-display-frame-alist
       '((top . 0)
 	(left . -1)
 	(height . 16)
 	(width . 80)
-	(unsplittable . t)		; ?????  Should they be?
+	(unsplittable . t)
 	(tool-bar-lines . 0)
 	(menu-bar-lines . 0)))
 
@@ -618,13 +700,15 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 	 '("\\.java\\'" . java-mode)		; cc-mode
 	 '("\\.[0-9][a-z]?\\'" . nroff-mode)	; man page
 	 '("\\.[0-9][a-z]?\\.in\\'" . nroff-mode) ; man page
-	 '("\\.[m]?an\\'" . nroff-mode)		; man page
-	 '("\\.t[imes]*\\'" . nroff-mode)		; nroff+tbl
+	 '("\\.[mM]?an\\'" . nroff-mode)	; man page
+	 '("\\.mdoc\\'" . nroff-mode)		; mdoc(7) document
+	 '("\\.t[imes]*\\'" . nroff-mode)	; nroff+tbl
 	 '("\\.t[imes]*\\.in\\'" . nroff-mode)	; nroff+tbl
 	 '("[rR][eE][lL][eE][aA][sS][eE]\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[cC][hH][aA][nN][gG][eE][sS]\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[iI][nN][sS][tT][aA][lL][lL]\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[aA][uU][tT][hH][oO][rR][sS]\\([-.][^/]*\\)?\\'" . indented-text-mode)
+	 '("[bB][uU][gG][sS]\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[cC][oO][pP][yY][^/.]*\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[nN][eE][wW][sS]\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[tT][oO][dD][oO]\\([-.][^/]*\\)?\\'" . indented-text-mode)
@@ -635,6 +719,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 	 '("\\.article\\'" . indented-text-mode)
 	 '("\\.letter\\'" . indented-text-mode)
 	 '("\\.mail[^/]*\\'" . mail-mode)
+	 '("\\.wl\\'" . emacs-lisp-mode)		; WL init file
 	 '("\\.vm\\'" . emacs-lisp-mode)		; VM init file
 	 '("/tmp/[^/]*\\.ed[^/]*\\'" . indented-text-mode) ; mail edit buffer
 	 '("/tmp/[^/]*nf[^/]*\\'" . indented-text-mode))) ; notesfile compose buf
@@ -662,13 +747,17 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "lout-mode")
-    (add-to-auto-mode-alist '("/[^/]+\\.lout\\'" . lout-mode)))
+    (add-to-auto-mode-alist '("\\.lout\\'" . lout-mode)))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "autoconf")
-    (add-to-auto-mode-alist '("/configure.in\\'" . autoconf-mode))
+    (progn
+      (add-to-auto-mode-alist '("/configure\\.in\\'" . autoconf-mode))
+      (add-to-auto-mode-alist '("\\.ac\\'" . autoconf-mode)))
   (if (elisp-file-in-loadpath-p "m4-mode")
-      (add-to-auto-mode-alist '("/configure.in\\'" . m4-mode))))
+      (progn
+	(add-to-auto-mode-alist '("/configure\\.in\\'" . m4-mode))
+	(add-to-auto-mode-alist '("\\.ac\\'" . m4-mode)))))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "vm")
@@ -688,6 +777,18 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 	       '("/Mail/.*\\'" . vm-mode)
 	       '("/News/.*\\'" . vm-mode)
 	       '("\\.shar[^/]*\\'" . vm-mode)))))
+
+
+(if (elisp-file-in-loadpath-p "wl")
+    (progn
+      ;; autoload configuration
+      ;; (Not required if you have installed Wanderlust as XEmacs package)
+      (autoload 'wl "wl" "Wanderlust" t)
+      (autoload 'wl-other-frame "wl" "Wanderlust on new frame." t)
+      (autoload 'wl-draft "wl-draft" "Write draft with Wanderlust." t)
+
+      ;; enable wl-draft mode
+      (autoload 'wl-user-agent-compose "wl-draft" nil t)))
 
 ;;;; ----------
 ;;;; special setup!
@@ -1304,7 +1405,7 @@ If FUNCTION is a subr, or a lisp function dumped with Emacs, return nil."
      (list (if (equal val "")
 	       fn
 	     (intern val)))))
-  (symbol-function function)
+  (symbol-function function)		; XXX compiler says just called for effect!
   (let ((hist load-history)
         (file nil))
     (while (consp hist)
@@ -1804,6 +1905,9 @@ Use `list-faces-display' to see all available faces")
 	(c-setup-filladapt)
 	;; we supposedly can't autoload this thing, yet that means this
 	;; function will not be defined at compile time...
+	(eval-when-compile
+	  (if (elisp-file-in-loadpath-p "filladapt")
+	      (require 'filladapt)))
 	(turn-on-filladapt-mode)))
 
   ;; CC Mode things that are not style variables...
@@ -1851,6 +1955,8 @@ Use `list-faces-display' to see all available faces")
 ;;;
 ;;; version-control (VC) stuff....
 ;;;
+
+(setq diff-switches "-u")		; defaults to "-c" for unknown reasons
 
 ;; to quiet the v19 byte compiler
 (eval-when-compile
@@ -2100,6 +2206,16 @@ Use `list-faces-display' to see all available faces")
 ;;
 (define-key query-replace-map [return] 'act)
 (define-key query-replace-map "\C-m" 'act)
+
+;; these are really just for Sun-style keyboards....
+(global-set-key [cancel] 'keyboard-quit)
+(global-set-key [redo] 'repeat)
+(global-set-key [M-redo] 'repeat-complex-command)
+(global-set-key [redo] 'repeat)
+(global-set-key [copy] 'kill-ring-save)
+(global-set-key [open] 'find-file)
+(global-set-key [paste] 'yank)
+(global-set-key [cut] 'kill-region)
 
 ;;; for fingers that forget and terminals that are brain-dead....
 (global-set-key "\C-\\" 'isearch-forward)
@@ -2361,6 +2477,9 @@ current emacs server process..."
 	(defvar LaTeX-mode-hook)
 	(defvar nroff-mode-hook))
       (require 'ispell)
+      (setq ispell-dictionary (getenv "DICTIONARY"))
+      (if (not ispell-dictionary)
+	  (setq ispell-dictionary "british")) ; that's what's best!!!
       (define-key global-map "\M-S" 'ispell-buffer)
       (setq plain-TeX-mode-hook
 	    (function
@@ -2591,6 +2710,9 @@ current emacs server process..."
 					 "*TimeClock Report*")))
 	(setq buffer-read-only nil)
 	(erase-buffer)
+	(eval-when-compile
+	  (if (elisp-file-in-loadpath-p "timeclock")
+	      (require 'timeclock)))
 	(timeclock-generate-report html-p)
 	(pop-to-buffer (current-buffer)))
       
@@ -2626,7 +2748,8 @@ current emacs server process..."
 ;;;; mail-mode stuff
 ;;;;
 
-(setq read-mail-command 'vm)
+;(setq read-mail-command 'vm)
+(setq read-mail-command 'wl)
 
 ;;;;
 ;;;; for sendmail.el et al....
@@ -2674,18 +2797,19 @@ current emacs server process..."
    )
   "*Default list of domains for mail-local-domain-name.")
 
-(defvar mail-local-domain-name (or (let ((envvalue (getenv "DOMAINNAME")))
-				     (if (or (null envvalue)
-					     (string-equal envvalue ""))
-					 nil
-				       (if (string-equal "." (substring envvalue 0 1))
-					   (substring envvalue 1)
-					 envvalue)))
-				   (if (string-match "\\." (system-name))
-				       (substring (system-name) (match-end 0)))
-				   (completing-read "Domain name (without host part): "
-						    mail-default-domains-completion-alist))
-  "*Local domain name to be used for mail purposes.")
+(eval-and-compile
+  (defvar mail-local-domain-name (or (let ((envvalue (getenv "DOMAINNAME")))
+				       (if (or (null envvalue)
+					       (string-equal envvalue ""))
+					   nil
+					 (if (string-equal "." (substring envvalue 0 1))
+					     (substring envvalue 1)
+					   envvalue)))
+				     (if (string-match "\\." (system-name))
+					 (substring (system-name) (match-end 0)))
+				     (completing-read "Domain name (without host part): "
+						      mail-default-domains-completion-alist))
+    "*Local domain name to be used for mail purposes."))
 
 (defun mail-reset-mail-local-domain-name-users ()
   "Run after chaning `mail-local-domain-name'."
@@ -2714,6 +2838,30 @@ current emacs server process..."
 
 ;; xxx need to do something to set mail-host-address correctly!!!
 ;; (doing that should give user-mail-address the "right" value)
+
+;; mailcrypt --- a simple interface to message encryption with PGP.
+;;
+(if (and (fboundp 'elisp-file-in-loadpath-p)
+	 (elisp-file-in-loadpath-p "mailcrypt"))
+    (progn
+      ;; to quiet the v19 byte compiler
+      (eval-when-compile
+	(defvar mc-encrypt-for-me)
+	(defvar mc-passwd-timeout)
+	(defvar mc-pgp-always-sign)
+	(defvar mc-pgp50-user-id)
+	(defvar mc-pgp50-fetch-timeout)
+	(defvar mc-pgp50-keyserver-address)
+	(defvar mc-pgp50-hkpserver-address))
+
+      (setq mc-encrypt-for-me t)
+      (setq mc-passwd-timeout 1800)
+      (setq mc-pgp-always-sign t)
+      ;; XXX this should be auto-set using the current 'From:'
+      (setq mc-pgp50-user-id (concat (user-login-name) "@" mail-local-domain-name))
+      (setq mc-pgp50-fetch-timeout 60)
+      (setq mc-pgp50-keyserver-address "pgpkeys.mit.edu")
+      (setq mc-pgp50-hkpserver-address "pgpkeys.mit.edu")))
 
 (if (elisp-file-in-loadpath-p "ispell")
     (progn
@@ -2770,9 +2918,6 @@ to the other end and continue."
 ;; mail-x-face-file thanks to John Owens <owens@graphics.stanford.edu>
 ;;
 (defvar mail-x-face-file "~/.face"
-  "Name of file containing contents for X-Face header")
-
-(defvar mail-x-face-file "~/.face"
   "The name of a file containing the content for your `X-Face' header in
 `compface' output format.")
 
@@ -2819,6 +2964,462 @@ the same key is used in global-map."
   (substitute-key-definition 'next-line 'mail-abbrev-next-line
 			     mail-mode-map global-map))
 (add-hook 'mail-setup-hook 'my-mail-abbrevs-fix-next-line)
+
+(require 'mailabbrev)
+(defun mail-abbrev-expand-hook ()
+  "The default definition of this function tries to do magic for auto-fill-mode
+but it's seriously brain damaged so we re-define it as nothing."
+  t)
+
+;;;
+;;; mail aliases
+;;;
+;;; Note:  the `phrase' token is defined as consisting one or more `word's, and
+;;; they are either `atom's or `quoted-string's:
+;;;
+;;; specials        =       "(" / ")" /     ; Special characters used in
+;;;                         "<" / ">" /     ;  other parts of the syntax
+;;;                         "[" / "]" /
+;;;                         ":" / ";" /
+;;;                         "@" / "\" /
+;;;                         "," / "." /
+;;;                         DQUOTE
+;;; 
+;;; atext           =       ALPHA / DIGIT / ; Any character except controls,
+;;;                         "!" / "#" /     ;  SP, and specials.
+;;;                         "$" / "%" /     ;  Used for atoms
+;;;                         "&" / "'" /
+;;;                         "*" / "+" /
+;;;                         "-" / "/" /
+;;;                         "=" / "?" /
+;;;                         "^" / "_" /
+;;;                         "`" / "{" /
+;;;                         "|" / "}" /
+;;;                         "~"
+;;;
+;;; atom            =       [CFWS] 1*atext [CFWS]
+;;;
+;;;
+;;; However note in particular that `dot-atom' tokens are _NOT_ allowed in a
+;;; `phrase':
+;;;
+;;; dot-atom        =       [CFWS] dot-atom-text [CFWS]
+;;; 
+;;; dot-atom-text   =       1*atext *("." 1*atext)
+;;; 
+
+;; aliases for managing identity in from and reply-to headers
+;;
+(define-mail-abbrev "me"
+  "\"Greg A. Woods\" <woods@weird.com>")
+(define-mail-abbrev "me-at-weird.ca"
+  "\"Greg A. Woods\" <woods@weird.ca>")
+(define-mail-abbrev "me-at-weird.toronto.on.ca"
+  "\"Greg A. Woods\" <woods@weird.toronto.on.ca>")
+(define-mail-abbrev "me-at-aci"
+  "\"Greg A. Woods\" <woods@aci.on.ca>")
+(define-mail-abbrev "me-at-planix"
+  "\"Greg A. Woods; Planix, Inc.\" <woods@planix.com>")
+(define-mail-abbrev "me-at-planix.ca"
+  "\"Greg A. Woods; Planix, Inc.\" <woods@planix.ca>")
+(define-mail-abbrev "postmaster"
+  "The Weird PostMaster <postmaster@weird.com>")
+(define-mail-abbrev "postmaster-weird"
+  "The Weird PostMaster <postmaster@weird.com>")
+(define-mail-abbrev "postmaster-weird.ca"
+  "The Weird Canadian PostMaster <postmaster@weird.ca>")
+(define-mail-abbrev "postmaster-weird.toronto.on.ca"
+  "The Weird Toronto PostMaster <postmaster@weird.toronto.on.ca>")
+(define-mail-abbrev "postmaster-completeblinds"
+  "The CompleteBlinds PostMaster <postmaster@completeblinds.com>")
+(define-mail-abbrev "postmaster-robohack"
+  "The RoboHack PostMaster <postmaster@robohack.ca>")
+(define-mail-abbrev "postmaster-robohack.planix"
+  "The Planix RoboHack PostMaster <postmaster@robohack.planix.com>")
+(define-mail-abbrev "postmaster-robohack.planix.ca"
+  "The Planix Canadian RoboHack PostMaster <postmaster@robohack.planix.ca>")
+(define-mail-abbrev "postmaster"
+  "The Weird PostMaster <postmaster@weird.com>")
+(define-mail-abbrev "robohack"
+  "\"Greg A. Woods\" <woods@robohack.ca>")
+(define-mail-abbrev "woods"
+  "\"Greg A. Woods; Planix, Inc.\" <woods@planix.com>")
+(define-mail-abbrev "woods-host"
+  "\"Greg A. Woods\" <woods-host@planix.com> (host support alias)")
+
+;; aliases for mailing lists
+;;
+(define-mail-abbrev "aegis-users"
+  "Aegis User's Mailing List <aegis-users@canb.auug.org.au>")
+(define-mail-abbrev "amanda-hackers"
+  "Amanda Hackers Mailing List <amanda-hackers@amanda.org>")
+(define-mail-abbrev "amanda-users"
+  "Amanda User's Mailing List <amanda-users@amanda.org>")
+(define-mail-abbrev "autoconf"
+  "GNU AUtoconf Mailing List <autoconf@gnu.org>")
+(define-mail-abbrev "automake"
+  "GNU Automake Mailing List <automake@gnu.org>")
+(define-mail-abbrev "bind-workers"
+  "BIND Workers Mailing List <bind-workers@isc.org>")
+(define-mail-abbrev "bitkeeper-users"
+  "BitKeeper Discussion List <bitkeeper-users@bitmover.com>")
+(define-mail-abbrev "bug-cvs"
+  "CVS-II Bugs Mailing List <bug-cvs@gnu.org>")
+(define-mail-abbrev "bug-gnu-emacs"
+  "GNU Emacs Bugs Mailing List <bug-gnu-emacs@gnu.org>")
+(define-mail-abbrev "bug-vm"
+  "ViewMail Bugs Mailing List <bug-vm@UUnet.UU.net>")
+(define-mail-abbrev "bugtraq"
+  "\"BUGTRAQ: Full Disclosure Security Mailing List\" <bugtraq@SecurityFocus.com>")
+(define-mail-abbrev "conserver"
+  "ConServer User's Mailing List <users@conserver.com>")
+(define-mail-abbrev "conserver-users"
+  "ConServer User's Mailing List <users@conserver.com>")
+(define-mail-abbrev "cricket-users"
+  "Cricket User's Mailing List <cricket-users@lists.sourceforge.net>")
+(define-mail-abbrev "csas-incidents"
+  "CSAS Incidents List <incidents@csas.com>")
+(define-mail-abbrev "cssc-users"
+  "GNU CSSC Discussion List <cssc-users@gnu.org>")
+(define-mail-abbrev "current-users"
+  "NetBSD-current Discussion List <current-users@NetBSD.ORG>")
+(define-mail-abbrev "cyrus-bugs"
+  "Cyrus Bugs List <cyrus-bugs@andrew.cmu.edu>")
+(define-mail-abbrev "cyrus-devel"
+  "Cyrus Developer's List <cyrus-devel@lists.andrew.cmu.edu>")
+(define-mail-abbrev "cyrus-users"
+  "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
+(define-mail-abbrev "info-cyrus"
+  "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
+(define-mail-abbrev "datacenter"
+  "Data Centre Discussion List <datacenter@shorty.com>")
+(define-mail-abbrev "datacentre"
+  "Data Centre Discussion List <datacenter@shorty.com>")
+(define-mail-abbrev "devel-cvs"
+  "CVS Developer's Mailing List <devel-cvs@cyclic.com>")
+(define-mail-abbrev "emacs-pretest-bug"
+  "GNU Emacs Pre-Test Bugs Mailing List <emacs-pretest-bug@gnu.org>")
+(define-mail-abbrev "exim-users"
+  "Exim User's Mailing List <exim-users@exim.org>")
+(define-mail-abbrev "geeks"
+  "Sun Geeks List <geeks@sunhelp.org>")
+(define-mail-abbrev "gnats-bugs"
+  "NetBSD GNATS submissions and followups <gnats-bugs@gnats.netbsd.org>")
+(define-mail-abbrev "gnu-emacs-sources"
+  "GNU Emacs Sources Mailing List <gnu-emacs-sources@gnu.org>")
+(define-mail-abbrev "gnu-emacs-pretest"
+  "GNU Emacs Pre-Test Bugs Mailing List <emacs-pretest-bug@gnu.org>")
+(define-mail-abbrev "gnu-emacs-pretest-bug"
+  "GNU Emacs Pre-Test Bugs Mailing List <emacs-pretest-bug@gnu.org>")
+(define-mail-abbrev "info-cvs"
+  "CVS-II Discussion Mailing List <info-cvs@gnu.org>")
+(define-mail-abbrev "info-vm"
+  "ViewMail Info Mailing List <info-vm@UUnet.UU.net>")
+(define-mail-abbrev "ipfilter"
+  "IP-Filter Mailing List <ipfilter@postbox.anu.edu.au>")
+(define-mail-abbrev "ip-filter"
+  "IP-Filter Mailing List <ipfilter@postbox.anu.edu.au>")
+(define-mail-abbrev "lout"
+  "Old Lout Mailing List <lout@ptc.spbu.ru>")
+(define-mail-abbrev "lout-users"
+  "Lout Users Mailing List <lout-users@lists.planix.com>")
+(define-mail-abbrev "mush-users"
+  "Mush User's Mailing List <mush-users-request@garp.mit.edu>")
+(define-mail-abbrev "nanog"
+  "North America Network Operators Group Mailing List <nanog@merit.edu>")
+(define-mail-abbrev "netbsd-bugs"
+  "NetBSD Bugs and PR posting List <netbsd-bugs@NetBSD.ORG>")
+(define-mail-abbrev "netbsd-gnats"
+  "NetBSD GNATS submissions and followups <gnats-bugs@gnats.netbsd.org>")
+(define-mail-abbrev "netbsd-current"
+  "NetBSD-current Discussion List <current-users@NetBSD.ORG>")
+(define-mail-abbrev "netbsd-help"
+  "NetBSD Questions List <netbsd-help@NetBSD.ORG>")
+(define-mail-abbrev "netbsd-ports"
+  "NetBSD Ports Discussion List <netbsd-ports@NetBSD.ORG>")
+(define-mail-abbrev "netbsd-source-changes"
+  "NetBSD CVS Logs <source-changes@NetBSD.ORG>")
+(define-mail-abbrev "netbsd-users"
+  "NetBSD User's Discussion List <netbsd-users@NetBSD.ORG>")
+(define-mail-abbrev "port-alpha"
+  "NetBSD/alpha Discussion List <port-alpha@NetBSD.ORG>")
+(define-mail-abbrev "port-i386"
+  "NetBSD/i386 Discussion List <port-i386@NetBSD.ORG>")
+(define-mail-abbrev "port-ofppc"
+  "NetBSD/pmax Discussion List <port-ofppc@NetBSD.ORG>")
+(define-mail-abbrev "port-pmax"
+  "NetBSD/pmax Discussion List <port-pmax@NetBSD.ORG>")
+(define-mail-abbrev "port-sparc"
+  "NetBSD/sparc Discussion List <port-sparc@NetBSD.ORG>")
+(define-mail-abbrev "port-sun3"
+  "NetBSD/sun3 Discussion List <port-sun3@NetBSD.ORG>")
+(define-mail-abbrev "port-vax"
+  "NetBSD/vax Discussion List <port-vax@NetBSD.ORG>")
+(define-mail-abbrev "postfix-testers"
+  "Postfix Tester's Mailing List <postfix-testers@postfix.org>")
+(define-mail-abbrev "postfix-users"
+  "Postfix User's Mailing List <postfix-users@postfix.org>")
+(define-mail-abbrev "qotd"
+  "Quotation of the Day List <quotationoftheday@yahoo.ca>")
+(define-mail-abbrev "rescue"
+  "Sun Rescue List <rescue@sunhelp.org>")
+(define-mail-abbrev "secureshell"
+  "SSH User's Mailing List <secureshell@securityfocus.com>")
+(define-mail-abbrev "shape-l"
+  "ShapeTools Discussion Mailing List <SHAPE-L%DB0TUI11.BITNET@vm.gmd.de>")
+(define-mail-abbrev "smail-bugs"
+  "Smail PR Reports and followups <smail-bugs@planix.com>")
+(define-mail-abbrev "smail3-devel"
+  "Smail-3 Developers Mailing List <smail3-devel@weird.com>")
+(define-mail-abbrev "smail3-wizards"
+  "Smail-3 Wizards Mailing List <smail3-wizards@athabascau.ca>")
+(define-mail-abbrev "smail3-users"
+  "Smail-3 User's Mailing List <smail3-users@athabascau.ca>")
+(define-mail-abbrev "spamtools"
+  "Spam Tools Mailing List <spamtools@abuse.net>")
+(define-mail-abbrev "squeak"
+  "Squeak Mailing List <squeak@cs.uiuc.edu>")
+(define-mail-abbrev "sungeeks"
+  "Sun Geeks List <geeks@sunhelp.org>")
+(define-mail-abbrev "sun-geeks"
+  "Sun Geeks List <geeks@sunhelp.org>")
+(define-mail-abbrev "sunrescue"
+  "Sun Rescue List <rescue@sunhelp.org>")
+(define-mail-abbrev "sun-rescue"
+  "Sun Rescue List <rescue@sunhelp.org>")
+(define-mail-abbrev "suns-at-home"
+  "Suns-at-Home Mailing List <suns-at-home@net-kitchen.com>")
+(define-mail-abbrev "tech-embed"
+  "NetBSD for Embedded Systems Technical Discussion List <tech-embed@NetBSD.ORG>")
+(define-mail-abbrev "tech-install"
+  "NetBSD Install Process Technical Discussion List <tech-install@NetBSD.ORG>")
+(define-mail-abbrev "tech-kern"
+  "NetBSD Kernel Technical Discussion List <tech-kern@NetBSD.ORG>")
+(define-mail-abbrev "tech-misc"
+  "NetBSD Miscellaneous Technical Discussion List <tech-misc@NetBSD.ORG>")
+(define-mail-abbrev "tech-net"
+  "NetBSD Networking Technical Discussion List <tech-net@NetBSD.ORG>")
+(define-mail-abbrev "tech-perform"
+  "NetBSD Performance Technical Discussion List <tech-perform@NetBSD.ORG>")
+(define-mail-abbrev "tech-pkg"
+  "NetBSD Packages Technical Discussion List <tech-pkg@NetBSD.ORG>")
+(define-mail-abbrev "tech-ports"
+  "NetBSD Porting Technical Discussion List <tech-ports@NetBSD.ORG>")
+(define-mail-abbrev "tech-security"
+  "NetBSD Security Technical Discussion List <tech-security@NetBSD.ORG>")
+(define-mail-abbrev "tech-smp"
+  "NetBSD SMP Technical Discussion List <tech-smp@NetBSD.ORG>")
+(define-mail-abbrev "tech-toolchain"
+  "NetBSD Toolchain Technical Discussion List <tech-toolchain@NetBSD.ORG>")
+(define-mail-abbrev "tech-userlevel"
+  "NetBSD Userlevel Technical Discussion List <tech-userlevel@NetBSD.ORG>")
+(define-mail-abbrev "tech-x11"
+  "NetBSD X11 Technical Discussion List <tech-x11@NetBSD.ORG>")
+(define-mail-abbrev "tkined"
+  "Scotty Mailing List <tkined@ibr.cs.tu-bs.de>")
+(define-mail-abbrev "tpc-rp"
+  "TPC-Int <tpc-rp@aarnet.edu.au>")
+(define-mail-abbrev "trn-test"
+  "TRN Beta Test List <trn-test@borland.com>")
+(define-mail-abbrev "unix-virus"
+  "Unix Virus Mailing List <unix-virus@virus.beergrave.net>")
+(define-mail-abbrev "vmailer-testers"
+  "VMailer Testers List <vmailer-testers@porcupine.org>")
+
+;; local mailing list aliases
+;;
+(define-mail-abbrev "jet-fuel"
+  "Caffeine is fuel for your mind <jet-fuel@weird.com>")
+
+;; ACI aliases
+;;
+(define-mail-abbrev "aci-abuse"
+  "ACI Abuse Contact <abuse@aci.on.ca>")
+(define-mail-abbrev "abuse-aci"
+  "ACI Abuse Contact <abuse@aci.on.ca>")
+
+(define-mail-abbrev "aci-postmaster"
+  "ACI PostMaster <postmaster@aci.on.ca>")
+(define-mail-abbrev "postmaster-aci"
+  "ACI PostMaster <postmaster@aci.on.ca>")
+
+(define-mail-abbrev "aci-hostmaster"
+  "ACI HostMaster <hostmaster@aci.on.ca>")
+(define-mail-abbrev "hostmaster-aci"
+  "ACI HostMaster <hostmaster@aci.on.ca>")
+
+(define-mail-abbrev "aci-support"
+  "ACI Technical Support <support@aci.on.ca>")
+(define-mail-abbrev "support-aci"
+  "ACI Technical Support <support@aci.on.ca>")
+
+(define-mail-abbrev "aci-netadmin"
+  "ACI Network Administrator <netadmin@aci.on.ca>")
+(define-mail-abbrev "netadmin-aci"
+  "ACI Network Administrator <netadmin@aci.on.ca>")
+
+(define-mail-abbrev "aci-sysadmin"
+  "ACI Systems Administrator <sysadmin@aci.on.ca>")
+(define-mail-abbrev "sysadmin-aci"
+  "ACI Systems Administrator <sysadmin@aci.on.ca>")
+
+(define-mail-abbrev "aci-uucp"
+  "ACI UUCP Administrator <uucp@admin.aci.on.ca>")
+(define-mail-abbrev "uucp-aci"
+  "ACI UUCP Administrator <uucp@admin.aci.on.ca>")
+
+(define-mail-abbrev "csas-incidents"
+  "CSAS Incidents List <incidents@csas.com>")
+
+;; friendly aliases
+;;
+(define-mail-abbrev "adb"
+  "Anthony DeBoer <adb@onramp.ca>")
+(define-mail-abbrev "alex"
+  "Alex von Tiesenhausen <alex@corelan.com>")
+(define-mail-abbrev "sandu"
+  "Alexandru Sburlan <sandu@mail.on.rogers.wave.ca>")
+(define-mail-abbrev "andreas"
+  "Andreas Wrede <andreas@planix.com>")
+(define-mail-abbrev "andy"
+  "Andy Mills <andy@weird.com>")
+(define-mail-abbrev "andy-work"
+  "Andy Mills <andy@nationalfibre.net> (work)")
+(define-mail-abbrev "aunt-linda"
+  "Barry & Linda Edge <bledge@telusplanet.net>")
+(define-mail-abbrev "bdb"
+  "Bruce Becker <bdb@gts.net>")
+(define-mail-abbrev "bruce"
+  "Bruce Becker <bdb@gts.net>")
+(define-mail-abbrev "bernie"
+  "Bernard Becker <becker@proxy.net>")
+(define-mail-abbrev "blatte"
+  "Blattidae Cucaracha <blatte@cock.roach.org>")
+(define-mail-abbrev "bryan"
+  "Bryan Challenger <bryan@aci.on.ca>")
+(define-mail-abbrev "cousin-linda"
+  "Gordon & Linda Fisk <circlef@sk.sympatico.ca>") ; also <circle.f@sk.sympatico.ca> ?
+(define-mail-abbrev "cousin-tim"
+  "Tim Edge <EDGEIF22@aol.com>")
+(define-mail-abbrev "dan"
+  "Dan Tomlinson <dan@compus.ca>")
+(define-mail-abbrev "darcy"
+  "\"D'Arcy J.M. Cain\" <darcy@druid.net>")
+(define-mail-abbrev "dave"
+  "Dave Mason <mason@tmsoftware.ca>")
+(define-mail-abbrev "david"
+  "David Maxwell <david@maxwell.net>")
+(define-mail-abbrev "dennis"
+  "Dennis Breckenridge VE6TCP <dennis@nebulus.net>")
+(define-mail-abbrev "drek"
+  "Agent Drek <drek@smashpow.net>")
+(define-mail-abbrev "dtw"
+  "Deirdre Taylor-Wright <dtw@rom.on.ca>")
+(define-mail-abbrev "dumais"
+  "\"Paul E. Dumais\" <dumais@mad.scientist.com>")
+(define-mail-abbrev "dwm"
+  "David Maxwell <david@vex.net>")
+(define-mail-abbrev "ecarroll"
+  "\"Eric M. Carroll\" <ecarroll@rogers.wave.ca>")
+(define-mail-abbrev "eric.carroll"
+  "\"Eric M. Carroll\" <eric.carroll@acm.org>")
+(define-mail-abbrev "evan"
+  "Evan Leibovitch <evan@telly.ca>")
+(define-mail-abbrev "georgn"
+  "Georg Nikodym <georgn@somanetworks.com>")
+(define-mail-abbrev "gil"
+  "Gil Hauer <gilh@somanetworks.com>")
+(define-mail-abbrev "grant"
+  "Grant Officer <grant@slick.net>")
+(define-mail-abbrev "heison"
+  "Heison Chak <heison@somanetworks.com>")
+(define-mail-abbrev "henry"
+  "Henry Spencer <henry@utzoo.cs.utoronto.ca>")
+(define-mail-abbrev "henryp"
+  "Henry Potgieter <henryp@aci.on.ca>")
+(define-mail-abbrev "hugh"
+  "\"Hugh D. Gamble\" <hugh@phaedrav.com>")
+(define-mail-abbrev "hughg"
+  "\"Hugh D. Gamble\" <hugh@phaedrav.com>")
+(define-mail-abbrev "hughr"
+  "Hugh Redelmeier <hugh@mimosa.com>")
+(define-mail-abbrev "jeff"
+  "Jeff Royle <jeff@aci.on.ca>")
+(define-mail-abbrev "jen"
+  "Jennifer Wrede <jennifer@wrede.ca>")
+(define-mail-abbrev "jenny"
+  "Jennifer Wrede <jennifer@wrede.ca>")
+(define-mail-abbrev "jennifer"
+  "Jennifer Wrede <jennifer@wrede.ca>")
+(define-mail-abbrev "jenny"
+  "Jennifer Wrede <jennifer@wrede.ca>")
+(define-mail-abbrev "jerqs"
+  "jerq users <jerqs@clsc.utoronto.ca>")
+(define-mail-abbrev "jim"
+  "Jim Mercer <jim@reptiles.org>")
+(define-mail-abbrev "jmm"
+  "John Macdonald <jmm@Elegant.COM>")
+(define-mail-abbrev "strange"
+  "\"Kristofer P. Cox\" <strange@strange.com>")
+(define-mail-abbrev "kris"
+  "Kris Cox (not at corelan!) <kris@corelan.com>")
+(define-mail-abbrev "kyle"
+  "Kyle Jones <kyle_jones@wonderworks.com>")
+(define-mail-abbrev "lcis"
+  "Library of Computer and Information Sciences <professionals@bookclubservices.com>")
+(define-mail-abbrev "marc"
+  "Marc Staveley <marc@somanetworks.com>")
+(define-mail-abbrev "nik"
+  "Nik Habermel <habern@caledon.org>")
+(define-mail-abbrev "norman"
+  "Norman Wilson <norman@cs.yorku.ca>")
+(define-mail-abbrev "paul"
+  "\"Paul E. Dumais\" <dumais@mad.scientist.com>")
+(define-mail-abbrev "ped"
+  "\"Paul E. Dumais\" <dumais@moosefactory.com>")
+(define-mail-abbrev "peter"
+  "Peter Renzland <peter@renzland.org>")
+(define-mail-abbrev "peterm"
+  "\"Peter G. Marshall\" <peterm@openphase.com>")
+(define-mail-abbrev "planix"
+  "\"Planix, Inc.\" <planix@planix.com>")
+(define-mail-abbrev "postmaster-proxy"
+  "PROXY Postmaster <postmaster@proxy.net>")
+(define-mail-abbrev "proxy-postmaster"
+  "PROXY Postmaster <postmaster@proxy.net>")
+(define-mail-abbrev "rayan"
+  "Rayan Zachariassen <rayan@uunet.ca>")
+(define-mail-abbrev "reg"
+  "Reg Coppicus <regcoppicus@westman.wave.ca>")
+(define-mail-abbrev "rhl"
+  "\"R. H. Lathwell\" <rhl@the-wire.com>")
+(define-mail-abbrev "rob"
+  "Rob Ellis <rob@web.ca>")
+(define-mail-abbrev "stever"
+  "Steve Rapaport <steve@petabit.com>")
+(define-mail-abbrev "timo"
+  "Timo Janhunen <timo@aci.on.ca>")
+(define-mail-abbrev "all-planix"
+  "Those Planix Dudes <all@planix.com>")
+(define-mail-abbrev "planix-all"
+  "Those Planix Dudes <all@planix.com>")
+(define-mail-abbrev "ops"
+  "Weird NOC <ops@weird.com>")
+(define-mail-abbrev "wiznet"
+  "Wiznet Support <support@wiznet.ca>")
+
+(define-mail-abbrev "dduffey"
+  "dduffey@slb.com (sandra's friend sending baby pictures)")
+
+;; aliases for commonly used addresses when sending spam complaints
+;;
+(define-mail-abbrev "easynet"	"abuse-silent@easynet.nl (defunct)")
+(define-mail-abbrev "orbz"	"spam@orbz.org (defunct)")
+(define-mail-abbrev "osir"	"relays@relays.osirusoft.com (defunct)")
+(define-mail-abbrev "osirusoft"	"relays@relays.osirusoft.com (defunct)")
+(define-mail-abbrev "spamcop"	"spam@cmds.spamcop.net")
+(define-mail-abbrev "old-spamcop" "spamcop@spamcop.net (defunct)")
+(define-mail-abbrev "wirehub"	"abuse-silent@wirehub.net (defunct)")
 
 ;; If t, it means to insert the contents of the file `mail-signature-file'.
 ;; If a string, that string is inserted.
