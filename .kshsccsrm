@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.UUCP> <woods@planix.com>
 #
-#ident	"@(#)HOME:.kshsccsrm	27.1	03/11/23 19:16:00 (woods)"
+#ident	"@(#)HOME:.kshsccsrm	28.1	08/07/13 17:40:58 (woods)"
 
 # These aliases and functions provide some release and configuration
 # management functions over and above sccs(1).  They are useful for small
