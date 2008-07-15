@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	28.1	08/07/13 17:40:58 (woods)"
+;;;;#ident	"@(#)HOME:.wl	28.2	08/07/14 17:10:36 (woods)"
 ;;;;
 
 ;; one can apparently use `mime-preview-toggle-content' with C-c C-t C-c to
