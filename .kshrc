@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	28.3	08/07/14 13:13:47 (woods)"
+#ident	"@(#)HOME:.kshrc	28.4	08/07/15 18:57:06 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -761,7 +761,7 @@ alias rinfo='rlog -L -h -l $(find RCS -type f -print)'
 alias rstty='stty $SANE'
 alias scvs='export CVSROOT="$(< CVS/Root)"; print "CVSROOT=$CVSROOT"'
 alias snmpoidinfo='snmptranslate -T d -O f'
-alias syncdotfiles='rsync -v -lptHS --stats --files-from=building.weird.com:dotfiles.list building.weird.com:. $HOME'
+alias syncdotfiles='rsync -v -lptHS --stats --files-from=once.weird.com:dotfiles.list once.weird.com:. $HOME'
 alias wcvs='print $CVSROOT'
 alias zds='zmore'
 
