@@ -11,3 +11,4 @@ bind-to-key read-only ^X^Q
 bind-to-key visit-file ^Xv
 set allow-^S-and-^Q on
 bind-macro-to-key parse-errors-macro ^[OP
+set space-sentence-2 on
