@@ -2,7 +2,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	28.1	08/07/13 17:40:58 (woods)"
+#ident	"@(#)HOME:.ctwmrc	28.2	09/01/15 15:00:12 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -621,27 +621,27 @@ menu "quickies"
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
 	"Xterm @most"		!"$RSH -n most.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"Xterm-big @most"	!"$RSH -n most.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm-big @most"	!"$RSH -n most.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPG_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
   ifelse(HOSTNAME, building.weird.com, [], [
 	"Xterm @building"	!"$RSH -n building.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"Xterm-big @building"	!"$RSH -n building.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm-big @building"	!"$RSH -n building.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPG_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
   ifelse(HOSTNAME, once.weird.com, [], [
 	"Xterm @once"		!"$RSH -n once.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"Xterm-big @once"	!"$RSH -n once.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm-big @once"	!"$RSH -n once.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPG_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
   ifelse(HOSTNAME, whats.weird.com, [], [
 	"Xterm @whats"		!"$RSH -n whats.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"Xterm-big @whats"	!"$RSH -n whats.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm-big @whats"	!"$RSH -n whats.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPG_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
   ifelse(HOSTNAME, historically.weird.com, [], [
 	"Xterm @historically"	!"$RSH -n historically.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"Xterm-big @historically" !"$RSH -n historically.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm-big @historically" !"$RSH -n historically.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPG_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
   ifelse(HOSTNAME, sometimes.weird.com, [], [
 	"Xterm @sometimes"	!"$RSH -n sometimes.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"Xterm-big @sometimes"	!"$RSH -n sometimes.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm-big @sometimes"	!"$RSH -n sometimes.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPG_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
   ifelse(HOSTNAME, starting-out.weird.com, [], [
 	"Xterm @starting-out"	!"$RSH -n starting-out.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
@@ -651,10 +651,10 @@ menu "quickies"
   ])
   ifelse(HOSTNAME, always.weird.com, [], [
 	"Xterm @always"		!"$RSH -n always.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"Xterm-big @always"	!"$RSH -n always.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm-big @always"	!"$RSH -n always.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPG_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
   ])
 	"Xterm @isit"		!"$RSH -n isit.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"Xterm-big @isit"	!"$RSH -n isit.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm-big @isit"	!"$RSH -n isit.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPG_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
 	"Rlogin @isit"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin isit.weird.com &"
 	""			f.separator
 	"Console Server"	f.menu "consoles"
