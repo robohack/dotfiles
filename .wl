@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	28.3	08/07/14 17:12:12 (woods)"
+;;;;#ident	"@(#)HOME:.wl	28.4	09/02/13 00:26:57 (woods)"
 ;;;;
 
 ;; one can apparently use `mime-preview-toggle-content' with C-c C-t C-c to
@@ -708,11 +708,13 @@ See `wl-summary-mark-action-list' for the details of each element.")
 ;; all folders with "ESC RET", then putting it back and doing it again.
 ;;
 (setq wl-folder-hierarchy-access-folders
-      '("^%\\([^/.]+[/.]\\)*[^/.]+\\(:\\|@\\|$\\)"
-	"^%[^/.]+\\(:\\|@\\|$\\)"	; XXX is this necessary?
-	"^-[^.]*\\(:\\|@\\|$\\)"
-	"^@$"
-	"^'$"))
+      '(
+	"^%\\([^/.]+[/.]\\)*[^/.]+\\(:\\|@\\|$\\)" ; for IMAP (recursive)
+	"^%[^/.]+\\(:\\|@\\|$\\)"	; for IMAP (XXX is this necessary?)
+	"^-[^.]*\\(:\\|@\\|$\\)"	; for NNTP
+	"^@$"				; for Shimbun (?)
+	"^'$"				; for internal (?)
+	))
 
 ;; no sense normally reading e-mail on a narrow screen! :-)
 ;;
