@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	28.1	08/07/13 17:40:58 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	28.2	09/02/13 00:26:10 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -60,6 +60,10 @@
       (message "Not running emacs v20 or newer I see -- you may have trouble with this .emacs!")
       (sit-for 5)))
 
+;; XXX string-to-int is apparently obsolete since 22.1
+(if (not (fboundp 'string-to-number))
+    (defalias 'string-to-number 'string-to-int))
+
 ;;; stolen by way of Len Tower from Noah Freidman from /home/fsf/friedman/etc/init/emacs/init.el
 (defun emacs-version-get-component (component)
   (let ((old-match-data (match-data))
@@ -71,17 +75,19 @@
     (unwind-protect
         (and (string-match regexp emacs-version)
              (setq version
-                   (string-to-int (substring emacs-version
-                                             (match-beginning 1)
-                                             (match-end 1)))))
+                   (string-to-number (substring emacs-version
+						(match-beginning 1)
+						(match-end 1)))))
       (store-match-data old-match-data))
     version))
 
-(defvar emacs-version-major (emacs-version-get-component 'major)
+;; note the "official" variables are named like emacs-*-version, but they
+;; didn't appear until 19.23
+(defconst emacs-version-major (emacs-version-get-component 'major)
   "Major version number for this Emacs.")
-(defvar emacs-version-minor (emacs-version-get-component 'minor)
+(defconst emacs-version-minor (emacs-version-get-component 'minor)
   "Minor version number for this Emacs.")
-(defvar emacs-version-build (emacs-version-get-component 'build)
+(defconst emacs-version-build (emacs-version-get-component 'build)
   "Build number for this Emacs.")
 ;;; end by Noah Freidman from /home/fsf/friedman/etc/init/emacs/init.el
 
@@ -117,6 +123,10 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 	       ;; (require 'time)	; this isn't provided by time.el!
 	       (let ((process-connection-type nil)) ;pty's are limited, pipes aren't
 		 (display-time))	; also autoload'ed
+	       ;; XXX for some reason in 22.3 this appears to be on but doesn't
+	       ;; work unless it's forced on like this.
+	       (if (fboundp 'auto-compression-mode)
+		 (auto-compression-mode 1))
 	       ;;
 	       ;; Message-Id: <9601081816.AA07579@alex.x.org>
 	       ;; From: Stephen Gildea <gildea@x.org>
@@ -127,6 +137,10 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 	       ;; I just stumbled upon resize-minibuffer-mode (in Emacs 19.26-19.30);
 	       ;; it is very nice.
 	       ;;
+	       ;; XXX but it's gone (and mostly automatic) in Emacs 21 and newer
+	       ;;
+	       (eval-when-compile
+		 (defvar resize-minibuffer-mode))
 	       (if (and (fboundp 'resize-minibuffer-mode)
 			(not resize-minibuffer-mode))
 		   (resize-minibuffer-mode)))))) ; also autoload'ed
@@ -392,8 +406,7 @@ when our preferred font is not available."
   ;; Update faces that want a bold or italic version of the default font.
   ;; unnecessary in 21.1 and newer.  Ignore the "no longer necessary" warning.
   ;; (XXX can't use eval-and-compile here because of local variable "frame")
-  (if (not (and (>= init-emacs-type 21)
-		(>= emacs-version-minor 1)))
+  (if (fboundp 'frame-update-faces)
       (frame-update-faces frame)))
 (add-hook 'after-make-frame-functions 'set-frame-face-to-preferred-frame-font)
 
@@ -504,6 +517,8 @@ when our preferred font is not available."
       (eval-when-compile
 	(if (elisp-file-in-loadpath-p "browse-url")
 	    (require 'browse-url)))
+      (defvar browse-url-links-program nil
+	"A web browser program to use in an xterm window")
       (defun browse-url-links-xterm (url &optional new-window)
 	;; new-window ignored
 	"Ask the Links WWW browser to load URL.
@@ -792,6 +807,8 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 
 ;;;; ----------
 ;;;; special setup!
+;;
+;; XXX should this stuff be done in the after-init-hook too?
 
 (eval-and-compile
   (progn
@@ -1231,18 +1248,18 @@ advancing point."
 	 (time (current-time))
 	 (resent nil))
     (insert (capitalize
-	     (car (nth (string-to-int (format-time-string "%w" time))
+	     (car (nth (string-to-number (format-time-string "%w" time))
 		       rfc822-weekday-alist)))
 	    ", "
 	    ;; %e generated " 2".  Go from string to int
 	    ;; to string to get rid of the blank.
 	    (int-to-string
-	     (string-to-int
+	     (string-to-number
 	      (format-time-string "%e" time)))
 	    " "
 	    (capitalize
 	     (car (nth
-		   (1- (string-to-int (format-time-string "%m" time)))
+		   (1- (string-to-number (format-time-string "%m" time)))
 		   rfc822-month-alist)))
 	    (format-time-string " %Y %H:%M:%S" time)
 	    (format " %s%02d%02d"
@@ -1645,6 +1662,8 @@ Use `list-faces-display' to see all available faces")
 	    (function
 	     (lambda ()
 	       (font-lock-mode t)	; not needed with `global-font-lock-mode'?
+	       (eval-when-compile
+		 (defvar dired-font-lock-keywords))
 	       (setq font-lock-keywords
 		     dired-font-lock-keywords)))))
 
@@ -1916,7 +1935,10 @@ Use `list-faces-display' to see all available faces")
   (setq c-recognize-knr-p t)		; yes, PLEASE!
   (setq c-tab-always-indent nil)	; insert tabs if not in left margin
 
-  (c-toggle-auto-state 1)		; try this on for size!
+  (if (fboundp 'c-toggle-auto-state)
+      (c-toggle-auto-state 1))		; try this on for size!
+  (if (fboundp 'c-toggle-auto-newline)
+      (c-toggle-auto-newline 1))	; ... or under its new name
 
   ;; keybindings for all of the supported languages.  We can put these in
   ;; c-mode-base-map because awk-mode-map, c-mode-map, c++-mode-map,
@@ -1968,7 +1990,9 @@ Use `list-faces-display' to see all available faces")
 	   (lambda ()
 	     "Private vc-mode stuff."
 	     (require 'vc)
-	     (setq vc-checkout-carefully t)
+	     (eval-and-compile
+	       (if (< init-emacs-type 21)
+		   (setq vc-checkout-carefully t)))
 	     (setq vc-command-messages t)
 	     (setq vc-initial-comment t)
 	     (eval-when-compile
@@ -2471,6 +2495,7 @@ current emacs server process..."
     (progn
       ;; to quiet the v19 byte compiler
       (eval-when-compile
+	(defvar ispell-dictionary)
 	(defvar ispell-filter-hook)
 	(defvar ispell-filter-hook-args)
 	(defvar plain-TeX-mode-hook)
@@ -2516,7 +2541,8 @@ current emacs server process..."
 
 (require 'calendar)
 (require 'appt)
-(cancel-timer appt-timer)		; turn off appt-check immediately
+(if (and (boundp 'appt-timer) appt-timer)
+    (cancel-timer appt-timer))		; turn off appt-check immediately
 
 ;;; eval this to re-start appt-check:
 ;;; (setq appt-timer (run-at-time t 60 'appt-check))
@@ -2566,6 +2592,7 @@ current emacs server process..."
 ;; clobber each other as only one can be shown at a time.
 (setq appt-message-warning-time 15)	; minutes of warning prior to appt
 
+;; XXX these still need rewriting for 22.1 and newer
 (setq appt-msg-window t)		; do not show appt message in a separate window!
 (setq appt-visible t)			; show appt msg in echo area (only if appt-msg-window is nil)
 
@@ -2608,6 +2635,9 @@ current emacs server process..."
 (setq diary-list-include-blanks t)	; include holidays in diary even if
 					; there is no diary entry for that day
 
+(eval-when-compile
+  (defvar number-of-diary-entries))
+;; XXX still in docs in 22.3, but apparently not used
 (setq number-of-diary-entries [4 4 4 4 4 5 5]) ; always enough to span a long weekend
 
 (setq all-christian-calendar-holidays t)
@@ -2684,8 +2714,7 @@ current emacs server process..."
       (require 'timeclock)
 
       (eval-when-compile
-	(if (< init-emacs-type 21)
-	    (defvar timeclock-use-display-time)))
+	(defvar timeclock-use-display-time))	; quiet the compiler
       (setq timeclock-use-display-time t)
 
       ;; NOTE:  you must have a ~/.timelog file or this will crap out...
@@ -2736,8 +2765,8 @@ current emacs server process..."
       ;; todo-mode autoloads itself and may even be autoloaded by calendar....
 
       (eval-when-compile
-	(if (< init-emacs-type 21)
-	    (defvar todo-prefix)))
+	(require 'todo-mode))
+      ;; 
       (setq todo-prefix "&%%(equal (calendar-current-date) date)")
 
       (global-set-key "\C-cTs" 'todo-show) ;; switch to TODO buffer
@@ -2946,7 +2975,7 @@ Use it by evaluating `(setq mail-default-x-face mail-alternate-x-face)'")
 	(search-forward mail-header-separator)
 	(beginning-of-line nil)
 	(insert "X-Face:")
-	(insert-file mail-x-face-file))))
+	(insert-file-contents mail-x-face-file))))
 ;;
 (add-hook 'mail-setup-hook 'mail-insert-x-face)
 
@@ -3443,6 +3472,11 @@ but it's seriously brain damaged so we re-define it as nothing."
 
 (add-hook 'after-init-hook 'my-mail-signature-selector)
 
+(eval-and-compile
+  (if (not (boundp 'message-signature-separator))
+      (defvar message-signature-separator  "^-- *$"
+	"Regexp matching the signature separator.")))
+
 ;; more fancy .sig handling adapted from:
 ;; <URL:http://www-xray.ast.cam.ac.uk/~gmorris/dotvm.txt>
 ;;
@@ -3468,7 +3502,8 @@ and return nil."
      (:background "light pink"))
     (t
      (:italic t)))
-  "My signature face")
+  "My signature face"
+  :group 'basic-faces)
 
 (defun my-signature-highlight ()
   "Highlight the signature in an article with `my-signature-face'."
