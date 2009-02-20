@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	28.4	09/02/13 00:26:57 (woods)"
+;;;;#ident	"@(#)HOME:.wl	28.5	09/02/19 22:44:05 (woods)"
 ;;;;
 
 ;; one can apparently use `mime-preview-toggle-content' with C-c C-t C-c to
@@ -39,7 +39,7 @@
 
 ;; let's try this for use with wl-refile-guess-by-from and use of "%inbox/from"
 ;; as wl-refile-default-from-folder in particular since it doesn't seem to be
-;; able to do anything any smarter than to concatonate the mailbox string onto
+;; able to do anything any smarter than to concatenate the mailbox string onto
 ;; this prefix, thus there's no way to specify a server name in the default.
 ;;
 ;; a better solution would be to use a call to `format' to expand
