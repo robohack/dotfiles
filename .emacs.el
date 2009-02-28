@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	28.2	09/02/13 00:26:10 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	28.3	09/02/27 16:06:26 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -137,7 +137,7 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 	       ;; I just stumbled upon resize-minibuffer-mode (in Emacs 19.26-19.30);
 	       ;; it is very nice.
 	       ;;
-	       ;; XXX but it's gone (and mostly automatic) in Emacs 21 and newer
+	       ;; XXX but it's gone (and mostly automatic) in Emacs 22 and newer
 	       ;;
 	       (eval-when-compile
 		 (defvar resize-minibuffer-mode))
@@ -198,6 +198,24 @@ in `.emacs', and put all the actual code on `after-init-hook'."
     (448.2422 . "grey3")))
 (setq vc-annotate-very-old-color "grey1")
 
+(eval-and-compile
+  (defun file-in-pathlist-p (file-name path-list)
+    "Returns t if the string FILENAME is a file name which occurs in a
+directory in the list PATHLIST, otherwise nil."
+    (let (try-path (file-found-in-path-p nil))
+      (while (not (or file-found-in-path-p (null path-list)))
+	(setq try-path (car path-list)
+	      path-list (cdr path-list))
+	(if (file-exists-p (concat try-path "/" file-name)) ; path-separator :-)
+	    (setq file-found-in-path-p t)))
+      (eval 'file-found-in-path-p))))
+
+(eval-and-compile
+  (defun file-in-loadpath-p (file-name)
+    "Returns t if the string argument FILENAME is a file name present in a
+directory in the load-path list, otherwise returns nil."
+    (file-in-pathlist-p file-name load-path)))
+
 ;;; This could probably be rewritten to use mapcar
 ;;;
 (eval-and-compile
@@ -215,26 +233,8 @@ returning t if any of the three are found. Nil is returned otherwise."
 	(setq file-found-p (file-in-loadpath-p name-to-try)))
       (eval 'file-found-p))))
 
-(eval-and-compile
-  (defun file-in-loadpath-p (file-name)
-    "Returns t if the string argument FILENAME is a file name present in a
-directory in the load-path list, otherwise returns nil."
-    (file-in-pathlist-p file-name load-path)))
-
-(eval-and-compile
-  (defun file-in-pathlist-p (file-name path-list)
-    "Returns t if the string FILENAME is a file name which occurs in a
-directory in the list PATHLIST, otherwise nil."
-    (let (try-path (file-found-in-path-p nil))
-      (while (not (or file-found-in-path-p (null path-list)))
-	(setq try-path (car path-list)
-	      path-list (cdr path-list))
-	(if (file-exists-p (concat try-path "/" file-name)) ; path-separator :-)
-	    (setq file-found-in-path-p t)))
-      (eval 'file-found-in-path-p))))
-
 ;;;; ----------
-;;;; some default packages we'd like...
+;;;; some default packages we'd like, if we can get them...
 
 (if (elisp-file-in-loadpath-p "newcomment")
     (progn
@@ -1924,9 +1924,6 @@ Use `list-faces-display' to see all available faces")
 	(c-setup-filladapt)
 	;; we supposedly can't autoload this thing, yet that means this
 	;; function will not be defined at compile time...
-	(eval-when-compile
-	  (if (elisp-file-in-loadpath-p "filladapt")
-	      (require 'filladapt)))
 	(turn-on-filladapt-mode)))
 
   ;; CC Mode things that are not style variables...
@@ -2979,6 +2976,14 @@ Use it by evaluating `(setq mail-default-x-face mail-alternate-x-face)'")
 ;;
 (add-hook 'mail-setup-hook 'mail-insert-x-face)
 
+(if (elisp-file-in-loadpath-p "x-face-e21")
+    (progn
+      (load-library "x-face-e21")
+      ;; (lambda nil (memq major-mode '(message-mode wl-draft-mode)))
+      (eval-when-compile
+	(defvar x-face-auto-image))
+      (setq x-face-auto-image t)))
+
 ;; always a good thing!
 ;;
 (add-hook 'mail-setup-hook 'mail-abbrevs-setup)
@@ -3045,12 +3050,18 @@ but it's seriously brain damaged so we re-define it as nothing."
   "\"Greg A. Woods\" <woods@weird.ca>")
 (define-mail-abbrev "me-at-weird.toronto.on.ca"
   "\"Greg A. Woods\" <woods@weird.toronto.on.ca>")
+(define-mail-abbrev "robohack"
+  "\"Greg A. Woods\" <woods@robohack.ca>")
 (define-mail-abbrev "me-at-aci"
   "\"Greg A. Woods\" <woods@aci.on.ca>")
+(define-mail-abbrev "woods"
+  "\"Greg A. Woods; Planix, Inc.\" <woods@planix.com>")
 (define-mail-abbrev "me-at-planix"
   "\"Greg A. Woods; Planix, Inc.\" <woods@planix.com>")
 (define-mail-abbrev "me-at-planix.ca"
   "\"Greg A. Woods; Planix, Inc.\" <woods@planix.ca>")
+(define-mail-abbrev "me-at-planix.net"
+  "\"Greg A. Woods; Planix, Inc.\" <woods@planix.net>")
 (define-mail-abbrev "postmaster"
   "The Weird PostMaster <postmaster@weird.com>")
 (define-mail-abbrev "postmaster-weird"
@@ -3059,20 +3070,20 @@ but it's seriously brain damaged so we re-define it as nothing."
   "The Weird Canadian PostMaster <postmaster@weird.ca>")
 (define-mail-abbrev "postmaster-weird.toronto.on.ca"
   "The Weird Toronto PostMaster <postmaster@weird.toronto.on.ca>")
-(define-mail-abbrev "postmaster-completeblinds"
-  "The CompleteBlinds PostMaster <postmaster@completeblinds.com>")
 (define-mail-abbrev "postmaster-robohack"
   "The RoboHack PostMaster <postmaster@robohack.ca>")
+(define-mail-abbrev "postmaster-planix"
+  "The RoboHack PostMaster <postmaster@planix.com>")
+(define-mail-abbrev "postmaster-planix.ca"
+  "The RoboHack PostMaster <postmaster@planix.ca>")
+(define-mail-abbrev "postmaster-planix.net"
+  "The RoboHack PostMaster <postmaster@planix.net>")
 (define-mail-abbrev "postmaster-robohack.planix"
   "The Planix RoboHack PostMaster <postmaster@robohack.planix.com>")
 (define-mail-abbrev "postmaster-robohack.planix.ca"
   "The Planix Canadian RoboHack PostMaster <postmaster@robohack.planix.ca>")
-(define-mail-abbrev "postmaster"
-  "The Weird PostMaster <postmaster@weird.com>")
-(define-mail-abbrev "robohack"
-  "\"Greg A. Woods\" <woods@robohack.ca>")
-(define-mail-abbrev "woods"
-  "\"Greg A. Woods; Planix, Inc.\" <woods@planix.com>")
+(define-mail-abbrev "postmaster-robohack.planix.net"
+  "The Planix Network RoboHack PostMaster <postmaster@robohack.planix.net>")
 (define-mail-abbrev "woods-host"
   "\"Greg A. Woods\" <woods-host@planix.com> (host support alias)")
 
