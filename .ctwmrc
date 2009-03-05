@@ -2,7 +2,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	28.3	09/01/15 15:02:24 (woods)"
+#ident	"@(#)HOME:.ctwmrc	28.4	09/03/04 18:51:40 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -1088,34 +1088,34 @@ menu "emacs"
 {
 	"Emacsen"		f.title
 	"@localhost"		!"emacs -i &"
-	"@X11SERVER"		!"$RSH -n $X11SERVER 'DISPLAY='$DISPLAY'; . ./.localprofile; PATH='$PATH'; export PATH; MAIL='$MAIL'; export MAIL; exec emacs -display '$DISPLAY' -i' &"
+	"@X11SERVER"		!"$RSH -n $X11SERVER 'DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i' &"
  ifelse(HOSTNAME, most.weird.com, [], [
-	"@most"			!"$RSH -n most.weird.com 'DISPLAY='$DISPLAY'; . ./.localprofile; PATH='$HOME/bin:/bin:/usr/bin:/usr/bin/X11:/usr/local/bin:/usr/pkg/bin:/usr/games:$PATH'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /usr/bin/emacs -display '$DISPLAY' -i' &"
+	"@most"			!"$RSH -n most.weird.com 'DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i' &"
  ])
  ifelse(HOSTNAME, building.weird.com, [], [
-	"@building"		!"$RSH -n building.weird.com 'DISPLAY='$DISPLAY'; . ./.localprofile; PATH='$PATH:/usr/pkg/bin:/usr/local/bin'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /usr/pkg/bin/emacs -display '$DISPLAY' -i' &"
+	"@building"		!"$RSH -n building.weird.com 'DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i' &"
  ])
  ifelse(HOSTNAME, once.weird.com, [], [
-	"@once"			!"$RSH -n once.weird.com 'DISPLAY='$DISPLAY'; . ./.localprofile; PATH='$PATH:/usr/pkg/bin:/usr/local/bin'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /usr/pkg/bin/emacs -display '$DISPLAY' -i' &"
+	"@once"			!"$RSH -n once.weird.com 'export DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i' &"
  ])
  ifelse(HOSTNAME, whats.weird.com, [], [
-	"@whats"		!"$RSH -n whats.weird.com 'DISPLAY='$DISPLAY'; . ./.localprofile; PATH='$PATH'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /usr/pkg/bin/emacs -display '$DISPLAY' -i' &"
+	"@whats"		!"$RSH -n whats.weird.com 'DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i' &"
  ])
  ifelse(HOSTNAME, always.weird.com, [], [
-	"@always"		!"$RSH -n always.weird.com 'DISPLAY='$DISPLAY'; . ./.localprofile; PATH='$PATH:/usr/pkg/bin:/usr/local/bin'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /usr/pkg/bin/emacs -display '$DISPLAY' -i' &"
+	"@always"		!"$RSH -n always.weird.com 'DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i' &"
  ])
  ifelse(HOSTNAME, historically.weird.com, [], [
-	"@historically"		!"$RSH -n historically.weird.com 'DISPLAY='$DISPLAY'; . ./.localprofile; PATH='$PATH:/usr/pkg/bin:/usr/local/bin'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /usr/pkg/bin/emacs -display '$DISPLAY' -i' &"
+	"@historically"		!"$RSH -n historically.weird.com 'DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i' &"
  ])
  ifelse(HOSTNAME, starting-out.weird.com, [], [
-	"@starting-out"		!"$RSH -n starting-out.weird.com 'DISPLAY='$DISPLAY'; . ./.localprofile; PATH='$PATH'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /usr/pkg/bin/emacs -display '$DISPLAY' -i' &"
+	"@starting-out"		!"$RSH -n starting-out.weird.com 'DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i' &"
  ])
  ifelse(HOSTNAME, sometimes.weird.com, [], [
-	"@sometimes"		!"$RSH -n sometimes.weird.com 'DISPLAY='$DISPLAY'; . ./.localprofile; PATH='$PATH'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /usr/pkg/bin/emacs -display '$DISPLAY' -i' &"
+	"@sometimes"		!"$RSH -n sometimes.weird.com 'DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i' &"
  ])
  ifdef([AT_ACI], [
   ifelse(HOSTNAME, admin.aci.on.ca, [], [
-	"@admin"		!"$RSH -n admin.aci.on.ca 'DISPLAY='$DISPLAY'; . ./.localprofile; PATH='$PATH'; export PATH; MAIL='/var/mail/$LOGNAME'; export MAIL; exec /usr/bin/emacs -display '$DISPLAY' -i ' &"
+	"@admin"		!"$RSH -n admin.aci.on.ca 'DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i ' &"
   ])
  ])
 }
