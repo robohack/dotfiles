@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	28.1	08/07/13 17:40:58 (woods)"
+#ident	"@(#)HOME:.profile	28.2	09/03/04 18:52:07 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -33,12 +33,19 @@
 
 umask 022
 
-if [ -r $HOME/.bashlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} -a -n "${BASH}" ] ; then
-	trap '. $HOME/.bashlogout ; exit $?' 0
-elif [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} -a -z "${BASH}" ] ; then
-	trap '. $HOME/.kshlogout ; exit $?' 0
-elif [ -r $HOME/.shlogout ] ; then
-	trap '. $HOME/.shlogout ; exit $?' 0
+ISATTY=false
+if tty >/dev/null; then
+	ISATTY=true
+fi
+
+if $ISATTY; then
+	if [ -r $HOME/.bashlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} -a -n "${BASH}" ] ; then
+		trap '. $HOME/.bashlogout ; exit $?' 0
+	elif [ -r $HOME/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} -a -z "${BASH}" ] ; then
+		trap '. $HOME/.kshlogout ; exit $?' 0
+	elif [ -r $HOME/.shlogout ] ; then
+		trap '. $HOME/.shlogout ; exit $?' 0
+	fi
 fi
 
 # the I/O re-direction doesn't actually get rid of the "type: not
@@ -64,12 +71,13 @@ if expr "`type ulimit 2> /dev/null`" : 'ulimit is a shell builtin$' > /dev/null 
 	# force nproc, data, stack, and nofiles limits equal to their maximum
 	# hard limit.
 	#
-	# (assume time, file, and coredump are already unlimited)
+	# (assume time and file are already unlimited or as big as they can get)
 	#
 	ulimit -S -p `ulimit -H -p`
 	ulimit -S -d `ulimit -H -d`
 	ulimit -S -s `ulimit -H -s`
 	ulimit -S -n `ulimit -H -n`
+	ulimit -S -c `ulimit -H -c`
 else
 	# force nproc, data, stack, and nofiles limits equal to their maximum
 	# hard limit.
@@ -438,9 +446,6 @@ fi
 # PATH should finally be set properly!  Just Mh and X11 set below
 #
 
-# turn this off by default, turn it on by hand?
-mesg n
-
 case "$TERM" in
 xterm*|wsvt25*)
 	# this lets those pesky high-bit chars show through....
@@ -801,8 +806,12 @@ TRNINIT="$HOME/.trninit" ; export TRNINIT
 
 # set terminal type and tty settings, etc....
 #
-if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
+if $ISATTY && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 	echo "Re-setting terminal preferences...."
+
+	# turn this off by default, turn it on by hand?
+	mesg n
+
 	if [ -r "$HOME/.stty" ] ; then
 		. $HOME/.stty
 	else
@@ -941,7 +950,7 @@ if [ -d $HOME/lib/terminfo ] ; then
 	esac
 fi
 
-if [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
+if $ISATTY && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 	# WARNING: some stupid stty's cause this to fail!!!!
 	# eg., ULTRIX V4.3 stty(1) 'cause it uses stdout, not stdin....
 	SANE="`stty -g`" ; export SANE
@@ -1007,7 +1016,7 @@ if expr "`type xinit`" : '.* is .*/xinit$' >/dev/null 2>&1 ; then
 	HAVEX=true
 fi
 
-if $HAVEX && [ "X$argv0" != "X.xinitrc" -a "X$argv0" != "X.xsession" ] ; then
+if $ISATTY && $HAVEX && [ "X$argv0" != "X.xinitrc" -a "X$argv0" != "X.xsession" ] ; then
 	case "$TTYN" in
 	console|vg*|vt*|ttyc*|ttyE*)
 		case "$TERM" in
@@ -1034,7 +1043,7 @@ if $HAVEX && [ "X$argv0" != "X.xinitrc" -a "X$argv0" != "X.xsession" ] ; then
 	esac
 fi
 
-if $HAVELAYERS && [ "X$TERM" = "Xdmd" -a "`ismpx`" != "yes" ] ; then
+if $ISATTY && $HAVELAYERS && [ "X$TERM" = "Xdmd" -a "`ismpx`" != "yes" ] ; then
 	trap '' 2
 	echo ""
 	$echo $n "Do you want to start layers? ([y]/n/debug) $c"
@@ -1075,41 +1084,44 @@ fi
 # for first time in for window systems which emulate login shells in each window
 #
 
-# TODO:  should use $HAVEFORTUNE and $FORTUNE
-if [ -x /usr/games/fortune ] ; then
-	/usr/games/fortune
-elif [ -x $LOCAL/games/fortune ] ; then
-	$LOCAL/games/fortune
-fi
-if [ -r calendar -o -r diary -o -r .month ] ; then
-	echo ""
-	echo "Today's Events:"
-	if $HAVEMONTH && [ -r .month ] ; then
-		month -B
-		#		monthd -i5
-	fi
-	if $HAVECALENDAR ; then
-		if [ -r calendar ] ; then
-			calendar -l 2 -w 4
-		elif [ -r diary ] ; then
-			#
-			# uses cpp, which gets confused with some
-			# comments....  and unfortunately won't accept
-			# '-f -', nor will it read from /dev/stdin or
-			# /fdesc/stdin...  grrr....
-			#
-			calendar -l 2 -w 4 -f diary 2>/dev/null
+if $ISATTY; then
+	# TODO:  should use $HAVEFORTUNE and $FORTUNE
+	if [ -x /usr/games/fortune ] ; then
+		/usr/games/fortune
+	elif [ -x $LOCAL/games/fortune ] ; then
+		$LOCAL/games/fortune
+	fi	
+	if [ -r calendar -o -r diary -o -r .month ] ; then
+		echo ""
+		echo "Today's Events:"
+		if $HAVEMONTH && [ -r .month ] ; then
+			month -B
+			#		monthd -i5
+		fi
+		if $HAVECALENDAR ; then
+			if [ -r calendar ] ; then
+				calendar -l 2 -w 4
+			elif [ -r diary ] ; then
+				#
+				# uses cpp, which gets confused with some
+				# comments....  and unfortunately won't accept
+				# '-f -', nor will it read from /dev/stdin or
+				# /fdesc/stdin...  grrr....
+				#
+				calendar -l 2 -w 4 -f diary 2>/dev/null
+			fi
 		fi
 	fi
+	if [ -d $HOME/notes ] ; then
+		(
+			cd $HOME/notes
+			echo ""
+			echo "You have notes on:"
+			ls -C *[!~]
+		)
+	fi
 fi
-if [ -d $HOME/notes ] ; then
-	(
-		cd $HOME/notes
-		echo ""
-		echo "You have notes on:"
-		ls -C *[!~]
-	)
-fi
+
 if [ -r $HOME/.trninit$TERM ] ; then
 	TRNINIT="$HOME/.trninit$TERM" ; export TRNINIT
 fi
