@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	28.1	08/07/13 17:40:58 (woods)"
+#ident	"@(#)HOME:.xinitrc	28.2	09/04/09 13:30:53 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -40,11 +40,25 @@ if [ $argv0 = ".xsession" -a -z "$XDMHOST" ] ; then
 	echo "$argv0: have set XDMHOST='$XDMHOST'"
 fi
 
+# XXX for debugging
+#
+#set -x
+
 ONCONSOLE=false
 export ONCONSOLE
 case "$DISPLAY" in
 :0*)
+	# 
+	# OK, so if we're running on the system console there's a good
+	# chance the user will never see system messages sent to
+	# /dev/console so we will try to run xconsole and also
+	# redirect our own output to /dev/console so that window
+	# manager and application errors will also go to the xconsole
+	# window.  Unfortunately there's no logging this way though...
+	# 
 	# don't bother with this unless it'll do us some good...
+	# (i.e. unless XDM ran the GiveConsole script)
+	#
 	if [ -w /dev/console ] ; then
 		ONCONSOLE=true
 		echo "$argv0: redirecting stdout and stderr to /dev/console."
@@ -54,7 +68,7 @@ case "$DISPLAY" in
 		# wait a wee bit in hopes xconsole gets running to display any errors....
 		sleep 1
 	else
-		echo "$argv0: WARNING: display was '$DISPLAY' but /dev/console not writable by $USER!"
+		echo "$argv0: WARNING: display was '$DISPLAY' but /dev/console is not writable by $USER!"
 		ls -l /dev/console
 	fi
 	DISPLAY="${XDMHOST:-${HOSTNAME}${DOMAINNAME}}${DISPLAY}"
@@ -167,9 +181,10 @@ xtra.weird.com:*|xtremely.weird.com:*)
 	;;
 esac
 
-# TODO:  this might be a mistake, but it might also save your bacon!
+# TODO:  allowing the local host might be a mistake (since other users
+# might also have access to the local host), but doing so might save
+# your bacon if xdm has not set up ~/.Xauthority correctly!
 #
-xhost
 xhost +`hostname` +localhost -
 
 # deprecated xhost crap
@@ -213,9 +228,12 @@ if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
 		# now move our AUTH cookies over to the server in case it
 		# doesn't have a shared $HOME...
 		xauth extract - $DISPLAY | rsh $X11SERVER $X11BIN/xauth merge -
+		# we run these ones in the background because the hosts might not be up
+		xauth extract - $DISPLAY | rsh historically.weird.com $X11BIN/xauth merge - &
+		xauth extract - $DISPLAY | rsh isit.weird.com $X11BIN/xauth merge - &
 		# now start server programs we like for this scenario
 		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x40-200+48 -hl grey90 &
-		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 117x83+0+0 -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 		;;
 	*)
@@ -223,7 +241,6 @@ if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
 		# the current login host....
 		unset X11SERVER ONX11SERVER
 		echo "$argv0: have unset X11SERVER and ONX11SERVER; XDMHOST is $XDMHOST"
-		# leave AUTH cookie handling to the user
 		;;
 	esac
 fi
@@ -282,6 +299,9 @@ fi
 if [ "$argv0" = ".xinitrc" ] ; then
 	case $DISPLAY in
 	very.weird.com:*)
+
+		# XXX note: for the moment this section is identical to the XDM variant above for this host.
+
 		X11SERVER=${X11SERVER:-"most.weird.com"}
 		ONX11SERVER="$RSH -n $X11SERVER exec"
 		export X11SERVER ONX11SERVER
@@ -289,12 +309,12 @@ if [ "$argv0" = ".xinitrc" ] ; then
 		# now move our AUTH cookies over to the server in case it
 		# doesn't have a shared $HOME...
 		xauth extract - $DISPLAY | rsh $X11SERVER $X11BIN/xauth merge -
+		# we run this one in the background because the host might not be up
+		xauth extract - $DISPLAY | rsh historically.weird.com $X11BIN/xauth merge - &
 		# and then start some useful programs...
 		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x40-200+48 -hl grey90 &
-		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 117x83+0+0 -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-		# for the "Main" workspace...
-		xterm -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
 		;;
 	esac
 	if $HAVEXEARTH ; then
@@ -346,6 +366,12 @@ else
 	xbiff -geometry 48x48-0+235 -bw 0 &
 fi
 
+#
+# now we start more programs we like depending on which $DISPLAY we're
+# using, but which don't depend on whether X was started by XDM or
+# xinit/startx.
+#
+
 case $DISPLAY in
 
 very.weird.com:*)
@@ -354,7 +380,8 @@ very.weird.com:*)
 	# very has a large, hi-res, display....
 	xset m 5 10
 	# new XFree86 server doesn't autorepeat without this
-	# (maybe because the Xfree86-Misc extension is missing?)
+	# XXX against "XsunMono-r6.3" this will complain though:
+	# 	Xlib:  extension "XFree86-Misc" missing on display "very.weird.com:0.0".
 	xset r rate 500 60
 	xset r
 	# monitors (these could/should be started by xdm)
@@ -380,8 +407,8 @@ very.weird.com:*)
 	$RSH -n once.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 
 	# All the big main area terminals (starting with our own first one)
-	xterm -display $DISPLAY -geometry  176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n once.weird.com $X11BIN/xterm -display $DISPLAY -geometry 176x96+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	xterm -display $DISPLAY -geometry  117x83+0+0 -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
+	$RSH -n once.weird.com $X11BIN/xterm -display $DISPLAY -geometry 117x83+0+0 -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
 
 	# All the normal emacs windows...
 	# oddly using 130x64 turns into 163x55 with the font change!
