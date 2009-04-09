@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	28.4	08/07/15 18:57:06 (woods)"
+#ident	"@(#)HOME:.kshrc	28.5	09/04/09 13:15:44 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -76,8 +76,12 @@ function lnotes
 		# in a subshell
 		cd $HOME/notes
 		if [ $(ls|wc -w) != 0 ] ; then
-			print '\nYou have notes on:' 
-			ls -C *[!~]
+			if test -t 1; then
+				print '\nYou have notes on:' 
+				ls -C *[!~]
+			else
+				ls *[!~]
+			fi
 		fi
 	)
 	fi
