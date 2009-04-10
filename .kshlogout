@@ -1,7 +1,7 @@
 #
 #	.kshlogout - logout script for ksh
 #
-#ident	"@(#)HOME:.kshlogout	28.1	08/07/13 17:40:57 (woods)"
+#ident	"@(#)HOME:.kshlogout	29.1	09/04/09 20:45:31 (woods)"
 
 trap "" 1 2 3 4 5 6 7 8 9 10 12 13 14 15
 trap "" 0

@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	28.2	09/03/04 18:52:07 (woods)"
+#ident	"@(#)HOME:.profile	29.1	09/04/09 20:45:31 (woods)"
 
 # Assumptions that may cause breakage:
 #
