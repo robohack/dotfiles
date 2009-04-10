@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	28.3	09/02/27 16:06:26 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	28.4	09/04/09 20:43:24 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -148,20 +148,64 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 ;;;; ----------
 ;;;; get ready to load stuff
 
-(defvar original-load-path load-path "The value of load-path at startup")
+(defvar original-load-path load-path "The value of load-path at startup.")
 
 ;; prepend our private (even if it does not exist!) elisp library
-(setq load-path (cons (expand-file-name "~/lib/elisp") load-path))
+(defvar private-lisp-dir
+  (expand-file-name "~/lib/elisp")
+  "The location of the user's private e-lisp library.")
+;; add-to-list in 19.29 and newer
+(add-to-list 'load-path private-lisp-dir)
+
+;; prepend the $LOCAL version's site-lisp dir
+;;
+;; Note this may already be included with defaults specified in the file
+;; `epaths.h' used when Emacs was built.  `add-to-list' avoids duplicates.
+;;
+(if (file-exists-p (concat (getenv "LOCAL")
+			   "/share/emacs/site-lisp/default.el"))
+    (progn
+      (defvar local-site-lisp-dir 
+	(concat (getenv "LOCAL") "/share/emacs/site-lisp")
+	"Location of the site-lisp directory for local packages.")
+      (add-to-list 'load-path local-site-lisp-dir)))
 
 ;; append the $PKG version's site-lisp dir if we're running the local version.
+;;
+;; Note this may already be included with defaults specified in the file
+;; `epaths.h' used when Emacs was built.  `add-to-list' avoids duplicates.
+;;
 (if (and (file-exists-p (concat (getenv "PKG")
 				"/share/emacs/site-lisp/default.el"))
 	 (not (fboundp 'local-site-lisp-dir)))
     (progn
-      (defvar pkg-site-lisp-dir (concat (getenv "PKG") "/share/emacs/site-lisp/"))
-      (setq load-path (append load-path (list pkg-site-lisp-dir)))))
+      (defvar pkg-site-lisp-dir 
+	(concat (getenv "PKG") "/share/emacs/site-lisp")
+	"Location of the site-lisp directory for add-on packages.")
+      (add-to-list 'load-path pkg-site-lisp-dir 'prepend)))
 
-(defvar original-vc-path vc-path "The value of vc-path at startup")
+;; This is only done in `normal-top-level' before ~/.emacs is loaded!
+;; 
+;; Look in each dir in load-path for a subdirs.el file.
+;; If we find one, load it, which will add the appropriate subdirs
+;; of that dir into load-path,
+;; Look for a leim-list.el file too.  Loading it will register
+;; available input methods.
+(let ((tail load-path) dir)
+  (while tail
+    (setq dir (car tail))
+    (let ((default-directory dir))
+      (message (concat "~/.emacs.el: loading " (expand-file-name "subdirs.el")))
+      (load (expand-file-name "subdirs.el") t t t))
+    (let ((default-directory dir))
+      (message (concat "~/.emacs.el: loading " (expand-file-name "leim-list.el")))
+      (load (expand-file-name "leim-list.el") t t t))
+    ;; We don't use a dolist loop and we put this "setq-cdr" command at
+    ;; the end, because the subdirs.el files may add elements to the end
+    ;; of load-path and we want to take it into account.
+    (setq tail (cdr tail))))
+
+(defvar original-vc-path vc-path "The value of vc-path at startup.")
 (setq vc-path
       (if (file-directory-p "/usr/sccs")
 	  '("/usr/sccs")
@@ -171,10 +215,11 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 	      '("/usr/pkg/libexec/cssc")
 	    nil))))
 
-;; colour is nice, but without it vc-annotate generates invisble text.
+;; colour is nice, but on a monochrome screen vc-annotate shows invisble text
 ;;
 ;; unfortunately there's no vc-annotate-hook to run to first test if the
-;; current frame is colour-capable or not so this is all-or-nothing....
+;; current frame is colour-capable or not (eg. using `display-color-p') so this
+;; is all-or-nothing....
 ;;
 (require 'vc)
 (setq vc-annotate-background nil)
@@ -249,16 +294,6 @@ returning t if any of the three are found. Nil is returned otherwise."
       (add-hook 'text-mode-hook 'turn-on-filladapt-mode) ; it is a "Really Good Thing(tm)!"
       (add-hook 'sh-mode-hook 'turn-on-filladapt-mode)  ; ... especially in sh-mode :-)
       (add-hook 'c-mode-hook 'turn-on-filladapt-mode))) ; ... even in c-mode :-)
-
-;; hyperbole auto-loading
-(if (elisp-file-in-loadpath-p "hyperbole")
-    (progn
-      ;; XXX the load-path adjustment should be done in hyperbole.el....
-      ;; don't use add-to-list as it prepends to the list!
-      (setq load-path (append load-path
-			      (list (concat (car original-load-path)
-					    "/hyperbole"))))
-      (load-library "hyperbole")))
 
 (if (and (elisp-file-in-loadpath-p "func-menu")
 	 window-system)
@@ -1602,6 +1637,47 @@ Use `list-faces-display' to see all available faces")
 
 ;; end of himark stuff
 
+(global-set-key (kbd "C-c d") 'delete-line)
+
+;; for some reason Emacs lacks delete-line, implementing it with the source
+;; from kill-line is, however, trivial
+;;
+;; from:
+;; <URL:http://lists.gnu.org/archive/html/help-gnu-emacs/2004-09/msg00178.html>
+;;
+(defun delete-line (&optional arg)
+  "Delete the rest of the current line; if no nonblanks there, delete thru
+newline. With prefix argument, delete that many lines from point.  Negative
+arguments delete lines backward.
+
+When calling from a program, nil means \"no arg\", a number counts as a prefix
+arg.
+
+ To delete a whole line, when point is not at the beginning, type \
+\\[beginning-of-line] \\[delete-line] \\[delete-line].
+
+If `kill-whole-line' is non-nil, then this command deletes the whole line
+including its terminating newline, when used at the beginning of a line with no
+argument.  As a consequence, you can always delete a whole line by typing
+\\[beginning-of-line] \\[delete-line]."
+   (interactive "P")
+   (delete-region (point)
+                ;; It is better to move point to the other end of the delete
+                ;; before deleting. That way, in a read-only buffer, point
+                ;; moves across the text that is to be delete. The choice has
+                ;; no effect on undo now that undo records the value of point
+                ;; from before the command was run.
+                (progn
+                  (if arg
+                      (forward-visible-line (prefix-numeric-value arg))
+                    (if (eobp)
+                        (signal 'end-of-buffer nil))
+                    (if (or (looking-at "[ \t]*$") (and kill-whole-line
+							(bolp)))
+			(forward-visible-line 1)
+                      (end-of-visible-line)))
+                  (point))))
+
 ;;;; ----------
 ;;;; some special hooks.....
 
@@ -2037,6 +2113,7 @@ Use `list-faces-display' to see all available faces")
 		 (if (elisp-file-in-loadpath-p "ispell")
 		     (local-set-key "\eS" 'ispell-buffer)
 		   (local-set-key "\eS" 'spell-buffer))
+		 ;; XXX should we also turn on the flyspell minor mode?
 		 (setq abbrev-mode t)
 		 (setq fill-column 72)
 		 (setq require-final-newline t)	; needed by some unix programs
@@ -2689,8 +2766,7 @@ current emacs server process..."
 (defadvice calendar (before calendar-toggle-appt-check-advice activate)
   "Ask if `appt-check' should be run every sixty seconds."
   (if (y-or-n-p "Enable 60-sec timer for `appt-check'? ")
-      (setq appt-timer (run-at-time t 60 'appt-check))
-    ad-do-it))
+      (setq appt-timer (run-at-time t 60 'appt-check))))
 
 ;; this may not be necessary when view-diary-entries-initially is not nil
 ;;
@@ -3708,6 +3784,7 @@ With PREFIX, select from all quotes."
 ;;;;  (byte-compile-file buffer-file-name)
 ;;;;  nil)
 ;;;
+
 ;;; Local Variables:
 ;;; eval: (defun byte-compile-this-file () (byte-compile-file buffer-file-name) nil)
 ;;; vc-checkin-hook: (byte-compile-this-file)
