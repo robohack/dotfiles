@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	28.5	09/02/19 22:44:05 (woods)"
+;;;;#ident	"@(#)HOME:.wl	28.6	09/04/09 20:40:56 (woods)"
 ;;;;
 
 ;; one can apparently use `mime-preview-toggle-content' with C-c C-t C-c to
@@ -26,6 +26,9 @@
 ;     ))
 ;;
 ;; however for now the following seems to do the trick all by itself:
+;;
+;; (and it must be set _before_ mime-view (or really semi-setup) is loaded,
+;; which is why it's up here at the top of ~/.wl)
 ;;
 (setq mime-setup-enable-inline-html nil)
 
@@ -58,22 +61,37 @@
 ;;
 (setq elmo-imap4-default-authenticate-type 'clear)
 
+;; XXX almost no modern GUI-based reader and re-assemble split messages!
+;;
+(setq mime-edit-split-message nil)
+
+;; XXX this function is a copy of the original done simply to change the
+;; default value for the encoding to be quoted-printable instead of base64
+;;
+(defun mime-encode-region (start end encoding)
+  "Encode region START to END of current buffer using ENCODING.
+ENCODING must be string."
+  (interactive
+   (list (region-beginning)(region-end)
+	 (completing-read "Encoding: "
+			  (mime-encoding-alist)
+			  nil t "quoted-printable")))
+  (funcall (mel-find-function 'mime-encode-region encoding) start end))
+
+;; this is needed to make sure filenames created to save attachments are sane
+;;
+(setq filename-filters '(filename-special-filter))
+
 ;; XXX this doesn't quite work right to turn on automatic signing, especially
 ;; with multiple keys.
 ;;
 ;(setq mime-edit-pgp-processing '(sign))
 
-;; XXX almost no modern GUI-based reader and re-assemble split messages!
-;;
-(setq mime-edit-split-message nil)
-
-;; 
-;;
-;;(setq filename-filters '(filename-special-filter))
-
 (setq mime-setup-enable-pgp t)		; it is the default
-(setq pgg-default-scheme 'pgp5)		; for composing
-(setq pgg-scheme 'pgp5)			; for verify/decrypt
+;(setq pgg-default-scheme 'pgp5)		; for composing
+;(setq pgg-scheme 'pgp5)			; for verify/decrypt
+(setq pgg-default-scheme 'gpg)		; for composing
+(setq pgg-scheme 'gpg)			; for verify/decrypt
 (setq pgg-cache-passphrase t)		; it is the default
 (setq pgg-passphrase-cache-expiry 14400); 4 hrs
 ;(setq pgg-read-passphrase 'read-passwd)	; it is the default?
@@ -91,19 +109,105 @@
 ;;
 ;(setq wl-nntp-posting-server "news.weird.com")
 
+;; prefetch everything that's uncached, not just unread-uncached (U) and
+;; new-uncached (N)
+;;
+(setq wl-summary-incorporate-marks
+      (list wl-summary-uncached-mark
+	    wl-summary-new-uncached-mark
+	    wl-summary-unread-uncached-mark
+	    wl-summary-answered-uncached-mark))
+
 ;; fancier summaries.  Default: ugly  :-)
 ;;
 (setq wl-stay-folder-window t)
 (setq wl-summary-default-number-column 6)
 (setq wl-summary-width nil)
-(setq wl-summary-line-format (concat "%n %T" "%P %[%20(%c %f%) %] %Y/%M/%D(%W)%h:%m %-8S %t%~\"%s\""))
+(setq wl-summary-line-format (concat "%n %T"
+				     "%P %[%20(%c %f%) %] %Y/%M/%D(%W)%h:%m %-8S %t%~\"%s\" \t"))
 (setq wl-summary-default-view 'sequence)
-(setq wl-summary-persistent-mark-priority-list '(deleted
-						 flag
+(setq wl-summary-persistent-mark-priority-list '(killed
+						 deleted
+						 junk
+						 flag ; user-defined flag!?!?!?
+						 important
+						 private
+						 todo
+						 business
+						 ingore
 						 new
 						 answered
 						 forwarded
 						 unread))
+
+;; default is blank (white on white) on monochrome displays!
+;;
+;; XXX for this to work correctly (i.e. be display-independent), the COLOR
+;; field must be a full display face created by `defface'.
+;;
+;; XXX in the mean time maybe we should also check the result of:
+;;
+;;	(frame-parameter nil 'display-type)
+;;
+(if (display-color-p)
+    (setq wl-summary-flag-alist '((ignore "black" " ")
+				  (important "black" "I")
+				  (private "blue" "P")
+				  (todo "red" "T")
+				  (business "green" "W")
+				  (junk "orange" "J")
+				  (killed "grey" "K")
+				  (forwarded "grey" "F")
+				  (redirected "grey" "R")))
+  (setq wl-summary-flag-alist '((ignore "black" " ")
+				(important "black" "I")
+				(private "black" "P")
+				(todo "black" "T")
+				(business "black" "W")
+				(junk "black" "J")
+				(killed "black" "K")
+				(forwarded "black" "F")
+				(redirected "black" "R"))))
+
+;; XXX unfortunately just calling `defface' again to try to redefine a face
+;; does not work.
+;;
+;(wl-defface wl-highlight-summary-deleted-face
+;  '((((type tty)
+;      (background dark))
+;     (:foreground "red"))
+;    (((class grayscale)
+;      (background dark))
+;     (:foreground "grey"))
+;    (((class mono)
+;      (background dark))
+;     (:foreground "white" :strike-through t))
+;    (((class mono)
+;      (background light))
+;     (:foreground "black" :strike-through t))
+;    (((class color)
+;      (background dark))
+;     (:foreground "red" :strike-through "OrangeRed"))
+;    (((class color)
+;      (background light))
+;     (:foreground "IndiaRed3" :strike-through "black"))
+;    (t
+;     (:strike-through t)))
+;  "Face used for displaying messages that have been marked to be deleted."
+;  :group 'wl-summary-faces
+;  :group 'wl-faces)
+
+(require 'wl-highlight)
+(if (display-color-p)
+    (if (eq (frame-parameter nil 'background-mode) 'light)
+	(set-face-attribute 'wl-highlight-summary-deleted-face nil
+			    :foreground "red"
+			    :strike-through "OrangeRed")
+      (set-face-attribute 'wl-highlight-summary-deleted-face nil
+			  :foreground "IndiaRed3"
+			  :strike-through "black"))
+  (set-face-attribute 'wl-highlight-summary-deleted-face nil
+		      :strike-through t))
 
 ;; show recipient in summary %f column of all folders when sender is me
 ;;
@@ -114,6 +218,10 @@
 (setq wl-summary-move-direction-downward t) ; just always go DOWN
 
 (setq wl-summary-exit-next-move nil)	; don't move the Folder pointer on quit
+
+;; to decode encoded words within quoted strings in headers....
+;;
+;;(setq mime-header-accept-quoted-encoded-words t)
 
 (defun my-wl-summary-turn-off-disp-msg ()
   "Unconditionally turn off message display so that I don't fat-finger myself
@@ -188,7 +296,12 @@ into too much confusion."
 
 ;(setq wl-auto-prefetch-first nil)	; is the default
 ;(setq wl-auto-select-first nil)	; is the default
-(setq wl-auto-select-next 'skip-no-unread)
+
+;; using `skip-no-unread' with the following is has unfortunate side effects if
+;; the space bar is held down in auto-repeat mode as the confirmation character
+;; is in fact "SPC".
+;(setq wl-auto-select-next nil)		; is the default
+
 (setq wl-message-buffer-prefetch-depth 0)
 (setq wl-message-buffer-prefetch-threshold 1000000)
 
@@ -219,17 +332,36 @@ into too much confusion."
   "Read search condition string interactively."
   (wl-read-search-condition-internal "Search by (arbitrary header allowed)" default))
 
-;; default is blank (white on white) on monochrome displays!
+;; the following would require an .xbm filename in `x-face-default-xbm-file'
 ;;
-(setq wl-summary-flag-alist
-      '((important "black" "I")
-	(private "black" "P")
-	(todo "black" "T")
-	(business "black" "W")))
-
-;; XXX or maybe I should make a link between .xface and .face?
+;;	(add-hook 'wl-mail-setup-hook 'x-face-insert)
+;;
+;; so instead we use the old "X-Face:" literal text content file created by
+;; compface...
 ;;
 (setq wl-x-face-file "~/.face")
+(add-hook 'wl-draft-insert-x-face-field-hook
+	  (lambda nil
+	    (x-face-insert wl-x-face-file)))
+
+;; ~/.emacs.el should find and load x-face-e21 if it is available....
+;;
+(if (fboundp 'x-face-decode-message-header)
+    (setq wl-highlight-x-face-function 'x-face-decode-message-header))
+
+(if (fboundp 'x-face-save)
+    (define-key wl-summary-mode-map "\C-x4s" 'x-face-save))
+(if (fboundp 'x-face-ascii-view)
+    (define-key wl-summary-mode-map "\C-x4a" 'x-face-ascii-view))
+
+(if (fboundp 'x-face-insert)
+    (define-key wl-draft-mode-map "\C-x4i" 'x-face-insert))
+(if (fboundp 'x-face-show)
+    (define-key wl-draft-mode-map "\M-\C-t" 'x-face-show))
+
+;; for header effects
+;;
+;(setq wl-highlight-message-header-alist ...)
 
 (setq wl-message-visible-field-list nil) ; was '("^Dnas.*:" "^Message-Id:")
 (setq mime-view-visible-field-list nil) ; was '("^Dnas.*:" "^Message-Id:")
@@ -277,125 +409,6 @@ into too much confusion."
 ;	"^X-Original-To:"		; fml?
 	))
 
-;; we do want all the received headers on forwarded messages, but not any other
-;; locally added headers
-;;
-(setq wl-ignored-forwarded-headers
-      "\\(return-path\\|x-sieve\\|x-uidl\\)")
-
-;; enable WL as the defautl mail composer
-(if (boundp 'mail-user-agent)	; from simple.el in emacs-21
-    (setq mail-user-agent 'wl-user-agent))
-(if (fboundp 'define-mail-user-agent)
-    (define-mail-user-agent
-      'wl-user-agent
-      'wl-user-agent-compose
-      'wl-draft-send
-      'wl-draft-kill
-      'mail-send-hook))
-
-;; delete myself from the recipient list(s?) in draft messages
-;;
-;; One or the other of the following will also have to be set if you use
-;; multiple e-mail addresses:
-;;
-;; `wl-user-mail-address-list'
-;; `wl-user-mail-address-regexp' (supersedes the first one)
-;;
-(setq wl-draft-always-delete-myself t)
-
-;;
-;; modified version of default body citation func
-;;
-(defun my-wl-default-draft-cite ()
-  (let ((mail-yank-ignored-headers "[^:]+:")
-	(mail-yank-prefix "> ")
-	date from cite-title)
-    (save-restriction
-      (if (< (mark t) (point))
-	  (exchange-point-and-mark))
-      (narrow-to-region (point)(point-max))
-      (setq date (std11-field-body "date")
-	    subject (std11-field-body "subject")
-	    from (std11-field-body "from")))
-    (when (or date from)
-      (insert (format "At %s, %s wrote:\nSubject: %s\n"
-		      (or date "some time ago")
-		      (if wl-default-draft-cite-decorate-author
-			  (funcall wl-summary-from-function
-				   (or from "you"))
-			(or from "you"))
-		      (or subject "(unkown)"))))
-    (mail-indent-citation)))
-
-(setq wl-draft-cite-function 'my-wl-default-draft-cite)
-
-; (setq wl-draft-reply-without-argument-list
-;       '(("Reply-To" ("Reply-To") nil nil)
-;        ("Mail-Reply-To" ("Mail-Reply-To") nil nil)
-;        ("From" ("From") nil nil)))
-;
-; (setq wl-draft-reply-with-argument-list
-;       '(("Followup-To" nil nil ("Followup-To"))
-; 	("Mail-Followup-To" ("Mail-Followup-To") nil ("Newsgroups"))
-; 	("Reply-To" ("Reply-To") ("To" "Cc" "From") ("Newsgroups"))
-; 	("From" ("From") ("To" "Cc") ("Newsgroups"))))
-
-;; pull in all the MIME stuff
-(require 'elmo-mime)
-(require 'mel)
-
-;; keep all my sent mail in one place for now....
-;;
-;(setq wl-fcc "%inbox/Sent@mailbox.weird.com")
-(setq wl-fcc "+sent")
-
-;; this should work for me, but it won't work for everyone
-;; (and it especially won't work for mobile laptop users!)
-;;
-(setq wl-envelope-from (concat (user-login-name) "@" (system-name)))
-
-;; a good default, but may be adapted by wl-draft-config-alist as below
-;;
-(setq wl-from "\"Greg A. Woods\" <woods@weird.com>")
-
-;; wl-draft-config-exec really should be done as early as possible, even with
-;; the "reply" hack, not as late as possible!
-;;
-(remove-hook 'wl-draft-send-hook 'wl-draft-config-exec)
-(add-hook 'wl-mail-setup-hook 'wl-draft-config-exec)
-
-;; also turn on flyspell explicitly
-;;
-(add-hook 'wl-mail-setup-hook (lambda ()
-				(flyspell-mode)))
-
-
-;; the next is probably useless for me, though it may help if I ever learn to
-;; use drafts much...
-;;
-(add-hook 'wl-draft-reedit-hook 'wl-draft-config-exec)
-
-;; add a (pgp-sign . BOOL)
-(unless (assq 'pgp-sign wl-draft-config-sub-func-alist)
-  (wl-append wl-draft-config-sub-func-alist
-	     '((pgp-sign . mime-edit-set-sign))))
-
-;; add a (pgp-encrypt . BOOL)
-(unless (assq 'pgp-encrypt wl-draft-config-sub-func-alist)
-  (wl-append wl-draft-config-sub-func-alist
-	     '((pgp-encrypt . mime-edit-set-encrypt))))
-
-;(defun my-mime-edit-set-1st-text-qp-encoding ()
-;  "Try setting the default encoding of the first text tag to quoted-printable"
-;  ;; XXX first find the first MIME tag which should have been inserted by
-;  ;; mime-edit-insert-signature
-;  (mime-edit-define-encoding "quoted-printable"))
-
-(defadvice mime-edit-insert-signature (after my-mime-edit-signature-set-qp-encoding activate)
-  "Add quoted-printable encoding to the MIME tag for the signature file."
-  (mime-edit-define-encoding "quoted-printable"))
-
 ;; try to use some hand-coded rules instead of relying entirely on BBDB
 ;;
 ;; first though make sure these rules come after the auto-learned subject and
@@ -431,39 +444,227 @@ into too much confusion."
 	 ("\\(abuse\\|[hp]ostmaster\\|info\\|support\\)@.*aci\\.on\\.ca"
 	  . "%inbox/planix/aci/\\1@mailbox.weird.com"))))
 
+;; we do want all the received headers on forwarded messages, but not any other
+;; locally added headers
+;;
+(setq wl-ignored-forwarded-headers
+      "\\(return-path\\|x-sieve\\|x-uidl\\)")
+
+;; enable WL as the default mail composer
+(if (boundp 'mail-user-agent)	; from simple.el in emacs-21
+    (setq mail-user-agent 'wl-user-agent))
+(if (fboundp 'define-mail-user-agent)
+    (define-mail-user-agent
+      'wl-user-agent
+      'wl-user-agent-compose
+      'wl-draft-send
+      'wl-draft-kill
+      'mail-send-hook))
+
+;; delete myself from the recipient list(s?) in draft messages
+;;
+;; One or the other of the following will also have to be set if you use
+;; multiple e-mail addresses:
+;;
+;; `wl-user-mail-address-list'
+;; `wl-user-mail-address-regexp' (supersedes the first one)
+;;
+(setq wl-draft-always-delete-myself t)
+
+;; DO use the pet name, if defined, or the RFC display-name, in summary lines
+;;
+;; (turned off for drafts below in `my-wl-default-draft-cite' because I do want
+;; to use `wl-default-draft-cite-decorate-author'!)
+;;
+(setq wl-use-petname t)
+
+;; modified version of default body citation func
+;;
+(defun my-wl-default-draft-cite ()
+  (let ((mail-yank-ignored-headers "[^:]+:")
+	(mail-yank-prefix "> ")
+	(wl-use-petname nil)
+	date from cite-title)
+    (save-restriction
+      (if (< (mark t) (point))
+	  (exchange-point-and-mark))
+      (narrow-to-region (point)(point-max))
+      (setq date (std11-field-body "date")
+	    subject (std11-field-body "subject")
+	    from (std11-field-body "from")))
+    (when (or date from)
+      (insert (format "At %s, %s wrote:\nSubject: %s\n"
+		      (or date "some time ago")
+		      (if wl-default-draft-cite-decorate-author
+			  (funcall wl-summary-from-function
+				   (or from "you"))
+			(or from "you"))
+		      (or subject "(unkown)"))))
+    (mail-indent-citation)))
+
+(setq wl-draft-cite-function 'my-wl-default-draft-cite)
+
+; (setq wl-draft-reply-without-argument-list
+;       '(("Reply-To" ("Reply-To") nil nil)
+;        ("Mail-Reply-To" ("Mail-Reply-To") nil nil)
+;        ("From" ("From") nil nil)))
+;
+; (setq wl-draft-reply-with-argument-list
+;       '(("Followup-To" nil nil ("Followup-To"))
+; 	("Mail-Followup-To" ("Mail-Followup-To") nil ("Newsgroups"))
+; 	("Reply-To" ("Reply-To") ("To" "Cc" "From") ("Newsgroups"))
+; 	("From" ("From") ("To" "Cc") ("Newsgroups"))))
+
+;; pull in all the MIME stuff (why does it seem we must do this?)
+(require 'elmo-mime)
+(require 'mel)
+(require 'mime-edit)
+(require 'mime-view)
+
+;; keep all my sent mail in one place for now....
+;;
+(setq wl-fcc "%inbox/Sent@mailbox.weird.com")
+;;(setq wl-fcc "+sent")
+
+;; this should work for me, but it won't work for everyone
+;; (and it especially won't work for mobile laptop users!)
+;;
+(setq wl-envelope-from (concat (user-login-name) "@" (system-name)))
+
+;; a good default, but may be adapted by wl-draft-config-alist as below
+;; (if unset the full local hostname is used)
+;;
+(setq wl-from "\"Greg A. Woods\" <woods@weird.com>")
+
+;; used to show "To: recip" in summary lines for messages sent by user
+;;
+;; also used to eliminate alternate addresses from destination fields in draft
+;; buffers
+;;
+;; note: supersedes `wl-user-mail-address-list' so only this one can be used if
+;; we want to match the same wildcard mailbox forms used in the aliases file(s)
+;;
+(setq wl-user-mail-address-regexp
+      "woods\\(-[^@]*\\)?@\\(weird\\.\\(com\\|ca\\)\\)\\|\\(planix\\.\\(ca\\|com\\|net\\)\\)")
+
+;; also turn on flyspell explicitly
+;;
+(add-hook 'wl-mail-setup-hook (lambda ()
+				(flyspell-mode)))
+
+;; more MIME file types
+;;
+(mime-view-read-mailcap-files)		; from `mime-view-mailcap-files'
+;;
+(add-to-list 'mime-file-types
+	     '("\\.pdf$" "application"
+		"pdf"
+		nil
+		"base64" "attachment"
+		(("filename" . file))))
+	     
+;(defun my-mime-edit-set-1st-text-qp-encoding ()
+;  "Try setting the default encoding of the first text tag to quoted-printable"
+;  ;; XXX first find the first MIME tag which should have been inserted by
+;  ;; mime-edit-insert-signature
+;  (mime-edit-define-encoding "quoted-printable"))
+
+(defadvice mime-edit-insert-signature (after my-mime-edit-signature-set-qp-encoding activate)
+  "Add quoted-printable encoding to the MIME tag for the signature file."
+  (mime-edit-define-encoding "quoted-printable"))
+
+;; The default draft folder, first set up the local draft folder name.
+;;
+;; This may be adjusted at draft buffer creation time by settings in
+;; `wl-draft-config-alist'.
+;;
+;; WARNING:  currently `wl-summary-reedit' does a plain `string=' comparison
+;; against the value of `wl-draft-folder' to decide whether or not the folder
+;; in question is a "draft" folder and thus do the right magic to supersede the
+;; original message with the one being edited, and again to delete the draft
+;; message once it has been successfully sent.
+;;
+(setq wl-draft-folder "+draft")
+
+;; wl-draft-config-exec really MUST be done as early as possible, not as late
+;; as possible!!!
+;; 
+;; So, move it at least to the mail-setup stage...
+;;
+(remove-hook 'wl-draft-send-hook 'wl-draft-config-exec)
+(add-hook 'wl-mail-setup-hook 'wl-draft-config-exec)
+
+;; the next is probably useless for me, though it may help if I ever learn to
+;; use drafts much...
+;;
+;; On the other hand some folks suggest not re-doing draft config on re-edit:
+;;
+;;	   (add-hook 'wl-mail-setup-hook
+;;		     '(lambda ()
+;;		        (unless wl-draft-reedit ; don't apply when reedit.
+;;		          (wl-draft-config-exec wl-draft-config-alist))))
+;;
+;; which begs the question of whether or not the following will cause
+;; `wl-draft-config-exec' to be called twice on re-edit (i.e. doe re-edit also
+;; do `wl-mail-setup-hook'?)...
+;;
+(add-hook 'wl-draft-reedit-hook 'wl-draft-config-exec)
+
+;; add a (pgp-sign . BOOL)
+(unless (assq 'pgp-sign wl-draft-config-sub-func-alist)
+  (wl-append wl-draft-config-sub-func-alist
+	     '((pgp-sign . mime-edit-set-sign))))
+
+;; add a (pgp-encrypt . BOOL)
+(unless (assq 'pgp-encrypt wl-draft-config-sub-func-alist)
+  (wl-append wl-draft-config-sub-func-alist
+	     '((pgp-encrypt . mime-edit-set-encrypt))))
+
 ;; try to predict who I should be....
 ;; (XXX there's probably a more efficient way to write this)
 ;;
 ;; Note there's also a hack to set wl-smtp-posting-server using this...
 ;;
 (setq wl-draft-config-alist
-      '((reply "From: Andreas Wrede"
+      '((reply
+	 "From: Andreas Wrede"
 	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
-	(reply "From: .*@.*planix\\."
+	(reply
+	 "From: .*@.*planix\\."
 	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
-	(reply "From: .*@.*\\(aci\\|opc\\)\\.on\\.ca"
+	(reply
+	 "From: .*@.*seawellnetworks\\.com"
+	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
+	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
+	 ("X-Priority" . "2")
+	 ("Precedence" . "first-class")
+	 ("Organization" . "Planix, Inc."))
+	(reply
+	 "From: .*@.*\\(aci\\|opc\\)\\.on\\.ca"
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Precedence" . "first-class")
 	 ("X-Priority" . "2")
 	 ("Organization" . "Planix, Inc."))
-	(reply "From: .*@.*teloip\\.com"
+	(reply
+	 "From: .*@.*teloip\\.com"
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
-	(reply "From: .*@.*\\(lawyermediator\\|gelmanlaw\\)\\.ca"
+	(reply
+	 "From: .*@.*\\(lawyermediator\\|gelmanlaw\\)\\.ca"
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Precedence" . "first-class")
 	 ("X-Priority" . "1"))
-	((string-match "^%inbox/planix.*@mail\\.weird\\.com" wl-draft-parent-folder)
+	((string-match "^%inbox/planix.*@mailbox\\.weird\\.com" wl-draft-parent-folder)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Precedence" . "first-class")
@@ -474,58 +675,105 @@ into too much confusion."
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 	((string-match "^%.*:woods@mailbox\\.aci\\.on\\.ca" wl-draft-parent-folder)
+	 (pgp-sign . nil)
 	 ("From" . "\"Greg A. Woods\" <woods@aci.on.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@aci.on.ca>")
 	 ("Precedence" . "first-class"))
 	((string-match "^%.*:gwoods@mailbox\\.aci\\.on\\.ca" wl-draft-parent-folder)
+	 (pgp-sign . nil)
 	 ("From" . "\"Greg A. Woods\" <gwoods@aci.on.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <gwoods@aci.on.ca>")
 	 ("Precedence" . "first-class"))
-	;; mailing list:  info-cyrus
-	((or (string-match "^%inbox/Lists-In/cyrus-lists@"
-			   wl-draft-parent-folder)
-	     (string-match "^%inbox/list-archive/info-cyrus@"
-			   wl-draft-parent-folder))
-         ("From" . "\"Greg A. Woods\" <woods-cyrus@weird.com>")
-	 ("To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
-	 ("Reply-To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>"))
-	(reply "Sender: info-cyrus-bounces@lists.andrew.cmu.edu"
-	 ("From" . "\"Greg A. Woods\" <woods-cyrus@weird.com>")
-	 ("To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
-	 ("Reply-To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>"))
-	(reply "To: woods-cyrus@weird.com"
-	 ("From" . "\"Greg A. Woods\" <woods-cyrus@weird.com>")
-	 ("To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
-	 ("Reply-To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>"))
 	;; mailing list:  emacs-mime-en
-	((or (string-match "^%inbox/Lists-In/emacs-mime-en-l@"
+	((or (string-match "^%inbox/Lists-IN/emacs-mime-en-l@"
 			   wl-draft-parent-folder)
 	     (string-match "^%inbox/list-archive/emacs-mime-en@"
 			   wl-draft-parent-folder))
+	 (pgp-sign . nil)
          ("From" . "\"Greg A. Woods\" <woods-emacs-mime-en-l@weird.com>")
 	 ("To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>")
 	 ("Reply-To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>"))
-	(reply "Delivered-To: emacs-mime-en@m17n.org"
+	(reply
+	 "Delivered-To: emacs-mime-en@m17n.org"
+	 (pgp-sign . nil)
 	 ("From" . "\"Greg A. Woods\" <woods-emacs-mime-en-l@weird.com>")
 	 ("To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>")
 	 ("Reply-To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>"))
-	(reply "To: woods-emacs-mime-en-l@weird.com"
+	(reply
+	 "To: woods-emacs-mime-en-l@weird.com"
+	 (pgp-sign . nil)
 	 ("From" . "\"Greg A. Woods\" <woods-emacs-mime-en-l@weird.com>")
 	 ("To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>")
 	 ("Reply-To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>"))
+	;; mailing list:  info-cyrus
+	((or (string-match "^%inbox/Lists-IN/cyrus-lists@"
+			   wl-draft-parent-folder)
+	     (string-match "^%inbox/list-archive/info-cyrus@"
+			   wl-draft-parent-folder))
+	 (pgp-sign . nil)
+         ("From" . "\"Greg A. Woods\" <woods-cyrus@weird.com>")
+	 ("To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
+	 ("Reply-To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>"))
+	(reply
+	 "Sender: info-cyrus-bounces@lists.andrew.cmu.edu"
+	 (pgp-sign . nil)
+	 ("From" . "\"Greg A. Woods\" <woods-cyrus@weird.com>")
+	 ("To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
+	 ("Reply-To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>"))
+	(reply
+	 "To: woods-cyrus@weird.com"
+	 (pgp-sign . nil)
+	 ("From" . "\"Greg A. Woods\" <woods-cyrus@weird.com>")
+	 ("To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
+	 ("Reply-To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>"))
+	;; mailing list:  nsd-users
+	((string-match "^%inbox/Lists-IN/nsd-users@"
+		       wl-draft-parent-folder)
+         ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 ("To" . "The NSD User's Mailing List <nsd-users@NLnetLabs.nl>")
+	 ("Reply-To" . "The NSD User's Mailing List <nsd-users@NLnetLabs.nl>"))
+	(reply
+	 "List-Id: <nsd-users.NLnetLabs.nl>"
+         ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 ("To" . "The NSD User's Mailing List <nsd-users@NLnetLabs.nl>")
+	 ("Reply-To" . "The NSD User's Mailing List <nsd-users@NLnetLabs.nl>"))
+	;; mailing lists:  netbsd
+	;; XXX the (let ((case-fold-search t))) in wl-draft.el:wl-draft-config-exec doesn't seem to work....
+	;; XXX how to set reply-to correctly in a dynamic way without having to
+	;; write some complex editing function?
+	(reply
+	 "Delivered-To: .*@[Nn][Ee][Tt][Bb][Ss][Dd]\\.[Oo][Rr][Gg]"
+	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
+	 ("Reply-To" . ""))
+	;; mailing list:  unbound-users
+	((string-match "^%inbox/Lists-IN/unbound-users@"
+		       wl-draft-parent-folder)
+         ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 ("To" . "The Unbound User's Mailing List <unbound-users@NLnetLabs.nl>")
+	 ("Reply-To" . "The Unbound User's Mailing List <unbound-users@NLnetLabs.nl>"))
+	(reply
+	 "List-Id: <unbound-users.unbound.net>"
+         ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 ("To" . "The Unbound User's Mailing List <unbound-users@NLnetLabs.nl>")
+	 ("Reply-To" . "The Unbound User's Mailing List <unbound-users@NLnetLabs.nl>"))
 	;; mailing list:  wl-en
-	((or (string-match "^%inbox/Lists-In/wl-en-l@"
+	((or (string-match "^%inbox/Lists-IN/wl-en-l@"
 			   wl-draft-parent-folder)
 	     (string-match "^%inbox/list-archive/wl-en@"
 			   wl-draft-parent-folder))
+	 (pgp-sign . nil)
          ("From" . "\"Greg A. Woods\" <woods-wl-en-l@planix.com>")
 	 ("To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>")
 	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>"))
-	(reply "Delivered-To: wl-en@lists.airs.net"
+	(reply
+	 "Delivered-To: wl-en@lists.airs.net"
+	 (pgp-sign . nil)
 	 ("From" . "\"Greg A. Woods\" <woods-wl-en-l@planix.com>")
 	 ("To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>")
 	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>"))
-	(reply "To: woods-wl-en-l@planix.com"
+	(reply
+	 "To: woods-wl-en-l@planix.com"
+	 (pgp-sign . nil)
 	 ("From" . "\"Greg A. Woods\" <woods-wl-en-l@planix.com>")
 	 ("To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>")
 	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>"))
@@ -539,6 +787,7 @@ into too much confusion."
 (setq signature-insert-at-eof t)
 (setq signature-file-alist
       '((("From" . "@planix\\.") . "~/.signature-planix.com")
+	(("From" . "@aci\\.") . "~/.signature-aci-postmaster")
 	(("From" . ".") . "~/.signature")))
 
 ;; mail-sent-via is a big useless pile of crap.
@@ -549,6 +798,9 @@ into too much confusion."
 ;;
 (define-key wl-draft-mode-map "\C-xk" 'wl-draft-kill)
 
+;; just for `wl-summary-goto-folder', which oddly enough is only bound to a key
+;; (`G') in the Summary buffer of all places!
+;;
 (setq wl-default-folder "^%INBOX@mailbox.weird.com")
 
 ;; since we do (set-language-environment "Latin-1") in .emacs....
@@ -572,10 +824,10 @@ into too much confusion."
 	("^%inbox.*@mailbox.weird.com" . "%inbox/Trash@mailbox.weird.com")
 	("^%INBOX@mail.planix.com" . "%inbox.Trash@mail.planix.com:993!")
 	("^%inbox.*@mail.planix.com" . "%inbox.Trash@mail.planix.com:993!")
-	("^%INBOX@mailbox.aci.on.ca" . "%inbox/Trash@mailbox.aci.on.ca:993!")
-	("^%inbox.*@mailbox.aci.on.ca" . "%inbox/Trash@mailbox.aci.on.ca:993!")
 	("^%INBOX:gwoods@mailbox.aci.on.ca" . "%inbox/Trash:gwoods@mailbox.aci.on.ca:993!")
 	("^%inbox.*:gwoods@mailbox.aci.on.ca" . "%inbox/Trash:gwoods@mailbox.aci.on.ca:993!")
+	("^%INBOX@mailbox.aci.on.ca" . "%inbox/Trash@mailbox.aci.on.ca:993!")
+	("^%inbox.*@mailbox.aci.on.ca" . "%inbox/Trash@mailbox.aci.on.ca:993!")
 	("^-" . remove)
 	("^@" . remove)
 	("^\\+trash" . remove)
@@ -594,9 +846,9 @@ into too much confusion."
 ;;
 (setq wl-junk-folder "+junk")
 
-;; in the style of wl-dispose-folder-alist
+;; in the style of `wl-dispose-folder-alist'
 ;;
-;; (see the comment about manual enumeration for wl-dispose-folder-alist too)
+;; (see the comment about manual enumeration for `wl-dispose-folder-alist' too)
 ;;
 ;; XXX ideally what I want to do when I press 'J' inside a Junk folder is to
 ;; move the message back up to the parent INBOX (undoing any IMAP flags I might
@@ -611,13 +863,13 @@ into too much confusion."
 	("^%inbox.*@mailbox.weird.com" . "%inbox/Junk@mailbox.weird.com")
 	("^%INBOX@mail.planix.com" . "%inbox.Junk@mail.planix.com:993!")
 	("^%inbox.*@mail.planix.com" . "%inbox.Junk@mail.planix.com:993!")
-	("^%INBOX@mailbox.aci.on.ca" . "%inbox/Junk@mailbox.aci.on.ca:993!")
-	("^%inbox.*@mailbox.aci.on.ca" . "%inbox/Junk@mailbox.aci.on.ca:993!")
 	("^%INBOX:gwoods@mailbox.aci.on.ca" . "%inbox/Junk:gwoods@mailbox.aci.on.ca:993!")
-	("^%inbox.*:gwoods@mailbox.aci.on.ca" . "%inbox/Junk:gwoods@mailbox.aci.on.ca:993!")))
+	("^%inbox.*:gwoods@mailbox.aci.on.ca" . "%inbox/Junk:gwoods@mailbox.aci.on.ca:993!")
+	("^%INBOX@mailbox.aci.on.ca" . "%inbox/Junk@mailbox.aci.on.ca:993!")
+	("^%inbox.*@mailbox.aci.on.ca" . "%inbox/Junk@mailbox.aci.on.ca:993!")))
 
-;; essentially a copy of wl-summary-get-dispose-folder (they could probably be
-;; merged together into something more generic)
+;; essentially a copy of `wl-summary-get-dispose-folder' (they could probably
+;; be merged together into something more generic)
 ;;
 ;; XXX I'm not sure I got this right, but so far it seems to work well enough...
 ;;
@@ -637,17 +889,57 @@ into too much confusion."
 		      (format "Junk Folder %s does not exist, create it? "
 			      wl-junk-folder))
 		     (elmo-folder-create junk-folder)
-		   (error "Junk Folder is not created"))))
+		   (error "Junk Folder has not been created"))))
 	     wl-junk-folder)))))
+
+;; ensure we have a `junk' flag type defined for elmo that can translate into
+;; an appropriate IMAP flag.  (or is it the other way around?)
+;;
+;; Currently my mail server reports the following:
+;;
+;; * FLAGS (\Answered \Flagged \Draft \Deleted \Seen NonJunk Junk $NotJunk
+;; $Junk MessageJunkMailLevel JunkRecorded MessageHasBeenViewed $Label5 $Label1
+;; $Label2 $Label3 $Label4 $Forwarded Redirected NotJunk Forwarded MyStuff)
+;;
+;; After playing with `wl-summary-set-flags' and "registering" some of the ones
+;; that were given as completions (and thus would presumably have already been
+;; registered!), specifically 'business, 'todo, and 'private, we get:
+;;
+;; * FLAGS (\Answered \Flagged \Draft \Deleted \Seen NonJunk Junk $NotJunk
+;; $Junk MessageJunkMailLevel JunkRecorded MessageHasBeenViewed $Label5 $Label1
+;; $Label2 $Label3 $Label4 $Forwarded Redirected NotJunk Forwarded MyStuff
+;; Business Todo Private)
+;;
+(defconst elmo-imap4-flag-specs '((important "\\Flagged")
+				  (read "\\Seen")
+				  (unread "\\Seen" 'remove)
+				  (answered "\\Answered")
+				  ;; draft-melnikov-imap-keywords-03.txt
+				  (forwarded "$Forwarded")
+				  (work "$Work")
+				  (personal "$Personal")
+				  (shouldreply "$ShouldReply")
+				  ;; more!
+				  (deleted "\\Deleted")	; XXX should this now be 'killed?
+				  (forwarded "Forwarded")
+				  (ignore "JunkRecorded")
+				  (ignore "NotJunk")
+				  (ignore "$NotJunk")
+				  (junk "Junk")
+				  (junk "$Junk")))
 
 ;; the Junk action.
 ;;
 ;; For now we just move them into the appropriate Junk folder, but eventually
-;; we might at least add IMAP flags so that they appear as junk to other types
+;; we might at least add IMAP (persistent) flags so that they appear as junk to other types
 ;; of clients, and also we might do some post-processing and perhaps possibly
-;; forward some of them off to SpamCop and/or the source's contacts, etc.
+;; forward some of them off to SpamCop and/or the source addr's contacts, etc.
 ;;
 (defun wl-summary-exec-action-junk (mark-list)
+  (message (princ-list mark-list))
+;  (elmo-folder-set-flag wl-summary-buffer-elmo-folder
+;			(wl-summary-make-destination-numbers-list mark-list)
+;			'junk nil)
   (wl-summary-move-mark-list-messages mark-list
 				      (wl-summary-get-junk-folder
 				       (wl-summary-buffer-folder-name))
@@ -655,11 +947,14 @@ into too much confusion."
 
 ;; a font face for Junk lines in the Summary
 (wl-defface wl-highlight-summary-junk-face
-  '((((type tty)
-      (background dark))
-     (:foreground "blue"))
+  '((((type tty))
+     (:foreground "grey"))
+    (((class grayscale))
+     (:foreground "grey" :slant italic))
+    (((class mono))
+     (:foreground "black" :slant italic))
     (((class color))
-     (:foreground "LightSlateGray")))
+     (:foreground "LightSlateGray" :slant italic)))
   "Face used for displaying messages mark as Junk."
   :group 'wl-summary-faces
   :group 'wl-faces)
@@ -671,15 +966,27 @@ into too much confusion."
      wl-summary-register-temp-mark
      wl-summary-exec-action-junk
      wl-highlight-summary-junk-face
-     "Mark messages as Junk."))
+     "Move messages marked as Junk to the appropriate Junk folder."))
   "A variable to define a Mark & Action for Junk handling.
-Append this value to `wl-summary-mark-action-list'.
+Append its value to `wl-summary-mark-action-list'.
 
 See `wl-summary-mark-action-list' for the details of each element.")
 
 (setq wl-summary-mark-action-list (append
 				   wl-summary-mark-action-list
 				   wl-junk-mark-action-list))
+
+(add-to-list 'wl-summary-skip-mark-list "J")
+
+(defcustom wl-summary-junk-cached-mark "j"
+  "Character for persistend mark for junked and cached message."
+  :type '(string :tag "Mark")
+  :group 'wl-summary-marks)
+
+(defcustom wl-summary-junk-uncached-mark "J"
+  "Character for persistent mark for junked and uncached message."
+  :type '(string :tag "Mark")
+  :group 'wl-summary-marks)
 
 ;; call this to re-define all the wl-summary-exec-action-* (and
 ;; wl-summary-*) functions, including our new one
@@ -765,17 +1072,6 @@ See `wl-summary-mark-action-list' for the details of each element.")
 ;(define-key wl-summary-mode-map "N" 'wl-summary-next)
 ;(define-key wl-summary-mode-map "p" 'wl-summary-up)
 ;(define-key wl-summary-mode-map "P" 'wl-summary-prev)
-
-;(defface wl-highlight-summary-deleted-face
-;  '((((class color)
-;      (background dark))
-;     (:foreground "Red" :bold t :italic t :strike-through "OrangeRed"))
-;    (((class color)
-;      (background light))
-;     (:foreground "IndiaRed3" :bold t :italic t :strike-through "black"))
-;    (t
-;     (:bold t :italic t :strike-through t)))
-;  "Mail deleted face")
 
 ;; Cc: WanderLust Users Mailing List (English) <wl-en@lists.airs.net>
 ;; Subject: Re: colorization/fontification of draft-mode buffer contents
