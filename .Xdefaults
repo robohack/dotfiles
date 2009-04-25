@@ -1,5 +1,5 @@
 !
-!#ident	"@(#)HOME:.Xdefaults	29.1	09/04/09 20:45:32 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	29.2	09/04/24 17:22:38 (woods)"
 !
 #ifdef COLOR
 *customization:			-color
@@ -232,7 +232,7 @@ GV.fallbackPageMedia:	letter
 #ifdef COLOR
 GV.antialias:		True
 #else
-GV.antialias:		False
+GV.antialias:		True
 GV.gsX11Device:		-sDEVICE=x11mono
 GV.gsArguments:		-sDEVICE=x11mono
 #endif
