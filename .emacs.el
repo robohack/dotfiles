@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	29.1	09/04/09 20:45:32 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	29.2	09/05/22 16:42:16 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -3061,6 +3061,13 @@ Use it by evaluating `(setq mail-default-x-face mail-alternate-x-face)'")
       (setq x-face-auto-image t)))
 
 ;; always a good thing!
+;;
+;; hmmmm... at the top of mailabbrev.el it says to use mailabbrev do:
+;;
+;;	(add-hook 'mail-mode-hook 'mail-abbrevs-setup)
+;;
+;; however in sendmail.el it suggests (properly?) that `mail-abbrevs-setup' is
+;; an appropriate option for `mail-setup-hook'
 ;;
 (add-hook 'mail-setup-hook 'mail-abbrevs-setup)
 
