@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	29.2	09/05/22 16:42:16 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	29.3	09/05/22 16:43:44 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -513,6 +513,9 @@ when our preferred font is not available."
 
 (if window-system
     (progn
+      ; mouse wheel support, at least for (eq window-system 'x)
+      (global-set-key [mouse-4] 'scroll-down)
+      (global-set-key [mouse-5] 'scroll-up)
       (setq mouse-yank-at-point t)	; yank at click is DANGEROUS!!!!
       (setq baud-rate 153600)))		; let's make things more efficient
 
