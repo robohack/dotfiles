@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	29.4	09/05/22 16:47:28 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	29.5	09/05/27 17:10:42 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -2581,7 +2581,7 @@ current emacs server process..."
       (require 'ispell)
       (setq ispell-dictionary (getenv "DICTIONARY"))
       (if (not ispell-dictionary)
-	  (setq ispell-dictionary "british")) ; that's what's best!!!
+	  (setq ispell-dictionary "canadian")) ; that's what's best!!!
       (define-key global-map "\M-S" 'ispell-buffer)
       (setq plain-TeX-mode-hook
 	    (function
