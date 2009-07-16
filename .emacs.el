@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	29.6	09/07/15 20:00:50 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	29.7	09/07/15 20:18:14 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -487,6 +487,8 @@ when our preferred font is not available."
 (require 'compile)
 (setq compilation-window-height 10)	; default height for a compile window
 (setq compilation-scroll-output t)	; where, oh where, has this been!!!
+(if (fboundp 'compilation-first-error)
+    (define-key compilation-minor-mode-map "\M-<" compilation-first-error))
 
 (require 'font-lock)
 (setq font-lock-maximum-size nil)	; don't worry about the buffer size...
@@ -2322,6 +2324,12 @@ argument.  As a consequence, you can always delete a whole line by typing
 (global-set-key "\C-x\C-\\" 'save-buffer)
 (global-set-key "\C-^" 'quoted-insert)
 (global-set-key "\C-x\C-^" 'toggle-read-only)
+
+(require 'simple)
+(global-set-key "\C-x~" 'first-error)
+(global-set-key "\M-g," 'first-error)
+(global-set-key "\M-g<" 'first-error)
+(global-set-key "\M-gf" 'first-error)
 
 ;; rumour has it C-x C-q was toggle-read-only and then vc-toggle-read-only
 ;; this was suggested by Kevin Rodgers <kevinr@ihs.com>:
