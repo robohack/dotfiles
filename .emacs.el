@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	29.7	09/07/15 20:18:14 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	29.8	09/07/15 21:17:10 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -1157,6 +1157,8 @@ If not `nil' and not `t', query for each instance."
                     (query-replace-regexp "[ \t]+$" "")))))))
   ;; always return nil, in case this is on write-file-hooks.
   nil)
+
+(global-set-key "\C-x\M-\\" 'nuke-trailing-whitespace)
 
 (defun scroll-one-line-up (&optional arg)
   "Scroll the selected window up (forward in the text) one line (or N lines)."
