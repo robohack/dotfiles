@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	29.5	09/05/27 17:10:42 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	29.6	09/07/15 20:00:50 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -864,6 +864,24 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 ;;;; ----------
 ;;;; some useful functions....
 
+;; Thanks, Noah Friedman:                                                       
+(defun valbits (&optional n)
+  "Returns the number of binary bits required to represent n.
+
+If n is not specified, this is effectively the number of valbits
+emacs uses to represent ints -- including the sign bit.
+
+Negative values of n will always require VALBITS bits, the number
+of bits emacs actually uses for its integer values, since the
+highest bit is used for the sign; use (abs n) to ignore the
+sign."
+  (or n (setq n -1))
+  (let ((b 0))
+    (while (not (zerop n))
+      (setq n (lsh n -1))
+      (setq b (1+ b)))
+    b))
+
 (defun show-text-prop ()
   (interactive)
   (princ (text-properties-at (point))))
@@ -1444,6 +1462,9 @@ the window showing completions."
 ;;; Created: 18 Mar 1994
 ;;; Keywords: lisp
 ;;;
+;;; modified to use `symbol-file' -- dunno when that became available.
+;;;
+(require 'help)
 (defun load-file-defining-function (function)
   "Return the name of the source file from which FUNCTION was loaded.
 If FUNCTION was defined by reading from a buffer, return 'buffer.
@@ -1460,18 +1481,8 @@ If FUNCTION is a subr, or a lisp function dumped with Emacs, return nil."
      (list (if (equal val "")
 	       fn
 	     (intern val)))))
-  (symbol-function function)		; XXX compiler says just called for effect!
-  (let ((hist load-history)
-        (file nil))
-    (while (consp hist)
-      (let ((name (car (car hist)))
-            (functions (cdr (car hist))))
-        (if (memq function functions)
-            (setq file (if name name 'buffer)
-                  hist nil)
-          (setq hist (cdr hist)))))
-    (if file
-	(setq file (load-file-name file)))
+  (let ((file nil))
+    (setq file (symbol-file function))
     (if (interactive-p)
         (message
          (cond
@@ -1485,47 +1496,20 @@ If FUNCTION is a subr, or a lisp function dumped with Emacs, return nil."
                    function)))))
     file))
 
-(define-key help-map "F" 'load-file-defining-function)
+;; note, if help.el isn't loaded by now then it'll override this with a binding
+;; to `view-emacs-FAQ'
+;;
+;;(define-key help-map "F" 'load-file-defining-function)
 
-(defun load-file-name (filename &optional nosuffix)
-  "Expand FILENAME, searching in the directories listed in `load-path'.
-This returns the name of the file `load-library' and `load' would
-process if passed FILENAME as the name of the file to load.
+;; better yet, use the find-func library!
+;;
+(require 'find-func)
+(define-key help-map "F" 'find-function-at-point)
+(define-key help-map "K" 'find-variable-on-key)
+(define-key help-map "V" 'find-variable-at-point)
 
-If optional arg NOSUFFIX is non-nil, don't try adding
-suffixes `.elc' or `.el' to the specified name FILE."
-  (if (file-name-absolute-p filename)
-      filename
-    (let ((path load-path)
-          pathified-name
-          expanded
-          extended)
-      (while (and (null pathified-name)
-                  (consp path))
-        (setq expanded (expand-file-name filename (car path)))
-        (if (not (file-name-absolute-p expanded))
-            (setq expanded (expand-file-name filename)))
-        (if (file-name-absolute-p expanded)
-            (setq pathified-name
-                  (cond
-                   ((and (not nosuffix)
-                         (file-readable-p
-                          (setq extended (concat expanded ".elc")))
-                         (not (file-directory-p extended)))
-                    extended)
-                   ((and (not nosuffix)
-                         (file-readable-p
-                          (setq extended (concat expanded ".el")))
-                         (not (file-directory-p extended)))
-                    extended)
-                   ((and (file-readable-p expanded)
-                         (not (file-directory-p expanded)))
-                    expanded))))
-        (setq path (cdr path)))
-      (if pathified-name
-          pathified-name
-          (signal 'file-error (list "Cannot find load file"
-                                    filename))))))
+;; replace this function on a different, but logical, mapping...
+(define-key help-map "\C-k" 'Info-goto-emacs-key-command-node)
 
 ;;; Message-Id: <m0tGNOF-0003dDC@fly.CNUCE.CNR.IT>
 ;;; Organization: CNUCE-CNR, Via S.Maria 36, Pisa - Italy +39-50-593211
@@ -1770,6 +1754,10 @@ argument.  As a consequence, you can always delete a whole line by typing
 	     (override-local-key-settings)
 	     (override-default-variable-settings))))
 
+;; once upon a time PCL-CVS was not distributed with GNU Emacs...
+;;
+(require 'pcvs)
+
 ;; note that once upon a time this hook variable was called `pcl-cvs-load-hook'
 ;;
 (add-hook 'cvs-mode-hook
@@ -1779,6 +1767,15 @@ argument.  As a consequence, you can always delete a whole line by typing
 	     (eval-when-compile
 	       (defvar cvs-mode-map))
 	     (define-key cvs-mode-map "z" 'nil))))
+
+(defun my-cvs-mode-commit-hook ()
+  "Attempt to adjust windows and run `cvs-mode-diff' for
+`cvs-mode-commit'."
+  (progn (enlarge-window (/ (window-height) 2)) ; grows the *cvs-commit* window
+	 (split-window-vertically)
+	 (shrink-window (/ (window-height) 2)) ; shrinks the *cvs-commit* window
+	 (cvs-mode-diff)))
+(add-hook 'cvs-mode-commit-hook 'my-cvs-mode-commit-hook)
 
 ;;; GNU-Emacs' ideas about formatting C code really suck!  Let's stick to doing
 ;;; things the good old standard K&R way!!!!
@@ -2054,25 +2051,25 @@ argument.  As a consequence, you can always delete a whole line by typing
 ;;; version-control (VC) stuff....
 ;;;
 
+(require 'vc)
+
 (setq diff-switches "-u")		; defaults to "-c" for unknown reasons
 
 ;; to quiet the v19 byte compiler
 (eval-when-compile
+  (defvar vc-checkout-carefully)	; only needed with older than 21.1
   (defvar vc-command-messages)
   (defvar vc-initial-comment)
-  (defvar vc-checkout-carefully))
+  (defvar vc-maximum-comment-ring-size)) ; not defvar'ed!
 (add-hook 'vc-mode-hook
 	  (function
 	   (lambda ()
 	     "Private vc-mode stuff."
 	     (require 'vc)
-	     (eval-and-compile
-	       (if (< init-emacs-type 21)
-		   (setq vc-checkout-carefully t)))
+	     (if (< init-emacs-type 21)
+		 (setq vc-checkout-carefully t))
 	     (setq vc-command-messages t)
 	     (setq vc-initial-comment t)
-	     (eval-when-compile
-	       (defvar vc-maximum-comment-ring-size)) ; not defvar'ed!
 	     (setq vc-maximum-comment-ring-size 64) ; 32 is too small!
 	     (add-hook 'vc-checkin-hook
 		       'vc-comment-to-change-log))))
@@ -2277,6 +2274,8 @@ argument.  As a consequence, you can always delete a whole line by typing
 (global-set-key "\e?F" 'view-emacs-FAQ)	; in 19.34 it needs more help...
 ;; should help-char be just ? instead?
 (setq help-char ?\M-?)			; this should "fix" the rest.
+
+(define-key help-map "?" 'describe-key-briefly) ; also C-x? for Jove compat
 
 ;;; I USUALLY EXPECT THE BACKSPACE KEY TO WORK LIKE AN ASCII BACKSPACE!
 ;;
