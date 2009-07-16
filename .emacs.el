@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	29.8	09/07/15 21:17:10 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	29.9	09/07/15 21:33:27 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -165,7 +165,7 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 (if (file-exists-p (concat (getenv "LOCAL")
 			   "/share/emacs/site-lisp/default.el"))
     (progn
-      (defvar local-site-lisp-dir 
+      (defvar local-site-lisp-dir
 	(concat (getenv "LOCAL") "/share/emacs/site-lisp")
 	"Location of the site-lisp directory for local packages.")
       (add-to-list 'load-path local-site-lisp-dir)))
@@ -179,13 +179,13 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 				"/share/emacs/site-lisp/default.el"))
 	 (not (fboundp 'local-site-lisp-dir)))
     (progn
-      (defvar pkg-site-lisp-dir 
+      (defvar pkg-site-lisp-dir
 	(concat (getenv "PKG") "/share/emacs/site-lisp")
 	"Location of the site-lisp directory for add-on packages.")
       (add-to-list 'load-path pkg-site-lisp-dir 'prepend)))
 
 ;; This is only done in `normal-top-level' before ~/.emacs is loaded!
-;; 
+;;
 ;; Look in each dir in load-path for a subdirs.el file.
 ;; If we find one, load it, which will add the appropriate subdirs
 ;; of that dir into load-path,
@@ -527,7 +527,7 @@ when our preferred font is not available."
       (if window-system
 	  (progn
 	    (global-set-key [S-mouse-2] 'browse-url-at-mouse)))
-      
+
       ;;(setq browse-url-netscape-arguments '("-install"))
 
       ;; Always save modified buffers before displaying the file in a browser:
@@ -866,7 +866,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 ;;;; ----------
 ;;;; some useful functions....
 
-;; Thanks, Noah Friedman:                                                       
+;; Thanks, Noah Friedman:
 (defun valbits (&optional n)
   "Returns the number of binary bits required to represent n.
 
@@ -2814,7 +2814,7 @@ current emacs server process..."
 	(interactive)
 	(message
 	 "i - in, c - change, o - out, r - reread-log, u - update-mode, v - visit-log, w - when-to-leave"))
-      
+
       (defun my-timeclock-generate-report (&optional html-p)
 	"Show help for timeclock bindings"
 	(interactive "p")
@@ -2829,7 +2829,7 @@ current emacs server process..."
 	      (require 'timeclock)))
 	(timeclock-generate-report html-p)
 	(pop-to-buffer (current-buffer)))
-      
+
       (define-key global-map "\C-ct?" 'timeclock-bindings-help) ; XXX should use help-char
       (define-key global-map "\C-cti" 'timeclock-in)
       (define-key global-map "\C-cto" 'timeclock-out)
@@ -2851,7 +2851,7 @@ current emacs server process..."
 
       (eval-when-compile
 	(require 'todo-mode))
-      ;; 
+      ;;
       (setq todo-prefix "&%%(equal (calendar-current-date) date)")
 
       (global-set-key "\C-cTs" 'todo-show) ;; switch to TODO buffer
@@ -3055,7 +3055,7 @@ Use it by evaluating `(setq mail-default-x-face mail-alternate-x-face)'")
 (defun mail-insert-x-face ()
   "Insert an X-Face header containing the contents of mail-x-face-file."
   (if (file-exists-p mail-x-face-file)
-      (save-excursion 
+      (save-excursion
 	(goto-char (point-min))
 	(search-forward mail-header-separator)
 	(beginning-of-line nil)
@@ -3113,7 +3113,7 @@ but it's seriously brain damaged so we re-define it as nothing."
 ;;;                         "@" / "\" /
 ;;;                         "," / "." /
 ;;;                         DQUOTE
-;;; 
+;;;
 ;;; atext           =       ALPHA / DIGIT / ; Any character except controls,
 ;;;                         "!" / "#" /     ;  SP, and specials.
 ;;;                         "$" / "%" /     ;  Used for atoms
@@ -3133,9 +3133,9 @@ but it's seriously brain damaged so we re-define it as nothing."
 ;;; `phrase':
 ;;;
 ;;; dot-atom        =       [CFWS] dot-atom-text [CFWS]
-;;; 
+;;;
 ;;; dot-atom-text   =       1*atext *("." 1*atext)
-;;; 
+;;;
 
 ;; aliases for managing identity in from and reply-to headers
 ;;
@@ -3690,9 +3690,9 @@ any line-limit."
             ;; Ugly.
             (and found
                  (setq found
-		       (or (not sigflag) 
-			   (re-search-forward 
-			    my-randomsig-sigflag-pattern 
+		       (or (not sigflag)
+			   (re-search-forward
+			    my-randomsig-sigflag-pattern
 			    (line-end-position) t)))))
           (or found (error "Tried %s quotes and failed" maxtry))
           ;; Cut signature and return it.
