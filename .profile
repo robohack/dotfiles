@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	29.1	09/04/09 20:45:31 (woods)"
+#ident	"@(#)HOME:.profile	29.2	09/10/04 19:02:41 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -212,9 +212,9 @@ else
 	# some shared storage, eg. /basejail/bin (and
 	# /basejail/usr/bin).  However since it's difficult to
 	# portably detect the target of a symlink (there is a
-	# "readlink" utility on FreeBSD, a variant of the stat(1)
-	# command), we'll just depend on use of $PATH_IS_OKAY for now
-	# to work around the problem.
+	# "readlink" utility on FreeBSD and newer NetBSDs, a variant
+	# of the older NetBSD stat(1) command), we'll just depend on
+	# use of $PATH_IS_OKAY for now to work around the problem.
 	# 
 	# originally this code was to avoid having /bin in $PATH if
 	# /bin were pointing to /usr/bin (i.e. making it redundant)
