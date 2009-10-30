@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	29.1	09/04/09 20:45:32 (woods)"
+#ident	"@(#)HOME:.kshrc	29.2	09/10/30 15:02:01 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -722,6 +722,7 @@ alias badsenders='fgrep RHSBL: $MAILLOG | sed "s/[<>]/ /g" | awk "{print \$8}" |
 # NOTE: never forget this -- it's the most incredible sed script!!!!
 alias blsqueeze='sed "/./,/^$/!d"'
 alias blstrip='sed "/./!d"'
+alias cdpkgwork='cd /var/package-obj/${PWD}/work/$(basename ${PWD})*'
 alias deadlinks='find . -type l -a ! \( -follow -type f \) -print'
 # XXX write one to collapse back-slash continued lines too!
 alias dlog='$PAGER -en +G /var/log/debug'
