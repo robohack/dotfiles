@@ -2,7 +2,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	29.1	09/04/09 20:45:32 (woods)"
+#ident	"@(#)HOME:.ctwmrc	29.2	09/11/07 18:52:47 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -243,15 +243,24 @@ IconRegionJustification		"border"
 #
 # This isn't such a problem though if the "gravity" is North East.
 #
-# A 10x10 grid keeps icons packed about as tight as you'd ever want
-# them to be.
+# A 10-pixel X 10-pixel grid keeps icons packed about as tight as
+# you'd ever want them to be.  This is of course way too small a grid
+# to keep arbitrary sized icons centred in a box.  It also means
+# little icons can mess up the arrangement of normal-sized icons.  Too
+# bad we can't force them on the grid such that they overlap if
+# they're too big.  Alternately if the arrangement was always shuffled
+# on every change such that all similar sized icons were kept
+# together....  And how about shrinking them to always fit and using a
+# magnifier like the Aqua dock?
 #
 # On the big screen we keep a little xterm open above xconsole in the
 # bottom right so we keep the icon region above that.  On the
 # mid-sized screens we keep icons just above the xconsole (even though
 # it's rarely kept open).
 #
-ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [IconRegion	"1000x250-0+300" North East 10 10],
+# (use "xlogo -geometry fooxbar" to see where this will be!)
+#
+ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [IconRegion	"1000x230-0+296" North East 10 10],
  [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [IconRegion	"800x580-0+310" North East 10 10],
   [IconRegion	"500x250-0+300" North East 10 10]
  )]
