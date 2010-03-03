@@ -1,7 +1,7 @@
 #
 #	.kshlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.kshlogin	29.1	09/04/09 20:45:32 (woods)"
+#ident	"@(#)HOME:.kshlogin	29.2	10/03/03 13:46:51 (woods)"
 
 set -o ignoreeof	# we only do this for our login shell....
 
@@ -134,7 +134,7 @@ fi
 export HISTSIZE=2000
 
 # we could set HISTFILE if we wanted persistent history, but we may
-# only want it for login shells....
+# only want it for login shells, not all interactive shells....
 #
 # NOTE:  many implementations have HISTFILE inter-locking bugs!
 #
@@ -151,5 +151,7 @@ if [ ! -f ~/.timelog ] ; then
 	touch ~/.timelog
 fi
 
+# Note: this depends on, and requires, the "cd" at the end of ~/.profile
+#
 export PWD=$HOME
 export OLDPWD=$HOME
