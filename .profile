@@ -1,14 +1,14 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	29.3	10/06/18 17:07:02 (woods)"
+#ident	"@(#)HOME:.profile	29.4	10/06/18 17:26:37 (woods)"
 
 # Assumptions that may cause breakage:
 #
 #	- the shell supports functions
 #	- standard environment has been set by login(1)
 #	- $argv0 is `basename $0` from .xinitrc or .xsession
-#	- test(1), aka "[", supports '-h' for testing symlinks
+#	- test(1), aka "[", supports '-L' for testing symlinks
 
 # Files referenced [all optional]:
 #
@@ -219,11 +219,11 @@ else
 	# originally this code was to avoid having /bin in $PATH if
 	# /bin were pointing to /usr/bin (i.e. making it redundant)
 
-###	if [ -h /bin -a `ls -l /bin | awk '{print $NF}'` = "/usr/bin" ] ; then
-	if [ -h /bin ] ; then
+###	if [ -L /bin -a `ls -l /bin | awk '{print $NF}'` = "/usr/bin" ] ; then
+	if [ -L /bin ] ; then
 		PATH="/usr/bin"
-###	if [ -h /usr/bin -a `ls -l /usr/bin | awk '{print $NF}'` = "/bin" -o ! -d "/usr/bin" ] ; then
-	elif [ -h /usr/bin -o ! -d /usr/bin ] ; then
+###	if [ -L /usr/bin -a `ls -l /usr/bin | awk '{print $NF}'` = "/bin" -o ! -d "/usr/bin" ] ; then
+	elif [ -L /usr/bin -o ! -d /usr/bin ] ; then
 		PATH="/bin"
 	else
 		PATH="/bin:/usr/bin"
@@ -234,7 +234,7 @@ fi
 export PATH
 
 if [ -z "$LOCAL" ] ; then
-	if [ -d /local -a ! -h /local -a -d /local/bin ] ; then
+	if [ -d /local -a ! -L /local -a -d /local/bin ] ; then
 		LOCAL="/local"
 	elif [ -d /usr/local -a -d /usr/local/bin ] ; then
 		LOCAL="/usr/local"
@@ -245,7 +245,7 @@ fi
 export LOCAL
 
 if [ -z "$CONTRIB" ] ; then
-	if [ -d /contrib -a ! -h /contrib -a -d /contrib/bin ] ; then
+	if [ -d /contrib -a ! -L /contrib -a -d /contrib/bin ] ; then
 		CONTRIB="/contrib"
 	elif [ -d /usr/contrib -a -d /usr/contrib/bin ] ; then
 		CONTRIB="/usr/contrib"
@@ -256,7 +256,7 @@ fi
 export CONTRIB
 
 if [ -z "$PKG" ] ; then
-	if [ -d /pkg -a ! -h /pkg -a -d /pkg/bin ] ; then
+	if [ -d /pkg -a ! -L /pkg -a -d /pkg/bin ] ; then
 		PKG="/pkg"
 	elif [ -d /usr/pkg -a -d /usr/pkg/bin ] ; then
 		PKG="/usr/pkg"
@@ -267,7 +267,7 @@ fi
 export PKG
 
 if [ -z "$OPT" ] ; then
-	if [ -d /opt -a ! -h /opt ] ; then
+	if [ -d /opt -a ! -L /opt ] ; then
 		OPT="/opt"
 	elif [ -d /usr/opt ] ; then
 		OPT="/usr/opt"
@@ -278,7 +278,7 @@ fi
 export OPT
 
 if [ -z "$FINK" ] ; then
-	if [ -d /sw -a ! -h /sw ] ; then
+	if [ -d /sw -a ! -L /sw ] ; then
 		FINK="/sw"
 	else
 		FINK="/NO-fink-FOUND"
@@ -287,7 +287,7 @@ fi
 export FINK
 
 if [ -z "$GNU" ] ; then
-	if [ -d /local/gnu -a ! -h /local/gnu -a -d /local/gnu/bin ] ; then
+	if [ -d /local/gnu -a ! -L /local/gnu -a -d /local/gnu/bin ] ; then
 		GNU="/local/gnu"
 	elif [ -d /usr/gnu -a -d /usr/gnu/bin ] ; then
 		GNU="/usr/gnu"
@@ -317,15 +317,15 @@ export WORKPATH
 #
 if [ -z "$X11PATH" ] ; then
 	# FIXME: this won't work very well if X11R? is multiple names....
-	if [ -d /local/X11R? -a ! -h /local/X11R? ] ; then
+	if [ -d /local/X11R? -a ! -L /local/X11R? ] ; then
 		X11PATH="`echo /local/X11R?`"
-	elif [ -d /usr/X11 -a ! -h /usr/X11 ] ; then
+	elif [ -d /usr/X11 -a ! -L /usr/X11 ] ; then
 		X11PATH="/usr/X11"
-	elif [ -d /usr/X11R? -a ! -h /usr/X11? ] ; then
+	elif [ -d /usr/X11R? -a ! -L /usr/X11? ] ; then
 		X11PATH="`echo /usr/X11R?`"
-	elif [ -d /usr/X??? -a ! -h /usr/X??? ] ; then	# X386, for example
+	elif [ -d /usr/X??? -a ! -L /usr/X??? ] ; then	# X386, for example
 		X11PATH="`echo /usr/X???`"
-	elif [ -d /usr/local/X11R? -a ! -h /usr/local/X11R? ] ; then
+	elif [ -d /usr/local/X11R? -a ! -L /usr/local/X11R? ] ; then
 		X11PATH="`echo /usr/local/X11R?`"
 	else
 		X11PATH="/NO-X11-FOUND"
@@ -334,7 +334,7 @@ if [ -z "$X11PATH" ] ; then
 fi
 if [ -z "$X11BIN" ] ; then
 	# TODO: this is a best guess that might fail for remote hosts
-	if [ -d /usr/bin/X11 -a ! -h /usr/bin/X11 ] ; then
+	if [ -d /usr/bin/X11 -a ! -L /usr/bin/X11 ] ; then
 		X11BIN=/usr/bin/X11
 	else
 		X11BIN=$X11PATH/bin
