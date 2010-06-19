@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	29.1	09/04/09 20:45:32 (woods)"
+#ident	"@(#)HOME:.xinitrc	29.2	10/06/18 17:09:04 (woods)"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -211,7 +211,7 @@ if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
 	case "$XDMHOST" in
 	almost.weird.com)
 		X11SERVER=${X11SERVER:-"most.weird.com"}
-		ONX11SERVER="$RSH -n $X11SERVER exec"
+		ONX11SERVER="$RSH -n $X11SERVER PATH=$X11BIN:\$PATH exec"
 		export X11SERVER ONX11SERVER
 		echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
 		# now move our AUTH cookies over to the server in case it
@@ -222,7 +222,7 @@ if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
 		;;
 	very.weird.com)
 		X11SERVER=${X11SERVER:-"most.weird.com"}
-		ONX11SERVER="$RSH -n $X11SERVER exec"
+		ONX11SERVER="$RSH -n $X11SERVER PATH=$X11BIN:\$PATH exec"
 		export X11SERVER ONX11SERVER
 		echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
 		# now move our AUTH cookies over to the server in case it
@@ -509,19 +509,19 @@ xtremely*:*)
 	else
 		echo "$argv0: no background set"
 	fi
-	if [ $SCREENDEPTH -eq 1 ] ; then
-		xload -geometry 100x50-0+150 -hl grey90 &
-	else
-		xload -geometry 100x50-0+150 -hl red &
-	fi
-	xclock -norender -geometry 100x30-0+110 -digital &
+#	if [ $SCREENDEPTH -eq 1 ] ; then
+#		xload -geometry 100x50-0+150 -hl grey90 &
+#	else
+#		xload -geometry 100x50-0+150 -hl red &
+#	fi
+#	xclock -norender -geometry 100x30-0+110 -digital &
 	if $HAVESWISSWATCH ; then
-		swisswatch -name swissclock -geometry 100x100-0+0 &
-	else
-		xclock -geometry 100x100-0+0 &
+		swisswatch -name swissclock -geometry 100x100-100+252 &
+#	else
+#		xclock -geometry 100x100-0+0 &
 	fi
-	xterm -display $DISPLAY -geometry 80x30+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	xterm -display $DISPLAY -geometry 80x24-0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	xterm -display $DISPLAY -geometry 100x50+0+0 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
+	xterm -display $DISPLAY -geometry 80x24+0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	;;
 esac
 
