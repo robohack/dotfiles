@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	30.1	10/06/18 18:56:53 (woods)"
+#ident	"@(#)HOME:.kshrc	31.1	10/06/18 19:16:11 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
