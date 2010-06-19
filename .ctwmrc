@@ -2,7 +2,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	29.3	10/06/18 17:14:54 (woods)"
+#ident	"@(#)HOME:.ctwmrc	29.4	10/06/18 18:29:45 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -13,9 +13,9 @@
 # Environment variables used (set by .profile et al):
 #
 # RSH		- path to local rsh(1) or ssh(1)
-# ONX11SERVER	- optional cmd prefix to invoke apps on powerful X server
 # X11BIN	- localized path for /usr/X11/bin or /usr/bin/X11, etc.
 # X11PATH	- localized path for /usr/X11 or /usr/X11R6, etc.
+# X11SERVER	- name of a possibly more powerful local server for X applications
 # DISPLAY	- of course
 # PATH		- sometimes included in one passed to remote hosts
 # MAIL		- location of system mail spool file
@@ -27,10 +27,12 @@
 changequote([, ])
 
 ifelse(eval(index(HOSTNAME, weird.com) >= 0), 1, [define(AT_WEIRD, [@weird.com])], [])
-ifelse(eval(index(HOSTNAME, planix.com) >= 0), 1, [define(AT_PLANIX, [@planix.com])], [])
-ifelse(eval(index(HOSTNAME, aci.on.ca) >= 0), 1, [define(AT_ACI, [@aci.on.ca])], [])
+ifelse(eval(index(HOSTNAME, robohack.planix.com) >= 0), 1, [define(AT_WEIRD, [@robohack.planix.com])], [])
 
-# This will be used for "local" xterms, and those started with $ONX11SERVER.
+ifelse(eval(index(HOSTNAME, very.weird.com) >= 0), 1, [define(AT_VERY_WEIRD, [@very.weird.com])], [])
+ifelse(eval(index(HOSTNAME, very.robohack.planix.com) >= 0), 1, [define(AT_VERY_WEIRD, [@very.robohack.planix.com])], [])
+
+# This will be used for "local" xterms.
 #
 # There should be a better way to try things at M4 runtime... perhaps
 # we should use an environment variable instead.
@@ -112,9 +114,9 @@ ifelse(eval(X_RESOLUTION >= 3000 && Y_RESOLUTION >= 3000), 1,
 )
 
 TitleFont	"-*-helvetica-bold-r-*-*-*-100-FT_RES-FT_RES-*-*-iso8859-1"
-IconFont	"-*-helvetica-bold-r-*-*-*-90-FT_RES-FT_RES-*-*-iso8859-1"
-IconManagerFont	"-*-helvetica-medium-r-*-*-*-90-FT_RES-FT_RES-*-*-iso8859-1"
-MenuFont	"-*-helvetica-medium-r-*-*-*-90-FT_RES-FT_RES-*-*-iso8859-1"
+IconFont	"-*-helvetica-bold-r-*-*-*-80-FT_RES-FT_RES-*-*-iso8859-1"
+IconManagerFont	"-*-helvetica-medium-r-*-*-*-80-FT_RES-FT_RES-*-*-iso8859-1"
+MenuFont	"-*-helvetica-medium-r-*-*-*-80-FT_RES-FT_RES-*-*-iso8859-1"
 ResizeFont	"-*-courier-bold-r-*-*-*-240-FT_RES-FT_RES-*-*-iso8859-1"
 
 # Define some useful functions for motion-based actions.
@@ -266,31 +268,31 @@ ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [IconRegion	"1000x230-0+296" No
  )]
 )
 
-# with "9x15" (Large) font
-ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1280), 1, [define(OPT_BIG_XTERM, 117x83+0+0)],
- [ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [define(OPT_BIG_XTERM, 117x77+0+0)],
-  [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [define(OPT_BIG_XTERM, 100x50+0+0)],
-   [define(OPT_BIG_XTERM, 80x40+0+0)]
+# for Xterms we use two different macros to set the geometry of small
+# and large windows.  These macros are set based on the estimated size
+# of the screen.
+#
+#	5x8 == Tiny
+#	7x14 == Small
+#	8x13 == Medium
+#	9x15 == Large
+#
+ifelse(eval(WIDTH >= 2560 && HEIGHT >= 1440), 1, [define(OPT_BIG_XTERM, [-geometry 132x+100+0 -font 7x14])],
+ [ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1280), 1, [define(OPT_BIG_XTERM, [-geometry 117x83+0+0 -font 9x15])],
+  [ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [define(OPT_BIG_XTERM, [-geometry 117x77+0+0 -font 9x15])],
+   [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [define(OPT_BIG_XTERM, [-geometry 100x50+0+0 -font 9x15])],
+    [define(OPT_BIG_XTERM, [-geometry 80x40+0+0])]
+   )]
   )]
  )]
 )
-
-# with "fixed" font
-ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1280), 1, [define(OPT_MAIN_XTERM, 176x96+0+0)],
- [ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [define(OPT_MAIN_XTERM, 176x89+0+0)],
-  [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [define(OPT_MAIN_XTERM, 87+57+0)],
-   [define(OPT_BIG_XTERM, 80x50+0+0)]
-  )]
- )]
-)
-
 
 # Can only be one directory!  Uses resource bitmapFilePath first...
 #
 IconDirectory	"HOME/lib/bitmaps"
 
 ifdef([XPM], [
-PixmapDirectory	"HOME/lib/pixmaps:/usr/lib/X11/twm/images:/usr/X11/lib/X11/twm/images:/usr/X11R6/lib/X11/twm/images:/usr/pkg/lib/X11/twm/images:"
+PixmapDirectory	"HOME/lib/pixmaps:HOME/lib/icons:/usr/lib/X11/twm/images:/usr/X11/lib/X11/twm/images:/usr/X11R6/lib/X11/twm/images:/usr/pkg/lib/X11/twm/images:/sw/etc/X11/ctwm/images:"
 ])
 
 IconManagerDontShow {
@@ -559,6 +561,8 @@ Button1 =		: iconmgr	: f.iconify
 Button2 =		: iconmgr	: f.raise
 Button3 =		: iconmgr	: f.lower
 
+"F5" =			: root		: !"open /Applications/Utilities/Spaces.app &"
+
 ifdef([XPM],
  [	LeftTitleButton ":xpm:menu" = f.menu "winops"
 	RightTitleButton ":xpm:bar" = f.menu "fills"
@@ -614,6 +618,11 @@ menu "quickies"
 	"Occupy All"		f.occupyall
 	"Vanish"		f.vanish
 	""			f.separator
+	"Toggle workspace"	f.togglestate
+	"Screen Refresh"	f.refresh
+	"Window Refresh"	f.winrefresh
+	"Save"			f.saveyourself
+	""			f.separator
 	"WinDelete"		f.delete
 	"WinDelete or Destroy"	f.deleteordestroy
 	"Kill"			f.destroy
@@ -621,53 +630,47 @@ menu "quickies"
 	""			f.separator
 	"Xauth to Weird.com..."		f.menu "xauth-to-weird"
  ])
+ ifdef([AT_VERY_WEIRD], [
+	""			f.separator
+	"Mac OS X Apps..."	f.menu "osx-apps"
+	"Mac OS X Spaces"	!"open /Applications/Utilities/Spaces.app &"
+	"links -g @once"	!"$RSH -n once.weird.com '. ./.profile; exec /usr/pkg/bin/links -g -display '$DISPLAY &"
+	"links -g @historically" !"$RSH -n historically.weird.com '. ./.profile; exec /usr/pkg/bin/links -g -display '$DISPLAY &"
+ ])
 	""			f.separator
 	# note the -155 is the height of the normal xconsole window, at 120, plus its decorations (I think)
 	"Xterm [@CLIENTHOST]"	!"xterm -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
 	"UXterm [@CLIENTHOST]"	!"uxterm -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
-	"Xterm-big [@CLIENTHOST]"	!"xterm -geometry OPT_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
-	"UXterm-big [@CLIENTHOST]"	!"uxterm -geometry OPT_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
-	"Xterm @X11SERVER"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
-	"UXterm @X11SERVER"	!"$ONX11SERVER $X11BIN/uxterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
-	"Xterm-big @X11SERVER"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry OPT_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
-	### XXX this one will not always work because uxterm expects
-	### XXX $PATH to contain $X11BIN but $ONX11SERVER does not
-	### XXX normally set it, and the default remote shell may not
-	### XXX set $PATH to include $X11BIN either.
-	"UXterm-big @X11SERVER"	!"$ONX11SERVER $X11BIN/uxterm -display $DISPLAY -geometry OPT_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
+	"Xterm-big [@CLIENTHOST]"	!"xterm OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
+	"UXterm-big [@CLIENTHOST]"	!"uxterm OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
+ ifelse(HOSTNAME, very.weird.com, [], [
+	"Xterm @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP' &"
+	"UXterm @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'uxterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP' &"
+	"Xterm-big @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP' &"
+	"UXterm-big @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'uxterm -display $DISPLAY OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP' &"
+ ])
  ifdef([AT_WEIRD], [
-	"Xterm @most"		!"$RSH -n most.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"UXterm @most"		!"$RSH -n most.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
-	"Xterm-big @most"	!"$RSH -n most.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPT_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"UXterm-big @most"	!"$RSH -n most.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' -geometry OPT_BIG_UXTERM -font fixed -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
   ifelse(HOSTNAME, once.weird.com, [], [
-	"Xterm @once"		!"$RSH -n once.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
 	"UXterm @once"		!"$RSH -n once.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
-	"Xterm-big @once"	!"$RSH -n once.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPT_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"UXterm-big @once"	!"$RSH -n once.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' -geometry OPT_BIG_UXTERM -font fixed -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
+	"UXterm-big @once"	!"$RSH -n once.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
   ])
-	"Xterm @whats"		!"$RSH -n whats.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"UXterm @whats"		!"$RSH -n whats.weird.com '. ./.profile; exec $X11BIN/uxterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
-	"Xterm-big @whats"	!"$RSH -n whats.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPT_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"UXterm-big @whats"	!"$RSH -n whats.weird.com '. ./.profile; exec $X11BIN/uxterm -display $DISPLAY -geometry OPT_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
+	"Xterm @most"		!"$RSH -n most.weird.com exec /usr/X11R6/bin/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"UXterm @most"		!"$RSH -n most.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
+	"Xterm-big @most"	!"$RSH -n most.weird.com exec /usr/X11R6/bin/xterm -display $DISPLAY OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"UXterm-big @most"	!"$RSH -n most.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
   ifelse(HOSTNAME, historically.weird.com, [], [
-	"Xterm @historically"	!"$RSH -n historically.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"Xterm-big @historically" !"$RSH -n historically.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPT_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"UXterm-big @historically" !"$RSH -n historically.weird.com '. ./.profile; exec $X11BIN/uxterm -display $DISPLAY -geometry OPT_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
+  	"UXterm @historically"		!"$RSH -n historically.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
+	"UXterm-big @historically"	!"$RSH -n historically.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
   ])
-	"Xterm @isit"		!"$RSH -n isit.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"Xterm-big @isit"	!"$RSH -n isit.weird.com exec $X11BIN/xterm -display $DISPLAY -geometry OPT_BIG_XTERM -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"Rlogin @isit"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin isit.weird.com &"
+	"UXterm @freely"	!"$RSH -n freely.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
+	"UXterm-big @freely"	!"$RSH -n freely.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
+	"Xterm @isit"		!"$RSH -n isit.weird.com exec /usr/X11R6/bin/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm-big @isit"	!"$RSH -n isit.weird.com exec /usr/X11R6/bin/xterm -display $DISPLAY OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
 	""			f.separator
 	"Console Server"	f.menu "consoles"
 	""			f.separator
 	"TermSrvr Telnets"	f.menu "termservers"
  ])
-	""			f.separator
-	"Toggle workspace"	f.togglestate
-	"Screen Refresh"	f.refresh
-	"Window Refresh"	f.winrefresh
-	"Save"			f.saveyourself
 	""			f.separator
 	"Xclipboard"		!"xclipboard &"
 	"Xlock"			!"xlock -mode flame &"
@@ -680,19 +683,13 @@ menu "consoles"
 {
 	"Console Server"	f.title
   define(CONSOLE_REP, [
-	"$1 []"			!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 88x31 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n $1 -T '\"$1 Virtual Console\"' -e console $1 &"
+	"$1 []"			!" $X11BIN/xterm -display $DISPLAY -geometry 88x31 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n $1 -T '\"$1 Virtual Console\"' -e console $1 &"
   ])
 ###	CONSOLE_REP(most)
 	CONSOLE_REP(isit)
 	CONSOLE_REP(once)
-	CONSOLE_REP(proven)
-	CONSOLE_REP(building)
 	CONSOLE_REP(historically)
 	CONSOLE_REP(whats)
-	CONSOLE_REP(starting-out)
-	CONSOLE_REP(sometimes)
-	CONSOLE_REP(almost)
-	CONSOLE_REP(always)
 	CONSOLE_REP(flipping)
 	CONSOLE_REP(callerid)
  undefine(CONSOLE_REP)
@@ -701,9 +698,9 @@ menu "consoles"
 menu "termservers"
 {
 	"Term Srvr Telnets"	f.title
-	"telnet controlling"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n controlling -T 'controlling Virtual Console' -e telnet controlling.weird.com 2000 &"
+	"telnet controlling"	!"xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n controlling -T 'controlling Virtual Console' -e telnet controlling.weird.com 2000 &"
   define(CONTROLLING_REP, [
-	"Controlling-20$1"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 88x31 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP -n Ctrl20$1 -T 'Controlling-20$1' -e telnet controlling.weird.com 20$1 &"
+	"Controlling-20$1"	!"xterm -display $DISPLAY -geometry 88x31 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP -n Ctrl20$1 -T 'Controlling-20$1' -e telnet controlling.weird.com 20$1 &"
   ])
 ###	CONTROLLING_REP(01)	# this is the physical console
 	CONTROLLING_REP(02)
@@ -714,53 +711,6 @@ menu "termservers"
 	CONTROLLING_REP(07)
 	CONTROLLING_REP(08)
   undefine(CONTROLLING_REP)
-	"telnet tserv"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n tserv -T 'tserv Virtual Console' -e telnet tserv.weird.com &"
-  define(TSERV_REP, [
-	"Tserv-20$1"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 88x31 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP -n Ts20$1 -T 'Tserv-20$1' -e telnet tserv.weird.com 20$1 &"
-  ])
-	TSERV_REP(02)
-	TSERV_REP(03)
-	TSERV_REP(04)
-	TSERV_REP(05)
-	TSERV_REP(06)
-	TSERV_REP(07)
-	TSERV_REP(08)
-	TSERV_REP(09)
-	TSERV_REP(10)
-	TSERV_REP(11)
-	TSERV_REP(12)
-	TSERV_REP(13)
-	TSERV_REP(14)
-	TSERV_REP(15)
-	TSERV_REP(16)
-	TSERV_REP(17)
-	TSERV_REP(18)
-	TSERV_REP(19)
-	TSERV_REP(20)
-	TSERV_REP(21)
-	TSERV_REP(22)
-	TSERV_REP(23)
-	TSERV_REP(24)
-	TSERV_REP(25)
-	TSERV_REP(26)
-	TSERV_REP(27)
-	TSERV_REP(28)
-	TSERV_REP(29)
-	TSERV_REP(30)
-	TSERV_REP(31)
-	TSERV_REP(32)
-  undefine(TSERV_REP)
-	"telnet constantly"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n constantly -T 'constantly Virtual Console' -e telnet constantly.weird.com &"
-  define(CONSTANTLY_REP, [
-	"Constantly-200$1"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 88x31 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP -n Cn200$1 -T 'Constantly-200$1' -e telnet constantly 200$1 &"
-  ])
-	CONSTANTLY_REP(2)
-	CONSTANTLY_REP(3)
-	CONSTANTLY_REP(4)
-	CONSTANTLY_REP(5)
-	CONSTANTLY_REP(6)
-	CONSTANTLY_REP(7)
-  undefine(CONSTANTLY_REP)
 }
 ])
 
@@ -797,13 +747,13 @@ menu "winops"
 	"Vanish"		f.vanish
 	"Occupy ..."		f.occupy
 	""			f.separator
-	"Zoom..."		f.menu "zooms"
-	"Pack..."		f.menu "packs"
-	"Fill..."		f.menu "fills"
-	""			f.separator
 	"Refresh"		f.winrefresh
 	"Save"			f.saveyourself
 	"Identify"		f.identify
+	""			f.separator
+	"Zoom..."		f.menu "zooms"
+	"Pack..."		f.menu "packs"
+	"Fill..."		f.menu "fills"
 	""			f.separator
 	"Squeeze (toggle)"	f.squeeze
 	"Iconify"		f.iconify
@@ -830,7 +780,10 @@ menu "wmops"
 	"Adopt Window"		f.adoptwindow
 	"Identify Window"	f.identify
 	""			f.separator
+	"Toggle workspace"	f.togglestate
 	"Refresh Screen"	f.refresh
+	"Refresh Window"	f.winrefresh
+	"Save"			f.saveyourself
 	""			f.separator
 	"Restart TWM_TYPE"	f.restart
 	""			f.separator
@@ -997,6 +950,11 @@ menu "applications"
 	"Xauth to Weird.com..."		f.menu "xauth-to-weird"
 	""				f.separator
  ])
+ ifdef([AT_VERY_WEIRD], [
+	"Mac OS X Apps..."		f.menu "osx-apps"
+	"Spaces"			!"open /Applications/Utilities/Spaces.app &"
+	""				f.separator
+ ])
 	"Xterm's Everywhere..."		f.menu "xterm"
 	"Rlogin's Everywhere..."	f.menu "rlogin"
 	"Telnet's Everywhere..."	f.menu "telnet"
@@ -1103,6 +1061,9 @@ menu "emacs"
  ifelse(HOSTNAME, whats.weird.com, [], [
 	"@whats"		!"$RSH -n whats.weird.com 'DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i' &"
  ])
+ ifelse(HOSTNAME, almost.weird.com, [], [
+	"@almost"		!"$RSH -n almost.weird.com 'DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i' &"
+ ])
  ifelse(HOSTNAME, always.weird.com, [], [
 	"@always"		!"$RSH -n always.weird.com 'DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i' &"
  ])
@@ -1114,11 +1075,6 @@ menu "emacs"
  ])
  ifelse(HOSTNAME, sometimes.weird.com, [], [
 	"@sometimes"		!"$RSH -n sometimes.weird.com 'DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i' &"
- ])
- ifdef([AT_ACI], [
-  ifelse(HOSTNAME, admin.aci.on.ca, [], [
-	"@admin"		!"$RSH -n admin.aci.on.ca 'DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i ' &"
-  ])
  ])
 }
 
@@ -1141,11 +1097,11 @@ menu "monitors"
 
 	""			f.separator
 	"xload"			!"xload -geometry 120x50-200+0 -hl grey90 &"
-	"xload @X11SERVER"	!"$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x50-200+148 -hl grey90 &"
+	"xload @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'xload -display $DISPLAY -geometry 120x50-200+148 -hl grey90' &"
 	"xosview"		!"xosview -geometry 120x137-200+0 &"
-	"xosview @X11SERVER"	!"$ONX11SERVER $X11BIN/xosview -display $DISPLAY -hl grey90 &"
+	"xosview @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'xosview -display $DISPLAY -hl grey90' &"
 	"xcpustate"		!"xcpustate -geometry 190x20-0+270 -shorten 1 -wait -cpu -disk &"
-	"xcpustate @X11SERVER"	!"$ONX11SERVER $X11BIN/xcpustate -display $DISPLAY -geometry 190x20-0+300 -shorten 1 -wait -cpu -disk &"
+	"xcpustate @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'xcpustate -display $DISPLAY -geometry 190x20-0+300 -shorten 1 -wait -cpu -disk' &"
 	"xuvmstat"		!"xuvmstat &"
 	""			f.separator
 	"xnetload localhost"	!"xnetload -hl grey90 -scale 0 -label 'local netload' localhost &"
@@ -1195,7 +1151,6 @@ menu "www-mozilla"
 {
 	"Mozilla Everywhere!"	f.title
 	"@localhost"	!"mozilla OPT_MOZ_INSTALL &"
-	"@X11SERVER"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY mozilla OPT_MOZ_INSTALL &"
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, building.weird.com, [], [
 	"@building"	!"$RSH -n building.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY mozilla OPT_MOZ_INSTALL &"
@@ -1210,21 +1165,12 @@ menu "www-mozilla"
 	"@whats"	!"$RSH -n whats.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY mozilla OPT_MOZ_INSTALL &"
   ])
  ])
- ifdef([AT_PLANIX], [
-  ifelse(HOSTNAME, woffi.planix.com, [], [
-	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY mozilla OPT_MOZ_INSTALL &"
-  ])
-  ifelse(HOSTNAME, whome.planix.com, [], [
-	"@whome"	!"$RSH -n whome.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY mozilla OPT_MOZ_INSTALL &"
-  ])
- ])
 }
 
 menu "www-firefox"
 {
 	"Firefox Everywhere!"	f.title
 	"@localhost"	!"firefox OPT_MOZ_INSTALL &"
-	"@X11SERVER"	!"$ONX11SERVER env PATH=$PATH DISPLAY=$DISPLAY firefox OPT_MOZ_INSTALL &"
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, building.weird.com, [], [
 	"@building"	!"$RSH -n building.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY firefox OPT_MOZ_INSTALL &"
@@ -1240,14 +1186,6 @@ menu "www-firefox"
   ])
   ifelse(HOSTNAME, whats.weird.com, [], [
 	"@whats"	!"$RSH -n whats.weird.com exec env PATH=$PATH DISPLAY=$DISPLAY firefox OPT_MOZ_INSTALL &"
-  ])
- ])
- ifdef([AT_PLANIX], [
-  ifelse(HOSTNAME, woffi.planix.com, [], [
-	"@woffi"	!"$RSH -n woffi.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY firefox OPT_MOZ_INSTALL &"
-  ])
-  ifelse(HOSTNAME, whome.planix.com, [], [
-	"@whome"	!"$RSH -n whome.planix.com exec env PATH=$PATH DISPLAY=$DISPLAY firefox OPT_MOZ_INSTALL &"
   ])
  ])
 }
@@ -1299,48 +1237,36 @@ menu "xterm"
 {
 	"Xterms Everywhere"	f.title
 	"Xterm @localhost"	!"$X11BIN/xterm -cn -rw -sb -si -sk -sl 2048 -ls &"
-	"Xterm @X11SERVER"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
-	"Xterm @most"	!"$RSH -n most.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @most"		!". ./.profile; onx11server -n most.weird.com 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
   ])
   ifelse(HOSTNAME, historically.weird.com, [], [
-	"Xterm @historically"	!"$RSH -n historically.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @historically"	!". ./.profile; onx11server -n historically.weird.com 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
   ])
   ifelse(HOSTNAME, building.weird.com, [], [
-	"Xterm @building" !"$RSH -n building.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @building" 	!". ./.profile; onx11server -n building.weird.com 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
   ])
   ifelse(HOSTNAME, once.weird.com, [], [
-	"Xterm @once"	!"$RSH -n once.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm @once"		!". ./.profile; onx11server -n once.weird.com 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls' &"
   ])
   ifelse(HOSTNAME, very.weird.com, [], [
-	"Xterm @very"	!"$RSH -n very.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm @very"		!". ./.profile; onx11server -n very.weird.com 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls' &"
   ])
   ifelse(HOSTNAME, almost.weird.com, [], [
-	"Xterm @almost"	!"$RSH -n almost.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm @almost"		!". ./.profile; onx11server -n almost.weird.com 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls' &"
   ])
   ifelse(HOSTNAME, whats.weird.com, [], [
-	"Xterm @whats"	!"$RSH -n whats.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+	"Xterm @whats"		!". ./.profile; onx11server -n whats.weird.com 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls' &"
   ])
   ifelse(HOSTNAME, sometimes.weird.com, [], [
-	"Xterm @sometimes" !"$RSH -n sometimes.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @sometimes" 	!". ./.profile; onx11server -n sometimes.weird.com 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
   ])
   ifelse(HOSTNAME, always.weird.com, [], [
-	"Xterm @always"	!"$RSH -n always.weird.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @always" 	!". ./.profile; onx11server -n always.weird.com 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
   ])
-])
- ifdef([AT_PLANIX], [
-  ifelse(HOSTNAME, whome.planix.com, [], [
-	"Xterm @whome"	!"$RSH -n whome.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
-  ])
-  ifelse(HOSTNAME, woffi.planix.com, [], [
-	"Xterm @woffi"	!"$RSH -n woffi.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
-  ])
-  ifelse(HOSTNAME, weight.planix.com, [], [
-	"Xterm @weight"	!"$RSH -n weight.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
-  ])
-  ifelse(HOSTNAME, warlord.planix.com, [], [
-	"Xterm @warlord" !"$RSH -n warlord.planix.com exec $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls &"
+  ifelse(HOSTNAME, freely.weird.com, [], [
+	"Xterm @freely" 	!". ./.profile; onx11server -n freely.weird.com 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
   ])
 ])
 }
@@ -1349,33 +1275,19 @@ menu "rlogin"
 {
 	"Rlogins Everywhere"		f.title
 	"Rlogins at Weird.com..."	f.menu "rlogin-weird"
- ifdef([AT_PLANIX], [
-	"Rlogins at Planix.com..."	f.menu "rlogin-planix"
- ])
- ifdef([AT_ACI], [
-	"Rlogins at ACI.on.ca..."	f.menu "rlogin-aci"
- ])
 }
 
 menu "telnet"
 {
 	"Telnets Everywhere"		f.title
 	"Telnets at Weird.com..."	f.menu "telnet-weird"
- ifdef([AT_PLANIX], [
-	"Telnets at Planix.com..."	f.menu "telnet-planix"
- ])
 }
 
 menu "slogin"
 {
 	"Slogins Everywhere"		f.title
 	"Slogins at Weird.com..."	f.menu "slogin-weird"
-	"Slogins at Planix.com..."	f.menu "slogin-planix"
-	"Slogins at Dancing.org..."	f.menu "slogin-dancing"
 	"Slogins at Proxy.com..."	f.menu "slogin-proxy"
-	"Slogins at sols.org..."	f.menu "slogin-sols"
-	"Slogins at ACI.on.ca..."	f.menu "slogin-aci"
-	"Slogins at Vex.net..."	f.menu "slogin-vex"
 	"Slogins at Reptiles.org..."	f.menu "slogin-reptiles"
 }
 
@@ -1388,149 +1300,89 @@ ifdef([AT_WEIRD], [
 menu "xauth-to-weird"
 {
 	"Xauth pushes to Weird.com"	f.title
-	"Xauth to X11SERVER"	!"xauth extract - $DISPLAY | $ONX11SERVER $X11BIN/xauth merge - &"
-	"Xauth to most"		!"xauth extract - $DISPLAY | $RSH most.weird.com exec $X11BIN/xauth merge - &"
-	"Xauth to isit"		!"xauth extract - $DISPLAY | $RSH isit.weird.com exec $X11BIN/xauth merge - &"
-	"Xauth to once"		!"xauth extract - $DISPLAY | $RSH once.weird.com exec $X11BIN/xauth merge - &"
-	"Xauth to historically"	!"xauth extract - $DISPLAY | $RSH historically.weird.com exec $X11BIN/xauth merge - &"
+	"Xauth to X11SERVER"	!"xauth extract - $DISPLAY | (. ./.profile; onx11server $X11SERVER 'xauth merge -' ) &"
+	"Xauth to most"		!"xauth extract - $DISPLAY | $RSH most.weird.com exec /usr/X11R6/bin/xauth merge - &"
+	"Xauth to isit"		!"xauth extract - $DISPLAY | $RSH isit.weird.com exec /usr/X11R6/bin/xauth merge - &"
+	"Xauth to once"		!"xauth extract - $DISPLAY | $RSH once.weird.com exec /usr/X11R6/bin/xauth merge - &"
+	"Xauth to historically"	!"xauth extract - $DISPLAY | $RSH historically.weird.com exec /usr/X11R6/bin/xauth merge - &"
+	"Xauth to freely"	!"xauth extract - $DISPLAY | $RSH freely.weird.com exec /usr/X11R6/bin/xauth merge - &"
+	"Xauth to whats"	!"xauth extract - $DISPLAY | $RSH whats.weird.com exec /usr/X11R6/bin/xauth merge - &"
+}
+])
+
+ifdef([AT_VERY_WEIRD], [
+menu "osx-apps"
+{
+	"Mac OS X Applications"	f.title
+	"Activity Monitor"	!"open '/Applications/Utilities/Activity Monitor.app' &"
+	"Adium"			!"open /Applications/Adium.app &"
+	"Console"		!"open /Applications/Utilities/Console.app &"
+	"Dashboard"		!"open /Applications/Dashboard.app &"
+	"Google Chrome"		!"open '/Applications/Google Chrome.app' &"
+	"iCal"			!"open /Applications/iCal.app &"
+	"iPhoto"		!"open /Applications/iPhoto.app &"
+	"Mail"			!"open /Applications/Mail.app &"
+	"Safari"		!"open /Applications/Safari.app &"
+	"Spaces"		!"open /Applications/Utilities/Spaces.app &"
+	"System Profiler"	!"open '/Applications/Utilities/System Profiler.app' &"
+	"Terminal"		!"open /Applications/Terminal.app &"
 }
 ])
 
 menu "rlogin-weird"
 {
 	"Rlogins At Weird.com"	f.title
-	"Rlogin @most"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin most.weird.com &"
-	"Rlogin @historically"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin historically.weird.com &"
-	"Rlogin @building"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin building.weird.com &"
-	"Rlogin @very"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin very.weird.com &"
-	"Rlogin @isit"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin isit.weird.com &"
-	"Rlogin @almost"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin almost.weird.com &"
-	"Rlogin @once"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin once.weird.com &"
-	"Rlogin @whats"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin whats.weird.com &"
-	"Rlogin @weirdo"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin weirdo.weird.com &"
-	"Rlogin @sometimes"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin sometimes.weird.com &"
-	"Rlogin @always"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin always.weird.com &"
-	"Rlogin @starting-out"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin starting-out.weird.com &"
+	"Rlogin @most"		!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin most.weird.com' &"
+	"Rlogin @historically"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin historically.weird.com' &"
+	"Rlogin @building"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin building.weird.com' &"
+	"Rlogin @very"		!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin very.weird.com' &"
+	"Rlogin @isit"		!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin isit.weird.com' &"
+	"Rlogin @almost"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin almost.weird.com' &"
+	"Rlogin @once"		!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin once.weird.com' &"
+	"Rlogin @whats"		!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin whats.weird.com' &"
+	"Rlogin @weirdo"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin weirdo.weird.com' &"
+	"Rlogin @sometimes"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin sometimes.weird.com' &"
+	"Rlogin @always"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin always.weird.com' &"
+	"Rlogin @starting-out"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin starting-out.weird.com' &"
 }
 
 menu "telnet-weird"
 {
 	"Telnets At Weird.com"	f.title
-	"telnet @most"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet most.weird.com &"
-	"telnet @historically"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet historically.weird.com &"
-	"telnet @building"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet building.weird.com &"
-	"telnet @very"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e telnet very.weird.com &"
-	"telnet @almost"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet almost.weird.com &"
-	"telnet @once"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet once.weird.com &"
-	"telnet @whats"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e telnet whats.weird.com &"
-	"telnet @weirdo"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet weirdo.weird.com &"
-	"telnet @sometimes"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e telnet sometimes.weird.com &"
-	"telnet @always"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e telnet always.weird.com &"
-	"telnet @starting-out"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e telnet starting-out.weird.com &"
+	"telnet @most"		!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet most.weird.com' &"
+	"telnet @historically"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet historically.weird.com' &"
+	"telnet @building"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet building.weird.com' &"
+	"telnet @very"		!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e telnet very.weird.com' &"
+	"telnet @almost"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet almost.weird.com' &"
+	"telnet @once"		!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet once.weird.com' &"
+	"telnet @whats"		!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e telnet whats.weird.com' &"
+	"telnet @weirdo"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e telnet weirdo.weird.com' &"
+	"telnet @sometimes"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e telnet sometimes.weird.com' &"
+	"telnet @always"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e telnet always.weird.com' &"
+	"telnet @starting-out"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e telnet starting-out.weird.com' &"
 }
 
 menu "slogin-weird"
 {
 	"Slogins At Weird.com" f.title
-	"Slogin @most"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C most.weird.com &"
-	"Slogin @historically"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C historically.weird.com &"
-	"Slogin @building"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C building.weird.com &"
-	"Slogin @very"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C very.weird.com &"
-	"Slogin @almost"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin -C almost.weird.com &"
-	"Slogin @once"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin -C once.weird.com &"
-	"Slogin @whats"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C whats.weird.com &"
-	"Slogin @weirdo"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C weirdo.weird.com &"
-	"Slogin @sometimes"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C sometimes.weird.com &"
-	"Slogin @always"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C always.weird.com &"
-	"Slogin @starting-out"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C starting-out.weird.com &"
+	"Slogin @most"		!". ./.profile; onx11server SERVER 'PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C most.weird.com' &"
+	"Slogin @historically"	!". ./.profile; onx11server SERVER 'PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C historically.weird.com' &"
+	"Slogin @building"	!". ./.profile; onx11server SERVER 'PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C building.weird.com' &"
+	"Slogin @very"		!". ./.profile; onx11server SERVER 'PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C very.weird.com' &"
+	"Slogin @almost"	!". ./.profile; onx11server SERVER 'PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin -C almost.weird.com' &"
+	"Slogin @once"		!". ./.profile; onx11server SERVER 'PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin -C once.weird.com' &"
+	"Slogin @whats"		!". ./.profile; onx11server SERVER 'PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C whats.weird.com' &"
+	"Slogin @weirdo"	!". ./.profile; onx11server SERVER 'PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C weirdo.weird.com' &"
+	"Slogin @sometimes"	!". ./.profile; onx11server SERVER 'PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C sometimes.weird.com' &"
+	"Slogin @always"	!". ./.profile; onx11server SERVER 'PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C always.weird.com' &"
+	"Slogin @starting-out"	!". ./.profile; onx11server SERVER 'PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 1000 OPT_ZICONBEEP -e slogin -C starting-out.weird.com' &"
 }
-
-ifdef([AT_PLANIX], [
-menu "rlogin-planix"
-{
-	"Rlogins At Planix.com" f.title
-	"Rlogin @whome"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin whome.planix.com &"
-	"Rlogin @woffi"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin woffi.planix.com &"
-	"Rlogin @warlord"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e rlogin warlord.planix.com &"
-}
-])
-
-ifdef([AT_PLANIX], [
-menu "telnet-planix"
-{
-	"Telnets At Planix.com" f.title
-	"telnet @whome"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet whome.planix.com &"
-	"telnet @weight"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet weight.planix.com &"
-	"telnet @woffi"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet woffi.planix.com &"
-	"telnet @wind"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet wind.planix.com &"
-	"telnet @wish"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet wish.planix.com &"
-	"telnet @warlord"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet warlord.planix.com &"
-	"telnet @wanut"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet walnut.planix.com &"
-	"telnet @water"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet water.planix.com &"
-	"telnet @worm"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet worm.planix.com &"
-	"telnet @weight"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e telnet weight.planix.com &"
-}
-])
-
-menu "slogin-planix"
-{
-	"Slogins At Planix.com" f.title
-	"Slogin @whome"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C whome.planix.com &"
-	"Slogin @woffi"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C woffi.planix.com &"
-	"Slogin @weight"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C weight.planix.com &"
-	"Slogin @warlord"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C warlord.planix.com &"
-	"Slogin @walnut"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C walnut.planix.com &"
-	"Slogin @ws"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin -C ws.planix.com &"
-}
-
-
-menu "slogin-dancing"
-{
-	"Slogins At Dancing.org" f.title
-	"Slogin @lindy"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin -C lindy.dancing.org &"
-}
-
 
 menu "slogin-proxy"
 {
 	"Slogins At Proxy.com"	f.title
-	"Slogin @server.proxy.com" !"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin server.proxy.com &"
-	"Slogin @apple.proxy.com" !"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin apple.proxy.com &"
-}
-
-ifdef([AT_ACI], [
-menu "rlogin-aci"
-{
-	"Rlogins At ACI.on.ca"	f.title
-	"Rlogin @admin"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin admin.sec.aci.on.ca &"
-	"Rlogin @public"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin public.sec.aci.on.ca &"
-	"Rlogin @oldpub"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin oldpub.sec.aci.on.ca &"
-	"Rlogin @corporate"	!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin corporate.sec.aci.on.ca &"
-	"Rlogin @lucky"		!"$ONX11SERVER $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e rlogin lucky.sec.aci.on.ca &"
-}
-])
-
-menu "slogin-aci"
-{
-	"Slogins At ACI.on.ca"	f.title
-	"Slogin @admin"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin admin.aci.on.ca &"
-	"Slogin @public"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin public.aci.on.ca &"
-	"Slogin @corporate"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin corporate.aci.on.ca &"
-	"Slogin @oldpub"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin oldpub.aci.on.ca &"
-	"Slogin @lucky"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -e slogin lucky.aci.on.ca &"
-}
-
-menu "slogin-sols"
-{
-	"Slogins At sols.org" f.title
-	"Slogin @solsinfo"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin solsinfo.sols.org &"
-	"Slogin @solsweb"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin solsweb.sols.org &"
-}
-
-menu "slogin-vex"
-{
-	"Slogins At Vex.net"	f.title
-	"Slogin @vex"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin vex.net &"
+	"Slogin @server.proxy.com" !". ./.profile; onx11server SERVER 'PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin server.proxy.com' &"
+	"Slogin @apple.proxy.com" !". ./.profile; onx11server SERVER 'PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin apple.proxy.com' &"
 }
 
 menu "slogin-reptiles"
@@ -1538,5 +1390,5 @@ menu "slogin-reptiles"
 	"Slogins At Reptiles.Org" f.title
 	"Slogin @komodo(FreeBSD)"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin komodo.reptiles.org &"
 	"Slogin @iguana(sun3)"		!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin iguana.reptiles.org &"
-	"Slogin @tuatara(NetBSD)"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin tuatara.reptiles.org &"
+	"Slogin @tuatara(NetBSD)"	!"$ONX11SERVER env PATH=$PATH:/usr/pkg/bin:/usr/contrib/bin $X11BIN/xterm -display $DISPLAY-cn -rw -sb -si -sk -sl 500 OPT_ZICONBEEP -e slogin tuatara.reptiles.org &"
 }
