@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	29.2	10/06/18 17:18:52 (woods)"
+;;;;#ident	"@(#)HOME:.wl	30.1	10/06/18 18:56:52 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>

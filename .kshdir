@@ -2,7 +2,7 @@
 #
 #	.kshdir - ksh Push/Pop directory package
 #
-#ident	"@(#)HOME:.kshdir	29.1	09/04/09 20:45:31 (woods)"
+#ident	"@(#)HOME:.kshdir	30.1	10/06/18 18:56:52 (woods)"
 
 # Internal Variables:
 #	_dir_stack	- array of strings (inverted stack)

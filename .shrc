@@ -1,7 +1,7 @@
 #
 #	.shrc - per-shell startup stuff for non-POSIX compatible /bin/sh
 #
-#ident	"@(#)HOME:.shrc	29.1	09/04/09 20:45:31 (woods)"
+#ident	"@(#)HOME:.shrc	30.1	10/06/18 18:56:52 (woods)"
 
 PATH="$PATH"
 export PATH
