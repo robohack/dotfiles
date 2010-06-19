@@ -11,6 +11,7 @@
 .cvsrc
 .emacs
 .emacs.el
+.gitconfig
 .indent.pro
 .ircrc
 .joverc
