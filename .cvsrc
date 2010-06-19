@@ -1,5 +1,5 @@
 checkout	-P
-diff	-N -c
+diff	-N -u
 export	-kv
 rdiff	-u
 release	-d
