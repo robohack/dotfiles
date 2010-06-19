@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	29.4	10/06/18 17:26:37 (woods)"
+#ident	"@(#)HOME:.profile	29.5	10/06/18 17:35:50 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -9,6 +9,7 @@
 #	- standard environment has been set by login(1)
 #	- $argv0 is `basename $0` from .xinitrc or .xsession
 #	- test(1), aka "[", supports '-L' for testing symlinks
+#	  (note that "test -L" is POSIX, but old systems had "-h")
 
 # Files referenced [all optional]:
 #
@@ -319,24 +320,28 @@ if [ -z "$X11PATH" ] ; then
 	# FIXME: this won't work very well if X11R? is multiple names....
 	if [ -d /local/X11R? -a ! -L /local/X11R? ] ; then
 		X11PATH="`echo /local/X11R?`"
+	elif [ -d /local/X11 -a ! -L /local/X11 ] ; then
+		X11PATH="/local/X11"
+	elif [ -d /usr/X11R? -a ! -L /usr/X11R? ] ; then
+		X11PATH="`echo /usr/X11R?`"
 	elif [ -d /usr/X11 -a ! -L /usr/X11 ] ; then
 		X11PATH="/usr/X11"
-	elif [ -d /usr/X11R? -a ! -L /usr/X11? ] ; then
-		X11PATH="`echo /usr/X11R?`"
 	elif [ -d /usr/X??? -a ! -L /usr/X??? ] ; then	# X386, for example
 		X11PATH="`echo /usr/X???`"
 	elif [ -d /usr/local/X11R? -a ! -L /usr/local/X11R? ] ; then
 		X11PATH="`echo /usr/local/X11R?`"
+	elif [ -d /usr/local/X11 -a ! -L /usr/local/X11 ] ; then
+		X11PATH="/usr/local/X11"
 	else
 		X11PATH="/NO-X11-FOUND"
 	fi
 	export X11PATH
 fi
 if [ -z "$X11BIN" ] ; then
-	# TODO: this is a best guess that might fail for remote hosts
 	if [ -d /usr/bin/X11 -a ! -L /usr/bin/X11 ] ; then
 		X11BIN=/usr/bin/X11
 	else
+		# XXX: this is a best guess -- should check!
 		X11BIN=$X11PATH/bin
 	fi
 	export X11BIN
