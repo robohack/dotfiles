@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	29.2	09/10/30 15:02:01 (woods)"
+#ident	"@(#)HOME:.kshrc	29.3	10/06/18 17:06:16 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -723,6 +723,7 @@ alias badsenders='fgrep RHSBL: $MAILLOG | sed "s/[<>]/ /g" | awk "{print \$8}" |
 alias blsqueeze='sed "/./,/^$/!d"'
 alias blstrip='sed "/./!d"'
 alias cdpkgwork='cd /var/package-obj/${PWD}/work/$(basename ${PWD})*'
+alias cvsfind="find . -type f ! -name '.#*' ! -name '*~' ! -name .cvsignore ! -print -o -name CVS -prune"
 alias deadlinks='find . -type l -a ! \( -follow -type f \) -print'
 # XXX write one to collapse back-slash continued lines too!
 alias dlog='$PAGER -en +G /var/log/debug'
@@ -732,7 +733,9 @@ alias ealias='e $ENV'
 alias elc='emacs -batch -q -no-site-file -f batch-byte-compile'
 alias f='finger'
 alias funclist='typeset +f'
-alias h='fc -l | tail'
+alias h='fc -l'
+alias history='fc -l 1'
+alias hmeme='fc -l 1 | awk "\$1 > 0 {print \$2}" | sort  | uniq -c | sort -rn | sed 20q'
 alias ilog='$PAGER -en +G /var/log/important'
 alias j='jobs -l'
 alias l='/bin/ls -CF'
@@ -757,7 +760,7 @@ alias mlog='$PAGER -en +G /var/log/messages'
 alias mynotes='( \cd ~/notes && /bin/ls -CF *[!~] )'
 alias nosgr='echo '
 alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok'
-alias pkg_sizes="pkg_info -s \* | sed -e '/^$/d' -e 's/Information for //' | sed -e :a -e '$!N;s/\nSize of this package in bytes:/ /;ta' -e 'P;D'"
+alias pkg_sizes="/usr/sbin/pkg_info -s \* | sed -e '/^$/d' -e 's/Information for //' -e 's/:$/:\\\\/' | sed -e :a -e '$!N;s/Size of this package in bytes://;ta' -e 'P;D' | backslashjoin"
 alias rblcount='fgrep " matched " $MAILLOG | cut -d " " -f 13 | cut -d . -f 5- | sort | uniq -c'
 alias rblstats='fgrep " matched " $MAILLOG | cut -d " " -f 10- | sort | uniq -c | sort -n | ds'
 alias realias='let LEV=$LEV-1;exec ksh'		# useless?
