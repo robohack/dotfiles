@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	29.3	10/06/18 17:06:16 (woods)"
+#ident	"@(#)HOME:.kshrc	29.4	10/06/18 17:40:07 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -611,25 +611,42 @@ fi
 #
 case "$TERM" in
 xterm*)
-	function roterm
+	function onx11server
 	{
-		rhost=$1
-		shift
-		rsh -n "$rhost" "OPENWINHOME=/usr/openwin XFILESEARCHPATH=/usr/openwin/lib/%T/%N%S /usr/openwin/demo/xterm -cn -rw -sb -si -sk -sl 1024 -ls -display $DISPLAY -T rsh:$rhost $*" &
-	}
-	function loterm
-	{
-		OPENWINHOME=/usr/openwin XFILESEARCHPATH=/usr/openwin/lib/%T/%N%S /usr/openwin/demo/xterm -cn -rw -sb -si -sk -sl 1024 -ls -T $HOSTNAME $* &
+		if [ $1 = "-n" ]; then
+			nullopt="-n"
+			shift
+		else
+			nullopt=""
+		fi
+		if [ $# -ne 2 ]; then
+			echo "$argv0: onx11server(): Usage: onx11server SERVERNAME 'command string'"
+			return 1
+		fi
+		X11server=$1
+		echo "$argv0: starting $RSH $nullopt $X11server '. ./.profile; export DISPLAY=$DISPLAY; exec $2'"
+		# note: don't run this in the background -- let the caller do that
+		$RSH $nullopt $X11server ". ./.profile; export DISPLAY=$DISPLAY; exec $2"
 	}
 	function rxterm
 	{
 		rhost=$1
 		shift
-		rsh -n "$rhost" "$X11BIN/xterm -ziconbeep 1 -cn -rw -sb -si -sk -sl 2048 -ls -display $DISPLAY -T rsh:$rhost $*" &
+		onx11server -n "$rhost" "xterm -ziconbeep 1 -cn -rw -sb -si -sk -sl 2048 -ls -display $DISPLAY -T rsh:$rhost $*" &
+	}
+	function ruxterm
+	{
+		rhost=$1
+		shift
+		onx11server -n "$rhost" "uxterm -ziconbeep 1 -cn -rw -sb -si -sk -sl 2048 -ls -display $DISPLAY -T rsh:$rhost $*" &
 	}
 	function lxterm
 	{
-		$X11BIN/xterm -ziconbeep 1 -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME $* &
+		xterm -ziconbeep 1 -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME $* &
+	}
+	function luxterm
+	{
+		uxterm -ziconbeep 1 -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME $* &
 	}
 	setban
 	;;
