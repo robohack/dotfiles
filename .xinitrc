@@ -3,7 +3,13 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	29.2	10/06/18 17:09:04 (woods)"
+#ident	"@(#)HOME:.xinitrc	29.3	10/06/18 18:00:59 (woods)"
+
+# Assumptions that may cause breakage:
+#
+#	- the shell supports functions
+#	- test(1), aka "[", supports '-L' for testing symlinks
+#	  (note that "test -L" is POSIX, but old systems had "-h")
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -47,7 +53,7 @@ fi
 ONCONSOLE=false
 export ONCONSOLE
 case "$DISPLAY" in
-:0*)
+:[0-9]*)
 	# 
 	# OK, so if we're running on the system console there's a good
 	# chance the user will never see system messages sent to
@@ -59,7 +65,9 @@ case "$DISPLAY" in
 	# don't bother with this unless it'll do us some good...
 	# (i.e. unless XDM ran the GiveConsole script)
 	#
-	if [ -w /dev/console ] ; then
+	if [ `uname -s` = "Darwin" ]; then
+		tail -F /var/log/system.log | xconsole -geometry 500x120-0-0 -notify -verbose -file /dev/stdin &
+	elif [ -w /dev/console ] ; then
 		ONCONSOLE=true
 		echo "$argv0: redirecting stdout and stderr to /dev/console."
 		exec 1>/dev/console 2>&1
@@ -88,21 +96,26 @@ fi
 
 # if this still isn't set then we probably didn't have a ~/.profile!
 #
+# TODO: what if there's more than one variant installed?
+#
 if [ -z "$X11PATH" ] ; then
 	# FIXME: this won't work very well if X11R? is multiple names....
-	if [ -d /local/X11R? -a ! -h /local/X11R? ] ; then
+	if [ -d /local/X11R? -a ! -L /local/X11R? ] ; then
 		X11PATH="`echo /local/X11R?`"
-	elif [ -d /usr/X11 -a ! -h /usr/X11 ] ; then
-		X11PATH="/usr/X11"
-	elif [ -d /usr/X11R? -a ! -h /usr/X11? ] ; then
+	elif [ -d /local/X11 -a ! -L /local/X11 ] ; then
+		X11PATH="/local/X11"
+	elif [ -d /usr/X11R? -a ! -L /usr/X11R? ] ; then
 		X11PATH="`echo /usr/X11R?`"
-	elif [ -d /usr/X??? -a ! -h /usr/X??? ] ; then	# X386, for example
+	elif [ -d /usr/X11 -a ! -L /usr/X11 ] ; then
+		X11PATH="/usr/X11"
+	elif [ -d /usr/X??? -a ! -L /usr/X??? ] ; then	# X386, for example
 		X11PATH="`echo /usr/X???`"
-	elif [ -d /usr/local/X11R? -a ! -h /usr/local/X11R? ] ; then
+	elif [ -d /usr/local/X11R? -a ! -L /usr/local/X11R? ] ; then
 		X11PATH="`echo /usr/local/X11R?`"
+	elif [ -d /usr/local/X11 -a ! -L /usr/local/X11 ] ; then
+		X11PATH="/usr/local/X11"
 	else
 		X11PATH="/NO-X11-FOUND"
-		echo "$argv0: X11PATH not found!"
 	fi
 	export X11PATH
 fi
@@ -110,8 +123,7 @@ fi
 # if this still isn't set then we probably didn't have a ~/.profile!
 #
 if [ -z "$X11BIN" ] ; then
-	# TODO: this is a best guess that might fail for remote hosts
-	# note that "test -L" is POSIX, but old systems had "-h"
+	echo "$argv0: X11PATH not set  by ~/.*profile!"
 	if [ -d /usr/bin/X11 -a ! -L /usr/bin/X11 ] ; then
 		X11BIN=/usr/bin/X11
 	else
@@ -137,13 +149,34 @@ unset DEPTHSTR
 
 # TODO:  think about using `type` ala .profile, but type isn't everywhere
 if [ -z "$RSH" ] ; then
-	if [ -x /usr/ucb/rsh ] ; then
-		RSH=/usr/ucb/rsh
+	if expr "`type rsh 2>/dev/null`" : '.* is .*/rsh$' >/dev/null ; then
+		RSH="rsh"
+	elif [ -x /usr/ucb/rsh ] ; then	# maybe /usr/ucb not in $PATH?
+		RSH="/usr/ucb/rsh"
 	else				# TODO: also remsh?
-		RSH=/usr/bin/rsh
+		echo "$argv0: assuming 'rsh' really is available..."
+		RSH="rsh"
 	fi
 	export RSH			# used by .twmrc, .ctwmrc, as well as below
 fi
+
+onx11server ()
+{
+	if [ $1 = "-n" ]; then
+		nullopt="-n"
+		shift
+	else
+		nullopt=""
+	fi
+	if [ $# -ne 2 ]; then
+		echo "$argv0: onx11server(): Usage: onx11server SERVERNAME 'command string'"
+		return 1
+	fi
+	X11server=$1
+	echo "$argv0: starting $RSH $nullopt $X11server '. ./.profile; export DISPLAY=$DISPLAY; exec $2'"
+	# note: don't run this in the background -- let the caller do that
+	$RSH $nullopt $X11server ". ./.profile; export DISPLAY=$DISPLAY; exec $2"
+}
 
 if [ -r "/usr/lib/X11/Xdefaults" ] ; then
 	xrdb /usr/lib/X11/Xdefaults	# Load default X11 resource database
@@ -190,9 +223,10 @@ xhost +`hostname` +localhost -
 # deprecated xhost crap
 #
 if [ -r $HOME/.xhosts ] ; then
+	echo "$argv0: now setting up all the DANGEROUS deprecated xhost access controls!"
 	while read XHOST junk; do
 		case "$XHOST" in
-		"" | '#'* )
+		"" | '\#'* )
 			;;
 		* )
 			# NEVER remove the "" from the first clause!!!
@@ -208,49 +242,48 @@ fi
 # this will be the same server your home directory resides on....
 #
 if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
+	echo "$argv0: looks like $XDMHOST is running xdm for our display..."
 	case "$XDMHOST" in
 	almost.weird.com)
 		X11SERVER=${X11SERVER:-"most.weird.com"}
-		ONX11SERVER="$RSH -n $X11SERVER PATH=$X11BIN:\$PATH exec"
-		export X11SERVER ONX11SERVER
-		echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
+		export X11SERVER
+		echo "$argv0: have set X11SERVER='$X11SERVER'"
 		# now move our AUTH cookies over to the server in case it
 		# doesn't have a shared $HOME...
-		xauth extract - $DISPLAY | rsh $X11SERVER $X11BIN/xauth merge -
+		xauth extract - $DISPLAY | onx11server $X11SERVER 'xauth merge -'
 		# now start server programs we like for this scenario
-		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x40-200+48 -hl grey90 &
+		onx11server -n $X11SERVER 'xload -display $DISPLAY -geometry 120x40-200+48 -hl grey90' &
 		;;
-	very.weird.com)
-		X11SERVER=${X11SERVER:-"most.weird.com"}
-		ONX11SERVER="$RSH -n $X11SERVER PATH=$X11BIN:\$PATH exec"
-		export X11SERVER ONX11SERVER
-		echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
+	very.weird.com|very.robohack.planix.com)
+		X11SERVER=${X11SERVER:-"once.weird.com"}
+		export X11SERVER
+		echo "$argv0: have set X11SERVER='$X11SERVER'"
 		# now move our AUTH cookies over to the server in case it
 		# doesn't have a shared $HOME...
-		xauth extract - $DISPLAY | rsh $X11SERVER $X11BIN/xauth merge -
+		xauth extract - $DISPLAY | onx11server $X11SERVER 'xauth merge -'
 		# we run these ones in the background because the hosts might not be up
-		xauth extract - $DISPLAY | rsh historically.weird.com $X11BIN/xauth merge - &
-		xauth extract - $DISPLAY | rsh isit.weird.com $X11BIN/xauth merge - &
+		xauth extract - $DISPLAY | onx11server historically.weird.com 'xauth merge -' &
+		xauth extract - $DISPLAY | onx11server isit.weird.com 'xauth merge -' &
 		# now start server programs we like for this scenario
-		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x40-200+48 -hl grey90 &
-		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 117x83+0+0 -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+		onx11server -n $X11SERVER 'xload -display $DISPLAY -geometry 120x40-200+48 -hl red' &
+		onx11server -n $X11SERVER 'uxterm -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+		onx11server -n $X11SERVER 'uxterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
 		;;
 	*)
-		# not setting ONX11SERVER just makes the WM run clients on
-		# the current login host....
-		unset X11SERVER ONX11SERVER
-		echo "$argv0: have unset X11SERVER and ONX11SERVER; XDMHOST is $XDMHOST"
+		# not setting X11SERVER hopefully just makes the WM run all X11SERVER clients on
+		# the current login host....  unless it eliminates the menu entries entirely!
+		unset X11SERVER
+		echo "$argv0: have unset X11SERVER; XDMHOST is $XDMHOST"
 		;;
 	esac
 fi
 
-# TODO:  think about using `type` ala .profile, but type isn't in (a)sh, etc.
 if [ -z "$WM" ] ; then
+	echo "$argv0: searching for a usable window manager..."
 	#
 	# XXX maybe it would be nice to have a window-manager-chooser
 	#
-	if [ \( -x $X11BIN/ctwm -o -x $PKG/bin/ctwm -o -x $HOME/bin/ctwm \) -a $HOME/.ctwmrc ] ; then
+	if expr "`type ctwm 2>/dev/null`" : '.* is .*/ctwm$' >/dev/null ; then
 		# NOTE: don't bother with '-v' -- it's too much and slows things!
 		if [ $SCREENDEPTH -eq 1 ] ; then
 			# the welcome screen on monochrome is silly and slow
@@ -258,17 +291,17 @@ if [ -z "$WM" ] ; then
 		else
 			WM="ctwm -k -display $DISPLAY"
 		fi
-	elif [ -x $X11BIN/tvtwm -o -x $HOME/bin/tvtwm ] ; then
+	elif expr "`type tvtwm 2>/dev/null`" : '.* is .*/tvtwm$' >/dev/null ; then
 		WM=tvtwm
-	elif [ -x $X11BIN/wmx -o -x $HOME/bin/wmx ] ; then
+	elif expr "`type wmx 2>/dev/null`" : '.* is .*/wmx$' >/dev/null ; then
 		WM=wmx
-	elif [ -x $X11BIN/wm2 -o -x $HOME/bin/wm2 ] ; then
+	elif expr "`type wm2 2>/dev/null`" : '.* is .*/wm2$' >/dev/null ; then
 		WM=wm2
-	elif [ -x $X11BIN/scwm -o -x $HOME/bin/scwm ] ; then
+	elif expr "`type scwm 2>/dev/null`" : '.* is .*/scwm$' >/dev/null ; then
 		WM=scwm
-	elif [ \( -x $X11BIN/wmaker -o -x $HOME/bin/wmaker \) -a $HOME/GNUstep/Defaults/WindowMaker ] ; then
+	elif expr "`type wmaker 2>/dev/null`" : '.* is .*/wmaker$' >/dev/null ; then
 		WM=wmaker
-	elif [ -x $X11BIN/fvwm -o -x $HOME/bin/fvwm ] ; then
+	elif expr "`type fvwm 2>/dev/null`" : '.* is .*/fvwm$' >/dev/null ; then
 		WM=fvwm
 	else
 		echo "$argv0: assuming 'twm' is available..."
@@ -278,46 +311,52 @@ if [ -z "$WM" ] ; then
 fi
 
 HAVESWISSWATCH=false ; export HAVESWISSWATCH
-if expr "`type swisswatch`" : '.* is .*/swisswatch$' >/dev/null 2>&1 ; then
+if expr "`type swisswatch 2>/dev/null`" : '.* is .*/swisswatch$' >/dev/null ; then
 	HAVESWISSWATCH=true
 fi
+HAVEXBUFFY=false ; export HAVEXBUFFY
+if expr "`type xbuffy 2>/dev/null`" : '.* is .*/xbuffy$' >/dev/null ; then
+	HAVEXBUFFY=true
+fi
 HAVEXEARTH=false ; export HAVEXEARTH
-if expr "`type xearth`" : '.* is .*/xearth$' >/dev/null 2>&1 ; then
+if expr "`type xearth 2>/dev/null`" : '.* is .*/xearth$' >/dev/null ; then
 	HAVEXEARTH=true
 fi
 HAVEXPHOON=false ; export HAVEXPHOON
-if expr "`type xphoon`" : '.* is .*/xphoon$' >/dev/null 2>&1 ; then
+if expr "`type xphoon 2>/dev/null`" : '.* is .*/xphoon$' >/dev/null ; then
 	HAVEXPHOON=true
 fi
-HAVEXBUFFY=false ; export HAVEXBUFFY
-if expr "`type xbuffy`" : '.* is .*/xbuffy$' >/dev/null 2>&1 ; then
-	HAVEXBUFFY=true
+HAVEXV=false ; export HAVEXV
+if expr "`type xv 2>/dev/null`" : '.* is .*/xv$' >/dev/null ; then
+	HAVEXV=true
 fi
 
 # argv0 is .xinitrc if called by xinit or startx
 #
 if [ "$argv0" = ".xinitrc" ] ; then
+	echo "$argv0: looks like X was started with xinit or startx..."
 	case $DISPLAY in
-	very.weird.com:*)
+	very.weird.com:*|very.robohack.planix.com:*)
 
-		# XXX note: for the moment this section is identical to the XDM variant above for this host.
+		# XXX note: for the moment the rest of this section is identical to the XDM variant above for this host.
 
-		X11SERVER=${X11SERVER:-"most.weird.com"}
-		ONX11SERVER="$RSH -n $X11SERVER exec"
-		export X11SERVER ONX11SERVER
-		echo "$argv0: have set ONX11SERVER='$ONX11SERVER'"
+		X11SERVER=${X11SERVER:-"once.weird.com"}
+		export X11SERVER
+		echo "$argv0: have set X11SERVER='$X11SERVER'"
 		# now move our AUTH cookies over to the server in case it
 		# doesn't have a shared $HOME...
-		xauth extract - $DISPLAY | rsh $X11SERVER $X11BIN/xauth merge -
+		xauth extract - $DISPLAY | onx11server $X11SERVER 'xauth merge -'
 		# we run this one in the background because the host might not be up
-		xauth extract - $DISPLAY | rsh historically.weird.com $X11BIN/xauth merge - &
+		xauth extract - $DISPLAY | onx11server historically.weird.com 'xauth merge -' &
 		# and then start some useful programs...
-		$ONX11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x40-200+48 -hl grey90 &
-		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 117x83+0+0 -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-		$ONX11SERVER $X11BIN/xterm -display $DISPLAY -geometry 80x42-0+540 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+		onx11server -n $X11SERVER 'xload -display $DISPLAY -geometry 120x40-200+48 -hl red' &
+		onx11server -n $X11SERVER 'uxterm -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
+		onx11server -n $X11SERVER 'uxterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
 		;;
 	esac
-	if $HAVEXEARTH ; then
+	if $HAVEXV && [ -d '/Library/Desktop Pictures/Nature' ]; then
+		xv -root '/Library/Desktop Pictures/Nature/'* &
+	elif $HAVEXEARTH ; then
 		XEGAMMA=""
 		if [ $SCREENDEPTH -ne 1 ] ; then
 			XEGAMMA="-gamma 1.6 -night 15"	# for Sun3 CG2
@@ -330,8 +369,6 @@ if [ "$argv0" = ".xinitrc" ] ; then
 		xsetroot -bitmap $X11PATH/include/X11/bitmaps/escherknot
 	elif [ -r /usr/include/X11/bitmaps/escherknot ] ; then
 		xsetroot -bitmap /usr/include/X11/bitmaps/escherknot
-	elif [ -r /usr/openwin/share/include/X11/bitmaps/escherknot ] ; then
-		xsetroot -bitmap /usr/openwin/share/include/X11/bitmaps/escherknot
 	else
 		echo "$argv0: no background set"
 	fi
@@ -374,41 +411,37 @@ fi
 
 case $DISPLAY in
 
-very.weird.com:*)
-	# very has a large, hi-res, display with an optical mouse....
-###	xset m 10 5
-	# very has a large, hi-res, display....
+very.weird.com:*|very.robohack.planix.com:*)
+	# very has a very large, very hi-res, display....
 	xset m 5 10
-	# new XFree86 server doesn't autorepeat without this
-	# XXX against "XsunMono-r6.3" this will complain though:
-	# 	Xlib:  extension "XFree86-Misc" missing on display "very.weird.com:0.0".
-	xset r rate 500 60
-	xset r
-	# monitors (these could/should be started by xdm)
-	xload -geometry 120x40-200+0 -hl grey90 &
-	xclock -norender -geometry 190x30-0+196 -digital -chime &
+
+	xset fp= '/usr/X11/lib/X11/fonts/misc/,/usr/X11/lib/X11/fonts/TTF/,/usr/X11/lib/X11/fonts/OTF,/usr/X11/lib/X11/fonts/Type1/,/usr/X11/lib/X11/fonts/100dpi/:unscaled,/usr/X11/lib/X11/fonts/100dpi/,/sw/lib/X11/fonts/intl/,/sw/lib/X11/fonts/efont-unicode/,/sw/lib/X11/fonts/applettf/,/Library/Fonts/,/System/Library/Fonts/'
+	xset fp rehash
+
+	xload -geometry 120x40-200+0 -hl red &
+	xclock -update 1 -geometry 215x30-0+196 -digital -chime &
 	if $HAVESWISSWATCH; then
 		swisswatch -name swissclock -geometry 190x190-0+0 &
 	else
-		xclock -norender -geometry 190x190-0+0 &
+		xclock -update 1 -geometry 190x190-0+0 &
 	fi
 	# local server performance levels we want to be aware of
 	# (NOTE: in stacked order, 48 pixels apart)
-	$RSH -n once.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+96 -hl grey90 &
-#	$RSH -n starting-out.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+144 -hl grey90 &
-#	$RSH -n sometimes.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+192 -hl grey90 &
-#	$RSH -n whats.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+242 -hl grey90 &
-	# (and room for one over under the clock)
-#	$RSH -n always.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-70+242 -hl grey90 &
+#	$RSH -n once.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+96 -hl red &
+#	$RSH -n starting-out.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+144 -hl red &
+#	$RSH -n sometimes.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+192 -hl red &
+#	$RSH -n whats.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+242 -hl red &
+	# (and there is room for one under the clocks too)
+#	$RSH -n always.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-70+242 -hl red &
 
 	# All the small lower-right command terminals (starting with our own first one)
 	# note the -155 is the height of the normal xconsole window, at 120, plus its decorations (I think)
-	xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-	$RSH -n once.weird.com $X11BIN/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	uxterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+#	onx11server -n once.weird.com 'uxterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
 
 	# All the big main area terminals (starting with our own first one)
-	xterm -display $DISPLAY -geometry  117x83+0+0 -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
-	$RSH -n once.weird.com $X11BIN/xterm -display $DISPLAY -geometry 117x83+0+0 -font 9x15 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
+	uxterm -display $DISPLAY -geometry  132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
+#	onx11server -n once.weird.com 'uxterm -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
 
 	# All the normal emacs windows...
 	# oddly using 130x64 turns into 163x55 with the font change!
@@ -424,12 +457,12 @@ xceptionally*:*)
 	# xceptionally also has a large, hi-res, display....
 	xset m 10 5
 	# monitors (these could/should be started by xdm)
-	xload -geometry 120x40-200+0 -hl grey90 &
-	xclock -norender -geometry 190x30-0+196 -digital &
+	xload -geometry 120x40-200+0 -hl red &
+	xclock -update 1 -geometry 190x30-0+196 -digital -chime &
 	if $HAVESWISSWATCH; then
 		swisswatch -name swissclock -geometry 190x190-0+0 &
 	else
-		xclock -norender -geometry 190x190-0+0 &
+		xclock -update 1 -geometry 190x190-0+0 &
 	fi
 	if $HAVEXEARTH ; then
 		xearth -gamma 1.3 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
