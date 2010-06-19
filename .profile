@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	29.2	09/10/04 19:02:41 (woods)"
+#ident	"@(#)HOME:.profile	29.3	10/06/18 17:07:02 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -277,6 +277,15 @@ if [ -z "$OPT" ] ; then
 fi
 export OPT
 
+if [ -z "$FINK" ] ; then
+	if [ -d /sw -a ! -h /sw ] ; then
+		FINK="/sw"
+	else
+		FINK="/NO-fink-FOUND"
+	fi
+fi
+export FINK
+
 if [ -z "$GNU" ] ; then
 	if [ -d /local/gnu -a ! -h /local/gnu -a -d /local/gnu/bin ] ; then
 		GNU="/local/gnu"
@@ -333,8 +342,13 @@ if [ -z "$X11BIN" ] ; then
 	export X11BIN
 fi
 
-dirappend PATH /usr/ccs/bin /usr/xpg4/bin $X11BIN $LOCAL/bin $GNU/bin $CONTRIB/bin $PKG/bin /usr/ucb /usr/bsd $OPT/gnu/bin
+dirappend PATH /usr/ccs/bin /usr/xpg4/bin $X11BIN $LOCAL/bin $GNU/bin $CONTRIB/bin $PKG/bin /usr/ucb /usr/bsd $OPT/gnu/bin $FINK/bin
 dirappend PATH /usr/games $LOCAL/games $OPT/games/bin
+
+if [ -r $FINK/bin/init.sh ] ; then
+	# this sets up other handy things for Fink
+	. $FINK/bin/init.sh
+fi
 
 # CDPATH isn't supported in all shells, but it won't hurt....
 #
@@ -446,17 +460,24 @@ fi
 # PATH should finally be set properly!  Just Mh and X11 set below
 #
 
-case "$TERM" in
-xterm*|wsvt25*)
-	# this lets those pesky high-bit chars show through....
-	#
-	# NOTE:  with older versions of less 'latin1' is the only way
-	# to express "ISO 8859", while with newer versions 'latin1' is
-	# merely an alias for "iso8859"
-	#
-	LESSCHARSET="latin1"; export LESSCHARSET
-	;;
-esac
+# This is kind of crude and not likely to work all the time, but the
+# idea is that since less(1) will use setlocale() if possible, we will
+# try to be smart about when we can tell it about which charset it
+# should try to use.
+#
+if [ -z "$LC_CTYPE" -a -z "$LC_ALL" -a -z "$LANG" ]; then
+	case "$TERM" in
+	xterm*|wsvt25*)
+		# this lets those pesky high-bit chars show through...
+		#
+		# NOTE:  with older versions of less 'latin1' is the
+		# only way to express "ISO 8859", while with newer
+		# versions 'latin1' is merely an alias for "iso8859"
+		#
+		LESSCHARSET="latin1"; export LESSCHARSET
+		;;
+	esac
+fi
 
 if [ -r /var/log/smail/logfile ] ; then
 	MAILLOG="/var/log/smail/logfile"
