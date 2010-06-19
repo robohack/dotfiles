@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	29.9	09/07/15 21:33:27 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	29.10	10/06/18 17:14:30 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -37,6 +37,16 @@
 (setq inhibit-startup-message t)
 
 ;;;; ----------
+;;;; What to do before we get too far along...
+;;;;
+
+;; set a different name for the custom-file
+(setq custom-file "~/.emacs-custom.el")
+;; doing this first allows this file to over-ride `custom', which is what I
+;; think I want to do for now.
+(load custom-file)
+
+;;; ----------
 ;;;; Let's make sure we're "home"....
 ;;;; if that's where we should be.
 (if (<= (safe-length command-line-args) 1)
@@ -98,16 +108,30 @@
     (setq inhibit-eol-conversion t))	; show M$ crap for what it is....
 
 (if (>= init-emacs-type 20)
-    (set-language-environment "Latin-1")
+    (if (not window-system)
+	(set-locale-environment)	; xxx assume environment is correct
+					; (LC_ALL, LC_CTYPE, or LANG
+      (set-language-environment "UTF-8")) ; xxx assume all window systems are
+					; full UTF-8, since all of the ones I
+					; use do, and I do this here because
+					; emacs may have been started from a
+					; non-UTF-8 capable command environment
+					; (i.e. not a uxterm/xterm -u8)
   (standard-display-european 1))
 
-(if (and (>= init-emacs-type 20)
-	 (not window-system))
-    (set-terminal-coding-system 'iso-8859-1)) ; force the issue
+;; xxx we don't seem to need this -- it should "Do The Right Thing(tm)" based
+;; on the locale settings.
+;;
+;(if (and (>= init-emacs-type 20)
+;	 (not window-system))
+;    (set-terminal-coding-system 'iso-8859-1)) ; force the issue
 
 ;; XXX this may rely on v20 or even v21 features....
+;;
+;; XXX sadly this does not work for uxterm (xterm -u8) -- or does it?
+;;
 (if (not window-system)
-    (set-input-mode nil nil t))		; turn on 8'th-bit META handling
+    (set-input-mode nil nil t))		; Turn on 8'th-bit META handling
 
 ;;;; ----------
 ;;;; What to do after this file has been loaded...
@@ -328,6 +352,10 @@ scripts (alias)." t)
 (if (elisp-file-in-loadpath-p "foldout")
     (eval-after-load "outline" '(load "foldout")))
 
+(if (elisp-file-in-loadpath-p "w3m")
+    (progn
+      (require 'w3m-load)))
+
 ;;;; ----------
 ;;;; some property defintions...
 
@@ -420,7 +448,9 @@ scripts (alias)." t)
     (progn
       (setq orig-default-frame-font (frame-parameter nil 'font))
       (setq preferred-frame-font
-	    "-etl-fixed-medium-r-normal--16-*-*-*-c-*-iso8859-1")))
+	    "-etl-fixed-medium-r-normal--16-*-100-100-c-*-iso8859-1")))
+
+;      (setq preferred-frame-font "-*-*-medium-r-*-*-*-100-100-100-m-*-iso10646-1")
 
 (require 'frame)
 (defun set-frame-face-to-preferred-frame-font (frame)
@@ -448,6 +478,30 @@ when our preferred font is not available."
 ;; this fixes up the current frame, which already exists, and already has its
 ;; font parameter set....
 (set-frame-face-to-preferred-frame-font (selected-frame))
+
+;; Something more detailed, like this, really should be the default!
+;;
+;; note that the octal escapes are for iso-8859-1 encodings....
+;; note also that \240, the Icelandic "eth", doesn't always appear in
+;; iso-8859-1 faces
+;;
+(setq list-faces-sample-text
+      "abcdefghijklmnopqrstuvwxyz\n\
+ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
+0123456789_oO0_lL1\n\
+!@\#$%^&*()_+-=\\[];'`,./|{}:\"~<>?\n\
+\240\241\242\243\244\245\246\247\
+\250\251\252\253\254\255\256\257\
+\260\261\262\263\264\265\266\267\
+\270\271\272\273\274\275\276\277\n\
+\340\341\342\343\344\345\346\347\
+\350\351\352\353\354\355\356\357\
+\360\361\362\363\364\365\366\367\
+\370\371\372\373\374\375\376\377\n\
+\300\301\302\303\304\305\306\307\
+\310\311\312\313\314\315\316\317\
+\320\321\322\323\324\325\326\327\
+\330\331\332\333\334\335\336\337")
 
 ;; where is that damn cursor anyway?!?!?!?
 (if (and window-system
@@ -557,12 +611,16 @@ when our preferred font is not available."
       (eval-when-compile
 	(if (elisp-file-in-loadpath-p "browse-url")
 	    (require 'browse-url)))
+
+      ;; links-gui does not support 8-bit (or less) displays, so we may need to
+      ;; run it in an Xterm window....
+      ;;
       (defvar browse-url-links-program nil
 	"A web browser program to use in an xterm window")
       (defun browse-url-links-xterm (url &optional new-window)
 	;; new-window ignored
-	"Ask the Links WWW browser to load URL.
-Default to the URL around or before point.  A new Links process is run
+	"Ask the (e)Links WWW browser to load URL.
+Default to the URL around or before point.  A new (e)Links process is run
 in an Xterm window using the Xterm program named by `browse-url-xterm-program'
 with possible additional arguments `browse-url-xterm-args'."
 	(interactive (browse-url-interactive-arg "Links URL: "))
@@ -570,15 +628,21 @@ with possible additional arguments `browse-url-xterm-args'."
 				 ,@browse-url-xterm-args "-T" ,(concat "WWW-Browser:" url) "-e" ,browse-url-links-program
 				 ,url)))
 
+      (setq browse-url-xterm-args '("-cn" "-rw" "-sb" "-si" "-sk" "-ls" "-ziconbeep" "1" "-n" "WWW" ))
+      (setq browse-url-links-program "elinks")
+
+      (setq browse-url-generic-args '("-g"))
+      (setq browse-url-generic-program "links")
+
       ;; NOTE:  all custom settings for browse-url-browser-function must be done
       ;; prior to this point!
       ;;
       (if (eq window-system 'x)
-	  (progn
+	  (if t				; XXX we need some way to determine the display's pixel depth
+	      (setq browse-url-browser-function
+		    (append browse-url-browser-function '(("." . browse-url-generic))))
 	    (setq browse-url-browser-function
-		  (append browse-url-browser-function '(("." . browse-url-links-xterm))))
-	    (setq browse-url-xterm-args '("-cn" "-rw" "-sb" "-si" "-sk" "-ls" "-ziconbeep" "1" "-n" "WWW" ))
-	    (setq browse-url-links-program "links"))
+		  (append browse-url-browser-function '(("." . browse-url-links-xterm)))))
 	(setq browse-url-browser-function
 	      (append browse-url-browser-function '(("." . browse-url-lynx-emacs)))))
       )) ; (require 'browse-url) END
@@ -587,30 +651,6 @@ with possible additional arguments `browse-url-xterm-args'."
 	 (or (string-match "\\`/bin/sh\\'" shell-file-name)
 	     (string-match "\\`/usr/bin/sh\\'" shell-file-name)))
     (setq cannot-suspend t))		; no jobs support!  ;-)
-
-;; Something more detailed, like this, really should be the default!
-;;
-;; note that the octal escapes are for iso-8859-1 encodings....
-;; note also that \240, the Icelandic "eth", doesn't always appear in
-;; iso-8859-1 faces
-;;
-(setq list-faces-sample-text
-      "abcdefghijklmnopqrstuvwxyz\n\
-ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
-0123456789\n\
-!@\#$%^&*()_+-=\\[];'`,./|{}:\"~<>?\n\
-\240\241\242\243\244\245\246\247\
-\250\251\252\253\254\255\256\257\
-\260\261\262\263\264\265\266\267\
-\270\271\272\273\274\275\276\277\n\
-\340\341\342\343\344\345\346\347\
-\350\351\352\353\354\355\356\357\
-\360\361\362\363\364\365\366\367\
-\370\371\372\373\374\375\376\377\n\
-\300\301\302\303\304\305\306\307\
-\310\311\312\313\314\315\316\317\
-\320\321\322\323\324\325\326\327\
-\330\331\332\333\334\335\336\337")
 
 (add-to-list 'completion-ignored-extensions '(".out"))
 
@@ -757,6 +797,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 	 '("\\.[0-9][a-z]?\\.in\\'" . nroff-mode) ; man page
 	 '("\\.[mM]?an\\'" . nroff-mode)	; man page
 	 '("\\.mdoc\\'" . nroff-mode)		; mdoc(7) document
+	 '("\\.org\\'" . org-mode)		; explicitly `org-mode' files
 	 '("\\.t[imes]*\\'" . nroff-mode)	; nroff+tbl
 	 '("\\.t[imes]*\\.in\\'" . nroff-mode)	; nroff+tbl
 	 '("[rR][eE][lL][eE][aA][sS][eE]\\([-.][^/]*\\)?\\'" . indented-text-mode)
@@ -766,11 +807,9 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 	 '("[bB][uU][gG][sS]\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[cC][oO][pP][yY][^/.]*\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[nN][eE][wW][sS]\\([-.][^/]*\\)?\\'" . indented-text-mode)
-	 '("[tT][oO][dD][oO]\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[tT][hH][aA][nN][kK][^/.]*\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[rR][eE][aA][dD]\\([-.]\\)?[mM][eE]\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("\\.te?xt\\'" . indented-text-mode)
-	 '("\\.notes?\\'" . indented-text-mode)
 	 '("\\.article\\'" . indented-text-mode)
 	 '("\\.letter\\'" . indented-text-mode)
 	 '("\\.mail[^/]*\\'" . mail-mode)
@@ -779,8 +818,24 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 	 '("/tmp/[^/]*\\.ed[^/]*\\'" . indented-text-mode) ; mail edit buffer
 	 '("/tmp/[^/]*nf[^/]*\\'" . indented-text-mode))) ; notesfile compose buf
 
+(defvar my-best-org-mode nil
+  "The best available mode to use for outlines, etc.")
+
+(if (elisp-file-in-loadpath-p "org")
+    ;; org-mode is part of emacs since 22(?)
+    (progn
+      (setq my-best-org-mode 'org-mode)
+      (global-set-key "\C-cl" 'org-store-link)
+      (global-set-key "\C-ca" 'org-agenda))
+  (progn
+    (setq my-best-org-mode 'indented-text-mode)))
+
 (add-to-auto-mode-alist
- (cons (concat "\\`" (getenv "HOME") "/notes/.+\\'") 'indented-text-mode))
+ (cons (concat "\\`" (getenv "HOME") "/notes/.+\\'") my-best-org-mode))
+(mapcar 'add-to-auto-mode-alist
+	(list
+	 '("\\.notes?\\'" . my-best-org-mode)
+	 '("[tT][oO][dD][oO]\\([-.][^/]*\\)?\\'" . my-best-org-mode)))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "diff-mode")
@@ -800,9 +855,10 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 	     '("[^/]+\\.mk\\'" . makefile-mode)
 	     '("[^/]+\\.mk\\.in\\'" . makefile-mode))))
 
-;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "lout-mode")
-    (add-to-auto-mode-alist '("\\.lout\\'" . lout-mode)))
+    (progn
+      (autoload 'lout-mode "lout-mode" "Major mode for editing Lout sources" t)
+      (add-to-auto-mode-alist '("\\.lout\\'" . lout-mode))))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "autoconf")
@@ -1762,6 +1818,28 @@ argument.  As a consequence, you can always delete a whole line by typing
 ;;
 (require 'pcvs)
 
+(setq cvs-buffer-name-alist 
+      '(("diff"
+	 (expand-file-name
+	  (format "*cvs-%s*" cmd))
+	 diff-mode)
+	("status"
+	 (expand-file-name
+	  (format "*cvs-%s*" cmd))
+	 cvs-status-mode)
+	("tree"
+	 (expand-file-name
+	  (format "*cvs-%s*" cmd))
+	 cvs-status-mode)
+	("message"
+	 (expand-file-name
+	  (format "*cvs-%s*" cmd))
+	 indented-text-mode log-edit)
+	("log"
+	 (expand-file-name
+	  (format "*cvs-%s*" cmd))
+	 log-view-mode)))
+
 ;; note that once upon a time this hook variable was called `pcl-cvs-load-hook'
 ;;
 (add-hook 'cvs-mode-hook
@@ -2245,21 +2323,32 @@ argument.  As a consequence, you can always delete a whole line by typing
 ;; As of emacs-21.2 there's a note in the NEWS file which says "** On terminals
 ;; whose erase-char is ^H (Backspace), Emacs now uses
 ;; normal-erase-is-backspace-mode."  Unfortunately this does exactly the wrong
-;; thing, and in a totally bizzare and stupid way.
+;; thing, and in a totally bizzare, disruptive, subversive, and stupid way.
 ;;
 ;; Remember to call override-local-key-settings in the appropriate hooks to fix
 ;; up modes which violate global user preferences....
 ;;
-(if (and (>= init-emacs-type 21)
-	 (>= emacs-version-minor 2))
-    ;; grrr.... do something with that stupid broken poor useless excuse for
-    ;; a feature, normal-erase-is-backspace-mode....
-    (setq keyboard-translate-table nil))
+(if (or (and (= init-emacs-type 21)
+	     (>= emacs-version-minor 2))
+	(> init-emacs-type 21))
+    ;; GRRR.... do something to kill that horrible stupid broken poor useless
+    ;; excuse for a feature, normal-erase-is-backspace-mode....
+    (progn
+      ;; luckily on Mac OS-X X11 with the mini-wireless keyboard, the "delete"
+      ;; key is actually sending <backspace> by default, else one would have to
+      ;; first change the X11 keyboard map!
+      (define-key function-key-map [delete] [?\C-?])
+      (define-key function-key-map [S-delete] [?\C-h])
+      (define-key function-key-map [kp-delete] [?\C-?])
+      (define-key function-key-map [backspace] [?\C-h])
+      (define-key function-key-map [S-backspace] [?\C-?])
+      (define-key function-key-map [M-S-backspace] [?\e?\C-?])
+      (define-key function-key-map [kp-backspace] [?\C-h])
+      (setq keyboard-translate-table nil)))
 (global-set-key "\C-h" 'delete-backward-char)
 (global-set-key "\C-?" 'delete-char)
 (global-set-key "\e\C-h" 'backward-kill-word)
 (global-set-key "\e\C-?" 'kill-word)
-
 
 ;;; OK, now we diddle with help....
 ;;
