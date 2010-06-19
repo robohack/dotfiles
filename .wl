@@ -1,8 +1,10 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	29.1	09/04/09 20:45:31 (woods)"
+;;;;#ident	"@(#)HOME:.wl	29.2	10/06/18 17:18:52 (woods)"
 ;;;;
+
+;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
 
 ;; one can apparently use `mime-preview-toggle-content' with C-c C-t C-c to
 ;; show the text part if desired, and presumably to hide the HTML crap....
@@ -61,41 +63,9 @@
 ;;
 (setq elmo-imap4-default-authenticate-type 'clear)
 
-;; XXX almost no modern GUI-based reader and re-assemble split messages!
-;;
-(setq mime-edit-split-message nil)
-
-;; XXX this function is a copy of the original done simply to change the
-;; default value for the encoding to be quoted-printable instead of base64
-;;
-(defun mime-encode-region (start end encoding)
-  "Encode region START to END of current buffer using ENCODING.
-ENCODING must be string."
-  (interactive
-   (list (region-beginning)(region-end)
-	 (completing-read "Encoding: "
-			  (mime-encoding-alist)
-			  nil t "quoted-printable")))
-  (funcall (mel-find-function 'mime-encode-region encoding) start end))
-
 ;; this is needed to make sure filenames created to save attachments are sane
 ;;
 (setq filename-filters '(filename-special-filter))
-
-;; XXX this doesn't quite work right to turn on automatic signing, especially
-;; with multiple keys.
-;;
-;(setq mime-edit-pgp-processing '(sign))
-
-(setq mime-setup-enable-pgp t)		; it is the default
-;(setq pgg-default-scheme 'pgp5)		; for composing
-;(setq pgg-scheme 'pgp5)			; for verify/decrypt
-(setq pgg-default-scheme 'gpg)		; for composing
-(setq pgg-scheme 'gpg)			; for verify/decrypt
-(setq pgg-cache-passphrase t)		; it is the default
-(setq pgg-passphrase-cache-expiry 14400); 4 hrs
-;(setq pgg-read-passphrase 'read-passwd)	; it is the default?
-(setq pgg-read-passphrase 'read-string)	; XXX for debugging
 
 ;; Directory where icons are placed.
 ;; XXX should be set by package install, but seems not to be)
@@ -118,13 +88,39 @@ ENCODING must be string."
 	    wl-summary-unread-uncached-mark
 	    wl-summary-answered-uncached-mark))
 
+(setq wl-stay-folder-window t)
+
+;; support for marking messages addressed "to-me" in the Summary buffer.
+;;
+;; By Ron Isaacson with thanks to Erik Hetzner for some fixes:
+;;
+(defun wl-summary-line-to-me ()
+  "Return `*' if current message is addressed to me, else ` '."
+  (let ((all-addresses (append
+			(elmo-message-entity-field wl-message-entity 'to t)
+			(elmo-message-entity-field wl-message-entity 'cc t)))
+	(to-me nil))
+    (while (and all-addresses
+		(not to-me))
+      (setq to-me (wl-address-user-mail-address-p (car all-addresses)))
+      (setq all-addresses (cdr all-addresses)))
+    (if to-me "*" " ")))
+
+;; add "%E" to `wl-summary-line-format' to invoke `wl-summary-line-to-me'
+;; 
+(setq wl-summary-line-format-spec-alist
+      (put-alist '?E
+		 '((wl-summary-line-to-me))
+		 wl-summary-line-format-spec-alist))
+
 ;; fancier summaries.  Default: ugly  :-)
 ;;
-(setq wl-stay-folder-window t)
-(setq wl-summary-default-number-column 6)
+(setq wl-summary-default-number-column 6) ; message numbers are often 6 digits with Cyrus IMAP
 (setq wl-summary-width nil)
+;; after changing `wl-summary-line-format' you need to exit and re-enter the
+;; Summary buffer to update the displayed format.
 (setq wl-summary-line-format (concat "%n %T"
-				     "%P %[%20(%c %f%) %] %Y/%M/%D(%W)%h:%m %-8S %t%~\"%s\" \t"))
+				     "%P %E %[%20(%c %f%) %] %Y/%M/%D(%W)%h:%m %-8S %t%~\"%s\" \t"))
 (setq wl-summary-default-view 'sequence)
 (setq wl-summary-persistent-mark-priority-list '(killed
 						 deleted
@@ -287,10 +283,6 @@ into too much confusion."
 (define-key wl-summary-mode-map "x" nil)
 (define-key wl-summary-mode-map "X" 'my-wl-summary-exec-and-rescan)
 
-;; XXX GRRR!  It seems this is impossible to do from here!
-;;
-;(define-key mime-view-mode-map "c" 'mime-preview-toggle-content)
-;(define-key mime-view-mode-map "h" 'mime-preview-toggle-header)
 
 (setq wl-thread-insert-opened t)	; XXX do we want to see the opened threads?
 
@@ -300,7 +292,7 @@ into too much confusion."
 ;; using `skip-no-unread' with the following is has unfortunate side effects if
 ;; the space bar is held down in auto-repeat mode as the confirmation character
 ;; is in fact "SPC".
-;(setq wl-auto-select-next nil)		; is the default
+(setq wl-auto-select-next nil)		; is the default
 
 (setq wl-message-buffer-prefetch-depth 0)
 (setq wl-message-buffer-prefetch-threshold 1000000)
@@ -461,6 +453,75 @@ into too much confusion."
       'wl-draft-kill
       'mail-send-hook))
 
+;; pull in all the MIME stuff (why does it seem we must do this?)
+(require 'elmo-mime)
+(require 'mel)
+(require 'mime-edit)
+(require 'mime-view)
+
+;; Make MIME understand HTML while preferring the text version if one is
+;; provided.
+;;
+(if (elisp-file-in-loadpath-p "w3m")	; could use (require 'mime-w3m nil t) instead
+    (progn
+      (require 'mime-w3m)))
+
+(setq mime-view-type-subtype-score-alist
+      '(((text . plain) . 4)
+	((text . enriched) . 3)		; RFC 1896
+	((text . richtext) . 2)		; RFC 1341/1521 (deprecated/obsolete)
+	((text . html) . 1)		; Gak!
+	(t . 0)))
+
+;; XXX this doesn't quite work right to turn on automatic signing globally...
+;;
+;(setq mime-edit-pgp-processing '(sign))
+
+(setq mime-setup-enable-pgp t)		; it is the default
+;(setq pgg-default-scheme 'pgp5)		; for composing
+;(setq pgg-scheme 'pgp5)			; for verify/decrypt
+(setq pgg-default-scheme 'gpg)		; for composing
+(setq pgg-scheme 'gpg)			; for verify/decrypt
+(setq pgg-cache-passphrase t)		; it is the default
+(setq pgg-passphrase-cache-expiry 14400); 4 hrs
+;(setq pgg-read-passphrase 'read-passwd)	; it is the default?
+(setq pgg-read-passphrase 'read-string)	; XXX for debugging
+(setq pgg-insert-url-function  (function pgg-insert-url-with-program))
+(setq pgg-insert-url-program "ftp")
+(setq pgg-insert-url-extra-arguments '("-o" "-"))
+
+;; XXX almost no modern GUI-based reader and re-assemble split messages!
+;;
+(setq mime-edit-split-message nil)
+
+;; XXX this function is a copy of the original done simply to change the
+;; default value for the encoding to be quoted-printable instead of base64
+;;
+(defun mime-encode-region (start end encoding)
+  "Encode region START to END of current buffer using ENCODING.
+ENCODING must be string."
+  (interactive
+   (list (region-beginning)(region-end)
+	 (completing-read "Encoding: "
+			  (mime-encoding-alist)
+			  nil t "quoted-printable")))
+  (funcall (mel-find-function 'mime-encode-region encoding) start end))
+
+;; XXX GRRR!  It seems this is impossible to do from here!
+;; (error on startup: "eval-buffer: Symbol's value as variable is void: mime-view-mode-map")
+;;
+;; xxx these wouldn't be right anywya -- what I want are keys to show the raw
+;; message headers and body as it would be transmitted
+;;
+;(define-key mime-view-mode-map "c" 'mime-preview-toggle-content)
+;(define-key mime-view-mode-map "h" 'mime-preview-toggle-header)
+
+; FIXME: Doesn't work(?). Should add `text-mode' settings
+;
+;; (e.g. word wrapping) to WL message viewing mode.
+;;
+;(add-hook 'mime-view-mode-hook 'my-text-mode-init)
+
 ;; delete myself from the recipient list(s?) in draft messages
 ;;
 ;; One or the other of the following will also have to be set if you use
@@ -504,26 +565,53 @@ into too much confusion."
 
 (setq wl-draft-cite-function 'my-wl-default-draft-cite)
 
-; (setq wl-draft-reply-without-argument-list
-;       '(("Reply-To" ("Reply-To") nil nil)
-;        ("Mail-Reply-To" ("Mail-Reply-To") nil nil)
-;        ("From" ("From") nil nil)))
-;
-; (setq wl-draft-reply-with-argument-list
-;       '(("Followup-To" nil nil ("Followup-To"))
-; 	("Mail-Followup-To" ("Mail-Followup-To") nil ("Newsgroups"))
-; 	("Reply-To" ("Reply-To") ("To" "Cc" "From") ("Newsgroups"))
-; 	("From" ("From") ("To" "Cc") ("Newsgroups"))))
+;; note: 'split-horiz is a feature of some private patches
+;;
+(setq wl-draft-buffer-style 'split-horiz)
+(setq wl-draft-reply-buffer-style 'split-horiz)
 
-;; pull in all the MIME stuff (why does it seem we must do this?)
-(require 'elmo-mime)
-(require 'mel)
-(require 'mime-edit)
-(require 'mime-view)
+;; By default Wanderlust uses Reply-to-All; but that is usually not what we
+;; (well, I) want.  The code below makes Reply-to-Sender the default, with
+;; Reply-to-All the action when there is an argument prefix; i.e. `A' or `a'
+;; will reply to sender, `C-u A' and `C-u a' reply to all.
+;;
+;; (Note, the uppercase 'A' is for replying with quoting of the original
+;;  message, while the lowercase `a' starts the reply with an empty message)
+;;
+;; from a mailing list post by David Bremner
+;;
+;; Invert behaviour of with and without argument replies.
+;;
+;; ... reply-to-sender, but just standard Mail RFC headers!
+(setq wl-draft-reply-without-argument-list
+      '(("Reply-To" . (("Reply-To")
+		       nil 
+		       nil))
+	("From" . (("From")
+		   nil
+		   nil))))
+;;                                                                                                                                    
+;; ... reply-to-all, but just standard Mail RFC headers!
+;;
+(setq wl-draft-reply-with-argument-list
+      '(("Reply-To" . (("Reply-To")
+		       ("To" "Cc")
+		       nil))
+	(wl-draft-self-reply-p . (("To")
+				  ("Cc")
+				  nil))
+	("From" . (("From")
+		   ("To" "Cc")
+		   nil))))
 
-;; keep all my sent mail in one place for now....
+;; by default keep all my sent mail in one place....
+;;
+;; Note this may be adjusted at draft buffer creation time by settings in
+;; `wl-draft-config-alist'.
 ;;
 (setq wl-fcc "%inbox/Sent@mailbox.weird.com")
+;;
+;; for network-free offline support
 ;;(setq wl-fcc "+sent")
 
 ;; this should work for me, but it won't work for everyone
@@ -551,6 +639,8 @@ into too much confusion."
 ;;
 (add-hook 'wl-mail-setup-hook (lambda ()
 				(flyspell-mode)))
+(add-hook 'wl-mail-setup-hook (lambda ()
+				(mail-abbrevs-setup)))
 
 ;; more MIME file types
 ;;
@@ -563,19 +653,45 @@ into too much confusion."
 		"base64" "attachment"
 		(("filename" . file))))
 	     
-;(defun my-mime-edit-set-1st-text-qp-encoding ()
-;  "Try setting the default encoding of the first text tag to quoted-printable"
-;  ;; XXX first find the first MIME tag which should have been inserted by
-;  ;; mime-edit-insert-signature
-;  (mime-edit-define-encoding "quoted-printable"))
-
+;; Unfortunately this `defadvice' is not quite sufficient on its own.
+;;
+;; XXX The only work-around I know for now is to mark the entire body of the
+;; message as as region just before I'm ready to send and then invoke
+;;`mime-encode-region' with the now-default value of "quoted-printable".
+;;
+;;	C-t M-<SPACE> M-> M-x mime-encode-region <RETURN> <RETURN>
+;;
+;; It doesn't seem like WL/SEMI/FLIM implements quoted-printable encoding
+;; properly, or maybe even not at all (i.e. doing this seems to be a no-op, as
+;; will be evident from this message).
+;; 
+;; I do see the MIME tag as "[[text/plain][quoted-printable]]", and this
+;; message will have a "Content-Transfer-Encoding: quoted-printable"
+;; header, but there will be no such encoding performed before it is sent.
+;;
+;; It may be that `mime-edit-translate-body' doesn't do any encoding work, but
+;; if not, how to make it do so and yet avoid encoding files, etc. that have
+;; been inserted with their encoding already done?  It probably doesn't do any
+;; encoding because it assumes the encoding was already done when the file was
+;; inserted, but this is not true for `mime-edit-insert-text' or the equivalent
+;; since that's likely just text typed by the user.
+;;
+;; Maybe when we're about to send a message we should first run through all the
+;; MIME parts (instead of the following) and transform any [[text/*]] tags
+;; without a specified encoding to add the [quoted-printable] encoding and of
+;; course then do the necessary quoted-printable encoding automatically as well
+;; at that time.  Optionally we could do this only when we're using PGG to sign
+;; a message, but really all text will be more robust through e-mail if it is
+;; encoded somehow, and quoted-printable is the least intrusive, only showing
+;; its ugly head if it is absolutely necessary.
+;;
 (defadvice mime-edit-insert-signature (after my-mime-edit-signature-set-qp-encoding activate)
-  "Add quoted-printable encoding to the MIME tag for the signature file."
+  "Add quoted-printable encoding to the MIME tag for the message."
   (mime-edit-define-encoding "quoted-printable"))
 
 ;; The default draft folder, first set up the local draft folder name.
 ;;
-;; This may be adjusted at draft buffer creation time by settings in
+;; Someday this may be adjusted at draft buffer creation time by settings in
 ;; `wl-draft-config-alist'.
 ;;
 ;; WARNING:  currently `wl-summary-reedit' does a plain `string=' comparison
@@ -592,23 +708,39 @@ into too much confusion."
 ;; So, move it at least to the mail-setup stage...
 ;;
 (remove-hook 'wl-draft-send-hook 'wl-draft-config-exec)
-(add-hook 'wl-mail-setup-hook 'wl-draft-config-exec)
+;(add-hook 'wl-mail-setup-hook 'wl-draft-config-exec)
+(add-hook 'wl-mail-setup-hook
+	  '(lambda ()
+	     (unless wl-draft-reedit ; don't apply when reedit.
+	       (wl-draft-config-exec wl-draft-config-alist))))
 
-;; the next is probably useless for me, though it may help if I ever learn to
-;; use drafts much...
+;; hmmm, this seems counter-productive
+(remove-hook 'wl-draft-reedit-hook 'wl-draft-remove-text-plain-tag)
+
+;; suggested by Masaru Nomiya on the WL mailing list
 ;;
-;; On the other hand some folks suggest not re-doing draft config on re-edit:
+(defun my-wl-draft-subject-check ()
+  "Check whether the message has a subject before sending."
+  (if (and (< (length (std11-field-body "Subject")) 1)
+	   (null (y-or-n-p "No subject!  Send current draft?")))
+      (error "Abort.")))
+
+;; note, this check could cause some false positives; anyway, better safe than
+;; sorry...
 ;;
-;;	   (add-hook 'wl-mail-setup-hook
-;;		     '(lambda ()
-;;		        (unless wl-draft-reedit ; don't apply when reedit.
-;;		          (wl-draft-config-exec wl-draft-config-alist))))
-;;
-;; which begs the question of whether or not the following will cause
-;; `wl-draft-config-exec' to be called twice on re-edit (i.e. doe re-edit also
-;; do `wl-mail-setup-hook'?)...
-;;
-(add-hook 'wl-draft-reedit-hook 'wl-draft-config-exec)
+(defun my-wl-draft-attachment-check ()
+  "If attachment is mention but none included, warn the the user."
+  (save-excursion
+    (goto-char 0)
+    (unless ;; don't we have an attachment?
+	(re-search-forward "^Content-Disposition: attachment" nil t)
+      (when ;; no attachment; did we mention an attachment?
+	  (re-search-forward "attachment" nil t)
+	(unless (y-or-n-p "Possibly missing an attachment.  Send current draft?")
+	  (error "Abort."))))))
+
+(add-hook 'wl-mail-send-pre-hook 'my-wl-draft-subject-check)
+(add-hook 'wl-mail-send-pre-hook 'my-wl-draft-attachment-check)
 
 ;; add a (pgp-sign . BOOL)
 (unless (assq 'pgp-sign wl-draft-config-sub-func-alist)
@@ -625,17 +757,38 @@ into too much confusion."
 ;;
 ;; Note there's also a hack to set wl-smtp-posting-server using this...
 ;;
+;; add ("FCC" . "%inbox/Sent@mailbox.domain") to set FCC...
+;;
+;; What about using this too:
+;;
+;;	;; If non-nil, applied only one element of `wl-draft-config-alist'.
+;;	(setq wl-draft-config-matchone t)
+;;
 (setq wl-draft-config-alist
       '((reply
-	 "From: Andreas Wrede"
-	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
-	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 "From: [\"]?Andreas Wrede[\"]?"
+	 ("From" . "\"Greg A. Woods\" <woods@weird.ca>")
+	 ("Reply-To" . "\"Greg A. Woods\" <woods@weird.ca>")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 	(reply
 	 "From: .*@.*planix\\."
 	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 ("Precedence" . "first-class")
+	 ("Organization" . "Planix, Inc."))
+;	(reply
+;	 "From: .*@.*teloip\\."
+;	 ("From" . "\"Greg A. Woods\" <gwoods@teloip.com>")
+;	 ("Reply-To" . "\"Greg A. Woods\" <gwoods@teloip.com>")
+;	 ("FCC" . "%inbox.Sent:gwoods@mail.teloip.com:993!")
+;	 ("Precedence" . "first-class")
+;	 ("Organization" . "TELoIP Inc."))
+	(reply
+	 "From: .*@.*clasix\\.net"
+	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 ("X-Priority" . "2")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 	(reply
@@ -646,17 +799,25 @@ into too much confusion."
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 	(reply
+	 "From: [\"]?Scott Lindsay[\"]?"
+	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
+	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
+	 ("X-Priority" . "2")
+	 ("Precedence" . "first-class")
+	 ("Organization" . "Planix, Inc."))
+	(reply
+	 "From: .*Ted Gray.*"
+	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 ("X-Priority" . "2")
+	 ("Precedence" . "first-class")
+	 ("Organization" . "Planix, Inc."))
+	(reply
 	 "From: .*@.*\\(aci\\|opc\\)\\.on\\.ca"
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Precedence" . "first-class")
 	 ("X-Priority" . "2")
-	 ("Organization" . "Planix, Inc."))
-	(reply
-	 "From: .*@.*teloip\\.com"
-	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
-	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
-	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 	(reply
 	 "From: .*@.*\\(lawyermediator\\|gelmanlaw\\)\\.ca"
@@ -674,110 +835,156 @@ into too much confusion."
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
+;	((string-match "^%.*@mail\\.teloip\\.com" wl-draft-parent-folder)
+;	 ("From" . "\"Greg A. Woods\" <woods@teloip.com>")
+;	 ("Reply-To" . "\"Greg A. Woods\" <woods@teloip.com>")
+;	 ("FCC" . "%inbox.Sent:gwoods@mail.teloip.com:993!")
+;	 ("Precedence" . "first-class")
+;	 ("Organization" . "TELoIP, Inc."))
 	((string-match "^%.*:woods@mailbox\\.aci\\.on\\.ca" wl-draft-parent-folder)
 	 (pgp-sign . nil)
 	 ("From" . "\"Greg A. Woods\" <woods@aci.on.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@aci.on.ca>")
-	 ("Precedence" . "first-class"))
+	 ("Precedence" . "first-class")
+	 ("Organization" . "Planix, Inc."))
 	((string-match "^%.*:gwoods@mailbox\\.aci\\.on\\.ca" wl-draft-parent-folder)
 	 (pgp-sign . nil)
 	 ("From" . "\"Greg A. Woods\" <gwoods@aci.on.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <gwoods@aci.on.ca>")
-	 ("Precedence" . "first-class"))
+	 ("Precedence" . "first-class")
+	 ("Organization" . "Planix, Inc."))
 	;; mailing list:  emacs-mime-en
-	((or (string-match "^%inbox/Lists-IN/emacs-mime-en-l@"
+	((or (string-match "^%inbox/Lists-IN/emacs-mime-en-l"
 			   wl-draft-parent-folder)
-	     (string-match "^%inbox/list-archive/emacs-mime-en@"
+	     (string-match "^%inbox/list-archive/emacs-mime-en"
 			   wl-draft-parent-folder))
 	 (pgp-sign . nil)
          ("From" . "\"Greg A. Woods\" <woods-emacs-mime-en-l@weird.com>")
 	 ("To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>")
-	 ("Reply-To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>"))
+	 ("Reply-To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>")
+	 ("Organization" . "Planix, Inc."))
 	(reply
 	 "Delivered-To: emacs-mime-en@m17n.org"
 	 (pgp-sign . nil)
 	 ("From" . "\"Greg A. Woods\" <woods-emacs-mime-en-l@weird.com>")
 	 ("To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>")
-	 ("Reply-To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>"))
+	 ("Reply-To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>")
+	 ("Organization" . "Planix, Inc."))
 	(reply
 	 "To: woods-emacs-mime-en-l@weird.com"
 	 (pgp-sign . nil)
 	 ("From" . "\"Greg A. Woods\" <woods-emacs-mime-en-l@weird.com>")
 	 ("To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>")
-	 ("Reply-To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>"))
+	 ("Reply-To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>")
+	 ("Organization" . "Planix, Inc."))
 	;; mailing list:  info-cyrus
-	((or (string-match "^%inbox/Lists-IN/cyrus-lists@"
+	((or (string-match "^%inbox/Lists-IN/cyrus-lists"
 			   wl-draft-parent-folder)
-	     (string-match "^%inbox/list-archive/info-cyrus@"
+	     (string-match "^%inbox/list-archive/info-cyrus"
 			   wl-draft-parent-folder))
 	 (pgp-sign . nil)
          ("From" . "\"Greg A. Woods\" <woods-cyrus@weird.com>")
 	 ("To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
-	 ("Reply-To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>"))
+	 ("Reply-To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
+	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "Sender: info-cyrus-bounces@lists.andrew.cmu.edu"
+	 "Sender: info-cyrus-bounces"
 	 (pgp-sign . nil)
 	 ("From" . "\"Greg A. Woods\" <woods-cyrus@weird.com>")
 	 ("To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
-	 ("Reply-To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>"))
+	 ("Reply-To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
+	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "To: woods-cyrus@weird.com"
+	 "To: woods-cyrus@weird.com"	; XXX is this one necessary?
 	 (pgp-sign . nil)
 	 ("From" . "\"Greg A. Woods\" <woods-cyrus@weird.com>")
 	 ("To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
-	 ("Reply-To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>"))
+	 ("Reply-To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
+	 ("Organization" . "Planix, Inc."))
+	;; mailing list:  git
+	((string-match "^%inbox/Lists-IN/git-list"
+		       wl-draft-parent-folder)
+         ("From" . "\"Greg A. Woods\" <woods@planix.com>")
+	 ("To" . "The Git Mailing List <git@vger.kernel.org>")
+	 ("Reply-To" . "The Git Mailing List <git@vger.kernel.org>")
+	 ("Organization" . "Planix, Inc."))
+	(reply
+	 "List-Id: .*<git.vger.kernel.org>"
+         ("From" . "\"Greg A. Woods\" <woods@planix.com>")
+	 ("To" . "The Git Mailing List <git@vger.kernel.org>")
+	 ("Reply-To" . "The Git Mailing List <git@vger.kernel.org>")
+	 ("Organization" . "Planix, Inc."))
 	;; mailing list:  nsd-users
-	((string-match "^%inbox/Lists-IN/nsd-users@"
+	((string-match "^%inbox/Lists-IN/nsd-users"
 		       wl-draft-parent-folder)
          ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("To" . "The NSD User's Mailing List <nsd-users@NLnetLabs.nl>")
-	 ("Reply-To" . "The NSD User's Mailing List <nsd-users@NLnetLabs.nl>"))
+	 ("Reply-To" . "The NSD User's Mailing List <nsd-users@NLnetLabs.nl>")
+	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "List-Id: <nsd-users.NLnetLabs.nl>"
+	 "List-Id: .*<nsd-users.NLnetLabs.nl>"
          ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("To" . "The NSD User's Mailing List <nsd-users@NLnetLabs.nl>")
-	 ("Reply-To" . "The NSD User's Mailing List <nsd-users@NLnetLabs.nl>"))
+	 ("Reply-To" . "The NSD User's Mailing List <nsd-users@NLnetLabs.nl>")
+	 ("Organization" . "Planix, Inc."))
 	;; mailing lists:  netbsd
 	;; XXX the (let ((case-fold-search t))) in wl-draft.el:wl-draft-config-exec doesn't seem to work....
 	;; XXX how to set reply-to correctly in a dynamic way without having to
 	;; write some complex editing function?
+	;; mailing list:  nsd-users
 	(reply
 	 "Delivered-To: .*@[Nn][Ee][Tt][Bb][Ss][Dd]\\.[Oo][Rr][Gg]"
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
-	 ("Reply-To" . ""))
+	 ("Reply-To" . "")
+	 ("Organization" . "Planix, Inc."))
+	((string-match "^%inbox/Lists-IN/netbsd-lists/"
+		       wl-draft-parent-folder)
+	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 ("Reply-To" . "")
+	 ("Organization" . "Planix, Inc."))
+	(reply
+	 "List-Id: .*\\.[Nn][Ee][Tt][Bb][Ss][Dd]\\.[Oo][Rr][Gg]>"
+	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 ("Reply-To" . "")
+	 ("Organization" . "Planix, Inc."))
 	;; mailing list:  unbound-users
-	((string-match "^%inbox/Lists-IN/unbound-users@"
+	((string-match "^%inbox/Lists-IN/unbound-users"
 		       wl-draft-parent-folder)
          ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
-	 ("To" . "The Unbound User's Mailing List <unbound-users@NLnetLabs.nl>")
-	 ("Reply-To" . "The Unbound User's Mailing List <unbound-users@NLnetLabs.nl>"))
+	 ("To" . "The Unbound User's Mailing List <unbound-users@unbound.net>")
+	 ("Reply-To" . "The Unbound User's Mailing List <unbound-users@unbound.net>")
+	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "List-Id: <unbound-users.unbound.net>"
+	 "List-Id: .*<unbound-users.unbound.net>"
          ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
-	 ("To" . "The Unbound User's Mailing List <unbound-users@NLnetLabs.nl>")
-	 ("Reply-To" . "The Unbound User's Mailing List <unbound-users@NLnetLabs.nl>"))
+	 ("To" . "The Unbound User's Mailing List <unbound-users@unbound.net>")
+	 ("Reply-To" . "The Unbound User's Mailing List <unbound-users@unbound.net>")
+	 ("Organization" . "Planix, Inc."))
 	;; mailing list:  wl-en
-	((or (string-match "^%inbox/Lists-IN/wl-en-l@"
+	((or (string-match "^%inbox/Lists-IN/wl-en-l"
 			   wl-draft-parent-folder)
 	     (string-match "^%inbox/list-archive/wl-en@"
 			   wl-draft-parent-folder))
 	 (pgp-sign . nil)
          ("From" . "\"Greg A. Woods\" <woods-wl-en-l@planix.com>")
 	 ("To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>")
-	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>"))
+	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>")
+	 ("Organization" . "Planix, Inc."))
 	(reply
 	 "Delivered-To: wl-en@lists.airs.net"
 	 (pgp-sign . nil)
 	 ("From" . "\"Greg A. Woods\" <woods-wl-en-l@planix.com>")
 	 ("To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>")
-	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>"))
+	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>")
+	 ("Organization" . "Planix, Inc."))
 	(reply
 	 "To: woods-wl-en-l@planix.com"
 	 (pgp-sign . nil)
 	 ("From" . "\"Greg A. Woods\" <woods-wl-en-l@planix.com>")
 	 ("To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>")
-	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>"))
-	;; defaults for everything
+	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>")
+	 ("Organization" . "Planix, Inc."))
+	; defaults for everything
 	((or t)
 	 (pgp-sign . t)
 	 mime-edit-insert-signature)))
@@ -787,16 +994,29 @@ into too much confusion."
 (setq signature-insert-at-eof t)
 (setq signature-file-alist
       '((("From" . "@planix\\.") . "~/.signature-planix.com")
+;	(("From" . "@teloip\\.") . "~/.signature-teloip.com")
 	(("From" . "@aci\\.") . "~/.signature-aci-postmaster")
 	(("From" . ".") . "~/.signature")))
 
 ;; mail-sent-via is a big useless pile of crap.
+;; 
+;; luckily it seems we can modify `wl-draft-mode-map' at ~/.wl load time, but
+;; otherwise it could be done in a `wl-draft-mode-hook' function
 ;;
 (define-key wl-draft-mode-map "\C-c\C-v" nil)
 
 ;; do the right thing....
 ;;
 (define-key wl-draft-mode-map "\C-xk" 'wl-draft-kill)
+
+;; For some reason, `wl-draft-save' is not bound in `wl-draft-mode' even though
+;; it should rightfully override the default save operation.
+;;
+(define-key wl-draft-mode-map (kbd "C-x C-s") 'wl-draft-save)
+
+;; fix gratuitous overriding of `M-t' in draft mode.
+;;
+(define-key wl-draft-mode-map (kbd "M-t") nil)
 
 ;; just for `wl-summary-goto-folder', which oddly enough is only bound to a key
 ;; (`G') in the Summary buffer of all places!
@@ -814,7 +1034,7 @@ into too much confusion."
 ;; "Trash" folder living directly under that INBOX, including for all
 ;; other sub-folders of that INBOX" without having to enumerate them all
 ;; (and take special consideration of the ones where I have to use a
-;; different port or whatever)
+;; different port, different heirarchy separator, or whatever)
 ;;
 (setq wl-dispose-folder-alist
       '(("^%inbox.*Trash@" . remove)	; this one must come first
@@ -822,8 +1042,8 @@ into too much confusion."
 	("^%inbox[^@]*$" . "%inbox/Trash")
 	("^%INBOX@mailbox.weird.com" . "%inbox/Trash@mailbox.weird.com")
 	("^%inbox.*@mailbox.weird.com" . "%inbox/Trash@mailbox.weird.com")
-	("^%INBOX@mail.planix.com" . "%inbox.Trash@mail.planix.com:993!")
-	("^%inbox.*@mail.planix.com" . "%inbox.Trash@mail.planix.com:993!")
+;	("^%INBOX@mail.teloip.com" . "%inbox.Trash@mail.teloip.com:993!")
+;	("^%inbox.*@mail.teloip.com" . "%inbox.Trash@mail.teloip.com:993!")
 	("^%INBOX:gwoods@mailbox.aci.on.ca" . "%inbox/Trash:gwoods@mailbox.aci.on.ca:993!")
 	("^%inbox.*:gwoods@mailbox.aci.on.ca" . "%inbox/Trash:gwoods@mailbox.aci.on.ca:993!")
 	("^%INBOX@mailbox.aci.on.ca" . "%inbox/Trash@mailbox.aci.on.ca:993!")
@@ -1014,6 +1234,10 @@ See `wl-summary-mark-action-list' for the details of each element.")
 ;; (i.e. the line below marked "XXX is this necessary?") while re-opening
 ;; all folders with "ESC RET", then putting it back and doing it again.
 ;;
+;; Note: if you change the hierarchy and want to rebuild the tree do:
+;;
+;;	rm -rf ~/.elmo/folder
+;;
 (setq wl-folder-hierarchy-access-folders
       '(
 	"^%\\([^/.]+[/.]\\)*[^/.]+\\(:\\|@\\|$\\)" ; for IMAP (recursive)
@@ -1023,11 +1247,14 @@ See `wl-summary-mark-action-list' for the details of each element.")
 	"^'$"				; for internal (?)
 	))
 
-;; no sense normally reading e-mail on a narrow screen! :-)
+;; set the folder-window's width to some decent percentage of the window width.
 ;;
-(setq wl-folder-window-width 30)	; default is just 20
+(setq wl-folder-window-width (max wl-folder-window-width
+				  (round (* (window-width) 0.25))))
 ;;
-;; or maybe this would be better, but does it work???
+;; or maybe this could be better, but it doesn't work the way I expected it to
+;; -- i.e. it creates a new frame for the Folder window, but then procedes to
+;; just use this frame for all other windows as well.
 ;;
 ;; XXX really wish I could visit multiple folders, perhaps one per frame!
 ;;
