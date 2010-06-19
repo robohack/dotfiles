@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	31.1	10/06/18 19:16:10 (woods)"
+#ident	"@(#)HOME:.kshsccs	31.2	10/06/18 19:33:57 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -316,12 +316,17 @@ function mksccs
 function vverify
 {
 	sdir="$(vwproj)"
-	for file in ${sdir}/s.* ; do
-		if [ ! -r $(echo ${file} | sed "s#${sdir}/s.##") ] ; then
-			echo ${file}
+	for sfilepath in ${sdir}/s.* ; do
+		sfile=$(basename ${sfilepath})
+		file=${sfile##s.}
+		if [ ! -r "${file}" ] ; then
+			echo "${file}: missing (needs vget?)!"
         	fi
+		if [ -w "${file}" -a ! -f "${sdir}/p.${file}" ] ; then
+			echo "${file}: writable but not being edited!"
+		fi
 	done
-	unset sdir file
+	unset sdir sfilepath sfile file
 }
 
 
