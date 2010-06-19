@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	29.10	10/06/18 17:14:30 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	29.11	10/06/18 18:52:49 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -44,7 +44,8 @@
 (setq custom-file "~/.emacs-custom.el")
 ;; doing this first allows this file to over-ride `custom', which is what I
 ;; think I want to do for now.
-(load custom-file)
+(if (file-exists-p custom-file)
+    (load custom-file))
 
 ;;; ----------
 ;;;; Let's make sure we're "home"....
@@ -448,9 +449,10 @@ scripts (alias)." t)
     (progn
       (setq orig-default-frame-font (frame-parameter nil 'font))
       (setq preferred-frame-font
-	    "-etl-fixed-medium-r-normal--16-*-100-100-c-*-iso8859-1")))
+	    "-etl-fixed-medium-r-normal--16-*-*-*-c-*-iso8859-1")))
 
-;      (setq preferred-frame-font "-*-*-medium-r-*-*-*-100-100-100-m-*-iso10646-1")
+; (setq preferred-frame-font "-*-*-medium-r-normal--15-*-*-*-c-*-iso10646-1")
+; (setq preferred-frame-font "-*-*-medium-r-*-*-*-100-100-100-m-*-iso10646-1")
 
 (require 'frame)
 (defun set-frame-face-to-preferred-frame-font (frame)
@@ -2152,6 +2154,8 @@ argument.  As a consequence, you can always delete a whole line by typing
 		 (setq vc-checkout-carefully t))
 	     (setq vc-command-messages t)
 	     (setq vc-initial-comment t)
+	     (eval-when-compile
+	       (defvar vc-maximum-comment-ring-size)) ; not defvar'ed!
 	     (setq vc-maximum-comment-ring-size 64) ; 32 is too small!
 	     (add-hook 'vc-checkin-hook
 		       'vc-comment-to-change-log))))
@@ -2316,6 +2320,12 @@ argument.  As a consequence, you can always delete a whole line by typing
 ;;;; ----------
 ;;;; some default key re-binding....
 
+;; seems 23.1 changes function-key-map radically....
+;;
+(if (boundp 'local-function-key-map)
+    (defvaralias 'my-function-key-map 'local-function-key-map)
+  (defvaralias 'my-function-key-map 'function-key-map))
+
 ;;; first off, we do some fancy stuff to make C-h work "properly," but still
 ;;; have good access to the help functions!
 ;;
@@ -2337,13 +2347,13 @@ argument.  As a consequence, you can always delete a whole line by typing
       ;; luckily on Mac OS-X X11 with the mini-wireless keyboard, the "delete"
       ;; key is actually sending <backspace> by default, else one would have to
       ;; first change the X11 keyboard map!
-      (define-key function-key-map [delete] [?\C-?])
-      (define-key function-key-map [S-delete] [?\C-h])
-      (define-key function-key-map [kp-delete] [?\C-?])
-      (define-key function-key-map [backspace] [?\C-h])
-      (define-key function-key-map [S-backspace] [?\C-?])
-      (define-key function-key-map [M-S-backspace] [?\e?\C-?])
-      (define-key function-key-map [kp-backspace] [?\C-h])
+      (define-key my-function-key-map [delete] [?\C-?])
+      (define-key my-function-key-map [S-delete] [?\C-h])
+      (define-key my-function-key-map [kp-delete] [?\C-?])
+      (define-key my-function-key-map [backspace] [?\C-h])
+      (define-key my-function-key-map [S-backspace] [?\C-?])
+      (define-key my-function-key-map [M-S-backspace] [?\e?\C-?])
+      (define-key my-function-key-map [kp-backspace] [?\C-h])
       (setq keyboard-translate-table nil)))
 (global-set-key "\C-h" 'delete-backward-char)
 (global-set-key "\C-?" 'delete-char)
@@ -2375,9 +2385,9 @@ argument.  As a consequence, you can always delete a whole line by typing
 ;; For some entirely un-fathomable reason the default function bindings make
 ;; the 'backspace' and 'delete' keys synonymous!
 ;;
-(define-key function-key-map [backspace] [?\C-h])
-(define-key function-key-map [M-backspace] [?\M-\C-h])
-;;(define-key function-key-map [C-backspace] [?\C-h]) ; sometimes *is* DEL....
+(define-key my-function-key-map [backspace] [?\C-h])
+(define-key my-function-key-map [M-backspace] [?\M-\C-h])
+;;(define-key my-function-key-map [C-backspace] [?\C-h]) ; sometimes *is* DEL....
 
 ;;; OK, that's the end of the stuff to fix GNU Emacs' C-h brain damage.
 
@@ -2679,7 +2689,7 @@ current emacs server process..."
       (require 'ispell)
       (setq ispell-dictionary (getenv "DICTIONARY"))
       (if (not ispell-dictionary)
-	  (setq ispell-dictionary "canadian")) ; that's what's best!!!
+	  (setq ispell-dictionary "british")) ; that's what's best!!!
       (define-key global-map "\M-S" 'ispell-buffer)
       (setq plain-TeX-mode-hook
 	    (function
