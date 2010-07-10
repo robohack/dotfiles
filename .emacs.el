@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	31.1	10/06/18 19:16:10 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	31.2	10/07/09 17:26:25 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -64,7 +64,7 @@
 	       (string-lessp emacs-version "19"))
 	   18)				; was there ever anything less?
 	  (t 19))				; what else could it be?
-    "Emacs major version for testing compatibility."))
+    "*Emacs major version for testing compatibility."))
 
 (if (<= init-emacs-type 19)
     (progn
@@ -110,8 +110,10 @@
 
 (if (>= init-emacs-type 20)
     (if (not window-system)
-	(set-locale-environment)	; xxx assume environment is correct
-					; (LC_ALL, LC_CTYPE, or LANG
+	(set-locale-environment nil)	; xxx assume environment is correct
+					; (LC_ALL, LC_CTYPE, or LANG) (the
+					; parameter is optional in version 22,
+					; but not in version 21.4)
       (set-language-environment "UTF-8")) ; xxx assume all window systems are
 					; full UTF-8, since all of the ones I
 					; use do, and I do this here because
@@ -178,7 +180,7 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 ;; prepend our private (even if it does not exist!) elisp library
 (defvar private-lisp-dir
   (expand-file-name "~/lib/elisp")
-  "The location of the user's private e-lisp library.")
+  "*The location of the user's private e-lisp library.")
 ;; add-to-list in 19.29 and newer
 (add-to-list 'load-path private-lisp-dir)
 
@@ -409,7 +411,7 @@ scripts (alias)." t)
 
 (defvar preferred-frame-font
   "fixed"
-  "My preferred font.")
+  "*My preferred font.")
 
 ;; The Bitstream Courier font is very clean but doesn't seem to have a matching
 ;; size italic (and has no oblique) font (at least not on some stock X11's).
@@ -544,7 +546,7 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 (setq compilation-window-height 10)	; default height for a compile window
 (setq compilation-scroll-output t)	; where, oh where, has this been!!!
 (if (fboundp 'compilation-first-error)
-    (define-key compilation-minor-mode-map "\M-<" compilation-first-error))
+    (define-key compilation-minor-mode-map "\M-<" 'compilation-first-error))
 
 (require 'font-lock)
 (setq font-lock-maximum-size nil)	; don't worry about the buffer size...
@@ -618,10 +620,10 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
       ;; run it in an Xterm window....
       ;;
       (defvar browse-url-links-program nil
-	"A web browser program to use in an xterm window")
+	"*A web browser program to use in an xterm window")
       (defun browse-url-links-xterm (url &optional new-window)
 	;; new-window ignored
-	"Ask the (e)Links WWW browser to load URL.
+	"*Ask the (e)Links WWW browser to load URL.
 Default to the URL around or before point.  A new (e)Links process is run
 in an Xterm window using the Xterm program named by `browse-url-xterm-program'
 with possible additional arguments `browse-url-xterm-args'."
@@ -821,7 +823,7 @@ with possible additional arguments `browse-url-xterm-args'."
 	 '("/tmp/[^/]*nf[^/]*\\'" . indented-text-mode))) ; notesfile compose buf
 
 (defvar my-best-org-mode nil
-  "The best available mode to use for outlines, etc.")
+  "*The best available mode to use for outlines, etc.")
 
 (if (elisp-file-in-loadpath-p "org")
     ;; org-mode is part of emacs since 22(?)
@@ -1186,7 +1188,7 @@ Note that a buffer always has one more line in it than the file has."
 ;;Date: Sun, 12 Feb 95 20:29:02 CST
 ;;
 (defvar nuke-trailing-whitespace-p 'ask
-  "If `nil', the function `nuke-trailing-whitespace' is disabled.
+  "*If `nil', the function `nuke-trailing-whitespace' is disabled.
 If `t', `nuke-trailing-whitespace' unreservedly strips trailing whitespace
 from the current buffer.  If not `nil' and not `t', a query is made for each
 instance of trailing whitespace.")
@@ -1657,9 +1659,9 @@ file modes."
 ;; This code is public domain.
 ;;
 (defvar himark-overlay-list nil
-  "list of high-mark overlays (himark-unset deletes them).")
+  "*list of high-mark overlays (himark-unset deletes them).")
 (defvar himark-overlay-face 'highlight
-  "Name of face (quoted symbol) to use for himark.
+  "*Name of face (quoted symbol) to use for himark.
 e.g. (setq himark-overlay-face 'modeline)
 Use `list-faces-display' to see all available faces")
 
@@ -2322,9 +2324,16 @@ argument.  As a consequence, you can always delete a whole line by typing
 
 ;; seems 23.1 changes function-key-map radically....
 ;;
-(if (boundp 'local-function-key-map)
-    (defvaralias 'my-function-key-map 'local-function-key-map)
-  (defvaralias 'my-function-key-map 'function-key-map))
+;; Unfortunately 23.1 also still has function-key-map so we can't make that an
+;; alias for the new local-function-key-map that we need to use in 23.1.  Sigh.
+;;
+(eval-and-compile
+  (if (functionp 'defvaralias)
+      (if (boundp 'local-function-key-map)
+	  (defvaralias 'my-function-key-map 'local-function-key-map)
+	(defvaralias 'my-function-key-map 'function-key-map))
+    ;; XXX is this right?  it works (maybe?)
+    (defvar my-function-key-map function-key-map)))
 
 ;;; first off, we do some fancy stuff to make C-h work "properly," but still
 ;;; have good access to the help functions!
@@ -2426,7 +2435,11 @@ argument.  As a consequence, you can always delete a whole line by typing
 (global-set-key "\C-^" 'quoted-insert)
 (global-set-key "\C-x\C-^" 'toggle-read-only)
 
-(require 'simple)
+;; first-error now defined in simple.el instead of compile.el, but simple.el
+;; doesn't (provide 'simple) in 21.* and earlier (and we've already done the
+;; require for compile.el)
+(if (>= init-emacs-type 22)
+    (require 'simple))
 (global-set-key "\C-x~" 'first-error)
 (global-set-key "\M-g," 'first-error)
 (global-set-key "\M-g<" 'first-error)
@@ -3131,7 +3144,7 @@ to the other end and continue."
 ;; mail-x-face-file thanks to John Owens <owens@graphics.stanford.edu>
 ;;
 (defvar mail-x-face-file "~/.face"
-  "The name of a file containing the content for your `X-Face' header in
+  "*The name of a file containing the content for your `X-Face' header in
 `compface' output format.")
 
 (defvar mail-default-x-face
@@ -3139,7 +3152,7 @@ to the other end and continue."
  8nBBgD@\\+D7Cf5&(Wg'RA|/+Ee`$\"V>se7P7j2O-MG?rIJW=EBcaQf7k\\KnmT0^375!h
  \\._mc>~9'd_
 "
-  "The default x-face content in `compface' output format (i.e. with a leading
+  "*The default x-face content in `compface' output format (i.e. with a leading
 space on every line, and a trailing newline).")
 
 (defvar mail-alternate-x-face
@@ -3148,7 +3161,7 @@ space on every line, and a trailing newline).")
  C|B~;vhJ:>2,{tA}#)P'g3h6eE8JT|Qfcm50pUoy{zb8=jvof2?lY}EYTEt4z=5*i%OJ136
  \?S8^g~^>,s&,jBb'=K|ryeVtUX5
 "
-  "An alternate x-face file -- this one is a cute little BSD daemon.
+  "*An alternate x-face file -- this one is a cute little BSD daemon.
 Use it by evaluating `(setq mail-default-x-face mail-alternate-x-face)'")
 
 (defun mail-insert-x-face ()
@@ -3665,7 +3678,7 @@ but it's seriously brain damaged so we re-define it as nothing."
 ;; Note the expression magic is not currently documented.
 ;;
 (defvar default-mail-signature-file mail-signature-file
-  "Original value of `mail-signature-file' for safe keeping.")
+  "*Original value of `mail-signature-file' for safe keeping.")
 (setq mail-signature t)
 
 (defun my-mail-signature-selector ()
@@ -3680,7 +3693,7 @@ but it's seriously brain damaged so we re-define it as nothing."
 (eval-and-compile
   (if (not (boundp 'message-signature-separator))
       (defvar message-signature-separator  "^-- *$"
-	"Regexp matching the signature separator.")))
+	"*Regexp matching the signature separator.")))
 
 ;; more fancy .sig handling adapted from:
 ;; <URL:http://www-xray.ast.cam.ac.uk/~gmorris/dotvm.txt>
