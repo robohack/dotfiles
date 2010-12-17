@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	31.2	10/07/09 17:26:25 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	31.3	10/12/16 17:49:09 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -450,9 +450,14 @@ scripts (alias)." t)
 (if (eq window-system 'x)
     (progn
       (setq orig-default-frame-font (frame-parameter nil 'font))
-      (setq preferred-frame-font
-	    "-etl-fixed-medium-r-normal--16-*-*-*-c-*-iso8859-1")))
-
+      (if (> (/ (x-display-pixel-height) (/ (x-display-mm-height) 25.4)) 75)
+	  (setq preferred-frame-font
+		"-*-*-medium-r-*-*-*-100-100-100-m-*-iso10646-1")
+	(setq preferred-frame-font "-*-*-medium-r-normal--15-*-*-*-c-*-iso10646-1"))))
+      
+;; for manual resets, try these with ^X^E:
+;;
+; (setq preferred-frame-font "-etl-fixed-medium-r-normal--16-*-*-*-c-*-iso8859-1")
 ; (setq preferred-frame-font "-*-*-medium-r-normal--15-*-*-*-c-*-iso10646-1")
 ; (setq preferred-frame-font "-*-*-medium-r-*-*-*-100-100-100-m-*-iso10646-1")
 
