@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	31.2	10/06/18 19:33:57 (woods)"
+#ident	"@(#)HOME:.kshsccs	31.3	10/12/16 18:44:19 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -435,3 +435,5 @@ function vnewrel
 	vedit -r$REL $PROJECT
 	vdelget -y"START RELEASE $REL" $PROJECT
 }
+
+alias vmkrel=vnewrel
