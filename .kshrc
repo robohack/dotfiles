@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	31.1	10/06/18 19:16:11 (woods)"
+#ident	"@(#)HOME:.kshrc	31.2	10/12/16 18:42:34 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -648,6 +648,11 @@ xterm*)
 	{
 		uxterm -ziconbeep 1 -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME $* &
 	}
+	function rxauth
+	{
+		xauth extract - $DISPLAY | onx11server $* 'xauth merge -'
+	}
+
 	setban
 	;;
 esac
