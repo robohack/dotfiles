@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	31.1	10/06/18 19:16:10 (woods)"
+;;;;#ident	"@(#)HOME:.wl	31.2	10/12/16 17:49:39 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -55,9 +55,11 @@
 
 ;; Use SSL connection
 ;(setq elmo-imap4-default-stream-type 'starttls)
-;(setq elmo-imap4-default-port 993)
-(setq elmo-imap4-default-stream-type nil)
-(setq elmo-imap4-default-port 143)
+(setq elmo-imap4-default-stream-type 'ssl)
+(setq elmo-imap4-default-port 993)
+;; ... else don't use SSL
+;(setq elmo-imap4-default-stream-type nil)
+;(setq elmo-imap4-default-port 143)
 
 ;; password always in raw format for my servers
 ;;
