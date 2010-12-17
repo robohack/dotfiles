@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	31.1	10/06/18 19:16:11 (woods)"
+#ident	"@(#)HOME:.xinitrc	31.2	10/12/16 17:51:38 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -262,8 +262,9 @@ if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
 		# doesn't have a shared $HOME...
 		xauth extract - $DISPLAY | onx11server $X11SERVER 'xauth merge -'
 		# we run these ones in the background because the hosts might not be up
-		xauth extract - $DISPLAY | onx11server historically.weird.com 'xauth merge -' &
+		xauth extract - $DISPLAY | onx11server most.weird.com 'xauth merge -' &
 		xauth extract - $DISPLAY | onx11server isit.weird.com 'xauth merge -' &
+		xauth extract - $DISPLAY | onx11server historically.weird.com 'xauth merge -' &
 		# now start server programs we like for this scenario
 		onx11server -n $X11SERVER 'xload -display $DISPLAY -geometry 120x40-200+48 -hl red' &
 		onx11server -n $X11SERVER 'uxterm -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
@@ -346,8 +347,10 @@ if [ "$argv0" = ".xinitrc" ] ; then
 		# now move our AUTH cookies over to the server in case it
 		# doesn't have a shared $HOME...
 		xauth extract - $DISPLAY | onx11server $X11SERVER 'xauth merge -'
-		# we run this one in the background because the host might not be up
-		xauth extract - $DISPLAY | onx11server historically.weird.com 'xauth merge -' &
+		# we could/should run these ones in the background because the hosts might not be up
+		xauth extract - $DISPLAY | onx11server most.weird.com 'xauth merge -'
+		xauth extract - $DISPLAY | onx11server isit.weird.com 'xauth merge -'
+		xauth extract - $DISPLAY | onx11server historically.weird.com 'xauth merge -'
 		# and then start some useful programs...
 		onx11server -n $X11SERVER 'xload -display $DISPLAY -geometry 120x40-200+48 -hl red' &
 		onx11server -n $X11SERVER 'uxterm -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
@@ -355,7 +358,7 @@ if [ "$argv0" = ".xinitrc" ] ; then
 		;;
 	esac
 	if $HAVEXV && [ -d '/Library/Desktop Pictures/Nature' ]; then
-		xv -root '/Library/Desktop Pictures/Nature/'* &
+		xv -root '/Library/Desktop Pictures/Nature/'* "$HOME/Pictures/"*.jpg &
 	elif $HAVEXEARTH ; then
 		XEGAMMA=""
 		if [ $SCREENDEPTH -ne 1 ] ; then
@@ -411,7 +414,7 @@ fi
 
 case $DISPLAY in
 
-very.weird.com:*|very.robohack.planix.com:*)
+very.local:*|very.weird.com:*|very.robohack.planix.com:*)
 	# very has a very large, very hi-res, display....
 	xset m 5 10
 
@@ -427,12 +430,13 @@ very.weird.com:*|very.robohack.planix.com:*)
 	fi
 	# local server performance levels we want to be aware of
 	# (NOTE: in stacked order, 48 pixels apart)
-#	$RSH -n once.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+96 -hl red &
-#	$RSH -n starting-out.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+144 -hl red &
+#	$RSH -n once.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+48 -hl red &
+	$RSH -n most.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+96 -hl red &
+	$RSH -n isit.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+144 -hl red &
 #	$RSH -n sometimes.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+192 -hl red &
-#	$RSH -n whats.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+242 -hl red &
+	$RSH -n historically.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+242 -hl red &
 	# (and there is room for one under the clocks too)
-#	$RSH -n always.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-70+242 -hl red &
+#	$RSH -n almost.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-70+242 -hl red &
 
 	# All the small lower-right command terminals (starting with our own first one)
 	# note the -155 is the height of the normal xconsole window, at 120, plus its decorations (I think)
