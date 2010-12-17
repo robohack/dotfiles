@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	31.2	10/12/16 17:51:38 (woods)"
+#ident	"@(#)HOME:.xinitrc	31.3	10/12/16 18:32:57 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -79,8 +79,13 @@ case "$DISPLAY" in
 		echo "$argv0: WARNING: display was '$DISPLAY' but /dev/console is not writable by $USER!"
 		ls -l /dev/console
 	fi
-	DISPLAY="${XDMHOST:-${HOSTNAME}${DOMAINNAME}}${DISPLAY}"
-	echo "$argv0: have set DISPLAY='$DISPLAY'"
+	if [ -n "${XDMHOST}" -o -n "${DOMAINNAME}" ]; then
+		DISPLAY="${XDMHOST:-${HOSTNAME}${DOMAINNAME}}${DISPLAY}"
+		echo "$argv0: have set DISPLAY='$DISPLAY'"
+	else
+		# look for the first "en*" interface with an address
+		MY_IP=$(/sbin/ifconfig -l | tr ' ' '\012' | while read ifname; do case $ifname in en*) /sbin/ifconfig $ifname inet;; esac; done | awk '$1 == "inet" {print $2; exit 0}')
+	fi
 	;;
 esac
 if [ "$XODISPLAY" != "$DISPLAY" ] ; then
@@ -196,7 +201,7 @@ fi
 #case "$VENDORSTR" in
 #"Network Computing Devices"*)
 case $DISPLAY in
-xtra.weird.com:*|xtremely.weird.com:*)
+xtra*:*|xtremely*:*)
 	if [ -r $HOME/.Xmodmap-ncd-108 ] ; then
 		case "$XDMHOST" in
 		proven.weird.com|starting-out.weird.com)
@@ -254,7 +259,7 @@ if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
 		# now start server programs we like for this scenario
 		onx11server -n $X11SERVER 'xload -display $DISPLAY -geometry 120x40-200+48 -hl grey90' &
 		;;
-	very.weird.com|very.robohack.planix.com)
+	very.local:very.weird.com|very.robohack.planix.com)
 		X11SERVER=${X11SERVER:-"once.weird.com"}
 		export X11SERVER
 		echo "$argv0: have set X11SERVER='$X11SERVER'"
@@ -337,6 +342,24 @@ fi
 if [ "$argv0" = ".xinitrc" ] ; then
 	echo "$argv0: looks like X was started with xinit or startx..."
 	case $DISPLAY in
+	:*)
+		# we could/should run these ones in the background
+		# because the hosts might not be up, but then we would
+		# also have to figure out if we could/should try to
+		# start the next programs as well....
+		xauth extract - $DISPLAY | onx11server 10.0.1.128 'xauth merge -'
+		# and then start some useful programs...
+		onx11server -n 10.0.1.128 'xload -display ${MY_IP}${DISPLAY} -geometry 120x40-200+48 -hl red' &
+		onx11server -n 10.0.1.128 'uxterm -display ${MY_IP}${DISPLAY} -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
+		onx11server -n 10.0.1.128 'uxterm -display ${MY_IP}${DISPLAY} -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+###
+### XXX these would need to be run though SSH:
+###
+###		xauth extract - $DISPLAY | onx11server centrally.weird.com 'xauth merge -'
+###		onx11server -n centrally.weird.com 'xload -display $DISPLAY -geometry 120x40-200+96 -hl red' &
+###		onx11server -n centrally.weird.com 'uxterm -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
+###		onx11server -n centrally.weird.com 'uxterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+		;;
 	very.weird.com:*|very.robohack.planix.com:*)
 
 		# XXX note: for the moment the rest of this section is identical to the XDM variant above for this host.
@@ -431,10 +454,10 @@ very.local:*|very.weird.com:*|very.robohack.planix.com:*)
 	# local server performance levels we want to be aware of
 	# (NOTE: in stacked order, 48 pixels apart)
 #	$RSH -n once.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+48 -hl red &
-	$RSH -n most.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+96 -hl red &
-	$RSH -n isit.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+144 -hl red &
+#	$RSH -n most.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+96 -hl red &
+#	$RSH -n isit.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+144 -hl red &
 #	$RSH -n sometimes.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+192 -hl red &
-	$RSH -n historically.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+242 -hl red &
+#	$RSH -n historically.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+242 -hl red &
 	# (and there is room for one under the clocks too)
 #	$RSH -n almost.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-70+242 -hl red &
 
