@@ -1,7 +1,7 @@
 #
 #	.bashrc - per-shell startup stuff for bash via $ENV
 #
-#ident	"@(#)HOME:.bashrc	31.1	10/06/18 19:16:10 (woods)"
+#ident	"@(#)HOME:.bashrc	32.1	10/12/16 18:49:30 (woods)"
 
 # Assumptions:
 

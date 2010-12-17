@@ -1,7 +1,7 @@
 #
 #	.bashlogin - login shell startup for bash
 #
-#ident	"@(#)HOME:.bashlogin	31.1	10/06/18 19:16:09 (woods)"
+#ident	"@(#)HOME:.bashlogin	32.1	10/12/16 18:49:30 (woods)"
 
 set -o ignoreeof	# we only do this for our login shell....
 
