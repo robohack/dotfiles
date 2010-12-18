@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	32.1	10/12/16 18:49:31 (woods)"
+;;;;#ident	"@(#)HOME:.wl	32.2	10/12/17 17:19:32 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -75,7 +75,7 @@
 (setq wl-icon-directory "/usr/pkg/share/wl")
 
 ;; SMTP server for mail posting. Default: `nil'
-(setq wl-smtp-posting-server "mail")
+(setq wl-smtp-posting-server "localhost")
 
 ;; NNTP server for news posting. Default: `nil'
 ;;
