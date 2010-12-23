@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	32.1	10/12/16 18:49:31 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	32.2	10/12/23 14:37:14 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -1827,6 +1827,11 @@ argument.  As a consequence, you can always delete a whole line by typing
 ;;
 (require 'pcvs)
 
+;; here we try modifying the default to keep separate diff, status, tree, and
+;; log message buffers based on the filename.
+;;
+;; also use indented-text-mode for commit message buffers.
+;;
 (setq cvs-buffer-name-alist 
       '(("diff"
 	 (expand-file-name
@@ -1841,8 +1846,7 @@ argument.  As a consequence, you can always delete a whole line by typing
 	  (format "*cvs-%s*" cmd))
 	 cvs-status-mode)
 	("message"
-	 (expand-file-name
-	  (format "*cvs-%s*" cmd))
+	 "*cvs-commit*"
 	 indented-text-mode log-edit)
 	("log"
 	 (expand-file-name
