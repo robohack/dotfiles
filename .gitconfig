@@ -1,3 +1,6 @@
 [user]
 	name = Greg A. Woods
 	email = woods@planix.com
+[alias]
+	commit-add-amend-HEAD = commit -a --amend -C HEAD
+	caa = commit -a --amend -C HEAD
