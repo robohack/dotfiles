@@ -1,7 +1,7 @@
 #
 #	.ashpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.ashpwd	1.1	11/06/04 13:03:55 (woods)"
+#ident	"@(#)HOME:.ashpwd	32.1	11/06/04 13:09:10 (woods)"
 
 # NOTE: the only difference between this and .kshpwd is that this
 # version only defines a function which hides the builtin (no alias)
