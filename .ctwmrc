@@ -2,7 +2,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	32.1	10/12/16 18:49:31 (woods)"
+#ident	"@(#)HOME:.ctwmrc	32.2	11/06/04 13:54:40 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -637,13 +637,17 @@ menu "quickies"
 	""			f.separator
 	"Mac OS X Apps..."	f.menu "osx-apps"
 	"Mac OS X Spaces"	!"open /Applications/Utilities/Spaces.app &"
-	"links -g @once"	!"$RSH -n once.weird.com '. ./.profile; exec /usr/pkg/bin/links -g -display '$DISPLAY &"
-	"links -g @historically" !"$RSH -n historically.weird.com '. ./.profile; exec /usr/pkg/bin/links -g -display '$DISPLAY &"
+	"links -g @once"	!"$RSH -n 10.0.1.128 '. ./.profile; exec /usr/pkg/bin/links -g -display '$REMOTE_DISPLAY &"
+#	"links -g @historically" !"$RSH -n historically.weird.com '. ./.profile; exec /usr/pkg/bin/links -g -display '$DISPLAY &"
  ])
 	""			f.separator
 	# note the -155 is the height of the normal xconsole window, at 120, plus its decorations (I think)
 	"UXterm [@CLIENTHOST]"	!"uxterm -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
 	"UXterm-big [@CLIENTHOST]"	!"uxterm OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
+	#
+	"UXterm @once"		!"$RSH -n 10.0.1.128 '. ./.profile; exec uxterm -display '$REMOTE_DISPLAY' -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
+	"Xterm-big @once"	!"$RSH -n 10.0.1.128 exec /usr/X11R6/bin/xterm -display $REMOTE_DISPLAY OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	#
  ifdef([USE_X11SERVER], [
 	"Xterm @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP' &"
 	"UXterm @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'uxterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP' &"
