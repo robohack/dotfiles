@@ -1,7 +1,7 @@
 #
 #	.ashrc - per-shell startup stuff for ash via $ENV
 #
-#ident	"@(#)HOME:.ashrc	32.1	10/12/16 18:49:30 (woods)"
+#ident	"@(#)HOME:.ashrc	32.2	11/06/04 13:47:22 (woods)"
 
 # Assumptions:
 #	- chdir must be synonymous with cd, and cd can be reset to a function
@@ -237,9 +237,10 @@ if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		eval myxban -r "\"$MYXBAN_R\""
 	}
 
+	# basic form -- may be re-defined in ~/.ashpwd
 	cd ()
 	{
-		chdir $*
+		chdir "$*"
 		eval myxban -l "\"$MYXBAN_L\""
 	}
 
@@ -251,14 +252,16 @@ elif [ "$TERM" = "xterm" ] ; then
 
 	setban ()
 	{
-		eval TBANNER='"${WBANNER:-sh}://$UUNAME/${BANNERWD} | $uid{$gid}($LOGNAME)[$LEV]:$TTYN"'
+		eval TBANNER='"${WBANNER:-sh}://$UUNAME/${BANNER_PWD} | $uid{$gid}($LOGNAME)[$LEV]:$TTYN"'
 		$echo "]0;$TBANNER$c"
 		WBANNER=""
 	}
 
+	# basic form -- may be re-defined in ~/.ashpwd
 	cd ()
 	{
-		chdir $*
+		chdir "$*"
+		BANNER_PWD=${PWD}
 		setban 
 	}
 
@@ -425,11 +428,17 @@ fi
 if [ -r $HOME/.ashsccs ] ; then
 	. $HOME/.ashsccs
 fi
-
+if [ -r $HOME/.ashpwd ] ; then
+	. $HOME/.ashpwd
+fi
 if [ -r $HOME/.ashlocal ] ; then
 	. $HOME/.ashlocal
 fi
-
+if [ -r $HOME/.ashedit ] ; then
+	. $HOME/.ashedit
+else
+	set -o emacs
+fi
 
 
 errno ()
