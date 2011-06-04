@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	32.2	10/12/17 17:19:32 (woods)"
+;;;;#ident	"@(#)HOME:.wl	32.3	11/06/04 14:06:07 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -52,6 +52,11 @@
 ;; name should be placed
 ;;
 (setq elmo-imap4-default-server "mailbox.weird.com")
+
+;; dunno why this is suddenly necessary
+;; `mail-local-domain-name' comes from my ~/.emacs.el
+;;
+(setq wl-local-domain (or mail-local-domain-name "weird.com"))
 
 ;; Use SSL connection
 ;(setq elmo-imap4-default-stream-type 'starttls)
@@ -219,6 +224,11 @@
 
 ;; to decode encoded words within quoted strings in headers....
 ;;
+;; NOTE:  normally this is contrary to the standards, I think, so it should not
+;; be necessary, but of course some stupid mailers always quote every display
+;; name regardless of whether it needs quoting or not, and perhaps sometimes
+;; even when it must not be quoted.
+;;
 ;;(setq mime-header-accept-quoted-encoded-words t)
 
 (defun my-wl-summary-turn-off-disp-msg ()
@@ -226,7 +236,10 @@
 into too much confusion."
   (interactive)
   (wl-summary-toggle-disp-msg 'off)
-  (delete-other-windows))
+  ;; this used to effectively turn off the Folder window too by calling
+  ;; (delete-other-windows), but with a wide display that's NOT what I want to do
+  ;; any more.
+  )
 
 (define-key wl-summary-mode-map "\C-x1" 'my-wl-summary-turn-off-disp-msg)
 
@@ -294,7 +307,19 @@ into too much confusion."
 ;; using `skip-no-unread' with the following is has unfortunate side effects if
 ;; the space bar is held down in auto-repeat mode as the confirmation character
 ;; is in fact "SPC".
+;;
 (setq wl-auto-select-next nil)		; is the default
+
+;; found this on a Japanese mailing list with hints that this is the proper way
+;; to use "always buffer local" `wl-summary-buffer-*-folder-function' variables
+;; which according to the code will completely avoid triggering anything to do
+;; with auto-selecting the next or previous folder when navigating past the end
+;; or beginning of a "Summary" buffer
+;;
+(add-hook 'wl-summary-mode-hook 
+	  '(lambda () 
+		   (setq wl-summary-buffer-prev-folder-function 'ignore 
+			 wl-summary-buffer-next-folder-function 'ignore)))
 
 (setq wl-message-buffer-prefetch-depth 0)
 (setq wl-message-buffer-prefetch-threshold 1000000)
@@ -357,48 +382,57 @@ into too much confusion."
 ;;
 ;(setq wl-highlight-message-header-alist ...)
 
+;; show all the headers except those we know we don't care about...
+;;
 (setq wl-message-visible-field-list nil) ; was '("^Dnas.*:" "^Message-Id:")
 (setq mime-view-visible-field-list nil) ; was '("^Dnas.*:" "^Message-Id:")
 (setq wl-message-ignored-field-list
-      '(".*Received:"
-	".*Path:"
-	".*Sender:"			; include X-Sender, X-X-Sender, etc.
-	".*Host:"
-	"^[cC]ontent.*:"		; irrelevant!  :-)
+      '("[^:]*Received:"
+	"[^:]*Path:"
+	"[^:]*Sender:"			; include X-Sender, X-X-Sender, etc.
+	"[^:]*Host:"
+	"^[cC]ontent[^:]*:"		; irrelevant!  :-)
 	"^Content-Type:"
-	"^DomainKey.*:"			; bogus junk
+	"^DomainKey[^:]*:"		; bogus junk
 	"^Errors-To:"
 	"^In-Reply-To:"			; just another message-id
 	"^Lines:"
-	"^List-.*:"			; rfc????
+	"^List-[^:]*:"			; rfc????
 	"^Message-I[dD]:"		; RFC 2036 too!
 	"^[mM][iI][mM][eE]-[vV]ersion:"	; irrelevant!  :-)
-;;;	"^Precedence:"
 	"^References:"
 	"^Replied:"
 	"^Status:"
 	"^Thread-Index:"
 	"^X-Accept-Language:"
 	"^X-BeenThere:"			; mailman?
-	"^X-Cam.*:"			; some stupid virus scanner
-	"^X-CanItPRO.*:"
-	"^X-Greylist.*:"
-	"^X-Hashcash.*:"		; ???
+	"^X-Cam[^:]*:"			; some stupid virus scanner
+	"^X-CanItPRO[^:]*:"
+	"^X-CHA:"
+	"^X-CSC:"
+	"^X-GMX[^:]*:"
+	"^X-Greylist[^:]*:"
+	"^X-Hashcash[^:]*:"		; ???
+	"^X-IronPort[^:]*:"		; some silly AV crapware
+	"^X-Junkmail[^:]*:"		; mirapoint???
 	"^X-MAil-Count:"		; fml?
 	"^X-MIME-Autoconverted:"
-	"^X-ML.*:"			; fml
-	"^X-MS-.*:"
-	"^X-Mailman.*:"			; mailman
+	"^X-Mirapoint[^:]*:"		; mirapoint???
+	"^X-ML[^:]*:"			; fml
+	"^X-MS-[^:]*:"
+	"^X-Mailman[^:]*:"		; mailman
 	"^X-OriginalArrivalTime:"
-	"^X-PMAS-.*:"
-	"^X-PMX.*:"
-	"^X-RPI.*:"
+	"^X-PMAS-[^:]*:"
+	"^X-PMX[^:]*:"
+	"^X-Provags-[^:]*:"
+	"^X-RPI[^:]*:"
 	"^X-SKK:"
-	"^X-Scanned.*:"
+	"^X-SMTP-Spam-[^:]*:"
+	"^X-Scanned[^:]*:"
 	"^X-Sieve:"			; cyrus
-	"^X-Spam.*:"
-	"^X-VM-.*:"
-	"^X-Virus.*:"
+	"^X-Spam[^:]*:"
+	"^X-VM-[^:]*:"
+	"^X-Virus[^:]*:"
 	"^Xref:"
 ;	"^X-Original-To:"		; fml?
 	))
@@ -475,6 +509,16 @@ into too much confusion."
 	((text . html) . 1)		; Gak!
 	(t . 0)))
 
+;; to have text flowing automatically in display of emails in wanderlust
+(autoload 'fill-flowed "flow-fill")
+(add-hook 'mime-display-text/plain-hook
+ 	  (lambda ()
+ 	    (when (string= "flowed"
+ 			   (cdr (assoc "format"
+ 				       (mime-content-type-parameters
+ 					(mime-entity-content-type entity)))))
+ 	      (fill-flowed))))
+
 ;; XXX this doesn't quite work right to turn on automatic signing globally...
 ;;
 ;(setq mime-edit-pgp-processing '(sign))
@@ -484,10 +528,16 @@ into too much confusion."
 ;(setq pgg-scheme 'pgp5)			; for verify/decrypt
 (setq pgg-default-scheme 'gpg)		; for composing
 (setq pgg-scheme 'gpg)			; for verify/decrypt
-(setq pgg-cache-passphrase t)		; it is the default
-(setq pgg-passphrase-cache-expiry 14400); 4 hrs
+
 ;(setq pgg-read-passphrase 'read-passwd)	; it is the default?
 (setq pgg-read-passphrase 'read-string)	; XXX for debugging
+(setq pgg-cache-passphrase t)		; it is the default
+(setq pgg-passphrase-cache-expiry 14400); 4 hrs
+
+(setq pgg-default-keyserver-address "pool.sks-keyservers.net")
+
+;; set up a way for pgg to fetch text from a URL such that it appears on stdout
+;;
 (setq pgg-insert-url-function  (function pgg-insert-url-with-program))
 (setq pgg-insert-url-program "ftp")
 (setq pgg-insert-url-extra-arguments '("-o" "-"))
@@ -619,7 +669,10 @@ ENCODING must be string."
 ;; this should work for me, but it won't work for everyone
 ;; (and it especially won't work for mobile laptop users!)
 ;;
-(setq wl-envelope-from (concat (user-login-name) "@" (system-name)))
+(setq system-fqdn (if (string-match "\\." (system-name))
+		      (system-name)
+		    (concat (system-name) "." wl-local-domain)))
+(setq wl-envelope-from (concat (user-login-name) "@" system-fqdn))
 
 ;; a good default, but may be adapted by wl-draft-config-alist as below
 ;; (if unset the full local hostname is used)
