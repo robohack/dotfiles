@@ -1,0 +1,54 @@
+#
+#	.ashpwd - local stuff to abbreviate PWD...
+#
+#ident	"@(#)HOME:.ashpwd	1.1	11/06/04 13:03:55 (woods)"
+
+# NOTE: the only difference between this and .kshpwd is that this
+# version only defines a function which hides the builtin (no alias)
+# and it then uses the alternate builtin of "chdir".
+
+function cd
+{
+	chdir "$*"
+	case "$PWD" in
+	*/work.d/*)
+		PWD='work.d:'"${PWD#*/work.d/}"
+		;;
+	/work/${LOGNAME}/*)
+		PWD='mywrk:'"${PWD#/work/${LOGNAME}/}"
+		;;
+	/work/*)
+		PWD='work:'"${PWD#/work/}"
+		;;
+	${HOME})
+		PWD='~'
+		;;
+	$(dirname ${HOME})/*)
+		PWD='~'"${PWD#$(dirname $HOME)/}"
+		;;
+	/home/*)
+		PWD='~'"${PWD#/home/}"
+		;;
+	/usr/src/*)
+		PWD='src:'"${PWD#/usr/src/}"
+		;;
+	/usr/pkgsrc/*)
+		PWD='pkgsrc:'"${PWD#/usr/pkgsrc/}"
+		;;
+	/usr/xsrc/*)
+		PWD='xsrc:'"${PWD#/usr/xsrc/}"
+		;;
+	*)
+		PWD="${PWD#/}"
+		;;
+	esac
+	if [ "$(ismpx)" = yes ] ; then
+		eval myxban -l "\"$MYXBAN_L\""
+	fi
+	if type setban > /dev/null ; then
+		setban
+	fi
+}
+
+# make sure PWD is now set as we want it...
+cd; cd -
