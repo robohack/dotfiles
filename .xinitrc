@@ -3,11 +3,11 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	32.1	10/12/16 18:49:31 (woods)"
+#ident	"@(#)HOME:.xinitrc	32.2	11/06/04 13:53:38 (woods)"
 
 # Assumptions that may cause breakage:
 #
-#	- the shell supports functions
+#	- the shell supports functions and getopts and $((expr))
 #	- test(1), aka "[", supports '-L' for testing symlinks
 #	  (note that "test -L" is POSIX, but old systems had "-h")
 
@@ -83,15 +83,20 @@ case "$DISPLAY" in
 		DISPLAY="${XDMHOST:-${HOSTNAME}${DOMAINNAME}}${DISPLAY}"
 		echo "$argv0: have set DISPLAY='$DISPLAY'"
 	else
-		# look for the first "en*" interface with an address
-		MY_IP=$(/sbin/ifconfig -l | tr ' ' '\012' | while read ifname; do case $ifname in en*) /sbin/ifconfig $ifname inet;; esac; done | awk '$1 == "inet" {print $2; exit 0}')
+		# using the local ":N.n" syntax is supremely preferred for the local host
+		# XXX ${DOMAINNAME} is probably not right here....
+		# XXX and if so, ${HOATNAME} must be something remote client hosts understand
+		REMOTE_DISPLAY="${XDMHOST:-${HOSTNAME}${DOMAINNAME}}${DISPLAY}"
+		export REMOTE_DISPLAY
+		echo "$argv0: have set REMOTE_DISPLAY='$REMOTE_DISPLAY'"
 	fi
 	;;
 esac
+export DISPLAY
+
 if [ "$XODISPLAY" != "$DISPLAY" ] ; then
 	echo "$argv0: adjusted DISPLAY='$DISPLAY'"
 fi
-export DISPLAY
 
 # may be things that depend on DISPLAY in here, so source again....
 #
@@ -167,21 +172,37 @@ fi
 
 onx11server ()
 {
-	if [ $1 = "-n" ]; then
-		nullopt="-n"
-		shift
-	else
-		nullopt=""
-	fi
+	_RDISP=""
+	_USAGE="$argv0: $0(): Usage: onx11server [-n] [-D REMOTE_DISPLAY] SERVERNAME 'command string'"
+	_nullopt=""
+	while getopts nD: OPTCH
+	do
+		case $OPTCH in
+		n)
+			_nullopt="-n"
+			;;
+		D)
+			_RDISP="${OPTARG}"
+			;;
+		*)
+			echo "$_USAGE" >&2
+			return 2
+			;;
+		esac
+	done
+	shift $(( $OPTIND - 1 ))
+
 	if [ $# -ne 2 ]; then
-		echo "$argv0: onx11server(): Usage: onx11server SERVERNAME 'command string'"
-		return 1
+		echo "$_USAGE" >&2
+		return 2
 	fi
-	X11server=$1
-	echo "$argv0: starting $RSH $nullopt $X11server '. ./.profile; export DISPLAY=$DISPLAY; exec $2'"
+
+	_X11server=$1
+	echo "$argv0: starting $RSH $_nullopt $_X11server '. ./.profile; export DISPLAY=${_RDISP:-${DISPLAY}}; exec $2'"
 	# note: don't run this in the background -- let the caller do that
-	$RSH $nullopt $X11server ". ./.profile; export DISPLAY=$DISPLAY; exec $2"
+	$RSH $_nullopt $_X11server ". ./.profile; export DISPLAY=${_RDISP:-${DISPLAY}}; exec $2"
 }
+
 
 if [ -r "/usr/lib/X11/Xdefaults" ] ; then
 	xrdb /usr/lib/X11/Xdefaults	# Load default X11 resource database
@@ -246,7 +267,7 @@ fi
 # you'd rather run the majority of your X applications.  Normally
 # this will be the same server your home directory resides on....
 #
-if [ "$XDMHOST" = `echo $DISPLAY | sed 's/:.*$//'` ] ; then
+if [ "$XDMHOST" = "`echo $DISPLAY | sed 's/:.*$//'`" ] ; then
 	echo "$argv0: looks like $XDMHOST is running xdm for our display..."
 	case "$XDMHOST" in
 	almost.weird.com)
@@ -343,22 +364,25 @@ if [ "$argv0" = ".xinitrc" ] ; then
 	echo "$argv0: looks like X was started with xinit or startx..."
 	case $DISPLAY in
 	:*)
+		# XXX assume for now that "once" is at 10.0.1.128....
+		#
 		# we could/should run these ones in the background
 		# because the hosts might not be up, but then we would
 		# also have to figure out if we could/should try to
 		# start the next programs as well....
-		xauth extract - $DISPLAY | onx11server 10.0.1.128 'xauth merge -'
+		xauth nextract - ${HOSTNAME}${DISPLAY} | onx11server -D ${REMOTE_DISPLAY} 10.0.1.128 'xauth nmerge -'
 		# and then start some useful programs...
-		onx11server -n 10.0.1.128 'xload -display ${MY_IP}${DISPLAY} -geometry 120x40-200+48 -hl red' &
-		onx11server -n 10.0.1.128 'uxterm -display ${MY_IP}${DISPLAY} -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
-		onx11server -n 10.0.1.128 'uxterm -display ${MY_IP}${DISPLAY} -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+		onx11server -n -D $REMOTE_DISPLAY 10.0.1.128 'xload -geometry 120x40-200+48 -hl red' &
+		onx11server -n -D $REMOTE_DISPLAY 10.0.1.128 'uxterm -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
+		onx11server -n -D $REMOTE_DISPLAY 10.0.1.128 'uxterm -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
 ###
-### XXX these would need to be run though SSH:
+### XXX these would need to be run though SSH with ssh-agent or
+### automatic keys or in an existing SSH tunnel:
 ###
-###		xauth extract - $DISPLAY | onx11server centrally.weird.com 'xauth merge -'
-###		onx11server -n centrally.weird.com 'xload -display $DISPLAY -geometry 120x40-200+96 -hl red' &
-###		onx11server -n centrally.weird.com 'uxterm -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
-###		onx11server -n centrally.weird.com 'uxterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+###		xauth nextract - ${SSH_DISPLAY} | onx11server centrally.weird.com 'xauth nmerge -'
+###		onx11server -S -n -D $SSH_DISPLAY centrally.weird.com 'xload -geometry 120x40-200+96 -hl red' &
+###		onx11server -S -n -D $SSH_DISPLAY centrally.weird.com 'uxterm -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
+###		onx11server -S -n -D $SSH_DISPLAY centrally.weird.com 'uxterm -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
 		;;
 	very.weird.com:*|very.robohack.planix.com:*)
 
@@ -437,7 +461,7 @@ fi
 
 case $DISPLAY in
 
-very.local:*|very.weird.com:*|very.robohack.planix.com:*)
+:*|very.local:*|very.weird.com:*|very.robohack.planix.com:*)
 	# very has a very large, very hi-res, display....
 	xset m 5 10
 
