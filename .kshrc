@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	32.1	10/12/16 18:49:31 (woods)"
+#ident	"@(#)HOME:.kshrc	32.2	11/06/04 14:08:58 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -325,9 +325,7 @@ if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	function _cd
 	{
 		\cd "$@"
-		if [ -z "$BANNER_PWD" ]; then
-			BANNER_PWD=$(pwd)
-		fi
+		BANNER_PWD=$(pwd)
 		eval myxban -l "\"$MYXBAN_L\""
 	}
 
@@ -362,6 +360,7 @@ xterm*)
 	function _cd
 	{
 		\cd "$@"
+		BANNER_PWD=${PWD}
 		setban 
 	}
 	;;
@@ -380,7 +379,7 @@ if type setban > /dev/null ; then
 			WBANNER="GNU Emacs "
 			setban
 			mesg n
-			emacs "$@"
+			\emacs "$@"
 			setban
 		}
 	fi
@@ -401,7 +400,7 @@ if type setban > /dev/null ; then
 		WBANNER="CU $* "
 		setban
 		mesg n
-		/usr/bin/cu "$@"
+		\cu "$@"
 		setban
 	}
 
@@ -421,12 +420,11 @@ if type setban > /dev/null ; then
 		WBANNER="C-Kermit $* "
 		setban
 		mesg n
-		$LOCAL/bin/ckermit "$@"
+		\ckermit "$@"
 		setban
 	}
 
 	if expr "$(type rlogin)" : '.* is .*/rlogin$' >/dev/null 2>&1 ; then
-		RLOGIN="$(expr "$(type rlogin)" : '.*/\([^/]*\)$')"; export RLOGIN
 		unalias rlogin
 		alias rlogin=_rlogin
 		function _rlogin
@@ -438,13 +436,12 @@ if type setban > /dev/null ; then
 			WBANNER="RLOGIN $* "
 			setban
 			mesg n
-			$RLOGIN "$@"
+			\rlogin "$@"
 			setban
 		}
 	fi
 
 	if expr "$(type slogin)" : '.* is .*/slogin$' >/dev/null 2>&1 ; then
-		SLOGIN="$(expr "$(type slogin)" : '.*/\([^/]*\)$')"; export SLOGIN
 		unalias slogin
 		alias slogin=_slogin
 		function _slogin
@@ -456,13 +453,12 @@ if type setban > /dev/null ; then
 			WBANNER="SLOGIN $* "
 			setban
 			mesg n
-			$SLOGIN "$@"
+			\slogin "$@"
 			setban
 		}
 	fi
 
 	if expr "$(type console)" : '.* is .*/console$' >/dev/null 2>&1 ; then
-		CONSOLE="$(expr "$(type console)" : '.*/\([^/]*\)$')"; export CONSOLE
 		unalias console
 		alias console=_console
 		function _console
@@ -474,13 +470,12 @@ if type setban > /dev/null ; then
 			WBANNER="CONSOLE $* "
 			setban
 			mesg n
-			$CONSOLE "$@"
+			\console "$@"
 			setban
 		}
 	fi
 
 	if expr "$(type telnet)" : '.* is .*/telnet$' >/dev/null 2>&1 ; then
-		TELNET="$(expr "$(type telnet)" : '.*/\([^/]*\)$')" ; export TELNET
 		unalias telnet
 		alias telnet=_telnet
 		function _telnet
@@ -497,7 +492,7 @@ if type setban > /dev/null ; then
 			WBANNER="TELNET $* "
 			setban
 			mesg n
-			$TELNET "$@"
+			\telnet "$@"
 			setban
 		}
 	fi
@@ -531,7 +526,7 @@ if type setban > /dev/null ; then
 			WBANNER="IRC $* "
 			setban
 			mesg n
-			irc "$@"
+			\irc "$@"
 			setban
 		}
 	fi
@@ -548,7 +543,7 @@ if type setban > /dev/null ; then
 			WBANNER="TRN $* "
 			setban
 			mesg n
-			trn "$@"
+			\trn "$@"
 			setban
 		}
 	fi
@@ -572,10 +567,8 @@ if type setban > /dev/null ; then
 		mesg n
 		if [ -x /usr/5bin/su ] ; then
 			/usr/5bin/su "$@"
-		elif [ -x /usr/bin/su ] ; then
-			/usr/bin/su "$@"
 		else
-			/bin/su "$@"
+			\su "$@"
 		fi
 		if [ "${*-root}" = "root" ]; then
 			\cd -
@@ -584,7 +577,7 @@ if type setban > /dev/null ; then
 		setban
 	}
 
-	if [ -x $LOCAL/games/nethack ] ; then
+	if expr "$(type nethack)" : '.* is .*/nethack$' >/dev/null 2>&1 ; then
 		function nethack
 		{
 			if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
@@ -599,7 +592,7 @@ if type setban > /dev/null ; then
 			WBANNER="NetHack"
 			setban
 			mesg n
-			$LOCAL/games/nethack
+			\nethack
 			setban
 		}
 	fi
@@ -660,8 +653,19 @@ esac
 # initialize SECONDS to the number of seconds since the last
 # local wall-clock midnight hour
 #
-alias set_secs_to_midnight='SECONDS="$(date '"'"'+3600*%H+60*%M+%S'"'"')"'
-set_secs_to_midnight
+# For our purposes this is more useful than the shell's total
+# wall-clock run time.
+#
+alias set_secs_to_midnight='SECONDS=$(date "+3600*%H+60*%M+%S")'
+#set_secs_to_midnight
+#
+# XXX we can't actually use the alias here because in real Ksh the
+# alias must be defined before any command using it is read, and when
+# sourcing this file from a script it seems somehow possible that the
+# whole block of text containing both the definition and use might be
+# read at the same time, eg. on Mac OS X's "Version M 1993-12-28 s+".
+#
+SECONDS=$(date '+3600*%H+60*%M+%S')
 
 # We wouldn't normally have to reset $SECONDS since our calculations
 # for hours and minutes only need to find the remainder values for the
@@ -739,15 +743,16 @@ if $HAVEMUSH; then
 	alias mhdrs='mush -H -f'
 fi
 
+# (note: sh "read" command also reads backslash continued lines)
+# XXX need an option to strip leading whitespace on continued lines
 alias backslashjoin='sed -e :a -e "/\\\\$/N; s/\\\\\\n//; ta"'
-alias badsenders='fgrep RHSBL: $MAILLOG | sed "s/[<>]/ /g" | awk "{print \$8}" | sort -u'
 # NOTE: never forget this -- it's the most incredible sed script!!!!
 alias blsqueeze='sed "/./,/^$/!d"'
 alias blstrip='sed "/./!d"'
-alias cdpkgwork='cd /var/package-obj/${PWD}/work/$(basename ${PWD})*'
+# NOTE: cdpkgwork expects $PWD to be like "/topdir/pkgsrcdir/category/package"
+alias cdpkgwork='cd /var/package-obj/${PWD#$(dirname $(dirname $PWD))}/work/$(basename ${PWD})*'
 alias cvsfind="find . -type f ! -name '.#*' ! -name '*~' ! -name .cvsignore ! -print -o -name CVS -prune"
 alias deadlinks='find . -type l -a ! \( -follow -type f \) -print'
-# XXX write one to collapse back-slash continued lines too!
 alias dlog='$PAGER -en +G /var/log/debug'
 alias ds='$PAGER'
 alias e='${VISUAL:-$EDITOR}'
@@ -775,16 +780,10 @@ alias lra='/bin/ls -CFRa'
 alias lsa='/bin/ls -a'
 alias logout='exit 0'
 alias maildate='LANG=c date "+%a, %d %b %Y %T %z"'
-# Warning: less (at least as of v. 374) has a limitation of about 95
-# chars to the length of the '-p' parameter.
-alias maillog='$PAGER -enM -p ": \[[0-9]+\] (\[.+\] )?((remote[A-Z ]*:)|remote ..LO: (rejected: inv[^:]*:|refusing) )|^.*kill.*" +G $MAILLOG'
-alias mlog='$PAGER -en +G /var/log/messages'
 alias mynotes='( \cd ~/notes && /bin/ls -CF *[!~] )'
 alias nosgr='echo '
 alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok'
 alias pkg_sizes="/usr/sbin/pkg_info -s \* | sed -e '/^$/d' -e 's/Information for //' -e 's/:$/:\\\\/' | sed -e :a -e '$!N;s/Size of this package in bytes://;ta' -e 'P;D' | backslashjoin"
-alias rblcount='fgrep " matched " $MAILLOG | cut -d " " -f 13 | cut -d . -f 5- | sort | uniq -c'
-alias rblstats='fgrep " matched " $MAILLOG | cut -d " " -f 10- | sort | uniq -c | sort -n | ds'
 alias realias='let LEV=$LEV-1;exec ksh'		# useless?
 alias rehash='_SV_PATH=$PATH; PATH=$_SV_PATH; unset _SV_PATH'
 alias rinfo='rlog -L -h -l $(find RCS -type f -print)'
@@ -794,6 +793,16 @@ alias snmpoidinfo='snmptranslate -T d -O f'
 alias syncdotfiles='rsync -v -lptHS --stats --files-from=once.weird.com:dotfiles.list once.weird.com:. $HOME'
 alias wcvs='print $CVSROOT'
 alias zds='zmore'
+
+# Smail related tools...
+#
+alias badsenders='fgrep RHSBL: $MAILLOG | sed "s/[<>]/ /g" | awk "{print \$8}" | sort -u'
+# Warning: less (at least as of v. 374) has a limitation of about 95
+# chars to the length of the '-p' parameter.
+alias maillog='$PAGER -enM -p ": \[[0-9]+\] (\[.+\] )?((remote[A-Z ]*:)|remote ..LO: (rejected: inv[^:]*:|refusing) )|^.*kill.*" +G $MAILLOG'
+alias mlog='$PAGER -en +G /var/log/messages'
+alias rblcount='fgrep " matched " $MAILLOG | cut -d " " -f 13 | cut -d . -f 5- | sort | uniq -c'
+alias rblstats='fgrep " matched " $MAILLOG | cut -d " " -f 10- | sort | uniq -c | sort -n | ds'
 
 # these are only useful on SysV
 #alias fw='who -HurTbA'
