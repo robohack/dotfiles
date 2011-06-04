@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	32.2	10/12/23 14:37:14 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	32.3	11/06/04 13:55:51 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -1911,8 +1911,13 @@ argument.  As a consequence, you can always delete a whole line by typing
   '((c-backslash-column . 78)
     (c-basic-offset . 8)
     (c-block-comment-prefix . "* ")
+    (c-recognize-knr-p . t)
     (c-cleanup-list . (brace-else-brace
 		       brace-elseif-brace
+		       comment-close-slash
+		       defun-close-semi
+		       empty-defun-braces
+		       list-close-comma
 		       scope-operator)) ; (scope-operator)
     (c-comment-continuation-stars . "* ")
     (c-comment-only-line-offset . (0 . 0))
@@ -1939,16 +1944,20 @@ argument.  As a consequence, you can always delete a whole line by typing
 			       (label after)
 			       (access-label after)))
     (c-label-minimum-indentation . 0)
-    ;; an OFFSET is nil; an inteter (usually zero); one of the symbols:  `+',
+    ;; an OFFSET is nil; an integer (usually zero); one of the symbols:  `+',
     ;; `-', `++', `--', `*', or `/' (a positive or negative multiple of
     ;; `c-basic-offset' is added; 1, -1, 2, -2, 0.5, and -0.5, respectively); a
     ;; vector; a function; or a list.
     (c-offsets-alist . ((arglist-close . c-lineup-close-paren) ; +
 			(arglist-cont-nonempty . c-lineup-arglist) ; +
-			(arglist-intro . c-lineup-arglist-intro-after-paren) ; +
+			(arglist-intro . +) ; +
 			(block-open . -) ; 0
-			(func-decl-cont . 0) ; +
+			(func-decl-cont . +) ; +
 			(inline-open . 0) ; +
+			(knr-argdecl-intro . +)
+			(knr-argdecl . 0)
+			(label . -)
+			(member-init-intro . '++)
                         (statement-case-open . *) ; 0
 			(statement-cont . c-lineup-math) ; +
 			(substatement-open . 0)))) ; +
@@ -2023,7 +2032,8 @@ argument.  As a consequence, you can always delete a whole line by typing
   "Dave L. Mills; programming style for use with ntp")
 (c-add-style "ntp" ntp-c-style nil)
 
-;; NetBSD "knf" style (ala /usr/share/misc/style)
+;; actual NetBSD "knf" style (ala /usr/share/misc/style)
+;; (as opposed to my recommended "knf" style!)
 ;;
 (defconst netbsd-knf-c-style
   '((c-auto-newline . nil)
@@ -2061,6 +2071,7 @@ argument.  As a consequence, you can always delete a whole line by typing
 			)))
   "NetBSD KNF C Style.")
 (c-add-style "netbsd" netbsd-knf-c-style nil)
+
 ;; these settings are also important to KNF....
 (defun netbsd-knf-c-mode-hook ()
   "Other stuff for NetBSD-KNF"
@@ -3025,12 +3036,12 @@ current emacs server process..."
     ("planix.net")
     ("reptiles.org")
     ("vex.net")
-    ("aci.on.ca")
     ("proxy.net")
-    ("accumarkpg.com")
-    ("protagon.com")
    )
-  "*Default list of domains for mail-local-domain-name.")
+  "*Default list of domains for mail-local-domain-name.
+
+Should normally be for networks where this ~/.emacs.el might be
+used.")
 
 (eval-and-compile
   (defvar mail-local-domain-name (or (let ((envvalue (getenv "DOMAINNAME")))
