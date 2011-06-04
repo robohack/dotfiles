@@ -1,45 +1,48 @@
 #
 #	.ashpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.ashpwd	32.1	11/06/04 13:09:10 (woods)"
+#ident	"@(#)HOME:.ashpwd	32.2	11/06/04 13:47:46 (woods)"
 
 # NOTE: the only difference between this and .kshpwd is that this
 # version only defines a function which hides the builtin (no alias)
 # and it then uses the alternate builtin of "chdir".
 
-function cd
+cd ()
 {
+	# XXX could supposedly also use: command cd "$*"
+	# XXX but it ("command") may not be in all versions....
+	# XXX and it seems to be broken in at least FreeBSD-8
 	chdir "$*"
 	case "$PWD" in
 	*/work.d/*)
-		PWD='work.d:'"${PWD#*/work.d/}"
+		BANNER_PWD='work.d:'"${PWD#*/work.d/}"
 		;;
 	/work/${LOGNAME}/*)
-		PWD='mywrk:'"${PWD#/work/${LOGNAME}/}"
+		BANNER_PWD='mywrk:'"${PWD#/work/${LOGNAME}/}"
 		;;
 	/work/*)
-		PWD='work:'"${PWD#/work/}"
+		BANNER_PWD='work:'"${PWD#/work/}"
 		;;
 	${HOME})
-		PWD='~'
+		BANNER_PWD='~'
 		;;
 	$(dirname ${HOME})/*)
-		PWD='~'"${PWD#$(dirname $HOME)/}"
+		BANNER_PWD='~'"${PWD#$(dirname $HOME)/}"
 		;;
 	/home/*)
-		PWD='~'"${PWD#/home/}"
+		BANNER_PWD='~'"${PWD#/home/}"
 		;;
 	/usr/src/*)
-		PWD='src:'"${PWD#/usr/src/}"
+		BANNER_PWD='src:'"${PWD#/usr/src/}"
 		;;
 	/usr/pkgsrc/*)
-		PWD='pkgsrc:'"${PWD#/usr/pkgsrc/}"
+		BANNER_PWD='pkgsrc:'"${PWD#/usr/pkgsrc/}"
 		;;
 	/usr/xsrc/*)
-		PWD='xsrc:'"${PWD#/usr/xsrc/}"
+		BANNER_PWD='xsrc:'"${PWD#/usr/xsrc/}"
 		;;
 	*)
-		PWD="${PWD#/}"
+		BANNER_PWD="${PWD#/}"
 		;;
 	esac
 	if [ "$(ismpx)" = yes ] ; then
@@ -50,5 +53,11 @@ function cd
 	fi
 }
 
-# make sure PWD is now set as we want it...
-cd; cd -
+# make sure BANNER_PWD is now set as we want it,
+# but _ONLY_ for interactive shells!
+#
+case "$0" in
+-*)
+	cd; cd -
+	;;
+esac
