@@ -1,7 +1,7 @@
 #
 #	.ashpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.ashpwd	32.2	11/06/04 13:47:46 (woods)"
+#ident	"@(#)HOME:.ashpwd	32.3	11/06/07 18:26:08 (woods)"
 
 # NOTE: the only difference between this and .kshpwd is that this
 # version only defines a function which hides the builtin (no alias)
@@ -12,6 +12,12 @@ cd ()
 	# XXX could supposedly also use: command cd "$*"
 	# XXX but it ("command") may not be in all versions....
 	# XXX and it seems to be broken in at least FreeBSD-8
+	if [ -n "$*" ]; then
+		chdir "$*"
+	else
+		# XXX "chdir ''" goes nowhere
+		chdir
+	fi     
 	chdir "$*"
 	case "$PWD" in
 	*/work.d/*)
