@@ -1,13 +1,18 @@
 #
 #	.kshpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.kshpwd	32.2	11/06/04 13:54:07 (woods)"
+#ident	"@(#)HOME:.kshpwd	32.3	11/06/07 18:26:35 (woods)"
 
 unalias cd
 alias cd='_cd'
 function _cd
 {
-	\cd "$*"
+	if [ -n "$*" ]; then
+		\cd "$*"
+	else
+		# XXX "\cd ''" goes nowhere
+		\cd
+	fi     
 	case "$PWD" in
 	*/work.d/*)
 		BANNER_PWD='work.d:'"${PWD#*/work.d/}"
