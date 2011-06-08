@@ -2,7 +2,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	32.2	11/06/04 13:54:40 (woods)"
+#ident	"@(#)HOME:.ctwmrc	32.3	11/06/07 18:27:10 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -646,7 +646,7 @@ menu "quickies"
 	"UXterm-big [@CLIENTHOST]"	!"uxterm OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
 	#
 	"UXterm @once"		!"$RSH -n 10.0.1.128 '. ./.profile; exec uxterm -display '$REMOTE_DISPLAY' -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
-	"Xterm-big @once"	!"$RSH -n 10.0.1.128 exec /usr/X11R6/bin/xterm -display $REMOTE_DISPLAY OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"UXterm-big @once"		!"$RSH -n 10.0.1.128 '. ./.profile; exec uxterm -display '$REMOTE_DISPLAY' OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
 	#
  ifdef([USE_X11SERVER], [
 	"Xterm @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP' &"
