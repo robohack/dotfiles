@@ -45,7 +45,6 @@
 -Tva_list
 -Twchar_t
 -bad
--badp
 -bap
 -bc
 -c41
