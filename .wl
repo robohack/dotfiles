@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	32.3	11/06/04 14:06:07 (woods)"
+;;;;#ident	"@(#)HOME:.wl	32.4	11/10/12 14:21:18 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -257,6 +257,9 @@ into too much confusion."
 (define-key wl-summary-mode-map "\M-n" 'wl-summary-down)
 (define-key wl-summary-mode-map "\M-p" 'wl-summary-up)
 
+(define-key wl-folder-mode-map "\M-n" 'wl-folder-next-unread)
+(define-key wl-folder-mode-map "\M-p" 'wl-folder-prev-unread)
+
 ;; make 'q' in a virtual folder (created by 'V') return to the folder from
 ;; which it was created, just as 'C-u V' does, instead of quitting to the
 ;; Folder buffer  (from Yoichi NAKAYAMA on the wl-en list)
@@ -510,7 +513,7 @@ into too much confusion."
 	(t . 0)))
 
 ;; to have text flowing automatically in display of emails in wanderlust
-(autoload 'fill-flowed "flow-fill")
+(autoload 'fill-flowed "flow-fill")	; flow-fill.el is from GNUS
 (add-hook 'mime-display-text/plain-hook
  	  (lambda ()
  	    (when (string= "flowed"
@@ -688,7 +691,13 @@ ENCODING must be string."
 ;; we want to match the same wildcard mailbox forms used in the aliases file(s)
 ;;
 (setq wl-user-mail-address-regexp
-      "woods\\(-[^@]*\\)?@\\(weird\\.\\(com\\|ca\\)\\)\\|\\(planix\\.\\(ca\\|com\\|net\\)\\)")
+      "^\\(\\(woods\\(-[^@]*\\)?@\\(\
+\\(weird\\.\\(com\\|ca\\)\\)\\|\
+\\(planix\\.\\(ca\\|com\\|net\\)\\)\\|\
+\\(robohack\\.\\(ca\\|org\\)\\)\
+\\)\
+\\)\
+\\|woods\\.greg\\.a@gmail\\.com\\)$")
 
 ;; also turn on flyspell explicitly
 ;;
@@ -821,61 +830,67 @@ ENCODING must be string."
 ;;
 (setq wl-draft-config-alist
       '((reply
-	 "From: [\"]?Andreas Wrede[\"]?"
+	 "^From: [\"]?Andreas Wrede[\"]?"
 	 ("From" . "\"Greg A. Woods\" <woods@weird.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@weird.ca>")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "From: .*@.*planix\\."
+	 "^From: .*@.*planix\\."
+	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 ("Precedence" . "first-class")
+	 ("Organization" . "Planix, Inc."))
+	(reply
+	 "^To: .*@.*planix\\."
 	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 ;	(reply
-;	 "From: .*@.*teloip\\."
+;	 "^From: .*@.*teloip\\."
 ;	 ("From" . "\"Greg A. Woods\" <gwoods@teloip.com>")
 ;	 ("Reply-To" . "\"Greg A. Woods\" <gwoods@teloip.com>")
 ;	 ("FCC" . "%inbox.Sent:gwoods@mail.teloip.com:993!")
 ;	 ("Precedence" . "first-class")
 ;	 ("Organization" . "TELoIP Inc."))
 	(reply
-	 "From: .*@.*clasix\\.net"
+	 "^From: .*@.*clasix\\.net"
 	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("X-Priority" . "2")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "From: .*@.*seawellnetworks\\.com"
+	 "^From: .*@.*seawellnetworks\\.com"
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("X-Priority" . "2")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "From: [\"]?Scott Lindsay[\"]?"
+	 "^From: [\"]?Scott Lindsay[\"]?"
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("X-Priority" . "2")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "From: .*Ted Gray.*"
+	 "^From: .*Ted Gray.*"
 	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("X-Priority" . "2")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "From: .*@.*\\(aci\\|opc\\)\\.on\\.ca"
+	 "^From: .*@.*\\(aci\\|opc\\)\\.on\\.ca"
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Precedence" . "first-class")
 	 ("X-Priority" . "2")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "From: .*@.*\\(lawyermediator\\|gelmanlaw\\)\\.ca"
+	 "^From: .*@.*\\(lawyermediator\\|gelmanlaw\\)\\.ca"
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Precedence" . "first-class")
@@ -919,40 +934,32 @@ ENCODING must be string."
 	 ("Reply-To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "Delivered-To: emacs-mime-en@m17n.org"
+	 "^Delivered-To: emacs-mime-en@m17n.org"
 	 (pgp-sign . nil)
 	 ("From" . "\"Greg A. Woods\" <woods-emacs-mime-en-l@weird.com>")
 	 ("To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>")
 	 ("Reply-To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "To: woods-emacs-mime-en-l@weird.com"
+	 "^To: woods-emacs-mime-en-l@weird.com"
 	 (pgp-sign . nil)
 	 ("From" . "\"Greg A. Woods\" <woods-emacs-mime-en-l@weird.com>")
 	 ("To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>")
 	 ("Reply-To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>")
 	 ("Organization" . "Planix, Inc."))
-	;; mailing list:  info-cyrus
-	((or (string-match "^%inbox/Lists-IN/cyrus-lists"
-			   wl-draft-parent-folder)
-	     (string-match "^%inbox/list-archive/info-cyrus"
-			   wl-draft-parent-folder))
+	;; mailing list:  cyrus-devel
+	(reply
+	 "^List-Id: [^<]*<cyrus-devel.lists.andrew.cmu.edu>"
 	 (pgp-sign . nil)
          ("From" . "\"Greg A. Woods\" <woods-cyrus@weird.com>")
-	 ("To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
-	 ("Reply-To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
+	 ("To" . "Cyrus User's Mailing List <cyrus-devel@lists.andrew.cmu.edu>")
+	 ("Reply-To" . "Cyrus User's Mailing List <cyrus-devel@lists.andrew.cmu.edu>")
 	 ("Organization" . "Planix, Inc."))
+	;; mailing list:  info-cyrus
 	(reply
-	 "Sender: info-cyrus-bounces"
+	 "^List-Id: .*<info-cyrus.lists.andrew.cmu.edu>"
 	 (pgp-sign . nil)
-	 ("From" . "\"Greg A. Woods\" <woods-cyrus@weird.com>")
-	 ("To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
-	 ("Reply-To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
-	 ("Organization" . "Planix, Inc."))
-	(reply
-	 "To: woods-cyrus@weird.com"	; XXX is this one necessary?
-	 (pgp-sign . nil)
-	 ("From" . "\"Greg A. Woods\" <woods-cyrus@weird.com>")
+         ("From" . "\"Greg A. Woods\" <woods-cyrus@weird.com>")
 	 ("To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
 	 ("Reply-To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
 	 ("Organization" . "Planix, Inc."))
@@ -964,7 +971,7 @@ ENCODING must be string."
 	 ("Reply-To" . "The Git Mailing List <git@vger.kernel.org>")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "List-Id: .*<git.vger.kernel.org>"
+	 "^List-Id: .*<git.vger.kernel.org>"
          ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("To" . "The Git Mailing List <git@vger.kernel.org>")
 	 ("Reply-To" . "The Git Mailing List <git@vger.kernel.org>")
@@ -977,7 +984,7 @@ ENCODING must be string."
 	 ("Reply-To" . "The NSD User's Mailing List <nsd-users@NLnetLabs.nl>")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "List-Id: .*<nsd-users.NLnetLabs.nl>"
+	 "^List-Id: .*<nsd-users.NLnetLabs.nl>"
          ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("To" . "The NSD User's Mailing List <nsd-users@NLnetLabs.nl>")
 	 ("Reply-To" . "The NSD User's Mailing List <nsd-users@NLnetLabs.nl>")
@@ -988,7 +995,7 @@ ENCODING must be string."
 	;; write some complex editing function?
 	;; mailing list:  nsd-users
 	(reply
-	 "Delivered-To: .*@[Nn][Ee][Tt][Bb][Ss][Dd]\\.[Oo][Rr][Gg]"
+	 "^Delivered-To: .*@[Nn][Ee][Tt][Bb][Ss][Dd]\\.[Oo][Rr][Gg]"
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "")
 	 ("Organization" . "Planix, Inc."))
@@ -998,7 +1005,7 @@ ENCODING must be string."
 	 ("Reply-To" . "")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "List-Id: .*\\.[Nn][Ee][Tt][Bb][Ss][Dd]\\.[Oo][Rr][Gg]>"
+	 "^List-Id: .*\\.[Nn][Ee][Tt][Bb][Ss][Dd]\\.[Oo][Rr][Gg]>"
 	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Reply-To" . "")
 	 ("Organization" . "Planix, Inc."))
@@ -1010,7 +1017,7 @@ ENCODING must be string."
 	 ("Reply-To" . "The Unbound User's Mailing List <unbound-users@unbound.net>")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "List-Id: .*<unbound-users.unbound.net>"
+	 "^List-Id: .*<unbound-users.unbound.net>"
          ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("To" . "The Unbound User's Mailing List <unbound-users@unbound.net>")
 	 ("Reply-To" . "The Unbound User's Mailing List <unbound-users@unbound.net>")
@@ -1020,24 +1027,15 @@ ENCODING must be string."
 			   wl-draft-parent-folder)
 	     (string-match "^%inbox/list-archive/wl-en@"
 			   wl-draft-parent-folder))
-	 (pgp-sign . nil)
-         ("From" . "\"Greg A. Woods\" <woods-wl-en-l@planix.com>")
-	 ("To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>")
-	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>")
+         ("From" . "\"Greg A. Woods\" <woods@planix.com>")
+	 ("To" . "WanderLust Users Mailing List (English) <wl-en@ml.gentei.org>")
+	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@ml.gentei.org>")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "Delivered-To: wl-en@lists.airs.net"
-	 (pgp-sign . nil)
-	 ("From" . "\"Greg A. Woods\" <woods-wl-en-l@planix.com>")
-	 ("To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>")
-	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>")
-	 ("Organization" . "Planix, Inc."))
-	(reply
-	 "To: woods-wl-en-l@planix.com"
-	 (pgp-sign . nil)
-	 ("From" . "\"Greg A. Woods\" <woods-wl-en-l@planix.com>")
-	 ("To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>")
-	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@lists.airs.net>")
+	 "^([tT][oO]|[Cc][Cc]): wl-en@"
+	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
+	 ("To" . "WanderLust Users Mailing List (English) <wl-en@ml.gentei.org>")
+	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@ml.gentei.org>")
 	 ("Organization" . "Planix, Inc."))
 	; defaults for everything
 	((or t)
@@ -1095,10 +1093,12 @@ ENCODING must be string."
       '(("^%inbox.*Trash@" . remove)	; this one must come first
 	("^%INBOX$" . "%inbox/Trash")
 	("^%inbox[^@]*$" . "%inbox/Trash")
-	("^%INBOX@mailbox.weird.com" . "%inbox/Trash@mailbox.weird.com")
-	("^%inbox.*@mailbox.weird.com" . "%inbox/Trash@mailbox.weird.com")
-;	("^%INBOX@mail.teloip.com" . "%inbox.Trash@mail.teloip.com:993!")
-;	("^%inbox.*@mail.teloip.com" . "%inbox.Trash@mail.teloip.com:993!")
+	("^%INBOX:woods@mailbox.weird.com" . "%inbox/Trash:woods@mailbox.weird.com:993!")
+	("^%inbox.*:woods@mailbox.weird.com" . "%inbox/Trash:woods@mailbox.weird.com:993!")
+	("^%INBOX:Woods.Greg.A@imap.gmail.com" . "%inbox/Trash:Woods.Greg.A@imap.gmail.com:993!")
+	("^%inbox.*:@Woods.Greg.A@imap.gmail.com" . "%inbox/Trash:Woods.Greg.A@imap.gmail.com:993!")
+	("^%INBOX:woods@mail.teloip.com" . "%inbox.Trash:woods@mail.teloip.com:993!")
+	("^%inbox.*:woods@mail.teloip.com" . "%inbox.Trash:woods@mail.teloip.com:993!")
 	("^%INBOX:gwoods@mailbox.aci.on.ca" . "%inbox/Trash:gwoods@mailbox.aci.on.ca:993!")
 	("^%inbox.*:gwoods@mailbox.aci.on.ca" . "%inbox/Trash:gwoods@mailbox.aci.on.ca:993!")
 	("^%INBOX@mailbox.aci.on.ca" . "%inbox/Trash@mailbox.aci.on.ca:993!")
@@ -1134,10 +1134,10 @@ ENCODING must be string."
 	("^+junk" . null)		; this one too?
 	("^\\(/[^/]*/\\)?%INBOX$" . "%inbox/Junk")
 	("^%inbox[^@]*$" . "%inbox/Junk")
-	("^%INBOX@mailbox.weird.com" . "%inbox/Junk@mailbox.weird.com")
-	("^%inbox.*@mailbox.weird.com" . "%inbox/Junk@mailbox.weird.com")
-	("^%INBOX@mail.planix.com" . "%inbox.Junk@mail.planix.com:993!")
-	("^%inbox.*@mail.planix.com" . "%inbox.Junk@mail.planix.com:993!")
+	("^%INBOX:woods@mailbox.weird.com" . "%inbox/Junk:woods@mailbox.weird.com:993!")
+	("^%inbox.*:woods@mailbox.weird.com" . "%inbox/Junk:woods@mailbox.weird.com:993!")
+	("^%INBOX:Woods.Greg.A@imap.gmail.com" . "%inbox/Junk:Woods.Greg.A@imap.gmail.com:993!")
+	("^%inbox.*:@Woods.Greg.A@imap.gmail.com" . "%inbox/Junk:Woods.Greg.A@imap.gmail.com:993!")
 	("^%INBOX:gwoods@mailbox.aci.on.ca" . "%inbox/Junk:gwoods@mailbox.aci.on.ca:993!")
 	("^%inbox.*:gwoods@mailbox.aci.on.ca" . "%inbox/Junk:gwoods@mailbox.aci.on.ca:993!")
 	("^%INBOX@mailbox.aci.on.ca" . "%inbox/Junk@mailbox.aci.on.ca:993!")
