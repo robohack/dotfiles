@@ -1,13 +1,14 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	32.2	11/06/04 14:08:58 (woods)"
+#ident	"@(#)HOME:.kshrc	32.3	11/10/12 14:17:29 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
 
 # Assumptions:
 #
+#	$ISSUN			- must be "true" or "false; set by ~/.profile
 
 # Files referenced:
 #
@@ -158,6 +159,8 @@ eval "$(id | sed -e 's/ groups=.*$//' \
 
 function krcmd
 {
+	# ps -ax -o uid,pid,ppid,ucomm
+
 	kill -9 $(ps -axlc | awk '$1 == '${id}' && $3 == 1 && $13 == "rcmd" {print $2}')
 }
 
@@ -184,10 +187,27 @@ if [ "$id" -eq 0 ] ; then
 	PATH=$(echo $PATH | sed -e "s|$LOGNAMEPATH:||")
 	# must have X11BIN before openwin if newer X on system....
 	dirappend PATH /usr/lbin /usr/ucb $X11BIN
-	if $ISSUN; then
-		PATH=$(echo $PATH | sed -e 's|^/bin:||' -e 's|:/etc:|:|')
-		dirprepend PATH /usr/5bin
-		dirappend PATH /usr/openwin/bin
+
+
+	ISSUN=false; export ISSUN
+	if [ -x /usr/bin/sun ] ; then
+		if sun ; then
+			ISSUN=true
+			PATH=`echo $PATH | sed 's/^\/bin://'`
+			if [ "`uname -r | sed 's/^\([0-9]*\).*$/\1/'`" -lt 5 ] ; then
+				if [ "X$LOGNAME" != "Xroot" ] ; then
+					dirprepend PATH /usr/5bin
+				else
+					dirappend PATH /usr/5bin
+				fi
+			else
+				dirprepend PATH /opt/SUNWspro/bin
+			fi
+			# XXX FIXME: should use OPENWINHOME ???
+			# XXX FIXME: should only do this if DISPLAY set???
+			dirappend PATH /usr/openwin/bin /usr/openwin/demo
+			dirappend MANPATH /usr/openwin/share/man
+		fi
 	fi
 	if [ ! -d /usr/sbin ] ; then
 		dirprepend PATH /usr/etc	# only old BSDs
@@ -249,6 +269,27 @@ if [ "$id" -eq 0 ] ; then
 	fi
 	if [ "$EDITOR" = "emacsclient" ] ; then
 		export EDITOR="emacs -nw"
+	fi
+	# make damn sure PAGER is set...
+	if expr "$(type less)" : '.* is .*/less$' >/dev/null 2>&1 ; then
+		PAGER=$(type less)
+		LESS="-M" ; export LESS
+	elif [ -x /usr/xpg4/bin/more ] ; then
+		# SunOS-5's, at least, has the 'G' command!
+		PAGER="/usr/xpg4/bin/more"
+		# use '-s' as it can't be turned on later during runtime
+		MORE="-s" ; export MORE
+	elif expr "$(type more)" : '.* is .*/more$' >/dev/null 2>&1 ; then
+		PAGER=$(type more)
+		# use '-s' as it can't be turned on later during runtime
+		MORE="-sw" ; export MORE
+	else
+		# meow
+		PAGER=$(type cat)
+	fi
+	PAGER=$(expr "$PAGER" : '.*/\([^/]*\)$'); export PAGER
+	if [ "$PAGER" = "less" ]; then
+		MANPAGER="$PAGER -si"; export MANPAGER
 	fi
 
 	if [ -n "$DISPLAY" ]; then
