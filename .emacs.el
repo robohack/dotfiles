@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	33.2	11/10/12 16:51:51 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	33.3	11/10/12 16:54:26 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -319,16 +319,6 @@ returning t if any of the three are found. Nil is returned otherwise."
 (if (elisp-file-in-loadpath-p "newcomment")
     (progn
       (require 'newcomment)))
-
-(if (elisp-file-in-loadpath-p "filladapt")
-    (progn
-      (require 'filladapt)
-      (eval-when-compile
-	(defvar filladapt-mode))
-      (setq-default filladapt-mode t)	; it is a "Good Thing(tm)!"
-      (add-hook 'text-mode-hook 'turn-on-filladapt-mode) ; it is a "Really Good Thing(tm)!"
-      (add-hook 'sh-mode-hook 'turn-on-filladapt-mode)  ; ... especially in sh-mode :-)
-      (add-hook 'c-mode-hook 'turn-on-filladapt-mode))) ; ... even in c-mode :-)
 
 (if (and (elisp-file-in-loadpath-p "func-menu")
 	 window-system)
@@ -2175,14 +2165,6 @@ argument.  As a consequence, you can always delete a whole line by typing
 	(defvar comment-style)))
   (setq comment-style 'extra-line)	; not used, but maybe someday?
   (setq indent-tabs-mode t)		; only use tabs
-
-  (if (elisp-file-in-loadpath-p "filladapt")
-      (progn
-	(require 'filladapt)
-	(c-setup-filladapt)
-	;; we supposedly can't autoload this thing, yet that means this
-	;; function will not be defined at compile time...
-	(turn-on-filladapt-mode)))
 
   ;; CC Mode things that are not style variables...
   (setq c-echo-syntactic-information-p nil)
