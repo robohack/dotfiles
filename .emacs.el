@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	32.3	11/06/04 13:55:51 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	32.4	11/10/12 14:19:32 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -11,6 +11,11 @@
 ;;; This file should be stored in "~/.emacs.el".
 ;;; Saving it will normally compile it into "~/.emacs.elc".
 ;;; Make a (symbolic) link from "~/.emacs" to "~/.emacs.elc" to use it.
+
+;;; TODO:
+;;;
+;;; don't use (function (lambda () ...)) any more for hook functions
+;;; -- it makes it difficult to change them without a restart....
 
 ;;; to debug, eval (^X^E) these after starting with "emacs -q":
 ;;;
@@ -308,6 +313,9 @@ returning t if any of the three are found. Nil is returned otherwise."
 ;;;; ----------
 ;;;; some default packages we'd like, if we can get them...
 
+(eval-and-compile
+  (load "text-mode"))
+
 (if (elisp-file-in-loadpath-p "newcomment")
     (progn
       (require 'newcomment)))
@@ -328,6 +336,12 @@ returning t if any of the three are found. Nil is returned otherwise."
       (require 'func-menu)
       (define-key global-map [S-down-mouse-2]
 	'function-menu)))
+
+(if (elisp-file-in-loadpath-p "org")
+    (progn
+      ;(require 'org)
+      ;; for better visual impact use more dense chars first!
+      (setq org-export-ascii-underline '(?\= ?^ ?\~ ?\- ?\.))))
 
 ;; This is an ancient hack by Joe Wells is really only necessary on emacs-18
 ;; and very early versions of emacs-19 since the appearance of the new
@@ -770,6 +784,29 @@ with possible additional arguments `browse-url-xterm-args'."
 ;;;; ----------
 ;;;; auto-mode-alist setup
 
+;; assume files.el is already loaded?
+
+;; should we use "advice" instead
+;;
+;(require 'advice)
+;(defadvice conf-mode-maybe (before conf-mode-maybe-advice activate)
+;  "try to make conf-mode-maybe a bit smarter to avoid stupidity"
+;  )
+(defun conf-mode-maybe ()
+  "Try to be smart about selecting Conf mode or XML mode or Nroff
+mode according to start of the current buffer."
+  (save-excursion
+    (save-restriction
+      (widen)
+      (goto-char (point-min))
+      (cond 
+       ((looking-at "<\\?xml \\|<!-- \\|<!DOCTYPE ")
+	(xml-mode))
+       ((looking-at "\\.\\\\\"")
+	(nroff-mode))
+       (t
+	(conf-mode))))))
+
 (defun add-to-auto-mode-alist (element)
   "Add ELEMENT to `auto-mode-alist' if it isn't there yet."
   (add-to-list 'auto-mode-alist element t)) ; add-to-list in 19.29 and newer
@@ -779,10 +816,13 @@ with possible additional arguments `browse-url-xterm-args'."
 ;; directory portion unless you always visit the file using the directory
 ;; pathname explicitly.
 ;;
-;; note: no cvs backup files listed, they match "\\.#.*\\.[.0-9]+\\'"
+;; N.B.: "\\'" and "\\'" match the empty string, but only at the beginning or
+;; end (respectively) of the buffer or string being matched against.  These are
+;; used instead of '^' and '$' because the latter also match against the
+;; beginnging and end of a line and could be confused by newlines in the
+;; filename.
 ;;
-;; note "\\'" matches the empty string, but only at the end of the buffer or
-;; string being matched against.
+;; note: no CVS backup files are listed, they match "\\.#.*\\.[.0-9]+\\'"
 ;;
 (mapcar 'add-to-auto-mode-alist
 	(list
@@ -799,7 +839,7 @@ with possible additional arguments `browse-url-xterm-args'."
 	 '("INSTALL\\'" . sh-mode)		; NetBSD pkgsrc (clashes with
 						;   GNU standard INSTALL doc)
 	 '("MESSAGE\\'" . indented-text-mode)	; NetBSD pkgsrc
-	 '("PLIST\\'" . sh-mode)			; NetBSD pkgsrc (not sh, but...)
+	 '("PLIST\\'" . sh-mode)		; NetBSD pkgsrc (not sh, but...)
 	 '("REQUIRE\\'" . sh-mode)		; NetBSD pkgsrc
 	 '("\\.java\\'" . java-mode)		; cc-mode
 	 '("\\.[0-9][a-z]?\\'" . nroff-mode)	; man page
@@ -809,15 +849,17 @@ with possible additional arguments `browse-url-xterm-args'."
 	 '("\\.org\\'" . org-mode)		; explicitly `org-mode' files
 	 '("\\.t[imes]*\\'" . nroff-mode)	; nroff+tbl
 	 '("\\.t[imes]*\\.in\\'" . nroff-mode)	; nroff+tbl
-	 '("[rR][eE][lL][eE][aA][sS][eE]\\([-.][^/]*\\)?\\'" . indented-text-mode)
-	 '("[cC][hH][aA][nN][gG][eE][sS]\\([-.][^/]*\\)?\\'" . indented-text-mode)
-	 '("[iI][nN][sS][tT][aA][lL][lL]\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[aA][uU][tT][hH][oO][rR][sS]\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[bB][uU][gG][sS]\\([-.][^/]*\\)?\\'" . indented-text-mode)
+	 '("[cC][hH][aA][nN][gG][eE][sS]\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[cC][oO][pP][yY][^/.]*\\([-.][^/]*\\)?\\'" . indented-text-mode)
+	 '("[iI][nN][sS][tT][aA][lL][lL]\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[nN][eE][wW][sS]\\([-.][^/]*\\)?\\'" . indented-text-mode)
-	 '("[tT][hH][aA][nN][kK][^/.]*\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[rR][eE][aA][dD]\\([-.]\\)?[mM][eE]\\([-.][^/]*\\)?\\'" . indented-text-mode)
+	 '("[rR][eE][lL][eE][aA][sS][eE]\\([-.][^/]*\\)?\\'" . indented-text-mode)
+	 '("[tT][oO][dD][oO]\\([-.][^/]*\\)?\\'" . indented-text-mode)))
+	 '("[tT][hH][aA][nN][kK][^/.]*\\([-.][^/]*\\)?\\'" . indented-text-mode)
+	 '("\\.notes?\\'" . indented-text-mode)
 	 '("\\.te?xt\\'" . indented-text-mode)
 	 '("\\.article\\'" . indented-text-mode)
 	 '("\\.letter\\'" . indented-text-mode)
@@ -827,24 +869,8 @@ with possible additional arguments `browse-url-xterm-args'."
 	 '("/tmp/[^/]*\\.ed[^/]*\\'" . indented-text-mode) ; mail edit buffer
 	 '("/tmp/[^/]*nf[^/]*\\'" . indented-text-mode))) ; notesfile compose buf
 
-(defvar my-best-org-mode nil
-  "*The best available mode to use for outlines, etc.")
-
-(if (elisp-file-in-loadpath-p "org")
-    ;; org-mode is part of emacs since 22(?)
-    (progn
-      (setq my-best-org-mode 'org-mode)
-      (global-set-key "\C-cl" 'org-store-link)
-      (global-set-key "\C-ca" 'org-agenda))
-  (progn
-    (setq my-best-org-mode 'indented-text-mode)))
-
 (add-to-auto-mode-alist
- (cons (concat "\\`" (getenv "HOME") "/notes/.+\\'") my-best-org-mode))
-(mapcar 'add-to-auto-mode-alist
-	(list
-	 '("\\.notes?\\'" . my-best-org-mode)
-	 '("[tT][oO][dD][oO]\\([-.][^/]*\\)?\\'" . my-best-org-mode)))
+ (cons (concat "\\`" (getenv "HOME") "/notes/.+\\'") 'indented-text-mode))
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "diff-mode")
@@ -1875,17 +1901,65 @@ argument.  As a consequence, you can always delete a whole line by typing
 ;;; GNU-Emacs' ideas about formatting C code really suck!  Let's stick to doing
 ;;; things the good old standard K&R way!!!!
 ;;;
-;;; For reference my .indent.pro (for BSD indent) says:
+;;; For reference my .indent.pro (for BSD indent) contains:
 ;;;
-;;;  -bad -bap -bc -br -nbs -c49 -cd33 -ncdb -ce -cli0 -d0 -di16 -ndj -ei -neei
-;;;  -nfc1 -i8 -ip -l256 -lp -npcs -psl -sc -nsob -Tptrdiff_t -Tsize_t
-;;;  -Tssize_t -Toff_t -Ttime_t -Tclock_t -Tsocklen_t -Tbool_t -Tenum_t
-;;;  -Tu_char -Tu_short -Tu_int -Tu_long -Tuchar -Tushort -Tuint -Tulong
-;;;  -Tunchar -Tquad_t -Tu_quad_t -Tqaddr_t -Tlonglong_t -Tu_longlong_t
-;;;  -Tregoff_t -Twchar_t -Tint8_t -Tuint8_t -Tu_int8_t -Tint16_t -Tuint16_t
-;;;  -Tu_int16_t -Tint32_t -Tuint32_t -Tu_int32_t -Tint64_t -Tuint64_t
-;;;  -Tu_int64_t -Tintptr_t -Tuintptr_t -Tva_list -Tmode_t -Toff_t -Tpid_t
-;;;  -Tuid_t -Tgid_t -Trlim_t
+;;;    -Tbool_t
+;;;    -Tclock_t
+;;;    -Tenum_t
+;;;    -Tgid_t
+;;;    -Tint16_t
+;;;    -Tint32_t
+;;;    -Tint64_t
+;;;    -Tint8_t
+;;;    -Tintptr_t
+;;;    -Tlonglong_t
+;;;    -Tmode_t
+;;;    -Toff_t
+;;;    -Toff_t
+;;;    -Tpid_t
+;;;    -Tptrdiff_t
+;;;    -Tqaddr_t
+;;;    -Tquad_t
+;;;    -Tregoff_t
+;;;    -Trlim_t
+;;;    -Tsize_t
+;;;    -Tsocklen_t
+;;;    -Tssize_t
+;;;    -Ttime_t
+;;;    -Tu_char
+;;;    -Tu_int
+;;;    -Tu_int16_t
+;;;    -Tu_int32_t
+;;;    -Tu_int64_t
+;;;    -Tu_int8_t
+;;;    -Tu_long
+;;;    -Tu_longlong_t
+;;;    -Tu_quad_t
+;;;    -Tu_short
+;;;    -Tuchar
+;;;    -Tuid_t
+;;;    -Tuint
+;;;    -Tuint16_t
+;;;    -Tuint32_t
+;;;    -Tuint64_t
+;;;    -Tuint8_t
+;;;    -Tuintptr_t
+;;;    -Tulong
+;;;    -Tunchar
+;;;    -Tushort
+;;;    -Tva_list
+;;;    -Twchar_t
+;;;    -bad
+;;;    -badp
+;;;    -bap
+;;;    -bc
+;;;    -c41
+;;;    -cd33
+;;;    -ci0
+;;;    -di16
+;;;    -l255
+;;;    -ncdb
+;;;    -nfc1
 ;;;
 ;;; NOTE: Someday I _think_ I want a simple flag I can toggle in a file's local
 ;;; variables to turn off use of tab characters and do all indentation and
@@ -1957,7 +2031,7 @@ argument.  As a consequence, you can always delete a whole line by typing
 			(knr-argdecl-intro . +)
 			(knr-argdecl . 0)
 			(label . -)
-			(member-init-intro . '++)
+			(member-init-intro . ++)
                         (statement-case-open . *) ; 0
 			(statement-cont . c-lineup-math) ; +
 			(substatement-open . 0)))) ; +
@@ -2066,7 +2140,7 @@ argument.  As a consequence, you can always delete a whole line by typing
 			(knr-argdecl . 0)
 			(block-open . -)
 			(label . -)
-			(member-init-intro . '++)
+			(member-init-intro . ++)
 			(statement-cont . 4)
 			)))
   "NetBSD KNF C Style.")
@@ -2204,28 +2278,29 @@ argument.  As a consequence, you can always delete a whole line by typing
 	     (define-key isearch-mode-map "\C-\\" 'isearch-repeat-forward)
 	     (define-key isearch-mode-map "\C-^" 'isearch-quote-char))))
 
-(add-hook 'text-mode-hook
-	  (function
-	   (lambda ()
-	     "Private text-mode and indented-text-mode stuff."
-	     ;; If for some reason the *scratch* buffer was killed earlier
-	     ;; and is recreated here because all other buffers have been
-	     ;; killed, then reset the major mode to emacs-lisp-mode.
-	     ;; One disadvantage to this is that you can't put the
-	     ;; *scratch* buffer in text mode without disabling this hook.
-	     (if (equal (buffer-name) "*scratch*")
-		 (emacs-lisp-mode)
-	       (progn
-		 (override-local-key-settings)
-		 (override-default-variable-settings)
-		 (if (elisp-file-in-loadpath-p "ispell")
-		     (local-set-key "\eS" 'ispell-buffer)
-		   (local-set-key "\eS" 'spell-buffer))
-		 ;; XXX should we also turn on the flyspell minor mode?
-		 (setq abbrev-mode t)
-		 (setq fill-column 72)
-		 (setq require-final-newline t)	; needed by some unix programs
-		 (turn-on-auto-fill))))))
+(defun my-text-mode-setup ()
+  "Private text-mode and indented-text-mode stuff."
+  ;; If for some reason the *scratch* buffer was killed earlier
+  ;; and is recreated here because all other buffers have been
+  ;; killed, then reset the major mode to emacs-lisp-mode.
+  ;; One disadvantage to this is that you can't put the
+  ;; *scratch* buffer in text mode without disabling this hook.
+  (if (equal (buffer-name) "*scratch*")
+      (emacs-lisp-mode)
+    (progn
+      (override-local-key-settings)
+      (override-default-variable-settings)
+      (if (elisp-file-in-loadpath-p "ispell")
+	  (local-set-key "\eS" 'ispell-buffer)
+	(local-set-key "\eS" 'spell-buffer))
+      (if (elisp-file-in-loadpath-p "flyspell")
+	  (turn-on-flyspell))
+      (setq abbrev-mode t)
+      (setq fill-column 72)
+      (setq require-final-newline t)	; needed by some unix programs
+      (turn-on-auto-fill))))
+
+(add-hook 'text-mode-hook 'my-text-mode-setup)
 
 ;; dont' need this now...
 ;;(add-hook 'nroff-mode-hook
@@ -3082,8 +3157,10 @@ used.")
   (setq mail-local-domain-name new-domain)
   (mail-reset-mail-local-domain-name-users))
 
-;; xxx need to do something to set mail-host-address correctly!!!
+;; xxx need to do something to set mail-host-address CORRECTLY!!!
 ;; (doing that should give user-mail-address the "right" value)
+;;
+(setq mail-host-address (concat (system-name) "." mail-local-domain-name))
 
 ;; mailcrypt --- a simple interface to message encryption with PGP.
 ;;
@@ -3408,8 +3485,12 @@ but it's seriously brain damaged so we re-define it as nothing."
   "NetBSD CVS Logs <source-changes@NetBSD.ORG>")
 (define-mail-abbrev "netbsd-users"
   "NetBSD User's Discussion List <netbsd-users@NetBSD.ORG>")
+(define-mail-abbrev "pkgsrc-users"
+  "NetBSD pkgsrc User's Discussion List <pkgsrc-users@NetBSD.ORG>")
 (define-mail-abbrev "port-alpha"
   "NetBSD/alpha Discussion List <port-alpha@NetBSD.ORG>")
+(define-mail-abbrev "port-arm"
+  "NetBSD/arm Discussion List <port-arm@NetBSD.ORG>")
 (define-mail-abbrev "port-i386"
   "NetBSD/i386 Discussion List <port-i386@NetBSD.ORG>")
 (define-mail-abbrev "port-ofppc"
@@ -3914,8 +3995,8 @@ With PREFIX, select from all quotes."
 (if (file-exists-p "~/.organization")
     (setq message-user-organization-file "~/.organization"))
 
-(setq gnus-read-active-file t)		; default of 'some causes it to hang
-
+;;(setq gnus-read-active-file t)		; default of 'some sometimes causes it to hang
+(setq gnus-read-active-file 'some)		; try with shaw
 
 ;;;;-------
 ;;;; the closing comments.....
