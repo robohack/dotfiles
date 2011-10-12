@@ -1,7 +1,7 @@
 #
 #	.kshlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.kshlogin	33.1	11/10/12 16:06:56 (woods)"
+#ident	"@(#)HOME:.kshlogin	34.1	11/10/12 16:54:51 (woods)"
 
 set -o ignoreeof	# we only do this for our login shell....
 

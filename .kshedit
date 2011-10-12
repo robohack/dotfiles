@@ -1,7 +1,7 @@
 #
 #	.kshedit - ksh editing function customisation
 #
-#ident	"@(#)HOME:.kshedit	33.1	11/10/12 16:06:55 (woods)"
+#ident	"@(#)HOME:.kshedit	34.1	11/10/12 16:54:51 (woods)"
 
 
 set -o gmacs
