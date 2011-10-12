@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	33.1	11/10/12 16:06:56 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	33.2	11/10/12 16:51:51 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -173,9 +173,9 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 	       ;;
 	       (eval-when-compile
 		 (defvar resize-minibuffer-mode))
-	       (if (and (fboundp 'resize-minibuffer-mode)
-			(not resize-minibuffer-mode))
-		   (resize-minibuffer-mode)))))) ; also autoload'ed
+	       (if (fboundp 'resize-minibuffer-mode)
+		   (if (not resize-minibuffer-mode)
+		       (resize-minibuffer-mode))))))) ; also autoload'ed
 
 ;;;; ----------
 ;;;; get ready to load stuff
@@ -341,6 +341,8 @@ returning t if any of the three are found. Nil is returned otherwise."
     (progn
       ;(require 'org)
       ;; for better visual impact use more dense chars first!
+      (eval-when-compile
+	(defvar org-export-ascii-underline))
       (setq org-export-ascii-underline '(?\= ?^ ?\~ ?\- ?\.))))
 
 ;; This is an ancient hack by Joe Wells is really only necessary on emacs-18
@@ -857,7 +859,7 @@ mode according to start of the current buffer."
 	 '("[nN][eE][wW][sS]\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[rR][eE][aA][dD]\\([-.]\\)?[mM][eE]\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[rR][eE][lL][eE][aA][sS][eE]\\([-.][^/]*\\)?\\'" . indented-text-mode)
-	 '("[tT][oO][dD][oO]\\([-.][^/]*\\)?\\'" . indented-text-mode)))
+	 '("[tT][oO][dD][oO]\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("[tT][hH][aA][nN][kK][^/.]*\\([-.][^/]*\\)?\\'" . indented-text-mode)
 	 '("\\.notes?\\'" . indented-text-mode)
 	 '("\\.te?xt\\'" . indented-text-mode)
