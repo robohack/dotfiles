@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.vm.el - startup initialisation for ViewMail
 ;;;;
-;;;#ident	"@(#)HOME:.vm	32.1	10/12/16 18:49:30 (woods)"
+;;;#ident	"@(#)HOME:.vm	33.1	11/10/12 16:06:54 (woods)"
 ;;;
 ;;; per-user start-up functions for GNU-emacs VM package (View-Mail)
 ;;;
