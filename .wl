@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	34.1	11/10/12 16:54:51 (woods)"
+;;;;#ident	"@(#)HOME:.wl	34.2	12/02/16 11:41:40 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -702,7 +702,7 @@ ENCODING must be string."
 ;; also turn on flyspell explicitly
 ;;
 (add-hook 'wl-mail-setup-hook (lambda ()
-				(flyspell-mode)))
+				(turn-on-flyspell)))
 (add-hook 'wl-mail-setup-hook (lambda ()
 				(mail-abbrevs-setup)))
 
