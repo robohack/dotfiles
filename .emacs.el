@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	34.1	11/10/12 16:54:51 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	34.2	12/02/16 11:52:54 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -866,7 +866,10 @@ mode according to start of the current buffer."
 
 ;; assume the autoloads are done for this...
 (if (elisp-file-in-loadpath-p "diff-mode")
-    (add-to-auto-mode-alist '("\\.\\(diffs?\\|patch\\|rej\\)" . diff-mode)))
+    (mapcar 'add-to-auto-mode-alist
+	    (list
+	     '("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)
+	     '("patch-[^/]*\\'" . diff-mode))))
 
 ;; assume the autoloads are done for this...
 (if (or (elisp-file-in-loadpath-p "makefile")
