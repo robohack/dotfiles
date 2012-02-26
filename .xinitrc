@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	34.1	11/10/12 16:54:51 (woods)"
+#ident	"@(#)HOME:.xinitrc	34.2	12/02/25 17:10:55 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -618,10 +618,3 @@ exec $WM
 #
 xterm -geometry 80x24+0+0 -cn -rw -sb -si -sk -ls -n FailSafe
 exit 1
-
-# Local Variables:
-# eval: (defun make-buffer-file-executable () (let* ((current-mode (file-modes (buffer-file-name))) (add-mode (logand ?\111 (default-file-modes)))) (or (/= (logand ?\111 current-mode) 0) (zerop add-mode) (set-file-modes (buffer-file-name) (logior current-mode add-mode)))))
-# vc-checkout-hook: (make-buffer-file-executable)
-# vc-checkin-hook: (make-buffer-file-executable)
-# after-save-hook: (make-buffer-file-executable)
-# End:
