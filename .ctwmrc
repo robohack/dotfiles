@@ -2,7 +2,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	34.2	12/03/13 13:26:24 (woods)"
+#ident	"@(#)HOME:.ctwmrc	34.3	12/04/27 15:44:52 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -637,6 +637,10 @@ menu "quickies"
 	""			f.separator
 	"Mac OS X Apps..."	f.menu "osx-apps"
 	"Mac OS X Spaces"	!"open /Applications/Utilities/Spaces.app &"
+	"emacs [@CLIENTHOST]"	!"emacs -i &"
+ ifdef([USE_X11SERVER], [
+	"@X11SERVER"		!"$RSH -n $X11SERVER 'DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i' &"
+ ])
 	"emacs @once"		!"$RSH -n 10.0.1.128 'export DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
 	"emacs @more"		!"$RSH -n 10.0.1.129 'export DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
 	"links -g @once"	!"$RSH -n 10.0.1.128 '. ./.profile; exec /usr/pkg/bin/links -g -display '$REMOTE_DISPLAY &"
