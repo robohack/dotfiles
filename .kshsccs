@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	35.1	13/12/02 18:39:35 (woods)"
+#ident	"@(#)HOME:.kshsccs	35.2	13/12/02 18:53:05 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -392,6 +392,8 @@ function vsact
 #
 #	vlastrel - guess last release
 #
+# XXX this is a mis-nomer -- it's actually the "current" release
+#
 function vlastrel
 {
 	if [ $# -ne 0 ] ; then
@@ -416,6 +418,9 @@ function vlastrel
 #
 # WARNING:  Note there's no "module" locking here!
 #
+# NOTE:  If you do this accidentally before you wrapped up the last
+# release, then you can go back easily enough with "vgetprev"
+#
 function vnewrel
 {
 	USAGE="Usage: $0 [RELEASE]"
@@ -437,3 +442,27 @@ function vnewrel
 }
 
 alias vmkrel=vnewrel
+
+#
+#	vgetprev - check out a previous release
+#
+function vgetprev
+{
+	USAGE="Usage: $0 [RELEASE]"
+	if [ -n "$(vtell)" ] ; then
+		echo "$0: files still being edited!." >&2
+		return 1
+	fi
+	if [ $# -eq 1 ] ; then
+		REL=$1
+		# XXX error check that it's an integer?
+	elif [ $# -eq 0 ] ; then
+		REL=$(( $(vlastrel) - 1 ))
+	else
+		echo "$USAGE" >&2
+		return 2
+	fi
+	vget -r$REL $PROJECT
+}
+
+alias vgetcur="vgetprev $(vlastrel)"
