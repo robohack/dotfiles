@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	35.2	13/12/02 18:53:05 (woods)"
+#ident	"@(#)HOME:.kshsccs	35.3	13/12/02 19:26:48 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -441,7 +441,7 @@ function vnewrel
 	vdelget -y"START RELEASE $REL" $PROJECT
 }
 
-alias vmkrel=vnewrel
+alias vmkrel='vnewrel'
 
 #
 #	vgetprev - check out a previous release
@@ -465,4 +465,4 @@ function vgetprev
 	vget -r$REL $PROJECT
 }
 
-alias vgetcur="vgetprev $(vlastrel)"
+alias vgetcur='vgetprev $(vlastrel)'
