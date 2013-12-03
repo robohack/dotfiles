@@ -1,10 +1,15 @@
 #
-#	.shlogin - login shell startup for ksh
+#	.shlogin - login shell startup for plain Bourne Shell
 #
-#ident	"@(#)HOME:.shlogin	34.1	11/10/12 16:54:50 (woods)"
+#ident	"@(#)HOME:.shlogin	34.2	13/12/02 18:08:04 (woods)"
 
-# this doesn't do anything but let you type '. $ENV'
+echo "$0: setup for Bourne Shell"
+
+# this doesn't do anything for sub-shells but let you type '. $ENV'
+#
 ENV=$HOME/.shrc ; export ENV
+
+# NOTE: ~/.profile will source $ENV if the file it names exists
 
 if [ -z "$LOGNAME" ] ; then
 	# some systems won't allow this...
