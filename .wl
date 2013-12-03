@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	34.2	12/02/16 11:41:40 (woods)"
+;;;;#ident	"@(#)HOME:.wl	34.3	13/12/02 18:22:50 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -66,6 +66,14 @@
 ;(setq elmo-imap4-default-stream-type nil)
 ;(setq elmo-imap4-default-port 143)
 
+;; This is required for some reason in order for imap.gmail.com connections to
+;; work (note that it would work with `1' ("Verification required"), but this
+;; seems safer.
+;;
+;; `3' means "Reject connection if verification fails"
+;;
+(setq ssl-certificate-verification-policy 3)
+
 ;; password always in raw format for my servers
 ;;
 (setq elmo-imap4-default-authenticate-type 'clear)
@@ -78,13 +86,6 @@
 ;; XXX should be set by package install, but seems not to be)
 ;;
 (setq wl-icon-directory "/usr/pkg/share/wl")
-
-;; SMTP server for mail posting. Default: `nil'
-(setq wl-smtp-posting-server "localhost")
-
-;; NNTP server for news posting. Default: `nil'
-;;
-;(setq wl-nntp-posting-server "news.weird.com")
 
 ;; prefetch everything that's uncached, not just unread-uncached (U) and
 ;; new-uncached (N)
@@ -112,6 +113,10 @@
       (setq to-me (wl-address-user-mail-address-p (car all-addresses)))
       (setq all-addresses (cdr all-addresses)))
     (if to-me "*" " ")))
+
+;; never search search for thread parent messages by subject!
+;;
+(setq wl-summary-search-parent-by-subject-regexp nil)
 
 ;; add "%E" to `wl-summary-line-format' to invoke `wl-summary-line-to-me'
 ;; 
@@ -203,12 +208,20 @@
 (require 'wl-highlight)
 (if (display-color-p)
     (if (eq (frame-parameter nil 'background-mode) 'light)
+	(progn
+	  (set-face-attribute 'wl-highlight-message-headers nil
+			      :foreground "black")
+	  (set-face-attribute 'wl-highlight-summary-deleted-face nil
+			      :foreground "red"
+			      :strike-through "OrangeRed"))
+      (progn
+	(set-face-attribute 'wl-highlight-message-headers nil
+			    :foreground "white")
 	(set-face-attribute 'wl-highlight-summary-deleted-face nil
-			    :foreground "red"
-			    :strike-through "OrangeRed")
-      (set-face-attribute 'wl-highlight-summary-deleted-face nil
-			  :foreground "IndiaRed3"
-			  :strike-through "black"))
+			    :foreground "IndiaRed3"
+			    :strike-through "black")))
+  (set-face-attribute 'wl-highlight-message-headers nil
+		      :foreground "black")
   (set-face-attribute 'wl-highlight-summary-deleted-face nil
 		      :strike-through t))
 
@@ -408,6 +421,7 @@ into too much confusion."
 	"^Status:"
 	"^Thread-Index:"
 	"^X-Accept-Language:"
+	"^X-Barracuda[^:]*:"		; some stupid virus scanner
 	"^X-BeenThere:"			; mailman?
 	"^X-Cam[^:]*:"			; some stupid virus scanner
 	"^X-CanItPRO[^:]*:"
@@ -522,6 +536,32 @@ into too much confusion."
  					(mime-entity-content-type entity)))))
  	      (fill-flowed))))
 
+(require 'simple)
+(if (fboundp 'visual-line-mode)
+    (add-hook 'mime-view-mode-hook '(lambda () (visual-line-mode t))))
+
+;; PGG has been included in Emacs, courtesy of GNUS, since 22.1
+;;
+;; xxx however it lost the read-passwd wrapper, so we recreate it here
+;;
+(require 'pgg)
+(defvar pgg-read-passphrase nil)
+(defun pgg-read-passphrase (prompt &optional key notruncate)
+  "Using PROMPT, obtain passphrase for KEY from cache or user.
+
+Calls the function given in the variable `pgg-read-passphrase', if set,
+otherwise calls `read-passwd'.
+
+Truncate the key to 8 trailing characters unless NOTRUNCATE is true
+\(default false).
+
+Custom variables `pgg-cache-passphrase' and `pgg-passphrase-cache-expiry'
+regulate cache behavior."
+  (if (not pgg-read-passphrase)
+      (setq pgg-read-passphrase 'read-passwd))
+  (or (pgg-read-passphrase-from-cache key notruncate)
+      (funcall pgg-read-passphrase prompt)))
+
 ;; XXX this doesn't quite work right to turn on automatic signing globally...
 ;;
 ;(setq mime-edit-pgp-processing '(sign))
@@ -532,7 +572,11 @@ into too much confusion."
 (setq pgg-default-scheme 'gpg)		; for composing
 (setq pgg-scheme 'gpg)			; for verify/decrypt
 
-;(setq pgg-read-passphrase 'read-passwd)	; it is the default?
+;; do not allow these to be hidden (removed the leading space in their names)
+(setq pgg-status-buffer "*PGG status*")
+(setq pgg-errors-buffer "*PGG errors*")
+(setq pgg-output-buffer "*PGG output*")
+
 (setq pgg-read-passphrase 'read-string)	; XXX for debugging
 (setq pgg-cache-passphrase t)		; it is the default
 (setq pgg-passphrase-cache-expiry 14400); 4 hrs
@@ -561,6 +605,30 @@ ENCODING must be string."
 			  (mime-encoding-alist)
 			  nil t "quoted-printable")))
   (funcall (mel-find-function 'mime-encode-region encoding) start end))
+
+;; Mailing List managers all too often break BASE64 encoded entities by
+;; _BLINDLY_ adding plain text to the tail of each message (i.e. in a
+;; non-MIME-compatible way)
+;;
+;; This is a workaround for BASE64 with trailing garbage
+;;
+(require 'mime-def)
+(mel-define-method mime-decode-string (string (nil "base64"))
+		   (condition-case error
+		       (base64-decode-string string)
+		     (error
+		      (catch 'done
+			(when (string-match "\\([A-Za-z0-9+/ \t\r\n]+\\)=*" string)
+			  (let ((tail (substring string (match-end 0)))
+				(string (match-string 1 string)))
+			    (dotimes (i 3)
+			      (condition-case nil
+				  (progn
+				    (setq string (base64-decode-string string))
+				    (throw 'done (concat string tail)))
+				(error))
+			      (setq string (concat string "=")))))
+			(signal (car error) (cdr error))))))
 
 ;; XXX GRRR!  It seems this is impossible to do from here!
 ;; (error on startup: "eval-buffer: Symbol's value as variable is void: mime-view-mode-map")
@@ -640,12 +708,12 @@ ENCODING must be string."
 ;; ... reply-to-sender, but just standard Mail RFC headers!
 (setq wl-draft-reply-without-argument-list
       '(("Reply-To" . (("Reply-To")
-		       nil 
+		       nil
 		       nil))
 	("From" . (("From")
 		   nil
 		   nil))))
-;;                                                                                                                                    
+;;
 ;; ... reply-to-all, but just standard Mail RFC headers!
 ;;
 (setq wl-draft-reply-with-argument-list
@@ -675,12 +743,40 @@ ENCODING must be string."
 (setq system-fqdn (if (string-match "\\." (system-name))
 		      (system-name)
 		    (concat (system-name) "." wl-local-domain)))
-(setq wl-envelope-from (concat (user-login-name) "@" system-fqdn))
+;;(setq wl-envelope-from (concat (user-login-name) "@" system-fqdn))
+;;
+;; Actually.... this might work for many uses....
+;;
+(setq wl-envelope-from (concat (user-login-name) "@" wl-local-domain))
 
 ;; a good default, but may be adapted by wl-draft-config-alist as below
 ;; (if unset the full local hostname is used)
 ;;
 (setq wl-from "\"Greg A. Woods\" <woods@weird.com>")
+
+;; SMTP server for mail posting.  Default: `nil'
+;;
+;; Used by `wl-draft-send-mail-with-smtp', the default value for
+;;`wl-draft-send-mail-function'.
+;;
+;; With "localhost" in both we assume a local SMTP server on port#25 that can
+;; properly route to the world....
+;;
+(setq smtp-fqdn "localhost")		; used in FLIM's smtp.el
+(setq wl-smtp-posting-server "localhost") ; used in wl-draft.el
+
+;; NNTP server for news posting.  Default: `nil'
+;;
+;; (only for cross-posting mail to Usenet?)
+;;
+;(setq wl-nntp-posting-server "news.weird.com")
+;(setq wl-nntp-posting-server (let ((envvalue (getenv "NNTPSERVER")))
+;			       (if (or (null envvalue)
+;				       (string-equal envvalue ""))
+;				   nil
+;				 (if (string-equal "." (substring envvalue 0 1))
+;				     (substring envvalue 1)
+;				   envvalue))))
 
 ;; used to show "To: recip" in summary lines for messages sent by user
 ;;
@@ -697,12 +793,16 @@ ENCODING must be string."
 \\(robohack\\.\\(ca\\|org\\)\\)\
 \\)\
 \\)\
+\\|g\\.woods@klervi\\.com\
 \\|woods\\.greg\\.a@gmail\\.com\\)$")
 
 ;; also turn on flyspell explicitly
 ;;
 (add-hook 'wl-mail-setup-hook (lambda ()
 				(turn-on-flyspell)))
+
+;; and enable mail-abbrevs too!
+;;
 (add-hook 'wl-mail-setup-hook (lambda ()
 				(mail-abbrevs-setup)))
 
@@ -716,7 +816,7 @@ ENCODING must be string."
 		nil
 		"base64" "attachment"
 		(("filename" . file))))
-	     
+
 ;; Unfortunately this `defadvice' is not quite sufficient on its own.
 ;;
 ;; XXX The only work-around I know for now is to mark the entire body of the
@@ -726,12 +826,13 @@ ENCODING must be string."
 ;;	C-t M-<SPACE> M-> M-x mime-encode-region <RETURN> <RETURN>
 ;;
 ;; It doesn't seem like WL/SEMI/FLIM implements quoted-printable encoding
-;; properly, or maybe even not at all (i.e. doing this seems to be a no-op, as
-;; will be evident from this message).
-;; 
-;; I do see the MIME tag as "[[text/plain][quoted-printable]]", and this
-;; message will have a "Content-Transfer-Encoding: quoted-printable"
-;; header, but there will be no such encoding performed before it is sent.
+;; properly, or maybe even not at all (i.e. setting the following advice seems
+;; to only half work).
+;;
+;; I do see the MIME tag as "[[text/plain][quoted-printable]]", and messages
+;; will have a "Content-Transfer-Encoding: quoted-printable" header, but no
+;; such encoding is performed automatically before they are sent, as one might
+;; hope and expect!
 ;;
 ;; It may be that `mime-edit-translate-body' doesn't do any encoding work, but
 ;; if not, how to make it do so and yet avoid encoding files, etc. that have
@@ -741,34 +842,47 @@ ENCODING must be string."
 ;; since that's likely just text typed by the user.
 ;;
 ;; Maybe when we're about to send a message we should first run through all the
-;; MIME parts (instead of the following) and transform any [[text/*]] tags
-;; without a specified encoding to add the [quoted-printable] encoding and of
-;; course then do the necessary quoted-printable encoding automatically as well
-;; at that time.  Optionally we could do this only when we're using PGG to sign
-;; a message, but really all text will be more robust through e-mail if it is
-;; encoded somehow, and quoted-printable is the least intrusive, only showing
-;; its ugly head if it is absolutely necessary.
+;; MIME parts (instead of setting the following advice) and transform any
+;; [[text/*]] tags without a specified encoding to add the [quoted-printable]
+;; encoding and of course actually do the necessary quoted-printable encoding
+;; automatically as well at that time.  All text will be more robustly
+;; transmitted through e-mail if it is encoded somehow, and quoted-printable is
+;; the least intrusive, showing its ugly head only if it is absolutely
+;; necessary.
+;;
+;; XXX it would be nice too if we could put the MIME tag before the cited text,
+;; if any, and not just in front of the newly inserted signature....
 ;;
 (defadvice mime-edit-insert-signature (after my-mime-edit-signature-set-qp-encoding activate)
   "Add quoted-printable encoding to the MIME tag for the message."
-  (mime-edit-define-encoding "quoted-printable"))
+  (progn
+    ;; xxx even if the buffer is edited in utf-8, the act of running
+    ;; `mime-encode-region' seems to cause any non-ASCII characters to be
+    ;; encoded as ISO-8859-1 characters, but then for any mailer to interpret
+    ;; them properly it has to be told what they are in the content-type
+    ;; header.
+    ;;
+    (mime-edit-define-charset 'iso-8859-1)
+    (mime-edit-define-encoding "quoted-printable")))
 
 ;; The default draft folder, first set up the local draft folder name.
 ;;
 ;; Someday this may be adjusted at draft buffer creation time by settings in
-;; `wl-draft-config-alist'.
+;; `wl-draft-config-alist', but see the note there about how the new draft
+;; buffer is already associated with the original draft folder and the new
+;; value is only set in a buffer-local copy in the new draft buffer.
 ;;
 ;; WARNING:  currently `wl-summary-reedit' does a plain `string=' comparison
 ;; against the value of `wl-draft-folder' to decide whether or not the folder
 ;; in question is a "draft" folder and thus do the right magic to supersede the
 ;; original message with the one being edited, and again to delete the draft
-;; message once it has been successfully sent.
+;; message once it has been successfully sent (or when it is killed).
 ;;
 (setq wl-draft-folder "+draft")
 
 ;; wl-draft-config-exec really MUST be done as early as possible, not as late
 ;; as possible!!!
-;; 
+;;
 ;; So, move it at least to the mail-setup stage...
 ;;
 (remove-hook 'wl-draft-send-hook 'wl-draft-config-exec)
@@ -806,20 +920,22 @@ ENCODING must be string."
 (add-hook 'wl-mail-send-pre-hook 'my-wl-draft-subject-check)
 (add-hook 'wl-mail-send-pre-hook 'my-wl-draft-attachment-check)
 
-;; add a (pgp-sign . BOOL)
+;; add a (pgp-sign . BOOL) action for wl-draft-config-alist
 (unless (assq 'pgp-sign wl-draft-config-sub-func-alist)
   (wl-append wl-draft-config-sub-func-alist
 	     '((pgp-sign . mime-edit-set-sign))))
 
-;; add a (pgp-encrypt . BOOL)
+;; add a (pgp-encrypt . BOOL) action for wl-draft-config-alist
 (unless (assq 'pgp-encrypt wl-draft-config-sub-func-alist)
   (wl-append wl-draft-config-sub-func-alist
 	     '((pgp-encrypt . mime-edit-set-encrypt))))
 
 ;; try to predict who I should be....
-;; (XXX there's probably a more efficient way to write this)
+;; (XXX there's probably a more efficient way to write this, indeed this might
+;; be a lot simpler with templates, which are set in `wl-template-alist')
 ;;
-;; Note there's also a hack to set wl-smtp-posting-server using this...
+;; Note that with `wl-template-alist' set, another template can be chosen while
+;; composing the message with C-c C-j
 ;;
 ;; add ("FCC" . "%inbox/Sent@mailbox.domain") to set FCC...
 ;;
@@ -828,48 +944,69 @@ ENCODING must be string."
 ;;	;; If non-nil, applied only one element of `wl-draft-config-alist'.
 ;;	(setq wl-draft-config-matchone t)
 ;;
+;; xxx there doesn't seem to be any way to define a condition that triggers
+;; only for messages that didn't match any other condition -- the actions for
+;; the "default" condition at the bottom "(or t)" are always applied (which
+;; might also be a clue as to how this could be simplified somewhat?)
+;;
+;; XXX When set here, `wl-draft-folder' is properly set inside the draft
+;; buffer, but the draft is still not saved to the proper draft folder!!!
+;;
 (setq wl-draft-config-alist
       '((reply
 	 "^From: [\"]?Andreas Wrede[\"]?"
+	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@weird.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@weird.ca>")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 	(reply
 	 "^From: .*@.*planix\\."
+	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 	(reply
 	 "^To: .*@.*planix\\."
+	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 ;	(reply
+;	 "^From: .*@.*citrix\\."
+;	 (pgp-sign . nil)
+;	 ("From" . "\"Greg A. Woods\" <greg.woods@citrix.com>")
+;	 ("Reply-To" . "\"Greg A. Woods\" <greg.woods@citrix.com>")
+;	 ("FCC" . "%Sent Messages:t_gregwo@mail.citrix.com:993!")
+;	 ("Precedence" . "first-class")
+;	 ("Organization" . "Citrix Systems"))
+;	(reply
 ;	 "^From: .*@.*teloip\\."
+;	 (pgp-sign . nil)
 ;	 ("From" . "\"Greg A. Woods\" <gwoods@teloip.com>")
 ;	 ("Reply-To" . "\"Greg A. Woods\" <gwoods@teloip.com>")
 ;	 ("FCC" . "%inbox.Sent:gwoods@mail.teloip.com:993!")
 ;	 ("Precedence" . "first-class")
 ;	 ("Organization" . "TELoIP Inc."))
-	(reply
-	 "^From: .*@.*clasix\\.net"
-	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
-	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
-	 ("X-Priority" . "2")
-	 ("Precedence" . "first-class")
-	 ("Organization" . "Planix, Inc."))
-	(reply
-	 "^From: .*@.*seawellnetworks\\.com"
-	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
-	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
-	 ("X-Priority" . "2")
-	 ("Precedence" . "first-class")
-	 ("Organization" . "Planix, Inc."))
+;	(reply
+;	 "^From: .*@.*clasix\\.net"
+;	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
+;	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
+;	 ("X-Priority" . "2")
+;	 ("Precedence" . "first-class")
+;	 ("Organization" . "Planix, Inc."))
+;	(reply
+;	 "^From: .*@.*seawellnetworks\\.com"
+;	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
+;	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
+;	 ("X-Priority" . "2")
+;	 ("Precedence" . "first-class")
+;	 ("Organization" . "Planix, Inc."))
 	(reply
 	 "^From: [\"]?Scott Lindsay[\"]?"
+	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("X-Priority" . "2")
@@ -877,52 +1014,104 @@ ENCODING must be string."
 	 ("Organization" . "Planix, Inc."))
 	(reply
 	 "^From: .*Ted Gray.*"
+	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("X-Priority" . "2")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
-	(reply
-	 "^From: .*@.*\\(aci\\|opc\\)\\.on\\.ca"
-	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
-	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
-	 ("Precedence" . "first-class")
-	 ("X-Priority" . "2")
-	 ("Organization" . "Planix, Inc."))
+;	(reply
+;	 "^From: .*@.*\\(aci\\|opc\\)\\.on\\.ca"
+;	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
+;	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
+;	 ("Precedence" . "first-class")
+;	 ("X-Priority" . "2")
+;	 ("Organization" . "Planix, Inc."))
 	(reply
 	 "^From: .*@.*\\(lawyermediator\\|gelmanlaw\\)\\.ca"
+	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Precedence" . "first-class")
 	 ("X-Priority" . "1"))
-	((string-match "^%inbox/planix.*@mailbox\\.weird\\.com" wl-draft-parent-folder)
+	((string-match "^%inbox/planix.*@mailbox\\.weird\\.com"
+		       wl-draft-parent-folder)
+	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
-	((string-match "^%.*@mail\\.planix\\.com" wl-draft-parent-folder)
+	((string-match "^%.*@mail\\.planix\\.com"
+		       wl-draft-parent-folder)
+	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
+;	((string-match "^%.*@mail\\.citrix\\.com"
+;		       wl-draft-parent-folder)
+;	 (pgp-sign . nil)
+;	 ("From" . "\"Greg A. Woods\" <greg.woods@citrix.com>")
+;	 ("Reply-To" . "\"Greg A. Woods\" <greg.woods@citrix.com>")
+;	 ("FCC" . "%Sent Messages:t_gregwo@mail.citrix.com:993!")
+;	 ("Precedence" . "first-class")
+;	 ("Organization" . "Citrix Systems"))
 ;	((string-match "^%.*@mail\\.teloip\\.com" wl-draft-parent-folder)
-;	 ("From" . "\"Greg A. Woods\" <woods@teloip.com>")
-;	 ("Reply-To" . "\"Greg A. Woods\" <woods@teloip.com>")
+;	 (pgp-sign . nil)
+;	 ("From" . "\"Greg A. Woods\" <gwoods@teloip.com>")
+;	 ("Reply-To" . "\"Greg A. Woods\" <gwoods@teloip.com>")
 ;	 ("FCC" . "%inbox.Sent:gwoods@mail.teloip.com:993!")
 ;	 ("Precedence" . "first-class")
 ;	 ("Organization" . "TELoIP, Inc."))
-	((string-match "^%.*:woods@mailbox\\.aci\\.on\\.ca" wl-draft-parent-folder)
+	((string-match "^%.*@imap\\.gmail\\.com"
+		       wl-draft-parent-folder)
 	 (pgp-sign . nil)
-	 ("From" . "\"Greg A. Woods\" <woods@aci.on.ca>")
-	 ("Reply-To" . "\"Greg A. Woods\" <woods@aci.on.ca>")
+;XXX	 (wl-draft-folder . "%[Gmail]/Drafts:Woods.Greg.A@imap.gmail.com:993!")
+	 ("From" . "\"Greg A. Woods\" <Woods.Greg.A@gmail.com>")
+	 ("Reply-To" . "\"Greg A. Woods\" <Woods.Greg.A@gmail.com>")
+	 ;; there is no need to use Fcc in gmail if you used the gmail SMTP
+	 ;; server. gmail saves a copy of all sent messages automatically.
+;	 ("FCC" . "%[Gmail]/Sent Mail:Woods.Greg.A@imap.gmail.com:993!")
 	 ("Precedence" . "first-class")
-	 ("Organization" . "Planix, Inc."))
-	((string-match "^%.*:gwoods@mailbox\\.aci\\.on\\.ca" wl-draft-parent-folder)
+	 ("Organization" . "Me, Myself, and I")
+	 (wl-smtp-posting-user . "Woods.Greg.A@gmail.com")
+	 (wl-smtp-posting-server . "smtp.gmail.com")
+	 (wl-smtp-posting-port . 587)
+	 (wl-smtp-connection-type . 'starttls)
+	 (wl-smtp-authenticate-type . "plain"))
+	((string-match "^%.*@klervi\\.com"
+		       wl-draft-parent-folder)
 	 (pgp-sign . nil)
-	 ("From" . "\"Greg A. Woods\" <gwoods@aci.on.ca>")
-	 ("Reply-To" . "\"Greg A. Woods\" <gwoods@aci.on.ca>")
+;XXX	 (wl-draft-folder . "%[Gmail]/Drafts:\"g.woods@klervi.com\"@imap.gmail.com:993!")
+	 ("From" . "\"klervi - Greg A. Woods\" <g.woods@klervi.com>")
+	 ("Reply-To" . "\"klervi - Greg A. Woods\" <g.woods@klervi.com>")
+	 ;; there is no need to use Fcc in gmail if you used the gmail SMTP
+	 ;; server. gmail saves a copy of all sent messages automatically.
+	 ;; however since we now use celcius....
+	 ("FCC" . "%[Gmail]/Sent Mail:\"g.woods@klervi.com\"@imap.gmail.com:993!")
 	 ("Precedence" . "first-class")
-	 ("Organization" . "Planix, Inc."))
+	 ("Organization" . "klervi nord amerique inc.")
+;	 (wl-smtp-posting-user . "g.woods@klervi.com")
+;	 (wl-smtp-posting-server . "smtp.gmail.com")
+;	 (wl-smtp-posting-port . 587)
+;	 (wl-smtp-connection-type . 'starttls)
+	 (wl-smtp-posting-user . "gaw")
+	 (wl-smtp-posting-server . "celcius.klervi.com")
+	 (wl-smtp-posting-port . 465)
+	 (wl-smtp-connection-type . 'ssl)
+	 (wl-smtp-authenticate-type . "plain"))
+;	((string-match "^%.*:woods@mailbox\\.aci\\.on\\.ca" wl-draft-parent-folder)
+;	 (pgp-sign . nil)
+;	 ("From" . "\"Greg A. Woods\" <woods@aci.on.ca>")
+;	 ("Reply-To" . "\"Greg A. Woods\" <woods@aci.on.ca>")
+;	 ("Precedence" . "first-class")
+;	 ("Organization" . "Planix, Inc."))
+;	((string-match "^%.*:gwoods@mailbox\\.aci\\.on\\.ca" wl-draft-parent-folder)
+;	 (pgp-sign . nil)
+;	 ("From" . "\"Greg A. Woods\" <gwoods@aci.on.ca>")
+;	 ("Reply-To" . "\"Greg A. Woods\" <gwoods@aci.on.ca>")
+;	 ("Precedence" . "first-class")
+;	 ("Organization" . "Planix, Inc."))
 	;; mailing list:  emacs-mime-en
 	((or (string-match "^%inbox/Lists-IN/emacs-mime-en-l"
 			   wl-draft-parent-folder)
@@ -966,12 +1155,14 @@ ENCODING must be string."
 	;; mailing list:  git
 	((string-match "^%inbox/Lists-IN/git-list"
 		       wl-draft-parent-folder)
+	 (pgp-sign . t)
          ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("To" . "The Git Mailing List <git@vger.kernel.org>")
 	 ("Reply-To" . "The Git Mailing List <git@vger.kernel.org>")
 	 ("Organization" . "Planix, Inc."))
 	(reply
 	 "^List-Id: .*<git.vger.kernel.org>"
+	 (pgp-sign . t)
          ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("To" . "The Git Mailing List <git@vger.kernel.org>")
 	 ("Reply-To" . "The Git Mailing List <git@vger.kernel.org>")
@@ -979,12 +1170,14 @@ ENCODING must be string."
 	;; mailing list:  nsd-users
 	((string-match "^%inbox/Lists-IN/nsd-users"
 		       wl-draft-parent-folder)
+	 (pgp-sign . t)
          ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("To" . "The NSD User's Mailing List <nsd-users@NLnetLabs.nl>")
 	 ("Reply-To" . "The NSD User's Mailing List <nsd-users@NLnetLabs.nl>")
 	 ("Organization" . "Planix, Inc."))
 	(reply
 	 "^List-Id: .*<nsd-users.NLnetLabs.nl>"
+	 (pgp-sign . t)
          ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("To" . "The NSD User's Mailing List <nsd-users@NLnetLabs.nl>")
 	 ("Reply-To" . "The NSD User's Mailing List <nsd-users@NLnetLabs.nl>")
@@ -996,28 +1189,33 @@ ENCODING must be string."
 	;; mailing list:  nsd-users
 	(reply
 	 "^Delivered-To: .*@[Nn][Ee][Tt][Bb][Ss][Dd]\\.[Oo][Rr][Gg]"
+	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "")
 	 ("Organization" . "Planix, Inc."))
 	((string-match "^%inbox/Lists-IN/netbsd-lists/"
 		       wl-draft-parent-folder)
+	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Reply-To" . "")
 	 ("Organization" . "Planix, Inc."))
 	(reply
 	 "^List-Id: .*\\.[Nn][Ee][Tt][Bb][Ss][Dd]\\.[Oo][Rr][Gg]>"
+	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Reply-To" . "")
 	 ("Organization" . "Planix, Inc."))
 	;; mailing list:  unbound-users
 	((string-match "^%inbox/Lists-IN/unbound-users"
 		       wl-draft-parent-folder)
+	 (pgp-sign . t)
          ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("To" . "The Unbound User's Mailing List <unbound-users@unbound.net>")
 	 ("Reply-To" . "The Unbound User's Mailing List <unbound-users@unbound.net>")
 	 ("Organization" . "Planix, Inc."))
 	(reply
 	 "^List-Id: .*<unbound-users.unbound.net>"
+	 (pgp-sign . t)
          ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("To" . "The Unbound User's Mailing List <unbound-users@unbound.net>")
 	 ("Reply-To" . "The Unbound User's Mailing List <unbound-users@unbound.net>")
@@ -1027,32 +1225,36 @@ ENCODING must be string."
 			   wl-draft-parent-folder)
 	     (string-match "^%inbox/list-archive/wl-en@"
 			   wl-draft-parent-folder))
-         ("From" . "\"Greg A. Woods\" <woods@planix.com>")
+	 (pgp-sign . nil)
+         ("From" . "\"Greg A. Woods\" <woods-wl-en-l@planix.com>")
 	 ("To" . "WanderLust Users Mailing List (English) <wl-en@ml.gentei.org>")
 	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@ml.gentei.org>")
 	 ("Organization" . "Planix, Inc."))
 	(reply
 	 "^([tT][oO]|[Cc][Cc]): wl-en@"
-	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
+	 (pgp-sign . nil)
+	 ("From" . "\"Greg A. Woods\" <woods-wl-en-l@planix.com>")
 	 ("To" . "WanderLust Users Mailing List (English) <wl-en@ml.gentei.org>")
 	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@ml.gentei.org>")
 	 ("Organization" . "Planix, Inc."))
 	; defaults for everything
 	((or t)
-	 (pgp-sign . t)
 	 mime-edit-insert-signature)))
 
 (setq wl-insert-message-id nil)		; let our MTA do it....
 
 (setq signature-insert-at-eof t)
 (setq signature-file-alist
-      '((("From" . "@planix\\.") . "~/.signature-planix.com")
+      '((("From" . "@planix\\.ca") . "~/.signature-planix.ca")
+	(("From" . "@planix\\.com") . "~/.signature-planix.com")
+	(("From" . "@klervi\\.com") . "~/.signature-klervi.com")
+;	(("From" . "@citrix\\.") . "~/.signature-citrix.com")
 ;	(("From" . "@teloip\\.") . "~/.signature-teloip.com")
-	(("From" . "@aci\\.") . "~/.signature-aci-postmaster")
+;	(("From" . "@aci\\.") . "~/.signature-aci-postmaster")
 	(("From" . ".") . "~/.signature")))
 
 ;; mail-sent-via is a big useless pile of crap.
-;; 
+;;
 ;; luckily it seems we can modify `wl-draft-mode-map' at ~/.wl load time, but
 ;; otherwise it could be done in a `wl-draft-mode-hook' function
 ;;
@@ -1076,9 +1278,16 @@ ENCODING must be string."
 ;;
 (setq wl-default-folder "^%INBOX@mailbox.weird.com")
 
-;; since we do (set-language-environment "Latin-1") in .emacs....
+;; since we do (set-language-environment "UTF-8") in .emacs....
 ;;
-(setq default-mime-charset-for-write 'latin-1)
+;; NOTE: for Latin-1 the correct mime-charset name is "ISO-8859-1"
+;;
+;; XXX the default value is "Q", and that seems to work for UTF-8
+;;
+;; XXX on the other hand since `mime-encode-region' seems to insist on
+;; converting to ISO-8859-1 anyway....
+;;
+(setq default-mime-charset-for-write 'iso-8859-1)
 
 ;; try to keep deleted messages in the Trash folder on the same host
 ;;
@@ -1089,23 +1298,33 @@ ENCODING must be string."
 ;; (and take special consideration of the ones where I have to use a
 ;; different port, different heirarchy separator, or whatever)
 ;;
+;; NOTE:  On Gmail the default system folders (Sent, Trash, etc.) are locale
+;; specific, i.e. the name depends on your language settings in gmail, and
+;; these folders are placed in the top level folder called "%[Gmail]/".  Normal
+;; folders (called "filters" by Gmail) have no prefix, and sub-folders are
+;; delimited by "/".
+;;
+;; Note also that Gmail has a magic "%[Gmail]/All Mail" sub-folder in which all
+;; mail is always stored, and this is the only place one can ever really truly
+;; delete any mail from on Gmail.  (i.e. removing from Trash doesn't delete!)
+;;
 (setq wl-dispose-folder-alist
-      '(("^%inbox.*Trash@" . remove)	; this one must come first
-	("^%INBOX$" . "%inbox/Trash")
-	("^%inbox[^@]*$" . "%inbox/Trash")
-	("^%INBOX:woods@mailbox.weird.com" . "%inbox/Trash:woods@mailbox.weird.com:993!")
-	("^%inbox.*:woods@mailbox.weird.com" . "%inbox/Trash:woods@mailbox.weird.com:993!")
-	("^%INBOX:Woods.Greg.A@imap.gmail.com" . "%inbox/Trash:Woods.Greg.A@imap.gmail.com:993!")
-	("^%inbox.*:@Woods.Greg.A@imap.gmail.com" . "%inbox/Trash:Woods.Greg.A@imap.gmail.com:993!")
-	("^%INBOX:woods@mail.teloip.com" . "%inbox.Trash:woods@mail.teloip.com:993!")
-	("^%inbox.*:woods@mail.teloip.com" . "%inbox.Trash:woods@mail.teloip.com:993!")
-	("^%INBOX:gwoods@mailbox.aci.on.ca" . "%inbox/Trash:gwoods@mailbox.aci.on.ca:993!")
-	("^%inbox.*:gwoods@mailbox.aci.on.ca" . "%inbox/Trash:gwoods@mailbox.aci.on.ca:993!")
-	("^%INBOX@mailbox.aci.on.ca" . "%inbox/Trash@mailbox.aci.on.ca:993!")
-	("^%inbox.*@mailbox.aci.on.ca" . "%inbox/Trash@mailbox.aci.on.ca:993!")
+      '(("^\\(/[^/]*/\\)?%.*[/.]Trash:.*$" . remove) ; this one must come first!!!
+	("^\\(/[^/]*/\\)?%.*Deleted Messages:.*$" . remove) ; must appear before use as targett!!!
+	("^\\(/[^/]*/\\)?%INBOX$" . "%inbox/Trash")
+	("^\\(/[^/]*/\\)?%inbox[^@]*$" . "%inbox/Trash")
+	("^\\(/[^/]*/\\)?%.*:woods@mailbox.weird.com" . "%inbox/Trash:woods@mailbox.weird.com:993!")
+	("^\\(/[^/]*/\\)?%.*:Woods.Greg.A@imap.gmail.com" . "%[Gmail]/Trash:Woods.Greg.A@imap.gmail.com:993!")
+	("^\\(/[^/]*/\\)?%[Gmail]/All Mail:Woods.Greg.A@imap.gmail.com" . remove)
+	("^\\(/[^/]*/\\)?%.*:\"g.woods@klervi.com\"@imap.gmail.com" . "%[Gmail]/Trash:\"g.woods@klervi.com\"@imap.gmail.com:993!")
+	("^\\(/[^/]*/\\)?%[Gmail]/All Mail:\"g.woods@klervi.com\"@imap.gmail.com" . remove)
+;	("^\\(/[^/]*/\\)?%.*:t_gregwo@mail.citrix.com" . "%Deleted Messages:t_gregwo@mail.citrix.com:993!")
+;	("^\\(/[^/]*/\\)?%.*:woods@mail.teloip.com" . "%inbox.Trash:woods@mail.teloip.com:993!")
+;	("^\\(/[^/]*/\\)?%.*:gwoods@mailbox.aci.on.ca" . "%inbox/Trash:gwoods@mailbox.aci.on.ca:993!")
+;	("^\\(/[^/]*/\\)?%.*:woods@mailbox.aci.on.ca" . "%inbox/Trash:woods@mailbox.aci.on.ca:993!")
 	("^-" . remove)
 	("^@" . remove)
-	("^\\+trash" . remove)
+	("^\\+trash$" . remove)
 	("^\\+" . trash)))
 
 ;;; For junk handling
@@ -1114,7 +1333,7 @@ ENCODING must be string."
 ;;;
 ;;;	(setq elmo-spam-scheme 'sa)
 ;;;	(require 'wl-spam)
-;;;	(setq wl-spam-folder "%INBOX.spam")
+;;;	(setq wl-spam-folder "%INBOX/spam")
 ;;;
 
 ;; first set up the local junk folder name
@@ -1133,15 +1352,11 @@ ENCODING must be string."
       '(("^%inbox.*Junk@" . null)	; this one must come first
 	("^+junk" . null)		; this one too?
 	("^\\(/[^/]*/\\)?%INBOX$" . "%inbox/Junk")
-	("^%inbox[^@]*$" . "%inbox/Junk")
-	("^%INBOX:woods@mailbox.weird.com" . "%inbox/Junk:woods@mailbox.weird.com:993!")
-	("^%inbox.*:woods@mailbox.weird.com" . "%inbox/Junk:woods@mailbox.weird.com:993!")
-	("^%INBOX:Woods.Greg.A@imap.gmail.com" . "%inbox/Junk:Woods.Greg.A@imap.gmail.com:993!")
-	("^%inbox.*:@Woods.Greg.A@imap.gmail.com" . "%inbox/Junk:Woods.Greg.A@imap.gmail.com:993!")
-	("^%INBOX:gwoods@mailbox.aci.on.ca" . "%inbox/Junk:gwoods@mailbox.aci.on.ca:993!")
-	("^%inbox.*:gwoods@mailbox.aci.on.ca" . "%inbox/Junk:gwoods@mailbox.aci.on.ca:993!")
-	("^%INBOX@mailbox.aci.on.ca" . "%inbox/Junk@mailbox.aci.on.ca:993!")
-	("^%inbox.*@mailbox.aci.on.ca" . "%inbox/Junk@mailbox.aci.on.ca:993!")))
+	("^\\(/[^/]*/\\)?%inbox[^@]*$" . "%inbox/Junk")
+	("^\\(/[^/]*/\\)?%.*:woods@mailbox.weird.com" . "%inbox/Junk:woods@mailbox.weird.com:993!")
+	("^\\(/[^/]*/\\)?%.*:Woods.Greg.A@imap.gmail.com" . "%[Gmail]/Spam:Woods.Greg.A@imap.gmail.com:993!")
+	("^\\(/[^/]*/\\)?%.*:\"g.woods@klervi.com\"@imap.gmail.com" . "%[Gmail]/Spam:\"g.woods@klervi.com\"@imap.gmail.com:993!")
+	))
 
 ;; essentially a copy of `wl-summary-get-dispose-folder' (they could probably
 ;; be merged together into something more generic)
@@ -1206,9 +1421,10 @@ ENCODING must be string."
 ;; the Junk action.
 ;;
 ;; For now we just move them into the appropriate Junk folder, but eventually
-;; we might at least add IMAP (persistent) flags so that they appear as junk to other types
-;; of clients, and also we might do some post-processing and perhaps possibly
-;; forward some of them off to SpamCop and/or the source addr's contacts, etc.
+;; we might at least add IMAP (persistent) flags so that they appear as junk to
+;; other types of clients, and also we might do some post-processing and
+;; perhaps possibly forward some of them off to SpamCop and/or the source
+;; addr's contacts, etc.
 ;;
 (defun wl-summary-exec-action-junk (mark-list)
   (message (princ-list mark-list))
