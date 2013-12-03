@@ -1,27 +1,49 @@
 #
 #	.kshedit - ksh editing function customisation
 #
-#ident	"@(#)HOME:.kshedit	34.1	11/10/12 16:54:51 (woods)"
+#ident	"@(#)HOME:.kshedit	34.2	13/12/02 18:39:14 (woods)"
 
+# XXX this can't be checked in with a "diff" that treats it as binary!
 
 set -o gmacs
 
 if [ -n "$KSH_VERSION" ] ; then
 	#
-	# this is probably pdksh
+	# this is probably pdksh (or it could be ksh93t or later), but
+	# does it also have the emacs-usemeta option?
 	#
-	set -o emacs-usemeta
+	case "$(set -o)" in
+	*emacs-usemeta* )
+		set -o emacs-usemeta
+		;;
+	esac
 fi
 
-# these aliases only work in emacs/gmacs mode
-#
+if ( type bind ) > /dev/null 2>&1 ; then
+	# Commonly the HOME and END keys....
+	#
+	bind '^XH'=beginning-of-line
+	bind '^XF'=end-of-line
+
+	# only(?) OpenBSD and NetBSD have this by default
+	#
+	bind '^I'=complete-list
+
+	# some of these might also be useful for pdKSH & mksh:
+	#
+	#bind '^X1~'=beginning-of-line
+	#bind '^X7~'=beginning-of-line
+	#bind '^X4~'=end-of-line
+	#bind '^X8~'=end-of-line
+	#bind '^XF'=end-of-line
+	#bind '^X3~'=delete-char-forward
+else
+	# these aliases only work in emacs/gmacs mode
+	#
 alias __A=''		# up arrow
 alias __B=''		# down arrow
 alias __C=''		# right arrow
 alias __D=''		# left arrow
 alias __H=''		# beginning of line, HOME key
-
-# this would maybe be useful in pdKSH:
-#
-#bind "^I=complete"
-#bind "^I^I=complete-list"
+alias __F=''		# end of line, END key
+fi
