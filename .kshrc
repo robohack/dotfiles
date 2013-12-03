@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	34.1	11/10/12 16:54:51 (woods)"
+#ident	"@(#)HOME:.kshrc	34.2	13/12/02 18:06:56 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -21,6 +21,24 @@
 #set -o nolog		# no functions in $HISTFILE
 
 export PATH="$PATH"
+
+# XXX these variants using ${..##..} and ${..%%..} instead of $(expr ...) may be better
+
+# add to end of path
+append2path()
+{
+	if ! eval test -z "\"\${$1##*:$2:*}\"" -o -z "\"\${$1%%*:$2}\"" -o -z "\"\${$1##$2:*}\"" -o -z "\"\${$1##$2}\"" ; then
+		eval "$1=\$$1:$2"
+	fi
+}
+
+# add to front of path
+prepend2path()
+{
+	if ! eval test -z "\"\${$1##*:$2:*}\"" -o -z "\"\${$1%%*:$2}\"" -o -z "\"\${$1##$2:*}\"" -o -z "\"\${$1##$2}\"" ; then
+		eval "$1=$2:\$$1"
+	fi
+}
 
 if typeset -f dirappend >/dev/null ; then
 	unset -f dirappend
@@ -66,6 +84,29 @@ function dirprepend
 	unset varname varvalue
 }
 
+if typeset -f dirremove >/dev/null ; then
+	unset -f dirremove
+fi
+
+function dirremove
+{
+	if [ $# -le 1 ] ; then
+		echo "Usage: dirremove variable directory [...]" >&2
+		exit 2
+	fi
+	varname=$1
+	shift
+	while [ $# -gt 0 ] ; do
+		if [ "$1" = ":" -o -z "$1" ] ; then
+			eval $varname=$(eval echo '$'$varname | sed -e 's|::||g' -e 's|:$||')
+		else
+			eval $varname=$(eval echo '$'$varname | sed 's|\(:*\)'$1':*|\1|')
+		fi
+		shift
+	done
+	unset varname
+}
+
 if typeset -f lnotes >/dev/null ; then
 	unset -f lnotes
 fi
@@ -78,10 +119,10 @@ function lnotes
 		cd $HOME/notes
 		if [ $(ls|wc -w) != 0 ] ; then
 			if test -t 1; then
-				print '\nYou have notes on:' 
-				ls -C *[!~]
+				print '\nYou have notes on:'
+				ls -dC *[!~]
 			else
-				ls *[!~]
+				ls -d *[!~]
 			fi
 		fi
 	)
@@ -131,7 +172,7 @@ if [ "$PPID" -eq 1 -o "$PPID" -eq "$LAYERSPID" ] ; then
 else
 	if [ $LEV ] ; then
 		let LEV=$LEV+1
-	else 
+	else
 		let LEV=0
 	fi
 fi
@@ -217,37 +258,123 @@ if [ "$id" -eq 0 ] ; then
 	fi
 	dirprepend PATH /sbin /usr/sbin
 	dirappend PATH /usr/libexec/uucp /usr/lib/uucp /usr/lib
-	# we need to re-order the next paths so first we remove them
+
+	# this next section duplicates ~/.profile since these
+	# environment variables are not, and should not, be passed
+	# through su (or sudo)
+
+	if [ -z "$LOCAL" ] ; then
+		if [ -d /local -a ! -L /local ] ; then
+			LOCAL="/local"
+		elif [ -d /usr/local -a ! -L /usr/local ] ; then
+			LOCAL="/usr/local"
+		else
+			LOCAL="/NO-local-FOUND"
+		fi
+	fi
+	export LOCAL
+
+	if [ -z "$CONTRIB" ] ; then
+		if [ -d /contrib -a ! -L /contrib ] ; then
+			CONTRIB="/contrib"
+		elif [ -d /usr/contrib -a ! -L /usr/contrib ] ; then
+			CONTRIB="/usr/contrib"
+		else
+			CONTRIB="/NO-contrib-FOUND"
+		fi
+	fi
+	export CONTRIB
+
+	if [ -z "$PKG" ] ; then
+		if [ -d /pkg -a ! -L /pkg ] ; then
+			PKG="/pkg"
+		elif [ -d /usr/pkg -a ! -L /usr/pkg ] ; then
+			PKG="/usr/pkg"
+		else
+			PKG="/NO-pkg-FOUND"
+		fi
+	fi
+	export PKG
+
+	if [ -z "$SLASHOPT" ] ; then
+		if [ -d /opt -a ! -L /opt ] ; then
+			SLASHOPT="/opt"
+		elif [ -d /usr/opt -a ! -L /usr/opt ] ; then
+			SLASHOPT="/usr/opt"
+		else
+			SLASHOPT="/NO-opt-FOUND"
+		fi
+	fi
+	export SLASHOPT
+
+	if [ -z "$FINK" ] ; then
+		if [ -d /sw -a ! -L /sw ] ; then
+			FINK="/sw"
+		else
+			FINK="/NO-fink-FOUND"
+		fi
+	fi
+	if [ "$FINK" != '/NO-fink-FOUND' ] ; then
+		# for some bizzare reason AT&T Ksh Version M 1993-12-28 s+
+		# doesn't seem to find the dir* functions in the namespace of
+		# these functions, even though type and typeset show them.
+		#
+		finkfirst ()
+		{
+			dirremove PATH "$FINK/bin" "$FINK/sbin"
+			dirprepend PATH "$FINK/bin"
+		}
+		finklast ()
+		{
+			dirremove PATH "$FINK/bin" "$FINK/sbin"
+			dirappend PATH "$FINK/bin"
+		}
+	fi
+	export FINK
+
+	# we need to re-order the next paths so first we bulk remove them
+	#
 	PATH=$(echo $PATH | sed -e "s|${CONTRIB:-/NONE}/bin:||"	\
 				-e "s|${CONTRIB:-/NONE}/sbin:||"\
 				-e "s|${PKG:-/NONE}/bin:||"	\
 				-e "s|${PKG:-/NONE}/sbin:||"	\
+				-e "s|${SLASHOPT:-/NONE}/bin:||"	\
+				-e "s|${SLASHOPT:-/NONE}/sbin:||"	\
 				-e "s|${LOCAL:-/NONE}/bin:||"	\
 				-e "s|${LOCAL:-/NONE}/sbin:||"	\
+				-e "s|${FINK:-/NONE}/bin:||"	\
+				-e "s|${FINK:-/NONE}/sbin:||"	\
 				-e "s|${GNU:-/NONE}/bin:||"	\
 				-e "s|${GNU:-/NONE}/sbin:||" )
-	if [ -n "$CONTRIB" ] ; then
+	if [ -d "$CONTRIB" ] ; then
 		dirappend PATH $CONTRIB/sbin $CONTRIB/bin
 		if [ ! -d $CONTRIB/sbin ] ; then
 			dirappend PATH $CONTRIB/etc
 		fi
 	fi
-	if [ -n "$PKG" ] ; then
+	if [ -d "$PKG" ] ; then
 		dirappend PATH $PKG/sbin $PKG/bin
-		if [ ! -d $PKG/sbin ] ; then
-			dirappend PATH $PKG/etc
-		fi
 	fi
-	if [ -n "$LOCAL" ] ; then
+	if [ -d "$SLASHOPT" ] ; then
+		dirappend PATH $SLASHOPT/sbin $SLASHOPT/bin
+	fi
+	if [ -d "$LOCAL" ] ; then
 		dirappend PATH $LOCAL/sbin $LOCAL/bin
 		if [ ! -d $LOCAL/sbin ] ; then
 			dirappend PATH $LOCAL/etc
 		fi
 	fi
-	if [ -n "$GNU" ] ; then
+	if [ -d "$GNU" ] ; then
 		dirappend PATH $GNU/sbin $GNU/bin
 		if [ ! -d $GNU/sbin ] ; then
 			dirappend PATH $GNU/etc
+		fi
+	fi
+	if [ -d "$FINK" ] ; then
+		dirprepend PATH $FINK/sbin $FINK/bin
+		if [ -r $FINK/bin/init.sh ] ; then
+			# this sets up other handy things for Fink
+			. $FINK/bin/init.sh
 		fi
 	fi
 	dirappend PATH $HOME/bin
@@ -296,9 +423,10 @@ if [ "$id" -eq 0 ] ; then
 		#
 		# XXX if root is using this .kshrc then perhaps we
 		# should try copying the "xauth" information for the
-		# current display to $HOME/.Xauthority
+		# current display to $HOME/.Xauthority instead of just
+		# pointing at it...
 		#
-		echo "The X11 display '$DISPLAY' may be unusable without authorization."
+		XAUTHORITY=$(eval echo ~${SU_FROM}/.Xauthority); export XAUTHORITY
 	fi
 
 	function krcmd
@@ -356,7 +484,7 @@ if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 			BANNER_PWD=$(pwd)
 		fi
 		eval myxban -l "\"$MYXBAN_L\""
-		myxban -c "${WBANNER}"
+		myxban -c "${WBANNER:-$@}"
 		eval myxban -r "\"$MYXBAN_R\""
 	}
 
@@ -383,6 +511,9 @@ xterm*)
 
 	function setban
 	{
+		if [ -z "$WBANNER" ]; then
+			WBANNER=$@
+		fi
 		if [ -z "$BANNER_PWD" ]; then
 			BANNER_PWD=$(pwd)
 		fi
@@ -402,12 +533,15 @@ xterm*)
 	{
 		\cd "$@"
 		BANNER_PWD=${PWD}
-		setban 
+		setban
 	}
 	;;
 esac
 
 if type setban > /dev/null ; then
+	#
+	# XXX re-factor into a function which defines functions....
+	#
 	if [ "$VISUAL" = "emacsclient" -a -z "$DISPLAY" ] ; then
 		unalias emacs
 		alias emacs=_emacs
@@ -647,20 +781,35 @@ case "$TERM" in
 xterm*)
 	function onx11server
 	{
-		if [ $1 = "-n" ]; then
-			nullopt="-n"
-			shift
-		else
-			nullopt=""
-		fi
+		_RDISP=""
+		_USAGE="$argv0: $0(): Usage: onx11server [-nS] [-D REMOTE_DISPLAY] SERVERNAME 'command string'"
+		_nullopt=""
+		while getopts nD: OPTCH
+		do
+			case ${OPTCH} in
+			n)
+				_nullopt="-n"
+				;;
+			D)
+				_RDISP="${OPTARG}"
+				;;
+			*)
+				echo "$_USAGE" >&2
+				return 2
+				;;
+			esac
+		done
+		shift $(( $OPTIND - 1 ))
+
 		if [ $# -ne 2 ]; then
-			echo "$argv0: onx11server(): Usage: onx11server SERVERNAME 'command string'"
-			return 1
+			echo "$_USAGE" >&2
+			return 2
 		fi
-		X11server=$1
-		echo "$argv0: starting $RSH $nullopt $X11server '. ./.profile; export DISPLAY=$DISPLAY; exec $2'"
+
+		_X11server=$1
+		echo "$argv0: starting $RSH $_nullopt $_X11server '. ./.profile; export DISPLAY=${_RDISP:-${DISPLAY}}; exec $2'"
 		# note: don't run this in the background -- let the caller do that
-		$RSH $nullopt $X11server ". ./.profile; export DISPLAY=$DISPLAY; exec $2"
+		$RSH $_nullopt $_X11server ". ./.profile; export DISPLAY=${_RDISP:-${DISPLAY}}; exec $2"
 	}
 	function rxterm
 	{
@@ -676,7 +825,7 @@ xterm*)
 	}
 	function lxterm
 	{
-		xterm -ziconbeep 1 -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME $* &
+		LANG=C LC_ALL=C xterm -ziconbeep 1 -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME $* &
 	}
 	function luxterm
 	{
@@ -684,7 +833,7 @@ xterm*)
 	}
 	function rxauth
 	{
-		xauth extract - $DISPLAY | onx11server $* 'xauth merge -'
+		xauth nextract - $DISPLAY | onx11server $* 'xauth nmerge -'
 	}
 
 	setban
@@ -698,6 +847,7 @@ esac
 # wall-clock run time.
 #
 alias set_secs_to_midnight='SECONDS=$(date "+3600*%H+60*%M+%S")'
+#
 #set_secs_to_midnight
 #
 # XXX we can't actually use the alias here because in real Ksh the
@@ -768,7 +918,7 @@ fi
 alias gman='MANPATH=$GNU/man man'
 alias lman='MANPATH=$LOCAL/share/man man'
 alias pkgman='MANPATH=$PKG/share/man man'
-alias optman='MANPATH=$OPT/share/man man'
+alias optman='MANPATH=$SLASHOPT/share/man man'
 alias tkman='MANPATH=$LOCAL/share/man.tcltk man'
 alias x11man='MANPATH=$X11PATH/man man'
 
@@ -790,9 +940,11 @@ alias backslashjoin='sed -e :a -e "/\\\\$/N; s/\\\\\\n//; ta"'
 # NOTE: never forget this -- it's the most incredible sed script!!!!
 alias blsqueeze='sed "/./,/^$/!d"'
 alias blstrip='sed "/./!d"'
-# NOTE: cdpkgwork expects $PWD to be like "/topdir/pkgsrcdir/category/package"
-alias cdpkgwork='cd /var/package-obj/${PWD#$(dirname $(dirname $PWD))}/work/$(basename ${PWD})*'
-alias cvsfind="find . -type f ! -name '.#*' ! -name '*~' ! -name .cvsignore ! -print -o -name CVS -prune"
+alias cdpkgwrksrc='cd $(make show-var VARNAME=WRKSRC)'
+# NOTE: replacing the last '-print' with '-exec CMD {} +' lets one work on the files
+alias pkgfind="find . -type d -name CVS -prune -o -type f \( -name 'Make*' -o -name '*.mk' \) ! -name '.#*' ! -name '*~' ! -name .cvsignore ! -print"
+alias cvsfind="find . -type d -name CVS -prune -o -type f ! -name '.#*' ! -name '*~' ! -name .cvsignore ! -print"
+alias cvsfind0="find . -type d -name CVS -prune -o -type f ! -name '.#*' ! -name '*~' ! -name .cvsignore ! -print0"
 alias deadlinks='find . -type l -a ! \( -follow -type f \) -print'
 alias dlog='$PAGER -en +G /var/log/debug'
 alias ds='$PAGER'
@@ -800,7 +952,15 @@ alias e='${VISUAL:-$EDITOR}'
 alias ealias='e $ENV'
 alias elc='emacs -batch -q -no-site-file -f batch-byte-compile'
 alias f='finger'
+# Note: use "findls" as the prefix where globbing will exceed ARG_MAX
+# "find" never lists the '..' entry, so if you also exclude the '.'
+# entry and then apply "-prune" to all the remaining entries, find
+# certainly won't descend into any sub-directory.  This is an
+# alternative to using "-maxdepth 1" (which is not in POSIX.2)
+# Don't list directories and links by appending "! -type d ! -type l"
+alias findls='find . ! -name . -prune'
 alias funclist='typeset +f'
+alias gitfind='git ls-tree -r --name-only HEAD'
 alias h='fc -l'
 alias history='fc -l 1'
 alias hmeme='fc -l 1 | awk "\$1 > 0 {print \$2}" | sort  | uniq -c | sort -rn | sed 20q'
@@ -831,9 +991,14 @@ alias rinfo='rlog -L -h -l $(find RCS -type f -print)'
 alias rstty='stty $SANE'
 alias scvs='export CVSROOT="$(< CVS/Root)"; print "CVSROOT=$CVSROOT"'
 alias snmpoidinfo='snmptranslate -T d -O f'
-alias syncdotfiles='rsync -v -lptHS --stats --files-from=once.weird.com:dotfiles.list once.weird.com:. $HOME'
 alias wcvs='print $CVSROOT'
 alias zds='zmore'
+
+alias xload-1="xload -geometry 120x40-200+48 -hl red &"
+alias xload-2="xload -geometry 120x40-200+96 -hl red &"
+alias xload-3="xload -geometry 120x40-200+144 -hl red &"
+alias xload-4="xload -geometry 120x40-200+192 -hl red &"
+alias xload-5="xload -geometry 120x40-200+240 -hl red &"
 
 # Smail related tools...
 #
@@ -845,8 +1010,10 @@ alias mlog='$PAGER -en +G /var/log/messages'
 alias rblcount='fgrep " matched " $MAILLOG | cut -d " " -f 13 | cut -d . -f 5- | sort | uniq -c'
 alias rblstats='fgrep " matched " $MAILLOG | cut -d " " -f 10- | sort | uniq -c | sort -n | ds'
 
+# This is only useful on SysV and NetBSD-5 and newer
+alias fw='who -HurTbA'
+
 # these are only useful on SysV
-#alias fw='who -HurTbA'
 #alias lpq='lpstat -o'
 
 # TODO: find a test so these are usable.
@@ -857,7 +1024,7 @@ alias rblstats='fgrep " matched " $MAILLOG | cut -d " " -f 10- | sort | uniq -c 
 # (other than [ -d /etc/uucp ])
 alias uuq='uustat -a'
 
-# TODO: should only set this if xtail is available?
+# TODO: should only set this if "xtail" and UUCP are both available?
 if [ -d /var/spool/uucp ] ; then
 	alias uufollow='xtail /var/spool/uucp/.[AL]*/*'
 else
@@ -982,7 +1149,7 @@ function mailsizes
 		for (fn = 6; fn <= NF; fn++) {
 			if (substr($fn, 1, 5) == "SIZE:") {
 				size = substr($fn, 6) + 0;
-				break;          
+				break;
 			}
 		}
 		print size;
@@ -1021,6 +1188,19 @@ function signo
 function snmpmiblist
 {
 	cd $1; echo $(awk '{print $1}' .index) | sed 's/ /:/g'
+}
+
+# trivial hack to quickly search a source tree where traditional
+# globbing would exceed ARG_MAX
+#
+# Requires a find with the SysVR4 "-exec ... {} ... +" feature.  (now
+# also mandated by SUSv3, aka IEEE 1003.1-2001/2004)
+#
+# is a faster alternative to "find ... -print0 | xargs -0 ..."
+#
+function srcfind
+{
+	find . -type f -name '*.[ch]' -exec fgrep $* {} +
 }
 
 function typeof

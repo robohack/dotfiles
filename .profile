@@ -1,7 +1,7 @@
 #
-#	.profile - for either SysV sh, 4BSD sh, any ksh, some bash, or even old ash.
+#	.profile - for either SysV sh, 4BSD sh, any ksh, some GNU bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	34.1	11/10/12 16:54:51 (woods)"
+#ident	"@(#)HOME:.profile	34.2	13/12/02 18:06:06 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -15,10 +15,10 @@
 #
 #	$HOME/.ashtype	- sourced once, if 'type' command fails
 #	$HOME/.ashlogin	- sourced once, if running ash(1)
-#	$HOME/.bashlogin - sourced once, if running bash(1)
+#	$HOME/.bashlogin - sourced once, if running GNU bash(1)
 #	$HOME/.editor	- name of prefered text editor command
-#	$HOME/.kshlogin	- sourced once, if running ksh(1)
-#	$HOME/.kshlogout - set on trap 0, if running ksh(1)[, or bash(1)?]
+#	$HOME/.kshlogin	- sourced once, if running any ksh(1)
+#	$HOME/.kshlogout - set on trap 0, if running any ksh(1)[, or GNU bash(1)?]
 #	$HOME/.localprofile - sourced once early in here to set system-local prefs.
 #	$HOME/.mailer	- name of prefered MUA command
 #	$HOME/.shell	- mktable'd and exec'ed as shell (see end of this file)
@@ -52,6 +52,9 @@ fi
 # the I/O re-direction doesn't actually get rid of the "type: not
 # found" message from the old Ash implementation...
 #
+# XXX but maybe it would if we redirected stderr within the subshell
+# too, as we must do for GNU Bash?
+#
 if ( type type ) > /dev/null 2>&1 ; then
 	:
 elif [ -r $HOME/.ashtype ]; then
@@ -65,23 +68,64 @@ if [ "`echo ~`" = "$HOME" -a ${RANDOM:-0} -eq ${RANDOM:-0} ] ; then
 	# apparently a POSIX capable shell
 	#
 	: OK POSIX is good -- that is all for now...
+	if [ -n "${KSH_VERSION}" ]; then
+		: ksh93t or newer, or PDKSH.
+	## xxx it seems impossible to use this without tripping up pdksh....
+	##elif [ -n "${.sh.version}" ]; then
+	##	: ksh93 or newer
+	fi
 fi
 
 if expr "`type ulimit 2> /dev/null`" : 'ulimit is a shell builtin$' > /dev/null 2>&1 ; then
 	#
-	# force nproc, data, stack, and nofiles limits equal to their maximum
-	# hard limit.
+	# force nproc, data, stack, and nofiles limits to be equal to
+	# their maximum hard limit.
 	#
-	# (assume time and file are already unlimited or as big as they can get)
+	# (assume RLIMIT_CPU and RLIMIT_FSIZE are already either
+	# unlimited or as big as they can get)
 	#
-	ulimit -S -p `ulimit -H -p`
-	ulimit -S -d `ulimit -H -d`
-	ulimit -S -s `ulimit -H -s`
-	ulimit -S -n `ulimit -H -n`
-	ulimit -S -c `ulimit -H -c`
+	# XXX sadly POSIX 1003.1 2004 only specifies '-f' (file size
+	# limit in 512-byte blocks, aka RLIMIT_FSIZE)
+	#
+	RLIMIT_CORE=`ulimit -H -c`
+	if [ "$RLIMIT_CORE" != "unlimited" -a "$RLIMIT_CORE" != "`ulimit -S -c`" ]; then
+		ulimit -S -c $RLIMIT_CORE	# coredump
+	fi
+	RLIMIT_DATA=`ulimit -H -d`
+	if [ "$RLIMIT_DATA" != "unlimited" -a "$RLIMIT_DATA" != "`ulimit -S -d`" ]; then
+		# on NetBSD this will still give EINVAL....
+		ulimit -S -d $RLIMIT_DATA	# data
+	fi
+	RLIMIT_NOFILE=`ulimit -H -n`
+	if [ "$RLIMIT_NOFILE" != "unlimited" -a "$RLIMIT_NOFILE" != "`ulimit -S -n`" ]; then
+		ulimit -S -n $RLIMIT_NOFILE	# nofiles
+	fi
+	RLIMIT_STACK=`ulimit -H -s`
+	if [ "$RLIMIT_STACK" != "unlimited" -a "$RLIMIT_STACK" != "`ulimit -S -s`" ]; then
+		ulimit -S -s $RLIMIT_STACK	# stack
+	fi
+	#
+	# XXX AT&T KSH and GNU Bash see '-p' as pipesize (internal,
+	# read-only), and use '-u' for number of processes
+	# (RLIMIT_NPROC).
+	#
+	case "${KSH_VERSION}" in
+	"@(#)"*)
+		RLIMIT_PROC=`ulimit -H -p`
+		if [ "$RLIMIT_PROC" != "unlimited" -a "$RLIMIT_PROC" != "`ulimit -S -p`" ]; then
+			ulimit -S -p $RLIMIT_PROC
+		fi
+		;;
+	*)
+		RLIMIT_PROC=`ulimit -H -u`
+		if [ "$RLIMIT_PROC" != "unlimited" -a "$RLIMIT_PROC" != "`ulimit -S -u`" ]; then
+			ulimit -S -u $RLIMIT_PROC
+		fi
+		;;
+	esac
 else
-	# force nproc, data, stack, and nofiles limits equal to their maximum
-	# hard limit.
+	# force nproc, data, stack, and nofiles limits to be equal to
+	# their maximum hard limit.
 	#
 	# (assume time, filesize, and coredump are already unlimited)
 	#
@@ -97,7 +141,7 @@ if [ -z "$LOGNAME" ] ; then
 fi
 
 if [ -z "$UUNAME" ] ; then
-	if expr "`type uuname`" : '.* is .*/uuname$' >/dev/null 2>&1 ; then
+	if expr "`type uuname 2> /dev/null`" : '.* is .*/uuname$' >/dev/null 2>&1 ; then
 		UUNAME="`uuname -l`"
 	else
 		UUNAME="`hostname`"
@@ -106,18 +150,24 @@ if [ -z "$UUNAME" ] ; then
 fi
 
 if [ -z "$HOSTNAME" ] ; then
-	if expr "`type hostname`" : '.* is .*/hostname$' >/dev/null 2>&1 ; then
+	if expr "`type hostname 2> /dev/null`" : '.* is .*/hostname$' >/dev/null 2>&1 ; then
 		HOSTNAME=`hostname`
 	else
 		HOSTNAME=$UUNAME
-	fi 
+	fi
 	export HOSTNAME
 fi
 
 if [ -z "$DOMAINNAME" ] ; then
 	if [ -r /etc/resolv.conf ] && fgrep domain /etc/resolv.conf >/dev/null 2>&1; then
+		#
+		# here we use domain, not "search", on purpose so that
+		# we will only set DOMAINNAME if that's been done
+		# explicitly in resolv.conf -- normally dhclient and
+		# such will set "search" from the network
+		#
 		eval `sed -n 's/domain[ 	]*/DOMAINNAME=./p' /etc/resolv.conf`
-	elif expr "`type domainname`" : '.* is .*/domainname$' >/dev/null 2>&1 ; then
+	elif expr "`type domainname 2> /dev/null`" : '.* is .*/domainname$' >/dev/null 2>&1 ; then
 		DOMAINNAME="`domainname`"
 	elif expr "$HOSTNAME" : '[^\.]*\.' >/dev/null 2>&1 ; then
 		DOMAINNAME="."`expr "$HOSTNAME" : '[^\.]*\.\(.*\)$'`
@@ -142,16 +192,16 @@ TTYN="`basename "$TTY"`" ; export TTYN
 
 dirappend ()
 {
-	if [ $# -le 1 ] ; then
+	if [ $# -le 1 -o -z "$1" ] ; then
 		echo "Usage: dirappend variable directory [...]" >&2
 		exit 2
 	fi
 	varname=$1
 	shift
-	eval varvalue='$'$varname
+	eval varvalue='${'${varname}'}'
 	while [ $# -gt 0 ] ; do
-		if [ -d "$1" -a `expr ":$varvalue:" : ".*:$1:.*"` -eq 0 ] ; then
-			eval $varname='$'"$varname"'":$1"'
+		if [ -d "$1" -a `expr ":${varvalue}:" : ".*:$1:.*"` -eq 0 ] ; then
+			eval ${varname}='$'"${varname}"'":$1"'
 		fi
 		shift
 	done
@@ -160,16 +210,16 @@ dirappend ()
 
 dirprepend ()
 {
-	if [ $# -le 1 ] ; then
+	if [ $# -le 1 -o -z "$1" ] ; then
 		echo "Usage: dirprepend variable directory [...]" >&2
 		exit 2
 	fi
 	varname=$1
 	shift
-	eval varvalue='$'$varname
+	eval varvalue='${'${varname}'}'
 	while [ $# -gt 0 ] ; do
-		if [ -d "$1" -a `expr ":$varvalue:" : ".*:$1:.*"` -eq 0 ] ; then
-			eval $varname='"$1:"$'"$varname"
+		if [ -d "$1" -a `expr ":${varvalue}:" : ".*:$1:.*"` -eq 0 ] ; then
+			eval ${varname}='"$1:"$'"${varname}"
 		fi
 		shift
 	done
@@ -178,7 +228,7 @@ dirprepend ()
 
 dirremove ()
 {
-	if [ $# -le 1 ] ; then
+	if [ $# -le 1 -o -z "$1" ] ; then
 		echo "Usage: dirremove variable directory [...]" >&2
 		exit 2
 	fi
@@ -186,14 +236,24 @@ dirremove ()
 	shift
 	while [ $# -gt 0 ] ; do
 		if [ "$1" = ":" -o -z "$1" ] ; then
-			eval $varname=`eval echo '$'$varname | sed -e 's|::||g' -e 's|:$||'`
+			eval ${varname}=`eval echo '$'${varname} | sed -e 's|::||g' -e 's|:$||'`
 		else
-			eval $varname=`eval echo '$'$varname | sed 's|\(:*\)'$1':*|\1|'`
+			eval ${varname}=`eval echo '$'${varname} | sed 's|\(:*\)'$1':*|\1|'`
 		fi
 		shift
 	done
 	unset varname
 }
+
+# this is a bit ugly, but we have to do this before .localprofile so
+# that Fink's brain-dead insistance on being first can be corrected.
+# (otherwise it's impossible to put $HOME/bin first!)
+#
+if [ -r $FINK/bin/init.sh ] ; then
+	# this sets up other handy things for Fink
+	. $FINK/bin/init.sh
+	dirremove PATH $FINK/sbin
+fi
 
 # system-local user preferences go in here
 #
@@ -216,7 +276,7 @@ else
 	# "readlink" utility on FreeBSD and newer NetBSDs, a variant
 	# of the older NetBSD stat(1) command), we'll just depend on
 	# use of $PATH_IS_OKAY for now to work around the problem.
-	# 
+	#
 	# originally this code was to avoid having /bin in $PATH if
 	# /bin were pointing to /usr/bin (i.e. making it redundant)
 
@@ -235,9 +295,9 @@ fi
 export PATH
 
 if [ -z "$LOCAL" ] ; then
-	if [ -d /local -a ! -L /local -a -d /local/bin ] ; then
+	if [ -d /local -a ! -L /local ] ; then
 		LOCAL="/local"
-	elif [ -d /usr/local -a -d /usr/local/bin ] ; then
+	elif [ -d /usr/local -a ! -L /usr/local ] ; then
 		LOCAL="/usr/local"
 	else
 		LOCAL="/NO-local-FOUND"
@@ -246,9 +306,9 @@ fi
 export LOCAL
 
 if [ -z "$CONTRIB" ] ; then
-	if [ -d /contrib -a ! -L /contrib -a -d /contrib/bin ] ; then
+	if [ -d /contrib -a ! -L /contrib ] ; then
 		CONTRIB="/contrib"
-	elif [ -d /usr/contrib -a -d /usr/contrib/bin ] ; then
+	elif [ -d /usr/contrib -a ! -L /usr/contrib ] ; then
 		CONTRIB="/usr/contrib"
 	else
 		CONTRIB="/NO-contrib-FOUND"
@@ -257,9 +317,9 @@ fi
 export CONTRIB
 
 if [ -z "$PKG" ] ; then
-	if [ -d /pkg -a ! -L /pkg -a -d /pkg/bin ] ; then
+	if [ -d /pkg -a ! -L /pkg ] ; then
 		PKG="/pkg"
-	elif [ -d /usr/pkg -a -d /usr/pkg/bin ] ; then
+	elif [ -d /usr/pkg -a ! -L /usr/pkg ] ; then
 		PKG="/usr/pkg"
 	else
 		PKG="/NO-pkg-FOUND"
@@ -267,16 +327,16 @@ if [ -z "$PKG" ] ; then
 fi
 export PKG
 
-if [ -z "$OPT" ] ; then
+if [ -z "$SLASHOPT" ] ; then
 	if [ -d /opt -a ! -L /opt ] ; then
-		OPT="/opt"
-	elif [ -d /usr/opt ] ; then
-		OPT="/usr/opt"
+		SLASHOPT="/opt"
+	elif [ -d /usr/opt -a ! -L /usr/opt ] ; then
+		SLASHOPT="/usr/opt"
 	else
-		OPT="/NO-opt-FOUND"
+		SLASHOPT="/NO-opt-FOUND"
 	fi
 fi
-export OPT
+export SLASHOPT
 
 if [ -z "$FINK" ] ; then
 	if [ -d /sw -a ! -L /sw ] ; then
@@ -284,6 +344,22 @@ if [ -z "$FINK" ] ; then
 	else
 		FINK="/NO-fink-FOUND"
 	fi
+fi
+if [ "$FINK" != '/NO-fink-FOUND' ] ; then
+	# for some bizzare reason AT&T Ksh Version M 1993-12-28 s+
+	# doesn't seem to find the dir* functions in the namespace of
+	# these functions, even though type and typeset show them.
+	#
+	finkfirst ()
+	{
+		dirremove PATH "$FINK/bin" "$FINK/sbin"
+		dirprepend PATH "$FINK/bin"
+	}
+	finklast ()
+	{
+		dirremove PATH "$FINK/bin" "$FINK/sbin"
+		dirappend PATH "$FINK/bin"
+	}
 fi
 export FINK
 
@@ -317,22 +393,13 @@ export WORKPATH
 # don't worry about openwin -- it's handled in the ISSUN case below
 #
 if [ -z "$X11PATH" ] ; then
-	# FIXME: this won't work very well if X11R? is multiple names....
-	if [ -d /local/X11R? -a ! -L /local/X11R? ] ; then
-		X11PATH="`echo /local/X11R?`"
-	elif [ -d /local/X11 -a ! -L /local/X11 ] ; then
-		X11PATH="/local/X11"
-	elif [ -d /usr/X11R? -a ! -L /usr/X11R? ] ; then
-		X11PATH="`echo /usr/X11R?`"
-	elif [ -d /usr/X11 -a ! -L /usr/X11 ] ; then
-		X11PATH="/usr/X11"
-	elif [ -d /usr/X??? -a ! -L /usr/X??? ] ; then	# X386, for example
-		X11PATH="`echo /usr/X???`"
-	elif [ -d /usr/local/X11R? -a ! -L /usr/local/X11R? ] ; then
-		X11PATH="`echo /usr/local/X11R?`"
-	elif [ -d /usr/local/X11 -a ! -L /usr/local/X11 ] ; then
-		X11PATH="/usr/local/X11"
-	else
+	for x11pc in /local/X11R? /local/X11 /usr/X11R? /usr/X11 /usr/X??? /usr/local/X11R? /usr/local/X11; do
+		if [ -d $x11pc -a ! -L $x11pc -a -d $x11pc/bin ] ; then
+			X11PATH=${x11pc}
+			break;
+		fi
+	done
+	if [ -z "$X11PATH" ] ; then
 		X11PATH="/NO-X11-FOUND"
 	fi
 	export X11PATH
@@ -347,13 +414,10 @@ if [ -z "$X11BIN" ] ; then
 	export X11BIN
 fi
 
-dirappend PATH /usr/ccs/bin /usr/xpg4/bin $X11BIN $LOCAL/bin $GNU/bin $CONTRIB/bin $PKG/bin /usr/ucb /usr/bsd $OPT/gnu/bin $FINK/bin
-dirappend PATH /usr/games $LOCAL/games $OPT/games/bin
-
-if [ -r $FINK/bin/init.sh ] ; then
-	# this sets up other handy things for Fink
-	. $FINK/bin/init.sh
-fi
+dirappend PATH /usr/ccs/bin /usr/xpg4/bin $X11BIN $LOCAL/bin $GNU/bin $CONTRIB/bin $PKG/bin /usr/ucb /usr/bsd $SLASHOPT/bin $SLASHOPT/gnu/bin
+dirappend PATH /usr/local/MacGPG2/bin
+dirappend PATH $HI_TECH_C/bin
+dirappend PATH /usr/games $LOCAL/games $SLASHOPT/games/bin
 
 # CDPATH isn't supported in all shells, but it won't hurt....
 #
@@ -390,15 +454,15 @@ if [ -z "$MANPATH" -a ! -r /etc/man.conf ] ; then
 	fi
 	export MANPATH
 fi
-case "$UUNAME" in
-web | robohack )
-	dirprepend MANPATH $LOCAL/man
-	;;
-esac
 if [ ! -d $LOCAL/share/man ] ; then
 	dirappend MANPATH $LOCAL/man
 fi
 dirprepend MANPATH $LOCAL/share/man $GNU/man $CONTRIB/man $PKG/man $X11PATH/man
+
+if [ ! -d $LOCAL/share/info ] ; then
+	dirappend INFOPATH $LOCAL/info
+fi
+dirprepend INFOPATH $LOCAL/share/info $GNU/info $CONTRIB/info $PKG/info $X11PATH/info
 
 ISSUN=false; export ISSUN
 if [ -x /usr/bin/sun ] ; then
@@ -457,8 +521,14 @@ if [ "X$HOME" != "X/" ] ; then
 		mkdir $HOME/bin
 		chmod 755 $HOME/bin
 	fi
-	dirprepend PATH $HOME/bin
-	PATH="${PATH}:"
+	dirprepend PATH $HOME/bin $HOME/usr/bin
+	case ${PATH} in
+	*:)
+		echo 'NOTICE: PATH already ends in a colon.' ;;
+	*)
+		PATH="${PATH}:"
+		;;
+	esac
 fi
 
 #
@@ -470,6 +540,9 @@ fi
 # try to be smart about when we can tell it about which charset it
 # should try to use.
 #
+# note: LC_ALL overrides all LC_* variables, LANG is the default for
+# unset LC_* variables, and LESSCHARSET is the equivalent of LC_CTYPE
+#
 if [ -z "$LC_CTYPE" -a -z "$LC_ALL" -a -z "$LANG" ]; then
 	case "$TERM" in
 	xterm*|wsvt25*)
@@ -478,6 +551,9 @@ if [ -z "$LC_CTYPE" -a -z "$LC_ALL" -a -z "$LANG" ]; then
 		# NOTE:  with older versions of less 'latin1' is the
 		# only way to express "ISO 8859", while with newer
 		# versions 'latin1' is merely an alias for "iso8859"
+		#
+		# more modern versions of less, on systems with
+		# setlocale(3) will use LC_CTYPE (or LANG) if set.
 		#
 		LESSCHARSET="latin1"; export LESSCHARSET
 		;;
@@ -511,7 +587,7 @@ fi
 ### NOTE: we assume "echo" is builtin and we do not want to prefer an
 ### external $echo even if it is more capable
 ###
-###elif expr "`type printf`" : '.* is .*/printf$' >/dev/null 2>&1 ; then
+###elif expr "`type printf 2> /dev/null`" : '.* is .*/printf$' >/dev/null 2>&1 ; then
 ###	HAVEPRINTF=true
 ###fi
 #
@@ -551,7 +627,7 @@ fi
 
 # NOTE: we don't export $echo et al -- they're just in the current shell
 
-if expr "`type mktable`" : '.* is .*/mktable$' >/dev/null 2>&1 ; then
+if expr "`type mktable 2> /dev/null`" : '.* is .*/mktable$' >/dev/null 2>&1 ; then
 	MKTABLE="mktable"
 else
 	# a little ditty to throw away comment lines....
@@ -568,7 +644,7 @@ fi
 
 # all machines without 'head' had a shell with functions...
 #
-if expr "`type head`" : '.* is .*/head$' >/dev/null 2>&1 ; then
+if expr "`type head 2> /dev/null`" : '.* is .*/head$' >/dev/null 2>&1 ; then
 	: # have the real thing....
 else
 	head ()
@@ -577,11 +653,16 @@ else
 		if [ $# -ge 1 ] ; then
 			case "$1" in
 			-[0-9]*)
-				N=`expr x"$1" : '^x-\(.*\)$'`
+				N=`expr x"$1" : '^x-\([0-9]*\)$'`
+				shift
+				;;
+			-n)
+				shift
+				N=`expr x"$1" : '^x\([0-9]*\)$'`
 				shift
 				;;
 			-*)
-				echo "Usage: head [-N] [[file] ...]" 1>&2
+				echo "Usage: head [-N] [-n lines] [[file] ...]" 1>&2
 				return 2
 			esac
 		fi
@@ -589,8 +670,50 @@ else
 	}
 fi
 
+publishdotfiles ()
+{
+	if [ -z "${HOME}" ]; then
+		echo "syncdotfiles: HOME is unset!" 1>&2
+		return 2
+	fi
+	case ${HOSTNAME} in
+	centrally*)
+		echo "publishdotfiles: not useful when run on server host!" 1>&2
+		return 2
+		;;
+	once*)
+		rsync -v -lptHS --stats --files-from=$HOME/dotfiles.list $HOME centrally.weird.com:.
+		;;
+	*)
+		echo "publishdotfiles: not useful when run on client host!" 1>&2
+		return 2
+		;;
+	esac
+}
+syncdotfiles ()
+{
+	if [ -z "${HOME}" ]; then
+		echo "syncdotfiles: HOME is unset!" 1>&2
+		return 2
+	fi
+	case ${HOSTNAME} in
+	centrally*)
+		echo "syncdotfiles: not useful when run on server host!" 1>&2
+		return 2
+		;;
+	once*)
+		echo "syncdotfiles: not useful when run on edit host!" 1>&2
+		return 2
+		;;
+	esac
+	rsync -v -lptHS --stats --files-from=:dotfiles.list woods@centrally.weird.com:. $HOME
+	if expr "`type emacs 2> /dev/null`" : '.* is .*/emacs$' >/dev/null 2>&1 ; then
+		( cd $HOME && emacs -batch -q -no-site-file -f batch-byte-compile .emacs.el )
+	fi
+}
+
 HAVETPUT=false ; export HAVETPUT
-if expr "`type tput`" : '.* is .*/tput$' >/dev/null 2>&1 ; then
+if expr "`type tput 2> /dev/null`" : '.* is .*/tput$' >/dev/null 2>&1 ; then
 	HAVETPUT=true
 	# WARNING: this may only work with a SysV compatible tput.
 	TERMTESTCMD='tput -T"$ttytype" init >/dev/null 2>&1'
@@ -599,15 +722,38 @@ else
 	TERMTESTCMD='tset -I -Q "$ttytype" >/dev/null'
 fi
 
+# XXX can these ($RSH and $SSH) cause problems with other tools?
+# (will be OK with at least cvs and rsync which use ${ARGV0}_RSH)
+#
+if expr "`type rsh 2>/dev/null`" : '.* is .*/rsh$' >/dev/null ; then
+	RSH="rsh"
+elif [ -x /usr/ucb/rsh ] ; then	# maybe /usr/ucb not in $PATH?
+	RSH="/usr/ucb/rsh"
+else				# TODO: also remsh?
+	# assuming 'rsh' really is available...
+	RSH="rsh"
+fi
+export RSH			# used by .twmrc, .ctwmrc, as well as .xinitrc
+
+if expr "`type ssh 2>/dev/null`" : '.* is .*/ssh$' >/dev/null ; then
+	SSH="ssh"
+elif expr "`type ssh2 2>/dev/null`" : '.* is .*/ssh2$' >/dev/null ; then
+	SSH="ssh2"
+else
+	# assuming 'ssh' really is available...
+	SSH="ssh"
+fi
+export SSH			# used by .twmrc, .ctwmrc, as well as .xinitrc
+
 HAVEMONTH=false ; export HAVEMONTH
-if expr "`type month`" : '.* is .*/month$' >/dev/null 2>&1 ; then
+if expr "`type month 2> /dev/null`" : '.* is .*/month$' >/dev/null 2>&1 ; then
 	HAVEMONTH=true
 fi
 
 MONTH="AIKO" ; export MONTH
 
 HAVELAYERS=false ; export HAVELAYERS
-if expr "`type layers`" : '.* is .*/layers$' >/dev/null 2>&1 ; then
+if expr "`type layers 2> /dev/null`" : '.* is .*/layers$' >/dev/null 2>&1 ; then
 	HAVELAYERS=true
 fi
 
@@ -616,12 +762,12 @@ MAILER=mail ; export MAILER
 if [ -s $HOME/.mailer ] ; then
 	# mktable just throws away comments....
 	MAILER="`mktable $HOME/.mailer`"
-elif expr "`type mush`" : '.* is .*/mush$' >/dev/null 2>&1 ; then
+elif expr "`type mush 2> /dev/null`" : '.* is .*/mush$' >/dev/null 2>&1 ; then
 	HAVEMUSH=true
 	MAILER="mush"
-elif expr "`type Mail`" : '.* is .*/mailx$' >/dev/null 2>&1 ; then
+elif expr "`type Mail 2> /dev/null`" : '.* is .*/mailx$' >/dev/null 2>&1 ; then
 	MAILER="Mail"
-elif expr "`type mailx`" : '.* is .*/mailx$' >/dev/null 2>&1 ; then
+elif expr "`type mailx 2> /dev/null`" : '.* is .*/mailx$' >/dev/null 2>&1 ; then
 	MAILER="mailx"
 fi
 case "$MAILER" in
@@ -680,7 +826,7 @@ export MAILDIR
 
 # use MAIL instead of MAILPATH, primarily to avoid the clash of using
 # a POP specification in MAILPATH for emacs VM
-# 
+#
 unset MAILPATH
 if [ -z "$MAIL" ] ; then
 	MAIL=${MAILDIR}/${LOGNAME}
@@ -688,17 +834,17 @@ fi
 export MAIL
 
 HAVECALENDAR=false ; export HAVECALENDAR
-if expr "`type calendar`" : '.* is .*/calendar$' >/dev/null 2>&1 ; then
+if expr "`type calendar 2> /dev/null`" : '.* is .*/calendar$' >/dev/null 2>&1 ; then
 	HAVECALENDAR=true
 fi
 
 HAVEFORTUNE=false ; export HAVEFORTUNE
-if expr "`type fortune`" : '.* is .*/fortune$' >/dev/null 2>&1 ; then
+if expr "`type fortune 2> /dev/null`" : '.* is .*/fortune$' >/dev/null 2>&1 ; then
 	HAVEFORTUNE=true
 	FORTUNE=fortune ; export FORTUNE
 fi
 
-if expr "`type less`" : '.* is .*/less$' >/dev/null 2>&1 ; then
+if expr "`type less 2> /dev/null`" : '.* is .*/less$' >/dev/null 2>&1 ; then
 	PAGER="`type less`"
 	LESS="-M" ; export LESS
 	if [ ! -f $HOME/.less ] ; then
@@ -706,6 +852,8 @@ if expr "`type less`" : '.* is .*/less$' >/dev/null 2>&1 ; then
 			echo "N	next-file" > $HOME/.lesskey
 			echo "P	prev-file" >> $HOME/.lesskey
 		fi
+		# xxx lesskey(1) seems to have gone missing on OSX 10.8
+		# (maybe even on 10.7 too?)
 		lesskey
 	fi
 elif [ -x /usr/xpg4/bin/more ] ; then
@@ -713,7 +861,7 @@ elif [ -x /usr/xpg4/bin/more ] ; then
 	PAGER="/usr/xpg4/bin/more"
 	# use '-s' as it can't be turned on later during runtime
 	MORE="-s" ; export MORE
-elif expr "`type more`" : '.* is .*/more$' >/dev/null 2>&1 ; then
+elif expr "`type more 2> /dev/null`" : '.* is .*/more$' >/dev/null 2>&1 ; then
 	PAGER="`type more`"
 	# use '-s' as it can't be turned on later during runtime
 	MORE="-sw" ; export MORE
@@ -732,18 +880,23 @@ fi
 
 case "$EDPREF" in
 emacs | "" )
-	if expr "`type emacs`" : '.* is .*/emacs$' >/dev/null 2>&1 ; then
+	HAVEEMACS=false
+	HAVEJOVE=false
+	if expr "`type emacs 2> /dev/null`" : '.* is .*/emacs$' >/dev/null 2>&1 ; then
 		EDITOR="`type emacs`"
-	elif expr "`type jove`" : '.* is .*/jove$' >/dev/null 2>&1 ; then
+		HAVEEMACS=true
+	elif expr "`type jove 2> /dev/null`" : '.* is .*/jove$' >/dev/null 2>&1 ; then
 		EDITOR="`type jove`"
+		HAVEJOVE=true
 	else
 		EDITOR="`type ed`"
 	fi
-	if expr "`type emacs`" : '.* is .*/emacs$' >/dev/null 2>&1 ; then
+	if $HAVEEMACS ; then
 		VISUAL="`type emacs`"
 		if [ -n "$DISPLAY" ] ; then
 			case "$TERM" in
 			xterm*)
+				# XXX this is ugly and not exactly right.
 				if [ -x /usr/bin/id ] ; then
 					eval `id | sed 's/[^a-z0-9=].*//'`
 					# TODO: maybe not?
@@ -754,37 +907,37 @@ emacs | "" )
 			;;
 			esac
 		fi
-	elif expr "`type jove`" : '.* is .*/jove$' >/dev/null 2>&1 ; then
+	elif $HAVEJOVE ; then
 		VISUAL="`type jove`"
 	else
 		VISUAL="`type vi`"
 	fi
 	;;
 vi )
-	if expr "`type nvi`" : '.* is .*/nvi$' >/dev/null 2>&1 ; then
+	if expr "`type nvi 2> /dev/null`" : '.* is .*/nvi$' >/dev/null 2>&1 ; then
 		EDITOR="`type nvi`"
-	elif expr "`type vi`" : '.* is .*/vi$' >/dev/null 2>&1 ; then
+	elif expr "`type vi 2> /dev/null`" : '.* is .*/vi$' >/dev/null 2>&1 ; then
 		EDITOR="`type vi`"
 	else
 		EDITOR="`type ed`"
 	fi
-	if expr "`type nvi`" : '.* is .*/nvi$' >/dev/null 2>&1 ; then
+	if expr "`type nvi 2> /dev/null`" : '.* is .*/nvi$' >/dev/null 2>&1 ; then
 		VISUAL="`type nvi`"
-	elif expr "`type vi`" : '.* is .*/vi$' >/dev/null 2>&1 ; then
+	elif expr "`type vi 2> /dev/null`" : '.* is .*/vi$' >/dev/null 2>&1 ; then
 		VISUAL="`type vi`"
 	else
-		VISUAL="`type none`"
+		VISUAL="`type no-visual-editor`"
 	fi
 	;;
 * )
-	if expr "`type nvi`" : '.* is .*/nvi$' >/dev/null 2>&1 ; then
+	if expr "`type nvi 2> /dev/null`" : '.* is .*/nvi$' >/dev/null 2>&1 ; then
 		EDITOR="`type nvi`"
-	elif expr "`type vi`" : '.* is .*/vi$' >/dev/null 2>&1 ; then
+	elif expr "`type vi 2> /dev/null`" : '.* is .*/vi$' >/dev/null 2>&1 ; then
 		EDITOR="`type vi`"
 	else
 		EDITOR="`type ed`"
 	fi
-	if expr "$EDPREF" : '.*/.*$' > /dev/null 2>&1 ; then
+	if expr "type $EDPREF 2> /dev/null" : '.*/.*$' > /dev/null 2>&1 ; then
 		VISUAL="$EDPREF"
 	else
 		VISUAL="`type $EDPREF`"
@@ -798,19 +951,23 @@ if [ -z "$CVSROOT" ] ; then
 	CVSROOT="$LOCAL/src-CVS" ; export CVSROOT
 fi
 
+# on older systems GNU Diff is preferred for things that use $DIFF,
+# but sometimes it's in $LOCAL/bin as just "diff"
+#
 if [ -x $LOCAL/bin/diff ] ; then
 	DIFF="$LOCAL/bin/diff" ; export DIFF
-elif expr "`type gdiff`" : '.* is .*/jove$' >/dev/null 2>&1 ; then
-	DIFF="`type gdiff`" ; export DIFF
+elif expr "`type gdiff 2> /dev/null`" : '.* is .*/gdiff$' >/dev/null 2>&1 ; then
+	# XXX this isn't always best any more!
+	DIFF="gdiff" ; export DIFF
 fi
 
 HAVEAUPLAY=false ; export HAVEAUPLAY
-if expr "`type auplay`" : '.* is .*/auplay$' >/dev/null 2>&1 ; then
+if expr "`type auplay 2> /dev/null`" : '.* is .*/auplay$' >/dev/null 2>&1 ; then
 	HAVEAUPLAY=true
 fi
 
 HAVEAUDIOPLAY=false ; export HAVEAUDIOPLAY
-if expr "`type audioplay`" : '.* is .*/audioplay$' >/dev/null 2>&1 ; then
+if expr "`type audioplay 2> /dev/null`" : '.* is .*/audioplay$' >/dev/null 2>&1 ; then
 	HAVEAUDIOPLAY=true
 fi
 
@@ -843,20 +1000,20 @@ if $ISATTY && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 	else
 		stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
 		# a separate command as it is a non-standard parameter
-		stty status '^t'
+		stty status '^t' 2>/dev/null || echo "Sorry, probably no SIGNIFO support on your system."
 	fi
 	if [ "$EMACS" = t -o "$TERM" = emacs ]; then
 		echo "Turning off echo for an emacs shell...."
 		stty -echo
 	fi
 
-	case "$UUNAME" in
+	case "${UUNAME}" in
 	robohack | weirdo | most | very | isit )
 		# we trust that everything is all set up as it should be on
 		# sites we know, except for personal preferences set above...
 		:
 		;;
-	* )
+	*)
 		# this is a function so it can be used interactively after login....
 		#
 		get_newterm ()
@@ -909,7 +1066,7 @@ if $ISATTY && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 			tput init
 		else
 			# Note: in other places we assume tset is avaliable....
-			if expr "`type tset`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
+			if expr "`type tset 2> /dev/null`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
 				# On BSD, without the "-I" it uses /etc/termcap....
 				tset -I -r
 			else
@@ -949,7 +1106,7 @@ fi
 # TODO: since login(1) checks for mail too, but xterm(n) doesn't.
 #
 # check your mail...
-if expr "`type messages`" : '.* is .*/messages$' >/dev/null 2>&1 ; then
+if expr "`type messages 2> /dev/null`" : '.* is .*/messages$' >/dev/null 2>&1 ; then
 	messages
 else
 	[ -x /bin/mail ] && /bin/mail -e
@@ -1027,7 +1184,7 @@ else
 	fi
 fi
 
-if $HAVELAYERS && expr "`type ismpx`" : '.* is .*/ismpx$' >/dev/null 2>&1 ; then
+if $HAVELAYERS && expr "`type ismpx 2> /dev/null`" : '.* is .*/ismpx$' >/dev/null 2>&1 ; then
 	: might just be running layers
 else
 	# otherwise it's just not possible....
@@ -1038,7 +1195,7 @@ else
 fi
 
 HAVEX=false ; export HAVEX
-if expr "`type xinit`" : '.* is .*/xinit$' >/dev/null 2>&1 ; then
+if expr "`type xinit 2> /dev/null`" : '.* is .*/xinit$' >/dev/null 2>&1 ; then
 	HAVEX=true
 fi
 
@@ -1116,7 +1273,7 @@ if $ISATTY; then
 		/usr/games/fortune
 	elif [ -x $LOCAL/games/fortune ] ; then
 		$LOCAL/games/fortune
-	fi	
+	fi
 	if [ -r calendar -o -r diary -o -r .month ] ; then
 		echo ""
 		echo "Today's Events:"
@@ -1143,7 +1300,7 @@ if $ISATTY; then
 			cd $HOME/notes
 			echo ""
 			echo "You have notes on:"
-			ls -C *[!~]
+			ls -dC *[!~]
 		)
 	fi
 fi
