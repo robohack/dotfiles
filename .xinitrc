@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	34.2	12/02/25 17:10:55 (woods)"
+#ident	"@(#)HOME:.xinitrc	34.3	13/12/02 18:23:50 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -40,9 +40,14 @@ fi
 unset XOPATH
 
 if [ $argv0 = ".xsession" -a -z "$XDMHOST" ] ; then
-	# assume HOSTNAME & DOMAINNAME are set by profile(s)
+	#
+	# assume HOSTNAME & DOMAINNAME are set reasonably by the user
+	# or system shell profile script(s) such that this combination
+	# is useful both on the local host as well as on any servers
+	# where X11 applications may run.
+	#
 	XDMHOST="${HOSTNAME}${DOMAINNAME}"
-	export XDMHOST					# also used by .twmrc
+	export XDMHOST					# also used by .[c]twmrc
 	echo "$argv0: have set XDMHOST='$XDMHOST'"
 fi
 
@@ -54,14 +59,14 @@ ONCONSOLE=false
 export ONCONSOLE
 case "$DISPLAY" in
 :[0-9]*)
-	# 
+	#
 	# OK, so if we're running on the system console there's a good
 	# chance the user will never see system messages sent to
 	# /dev/console so we will try to run xconsole and also
 	# redirect our own output to /dev/console so that window
 	# manager and application errors will also go to the xconsole
 	# window.  Unfortunately there's no logging this way though...
-	# 
+	#
 	# don't bother with this unless it'll do us some good...
 	# (i.e. unless XDM ran the GiveConsole script)
 	#
@@ -79,14 +84,34 @@ case "$DISPLAY" in
 		echo "$argv0: WARNING: display was '$DISPLAY' but /dev/console is not writable by $USER!"
 		ls -l /dev/console
 	fi
-	if [ -n "${XDMHOST}" -o -n "${DOMAINNAME}" ]; then
-		DISPLAY="${XDMHOST:-${HOSTNAME}${DOMAINNAME}}${DISPLAY}"
+	if [ -n "${XDMHOST}" ]; then
+		#
+		# If $XDMHOST is set then assume we are on a fixed
+		# xterm or "diskless" workstation on a LAN and that we
+		# will commonly be using X applications running on
+		# other local servers.
+		#
+		# For diskless workstations the use of a few local
+		# applications with a $DISPLAY set to include the
+		# network name is usually acceptable.
+		#
+		DISPLAY="${XDMHOST}${DISPLAY}"
 		echo "$argv0: have set DISPLAY='$DISPLAY'"
 	else
-		# using the local ":N.n" syntax is supremely preferred for the local host
+		# assume we are on a mobile workstation (laptop!) or
+		# some similar host where X is started with startx
+		# (i.e. not XDM) and that we will normally run all of
+		# our applications either locally or via SSH
+		# tunnels....
+		#
+		# so, using the local ":N.n" syntax is supremely
+		# preferred for the local host
+		#
 		# XXX ${DOMAINNAME} is probably not right here....
-		# XXX and if so, ${HOATNAME} must be something remote client hosts understand
-		REMOTE_DISPLAY="${XDMHOST:-${HOSTNAME}${DOMAINNAME}}${DISPLAY}"
+		# XXX and if so, ${HOSTNAME} must be something remote
+		# XXX client hosts understand
+		#
+		REMOTE_DISPLAY="${HOSTNAME}${DOMAINNAME}${DISPLAY}"
 		export REMOTE_DISPLAY
 		echo "$argv0: have set REMOTE_DISPLAY='$REMOTE_DISPLAY'"
 	fi
@@ -151,31 +176,47 @@ else
 	export PATH
 fi
 
-VENDORSTR="`xdpyinfo | sed -n 's/^vendor string:[ ]*\(.*\)$/\1/p'`"
-DEPTHSTR="`xdpyinfo | fgrep 'depth of root window'`"
-SCREENDEPTH=`expr "$DEPTHSTR" : '[ ]*depth of root window:[ ]*\([0-9]*\) '`
-export VENDORSTR SCREENDEPTH
-unset DEPTHSTR
+# XXX these should be a single AWK script (the shell can eval the AWK
+# output to set variables), and they should fetch only the values for
+# the screen number which matches the $DISPLAY value.
+#
+VENDORSTR="`xdpyinfo | sed -n 's/^vendor string:[ ]*\(.*\)$/\1/p;//q'`"
+SCREENDEPTH=`xdpyinfo | sed -n 's/^[ ]*depth of root window:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q'`
+SCREENSIZE=`xdpyinfo | sed -n 's/^[ ]*dimensions:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q'`
+SCREENSIZE_X=`expr "$SCREENSIZE" : '[0-9]*x\([0-9]*\)'`
+SCREENSIZE_Y=`expr "$SCREENSIZE" : '\([0-9]*\)x'`
+export VENDORSTR SCREENDEPTH SCREENSIZE SCREENSIZE_X SCREENSIZE_Y
 
-# TODO:  think about using `type` ala .profile, but type isn't everywhere
 if [ -z "$RSH" ] ; then
 	if expr "`type rsh 2>/dev/null`" : '.* is .*/rsh$' >/dev/null ; then
 		RSH="rsh"
 	elif [ -x /usr/ucb/rsh ] ; then	# maybe /usr/ucb not in $PATH?
 		RSH="/usr/ucb/rsh"
-	else				# TODO: also remsh?
+	else			# TODO: also remsh?
 		echo "$argv0: assuming 'rsh' really is available..."
 		RSH="rsh"
 	fi
-	export RSH			# used by .twmrc, .ctwmrc, as well as below
+	export RSH		# used by .twmrc, .ctwmrc, as well as below
+fi
+
+if [ -z "$SSH" ] ; then
+	if expr "`type ssh 2>/dev/null`" : '.* is .*/ssh$' >/dev/null ; then
+		SSH="ssh"
+	elif expr "`type ssh2 2>/dev/null`" : '.* is .*/ssh2$' >/dev/null ; then
+		SSH="ssh2"
+	else
+		echo "$argv0: assuming 'ssh' really is available..."
+		SSH="ssh"
+	fi
+	export SSH		# used by .twmrc, .ctwmrc, as well as below
 fi
 
 onx11server ()
 {
 	_RDISP=""
-	_USAGE="$argv0: $0(): Usage: onx11server [-n] [-D REMOTE_DISPLAY] SERVERNAME 'command string'"
+	_USAGE="$argv0: $0(): Usage: onx11server [-nS] [-D REMOTE_DISPLAY] SERVERNAME 'command string'"
 	_nullopt=""
-	while getopts nD: OPTCH
+	while getopts nD:S OPTCH
 	do
 		case $OPTCH in
 		n)
@@ -183,6 +224,9 @@ onx11server ()
 			;;
 		D)
 			_RDISP="${OPTARG}"
+			;;
+		S)
+			RSH=${SSH:-ssh}
 			;;
 		*)
 			echo "$_USAGE" >&2
@@ -267,8 +311,8 @@ fi
 # you'd rather run the majority of your X applications.  Normally
 # this will be the same server your home directory resides on....
 #
-if [ "$XDMHOST" = "`echo $DISPLAY | sed 's/:.*$//'`" ] ; then
-	echo "$argv0: looks like $XDMHOST is running xdm for our display..."
+if [ -n "$XDMHOST" -a "$XDMHOST" = "`echo $DISPLAY | sed 's/:.*$//'`" ] ; then
+	echo "$argv0: looks like '$XDMHOST' is running xdm for our display..."
 	case "$XDMHOST" in
 	almost.weird.com)
 		X11SERVER=${X11SERVER:-"most.weird.com"}
@@ -276,11 +320,12 @@ if [ "$XDMHOST" = "`echo $DISPLAY | sed 's/:.*$//'`" ] ; then
 		echo "$argv0: have set X11SERVER='$X11SERVER'"
 		# now move our AUTH cookies over to the server in case it
 		# doesn't have a shared $HOME...
+		# (note: don't run this in the background!)
 		xauth extract - $DISPLAY | onx11server $X11SERVER 'xauth merge -'
 		# now start server programs we like for this scenario
 		onx11server -n $X11SERVER 'xload -display $DISPLAY -geometry 120x40-200+48 -hl grey90' &
 		;;
-	very.local:very.weird.com|very.robohack.planix.com)
+	very.weird.com|very.robohack.planix.com)
 		X11SERVER=${X11SERVER:-"once.weird.com"}
 		export X11SERVER
 		echo "$argv0: have set X11SERVER='$X11SERVER'"
@@ -294,7 +339,7 @@ if [ "$XDMHOST" = "`echo $DISPLAY | sed 's/:.*$//'`" ] ; then
 		# now start server programs we like for this scenario
 		onx11server -n $X11SERVER 'xload -display $DISPLAY -geometry 120x40-200+48 -hl red' &
 		onx11server -n $X11SERVER 'uxterm -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
-		onx11server -n $X11SERVER 'uxterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+		onx11server -n $X11SERVER 'uxterm -display $DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
 		;;
 	*)
 		# not setting X11SERVER hopefully just makes the WM run all X11SERVER clients on
@@ -312,7 +357,7 @@ if [ -z "$WM" ] ; then
 	#
 	if expr "`type ctwm 2>/dev/null`" : '.* is .*/ctwm$' >/dev/null ; then
 		# NOTE: don't bother with '-v' -- it's too much and slows things!
-		if [ $SCREENDEPTH -eq 1 ] ; then
+		if [ ${SCREENDEPTH:-1} -eq 1 ] ; then
 			# the welcome screen on monochrome is silly and slow
 			WM="ctwm -k -display $DISPLAY -W"
 		else
@@ -345,6 +390,10 @@ HAVEXBUFFY=false ; export HAVEXBUFFY
 if expr "`type xbuffy 2>/dev/null`" : '.* is .*/xbuffy$' >/dev/null ; then
 	HAVEXBUFFY=true
 fi
+HAVEXBIFF=false ; export HAVEXBIFF
+if expr "`type xbiff 2>/dev/null`" : '.* is .*/xbiff$' >/dev/null ; then
+	HAVEXBIFF=true
+fi
 HAVEXEARTH=false ; export HAVEXEARTH
 if expr "`type xearth 2>/dev/null`" : '.* is .*/xearth$' >/dev/null ; then
 	HAVEXEARTH=true
@@ -362,27 +411,63 @@ fi
 #
 if [ "$argv0" = ".xinitrc" ] ; then
 	echo "$argv0: looks like X was started with xinit or startx..."
+	#
+	# setup for "remote" windows
+	#
 	case $DISPLAY in
 	:*)
-		# XXX assume for now that "once" is at 10.0.1.128....
-		#
-		# we could/should run these ones in the background
-		# because the hosts might not be up, but then we would
-		# also have to figure out if we could/should try to
-		# start the next programs as well....
-		xauth nextract - ${HOSTNAME}${DISPLAY} | onx11server -D ${REMOTE_DISPLAY} 10.0.1.128 'xauth nmerge -'
-		# and then start some useful programs...
-		onx11server -n -D $REMOTE_DISPLAY 10.0.1.128 'xload -geometry 120x40-200+48 -hl red' &
-		onx11server -n -D $REMOTE_DISPLAY 10.0.1.128 'uxterm -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
-		onx11server -n -D $REMOTE_DISPLAY 10.0.1.128 'uxterm -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+		case $REMOTE_DISPLAY in
+		very.local:*)
+			#
+			# probably present hosts...
+			#
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server -D ${REMOTE_DISPLAY} once.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server -D ${REMOTE_DISPLAY} more.local 'xauth nmerge -'
+			#
+			onx11server -n -D $REMOTE_DISPLAY once.local 'xload -geometry 120x40-200+48 -hl red' &
+			onx11server -n -D $REMOTE_DISPLAY more.local 'xload -geometry 120x40-200+96 -hl red' &
+			#
+			onx11server -n -D $REMOTE_DISPLAY once.local 'uxterm -geometry 132x100+1000+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
+			onx11server -n -D $REMOTE_DISPLAY once.local 'uxterm -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+			onx11server -n -D $REMOTE_DISPLAY more.local 'uxterm -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+			#
+			# SSH-only hosts...
+			#
+			ssh -Y -n woods@centrally.weird.com '. ./.profile; exec xload -geometry 120x40-200+144 -hl red' &
+			#
+			# possibly present hosts -- one background sub-shell each...
+			#
+			(
+				xauth nextract - ${REMOTE_DISPLAY} | ssh gaw@lithium.local '/opt/X11/bin/xauth nmerge -'
+				ssh -n gaw@lithium.local ". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry 120x40-200+240 -hl red" &
+				ssh -n gaw@lithium.local ". ./.profile; exec uxterm -display ${REMOTE_DISPLAY} -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll" &
+			) &
 ###
-### XXX these would need to be run though SSH with ssh-agent or
-### automatic keys or in an existing SSH tunnel:
+### XXX these launch a terminal running on the remote host, sending
+### X11 back through the SSH tunnel opened by each, which is obviously
+### not ideal as it leaves us with no clue as to why a window
+### disappears when the connection is dropped....
 ###
-###		xauth nextract - ${SSH_DISPLAY} | onx11server centrally.weird.com 'xauth nmerge -'
-###		onx11server -S -n -D $SSH_DISPLAY centrally.weird.com 'xload -geometry 120x40-200+96 -hl red' &
-###		onx11server -S -n -D $SSH_DISPLAY centrally.weird.com 'uxterm -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
-###		onx11server -S -n -D $SSH_DISPLAY centrally.weird.com 'uxterm -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+###			ssh -Y -n centrally.weird.com '. ./.profile; exec uxterm -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
+###			ssh -Y -n centrally.weird.com '. ./.profile; exec uxterm -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+###
+### XXX what we really want is to stuff an "ssh -Y hostname" command
+### into the xterm so that it would be the first command run by an
+### interactive terminal -- note this is not the same as running
+### "xterm -e 'ssh -Y hostname'" since that too will cause the window
+### to close if/when the remote connection ends for whatever reason.
+###
+### One way to do this with a shell that supports $ENV might be to
+### create a temporary file containing the command to run, then set
+### $ENV to point at that file, and then to start the xterm as:
+###
+###	xterm -e env ENV=$tmp_rcfile $SHELL
+###
+### The trick is to figure out if/which $SHELL supports $ENV properly.
+###
+### Another trick is how to remove the temporarly file at the right time.
+			;;
+		esac
 		;;
 	very.weird.com:*|very.robohack.planix.com:*)
 
@@ -393,22 +478,22 @@ if [ "$argv0" = ".xinitrc" ] ; then
 		echo "$argv0: have set X11SERVER='$X11SERVER'"
 		# now move our AUTH cookies over to the server in case it
 		# doesn't have a shared $HOME...
-		xauth extract - $DISPLAY | onx11server $X11SERVER 'xauth merge -'
+		xauth nextract - $DISPLAY | onx11server $X11SERVER 'xauth nmerge -'
 		# we could/should run these ones in the background because the hosts might not be up
-		xauth extract - $DISPLAY | onx11server most.weird.com 'xauth merge -'
-		xauth extract - $DISPLAY | onx11server isit.weird.com 'xauth merge -'
-		xauth extract - $DISPLAY | onx11server historically.weird.com 'xauth merge -'
+		xauth nextract - $DISPLAY | onx11server most.weird.com 'xauth nmerge -'
+		xauth nextract - $DISPLAY | onx11server isit.weird.com 'xauth nmerge -'
+		xauth nextract - $DISPLAY | onx11server historically.weird.com 'xauth nmerge -'
 		# and then start some useful programs...
 		onx11server -n $X11SERVER 'xload -display $DISPLAY -geometry 120x40-200+48 -hl red' &
 		onx11server -n $X11SERVER 'uxterm -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
-		onx11server -n $X11SERVER 'uxterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+		onx11server -n $X11SERVER 'uxterm -display $DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
 		;;
 	esac
 	if $HAVEXV && [ -d '/Library/Desktop Pictures/Nature' ]; then
 		xv -root '/Library/Desktop Pictures/Nature/'* "$HOME/Pictures/"*.jpg &
 	elif $HAVEXEARTH ; then
 		XEGAMMA=""
-		if [ $SCREENDEPTH -ne 1 ] ; then
+		if [ ${SCREENDEPTH:-1} -ne 1 ] ; then
 			XEGAMMA="-gamma 1.6 -night 15"	# for Sun3 CG2
 		fi
 		xearth $XEGAMMA -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
@@ -449,7 +534,7 @@ if $HAVEXBUFFY ; then
 	else
 		xbuffy -geometry 80x25-0+235 -shortnames -header 0 &
 	fi
-else
+elif $HAVEXBIFF ; then
 	xbiff -geometry 48x48-0+235 -bw 0 &
 fi
 
@@ -459,13 +544,16 @@ fi
 # xinit/startx.
 #
 
-case $DISPLAY in
+case ${REMOTE_DISPLAY:-${DISPLAY}} in
 
-:*|very.local:*|very.weird.com:*|very.robohack.planix.com:*)
+very.local:*|very.weird.com:*|very.robohack.planix.com:*)
 	# very has a very large, very hi-res, display....
-	xset m 5 10
+	xset m 2 0
 
 	xset fp= '/usr/X11/lib/X11/fonts/misc/,/usr/X11/lib/X11/fonts/TTF/,/usr/X11/lib/X11/fonts/OTF,/usr/X11/lib/X11/fonts/Type1/,/usr/X11/lib/X11/fonts/100dpi/:unscaled,/usr/X11/lib/X11/fonts/100dpi/,/sw/lib/X11/fonts/intl/,/sw/lib/X11/fonts/efont-unicode/,/sw/lib/X11/fonts/applettf/,/Library/Fonts/,/System/Library/Fonts/'
+	if [ -d $HOME/.fonts ]; then
+		xset +fp $HOME/.fonts
+	fi
 	xset fp rehash
 
 	xload -geometry 120x40-200+0 -hl red &
@@ -481,17 +569,17 @@ case $DISPLAY in
 #	$RSH -n most.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+96 -hl red &
 #	$RSH -n isit.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+144 -hl red &
 #	$RSH -n sometimes.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+192 -hl red &
-#	$RSH -n historically.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+242 -hl red &
+#	$RSH -n historically.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+240 -hl red &
 	# (and there is room for one under the clocks too)
 #	$RSH -n almost.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-70+242 -hl red &
 
 	# All the small lower-right command terminals (starting with our own first one)
-	# note the -155 is the height of the normal xconsole window, at 120, plus its decorations (I think)
-	uxterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-#	onx11server -n once.weird.com 'uxterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+	# note the -155 is the height of the normal xconsole window, at 120, plus its ctwm decorations (I think)
+	uxterm -display $DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+#	onx11server -n once.weird.com 'uxterm -display $DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
 
 	# All the big main area terminals (starting with our own first one)
-	uxterm -display $DISPLAY -geometry  132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
+	uxterm -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
 #	onx11server -n once.weird.com 'uxterm -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
 
 	# All the normal emacs windows...
@@ -500,8 +588,33 @@ case $DISPLAY in
 ###	$RSH -n building.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -display $DISPLAY -geometry 130x75+0+0" &
 	# this one's supposed to go in virtualscreen "Coding"
 ###	$RSH -n building.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -i -display $DISPLAY -geometry 130x75+0+0" &
-	# this one should go in the virtualscreen "News" 
+	# this one should go in the virtualscreen "News"
 ###	$RSH -n whats.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -i -display $DISPLAY -geometry 130x75+0+0" &
+	;;
+
+macweird.local:*|lithium.klervi.com:*|*xquartz:*)
+	# XXX this needs checking... (old macbook complains of a bad path element)
+	xset fp= '/usr/X11/lib/X11/fonts/misc/,/usr/X11/lib/X11/fonts/TTF/,/usr/X11/lib/X11/fonts/OTF,/usr/X11/lib/X11/fonts/Type1/,/usr/X11/lib/X11/fonts/100dpi/:unscaled,/usr/X11/lib/X11/fonts/100dpi/,/sw/lib/X11/fonts/intl/,/sw/lib/X11/fonts/efont-unicode/,/sw/lib/X11/fonts/applettf/,/Library/Fonts/,/System/Library/Fonts/'
+	if [ -d $HOME/.fonts ]; then
+		xset +fp $HOME/.fonts
+	fi
+	xset fp rehash
+
+	xload -geometry 120x40-200+0 -hl red &
+	xclock -update 1 -geometry 190-0+196 -digital -chime &
+	if $HAVESWISSWATCH; then
+		swisswatch -name swissclock -geometry 190x190-0+0 &
+	else
+		xclock -update 1 -geometry 190x190-0+0 &
+	fi
+	# All the small lower-right command terminals (starting with our own first one)
+	# note the -148 is the height of the normal xconsole window, at 120, plus its twm decorations (I think)
+	uxterm -display $DISPLAY -geometry 80x25-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+
+	# All the big main area terminals (starting with our own first one)
+	# XXX damn, the default 7x14 font is just a wee bit too wide at 132 chars!
+	# (but oddly not on the old macbook, only on the new macbook air!)
+	uxterm -display $DISPLAY -geometry 128x60+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
 	;;
 
 xceptionally*:*)
@@ -593,7 +706,7 @@ xtremely*:*)
 	else
 		echo "$argv0: no background set"
 	fi
-#	if [ $SCREENDEPTH -eq 1 ] ; then
+#	if [ ${SCREENDEPTH:-1} -eq 1 ] ; then
 #		xload -geometry 100x50-0+150 -hl grey90 &
 #	else
 #		xload -geometry 100x50-0+150 -hl red &

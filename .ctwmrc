@@ -2,7 +2,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	34.3	12/04/27 15:44:52 (woods)"
+#ident	"@(#)HOME:.ctwmrc	34.4	13/12/02 18:23:22 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -13,6 +13,7 @@
 # Environment variables used (set by .profile et al):
 #
 # RSH		- path to local rsh(1) or ssh(1)
+# SSH		- path to local ssh(1)
 # X11BIN	- localized path for /usr/X11/bin or /usr/bin/X11, etc.
 # X11PATH	- localized path for /usr/X11 or /usr/X11R6, etc.
 # X11SERVER	- name of a possibly more powerful local server for X applications
@@ -69,6 +70,7 @@ PackNewWindows
 RestartPreviousState	# doesn't have near enough affect on X11, except for restarting the WM
 ReallyMoveInWorkspaceManager
 #ReverseCurrentWorkspace
+#SaveWorkspaceFocus	# new in 3.8.1
 ShowWorkSpaceManager
 SchrinkIconTitles	# a spello?
 ShortAllWindowsMenus
@@ -184,6 +186,8 @@ Monochrome {
 
 ifelse(COLOR, Yes, [
 
+define(XLOAD_HL, red)
+
 MapWindowCurrentWorkSpace {
 	"yellow"
 	"grey50"
@@ -225,6 +229,8 @@ MapWindowDefaultWorkSpace {
 # else not COLOR
 ], [
 
+define(XLOAD_HL, grey90)
+
 MapWindowCurrentWorkSpace {
 	"White"
 	"grey50"
@@ -239,14 +245,24 @@ MapWindowDefaultWorkSpace {
 # end not COLOR
 ])
 
+# put the icon to the right-edge of its title -- this seems to work
+# best for icon titles which expand when hovered over, and when the
+# IconRegion gravity is to the East
+#
 IconJustification		"right"
+
 IconRegionAlignement		"border"
 IconRegionJustification		"border"
 
 # Note it seems the IconRegion must include the expanded icon title,
 # which can be a bit long when we have pathnames in xterm titles.
 #
-# This isn't such a problem though if the "gravity" is North East.
+# This isn't such a problem though if the "gravity" is North East and
+# when the IconJustification is to the right -- the IconRegion can
+# then be expanded to the left over other windows and normally, so
+# long as there aren't too many icons to fit in the actual desired
+# area, then expanding titles will have the needed room to expand to
+# the left.
 #
 # A 10-pixel X 10-pixel grid keeps icons packed about as tight as
 # you'd ever want them to be.  This is of course way too small a grid
@@ -265,7 +281,7 @@ IconRegionJustification		"border"
 #
 # (use "xlogo -geometry fooxbar" to see where this will be!)
 #
-ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [IconRegion	"1000x230-0+296" North East 10 10],
+ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [IconRegion	"1000x350-0+296" North East 10 10],
  [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [IconRegion	"800x580-0+310" North East 10 10],
   [IconRegion	"500x250-0+300" North East 10 10]
  )]
@@ -295,7 +311,7 @@ ifelse(eval(WIDTH >= 2560 && HEIGHT >= 1440), 1, [define(OPT_BIG_XTERM, [-geomet
 IconDirectory	"HOME/lib/bitmaps"
 
 ifdef([XPM], [
-PixmapDirectory	"HOME/lib/pixmaps:HOME/lib/icons:/usr/lib/X11/twm/images:/usr/X11/lib/X11/twm/images:/usr/X11R6/lib/X11/twm/images:/usr/pkg/lib/X11/twm/images:/sw/etc/X11/ctwm/images:"
+PixmapDirectory	"HOME/lib/pixmaps:HOME/lib/icons:/usr/lib/X11/twm/images:/usr/X11/lib/X11/twm/images:/usr/X11R6/lib/X11/twm/images:/usr/pkg/lib/X11/twm/images:/sw/etc/X11/ctwm/images:/usr/local/lib/X11/twm/images:"
 ])
 
 IconManagerDontShow {
@@ -371,6 +387,10 @@ Cursors {
 # XXX in theory we could/should use TWM_TYPE to protect all the
 # WorkSpaces related stuff so that it's only seen if the value is
 # "ctwm" -- then we could maybe still use this same file with twm.
+# (and/or "vtwm" for use with vtwm, and maybe even "tvtwm" for use
+# with tvtwm too, as they each also have a workspace manager, but
+# using the pan/view style instead of the separate virtual desktop
+# style of ctwm)
 
 # The positioning of the WorkSpace window seems to ignore borders or
 # something -- i.e. it's not the same as an ordinary client.  You need
@@ -382,15 +402,18 @@ Cursors {
 # geometry in pixels, as given here.
 #
 # The first one is for the likes of "very" where there's room for the xloads.
-# The second is for the likes of an NCD HMX or 19c with room for a big clock.
+# The second is for the likes of an modern macbook.
+# The third is for the likes of an NCD HMX or 19c with room for a big clock.
 # The default is for small screens where there's only room for a small clock.
 #
-# for the downstaird machine this can move 90 to the left (leaving room for
+# for the downstairs machine this can move 90 to the left (leaving room for
 # a 132-column window at the default font)
 #
 ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [WorkSpaceManagerGeometry	"170x285-330+0" 2],
- [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [WorkSpaceManagerGeometry	"127x231-192+0" 2],
-  [WorkSpaceManagerGeometry	"115x235-112+0" 2]
+ [ifelse(eval(WIDTH >= 1440 && HEIGHT >= 900), 1, [WorkSpaceManagerGeometry	"170x230-330+0" 2],
+  [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [WorkSpaceManagerGeometry	"127x230-192+0" 2],
+   [WorkSpaceManagerGeometry	"115x235-112+0" 2]
+  )]
  )]
 )
 
@@ -409,10 +432,10 @@ WorkSpaces {
 WorkSpaces {
 	"Main"
 	"Mail"
-	"News"
-	"Browsing"
+	"NetBSD"
+	"Central"
 	"Coding"
-	"Testing"
+	"News"
 	"Work 1"
 	"Work 2"
 }
@@ -631,54 +654,66 @@ menu "quickies"
 	"Kill"			f.destroy
  ifdef([AT_WEIRD], [
 	""			f.separator
-	"Xauth to Weird.com..."		f.menu "xauth-to-weird"
+	"Xauth to Weird.com..."	f.menu "xauth-to-weird"
  ])
+	""			f.separator
+	"emacs [@CLIENTHOST]"	!"emacs -i &"
  ifdef([AT_VERY_WEIRD], [
+	"emacs @lithuum"	!"$SSH -n gaw@lithium.local \"export DISPLAY=$REMOTE_DISPLAY; . ./.profile; exec emacs -display $REMOTE_DISPLAY -i\" &"
+	#
+	"emacs @once"		!"$RSH -n once.local \"export DISPLAY=$REMOTE_DISPLAY; . ./.profile; exec emacs -display $REMOTE_DISPLAY -i\" &"
+	"emacs @more"		!"$RSH -n more.local \"export DISPLAY=$REMOTE_DISPLAY; . ./.profile; exec emacs -display $REMOTE_DISPLAY -i\" &"
+	""			f.separator
+	"links -g @once"	!"$RSH -n once.local \". ./.profile; exec /usr/pkg/bin/links -g -display $REMOTE_DISPLAY\" &"
+	"links -g @more"	!"$RSH -n more.local \". ./.profile; exec /usr/pkg/bin/links -g -display $REMOTE_DISPLAY\" &"
 	""			f.separator
 	"Mac OS X Apps..."	f.menu "osx-apps"
 	"Mac OS X Spaces"	!"open /Applications/Utilities/Spaces.app &"
-	"emacs [@CLIENTHOST]"	!"emacs -i &"
- ifdef([USE_X11SERVER], [
+	""			f.separator
+	"Xauth..."		f.menu "xauth"
+	""			f.separator
+  ifdef([USE_X11SERVER], [
 	"@X11SERVER"		!"$RSH -n $X11SERVER 'DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i' &"
- ])
-	"emacs @once"		!"$RSH -n 10.0.1.128 'export DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
-	"emacs @more"		!"$RSH -n 10.0.1.129 'export DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
-	"links -g @once"	!"$RSH -n 10.0.1.128 '. ./.profile; exec /usr/pkg/bin/links -g -display '$REMOTE_DISPLAY &"
-	"links -g @more"	!"$RSH -n 10.0.1.129 '. ./.profile; exec /usr/pkg/bin/links -g -display '$REMOTE_DISPLAY &"
-#	"links -g @historically" !"$RSH -n historically.weird.com '. ./.profile; exec /usr/pkg/bin/links -g -display '$DISPLAY &"
+  ])
  ])
 	""			f.separator
 	# note the -155 is the height of the normal xconsole window, at 120, plus its decorations (I think)
-	"UXterm [@CLIENTHOST]"	!"uxterm -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
+	"UXterm [@CLIENTHOST]"	!"uxterm -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
 	"UXterm-big [@CLIENTHOST]"	!"uxterm OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP &"
 	#
-	"UXterm @once"		!"$RSH -n 10.0.1.128 '. ./.profile; exec uxterm -display '$REMOTE_DISPLAY' -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
-	"UXterm-big @once"		!"$RSH -n 10.0.1.128 '. ./.profile; exec uxterm -display '$REMOTE_DISPLAY' OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
-	"UXterm @more"		!"$RSH -n 10.0.1.129 '. ./.profile; exec uxterm -display '$REMOTE_DISPLAY' -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
-	"UXterm-big @more"		!"$RSH -n 10.0.1.129 '. ./.profile; exec uxterm -display '$REMOTE_DISPLAY' OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
+ ifelse(HOSTNAME, lithium, [], [
+
+	"UXterm @lithium"	!"$SSH -n gaw@lithium.local \". ./.profile; exec uxterm -display $REMOTE_DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1\" &"
+	"UXterm-big @lithium"	!"$SSH -n gaw@lithium.local \". ./.profile; exec uxterm -display $REMOTE_DISPLAY OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1\" &"
+ ])
+	#
+	"UXterm @once"		!"$RSH -n once.local \". ./.profile; exec uxterm -display $REMOTE_DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1\" &"
+	"UXterm-big @once"	!"$RSH -n once.local \". ./.profile; exec uxterm -display $REMOTE_DISPLAY OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1\" &"
+	"UXterm @more"		!"$RSH -n more.local \". ./.profile; exec uxterm -display $REMOTE_DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1\" &"
+	"UXterm-big @more"	!"$RSH -n more.local \". ./.profile; exec uxterm -display $REMOTE_DISPLAY OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1\" &"
 	#
  ifdef([USE_X11SERVER], [
-	"Xterm @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP' &"
-	"UXterm @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'uxterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP' &"
+	"Xterm @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP' &"
+	"UXterm @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'uxterm -display $DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP' &"
 	"Xterm-big @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'xterm -display $DISPLAY OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP' &"
 	"UXterm-big @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'uxterm -display $DISPLAY OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls OPT_ZICONBEEP' &"
  ])
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, once.weird.com, [], [
-	"UXterm @once"		!"$RSH -n once.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
+	"UXterm @once"		!"$RSH -n once.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
 	"UXterm-big @once"	!"$RSH -n once.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
   ])
-	"Xterm @most"		!"$RSH -n most.weird.com exec /usr/X11R6/bin/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
-	"UXterm @most"		!"$RSH -n most.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
+	"Xterm @most"		!"$RSH -n most.weird.com exec /usr/X11R6/bin/xterm -display $DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"UXterm @most"		!"$RSH -n most.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
 	"Xterm-big @most"	!"$RSH -n most.weird.com exec /usr/X11R6/bin/xterm -display $DISPLAY OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
 	"UXterm-big @most"	!"$RSH -n most.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
   ifelse(HOSTNAME, historically.weird.com, [], [
-  	"UXterm @historically"		!"$RSH -n historically.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
+  	"UXterm @historically"		!"$RSH -n historically.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
 	"UXterm-big @historically"	!"$RSH -n historically.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
   ])
-	"UXterm @freely"	!"$RSH -n freely.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
+	"UXterm @freely"	!"$RSH -n freely.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
 	"UXterm-big @freely"	!"$RSH -n freely.weird.com '. ./.profile; exec uxterm -display '$DISPLAY' OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
-	"Xterm @isit"		!"$RSH -n isit.weird.com exec /usr/X11R6/bin/xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
+	"Xterm @isit"		!"$RSH -n isit.weird.com exec /usr/X11R6/bin/xterm -display $DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
 	"Xterm-big @isit"	!"$RSH -n isit.weird.com exec /usr/X11R6/bin/xterm -display $DISPLAY OPT_BIG_XTERM -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &"
 	""			f.separator
 	"Console Server"	f.menu "consoles"
@@ -965,6 +1000,8 @@ menu "applications"
 	""				f.separator
  ])
  ifdef([AT_VERY_WEIRD], [
+	"Xauth..."			f.menu "xauth"
+	""				f.separator
 	"Mac OS X Apps..."		f.menu "osx-apps"
 	"Spaces"			!"open /Applications/Utilities/Spaces.app &"
 	""				f.separator
@@ -1067,8 +1104,8 @@ menu "emacs"
 	"@X11SERVER"		!"$RSH -n $X11SERVER 'DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$DISPLAY' -i' &"
  ])
  ifdef([AT_VERY_WEIRD], [
-	"@once"			!"$RSH -n 10.0.1.128 'export DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
-	"@more"			!"$RSH -n 10.0.1.129 'export DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
+	"@once"			!"$RSH -n once.local 'export DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
+	"@more"			!"$RSH -n more.local 'export DISPLAY='$DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
  ])
 ifdef([AT_WEIRD], [
  ifelse(HOSTNAME, most.weird.com, [], [
@@ -1119,13 +1156,19 @@ menu "monitors"
 	"xbuffy w/-acmd"	!"xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd \"$AUDIOPLAYER HOME/lib/sounds/newmail &\" &"
 
 	""			f.separator
-	"xload"			!"xload -geometry 120x50-200+0 -hl grey90 &"
+	"xload"			!"xload -geometry 120x40-200+0 -hl XLOAD_HL &"
  ifdef([USE_X11SERVER], [
-	"xload @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'xload -display $DISPLAY -geometry 120x50-200+148 -hl grey90' &"
+	"xload @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'xload -display $DISPLAY -geometry 120x40-200+48 -hl XLOAD_HL' &"
+ ])
+ ifdef([AT_VERY_WEIRD], [
+	"xload @once"		!"$RSH -n once.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 120x40-200+96 -hl red\" &"
+	"xload @more"		!"$RSH -n more.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 120x40-200+96 -hl red\" &"
+	"xload @centrally"	!"ssh -Y -n woods@centrally.weird.com '. ./.profile; exec xload -geometry 120x40-200+144 -hl red' &"
+	"xload @lithium"	!"ssh -n gaw@lithium.local \". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry 120x40-200+240 -hl red\" &"
  ])
 	"xosview"		!"xosview -geometry 120x137-200+0 &"
  ifdef([USE_X11SERVER], [
-	"xosview @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'xosview -display $DISPLAY -hl grey90' &"
+	"xosview @X11SERVER"	!". ./.profile; onx11server $X11SERVER 'xosview -display $DISPLAY' &"
  ])
 	"xcpustate"		!"xcpustate -geometry 190x20-0+270 -shorten 1 -wait -cpu -disk &"
  ifdef([USE_X11SERVER], [
@@ -1290,7 +1333,7 @@ menu "xterm"
   ])
   ifelse(HOSTNAME, sometimes.weird.com, [], [
 	"Xterm @sometimes" 	!". ./.profile; onx11server -n sometimes.weird.com 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
-  ])
+  ])ksrv
   ifelse(HOSTNAME, always.weird.com, [], [
 	"Xterm @always" 	!". ./.profile; onx11server -n always.weird.com 'xterm -display $DISPLAY -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &"
   ])
@@ -1323,38 +1366,45 @@ menu "slogin"
 # for pushing our AUTH cookies over to the various target hosts in case they
 # don't share $HOME with the local host...
 #
-#	xauth extract - $DISPLAY | rsh $X11SERVER $X11BIN/xauth merge -
+#	xauth nextract - $DISPLAY | rsh $X11SERVER $X11BIN/xauth nmerge -
 #
 ifdef([AT_WEIRD], [
 menu "xauth-to-weird"
 {
 	"Xauth pushes to Weird.com"	f.title
  ifdef([USE_X11SERVER], [
-	"Xauth to X11SERVER"	!"xauth extract - $DISPLAY | (. ./.profile; onx11server $X11SERVER 'xauth merge -' ) &"
+	"Xauth to X11SERVER"	!"xauth nextract - $DISPLAY | (. ./.profile; onx11server $X11SERVER 'xauth nmerge -' ) &"
  ])
-	"Xauth to most"		!"xauth extract - $DISPLAY | $RSH most.weird.com exec /usr/X11R6/bin/xauth merge - &"
-	"Xauth to isit"		!"xauth extract - $DISPLAY | $RSH isit.weird.com exec /usr/X11R6/bin/xauth merge - &"
-	"Xauth to once"		!"xauth extract - $DISPLAY | $RSH once.weird.com exec /usr/X11R6/bin/xauth merge - &"
-	"Xauth to historically"	!"xauth extract - $DISPLAY | $RSH historically.weird.com exec /usr/X11R6/bin/xauth merge - &"
-	"Xauth to freely"	!"xauth extract - $DISPLAY | $RSH freely.weird.com exec /usr/X11R6/bin/xauth merge - &"
-	"Xauth to whats"	!"xauth extract - $DISPLAY | $RSH whats.weird.com exec /usr/X11R6/bin/xauth merge - &"
+	"Xauth to most"		!"xauth nextract - $DISPLAY | $RSH most.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to isit"		!"xauth nextract - $DISPLAY | $RSH isit.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to once"		!"xauth nextract - $DISPLAY | $RSH once.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to historically"	!"xauth nextract - $DISPLAY | $RSH historically.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to freely"	!"xauth nextract - $DISPLAY | $RSH freely.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to whats"	!"xauth nextract - $DISPLAY | $RSH whats.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
 }
 ])
 
 ifdef([AT_VERY_WEIRD], [
+menu "xauth"
+{
+	"Xauth pushes"		f.title
+	"Xauth to once"		!"xauth nextract - $DISPLAY | $RSH once.local exec /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to more"		!"xauth nextract - $DISPLAY | $RSH more.local exec /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to lithium"	!"xauth nextract - $DISPLAY | $SSH gaw@lithium.local exec /opt/X11/bin/xauth nmerge - &"
+}
 menu "osx-apps"
 {
 	"Mac OS X Applications"	f.title
 	"Activity Monitor"	!"open '/Applications/Utilities/Activity Monitor.app' &"
 	"Adium"			!"open /Applications/Adium.app &"
 	"Console"		!"open /Applications/Utilities/Console.app &"
-	"Dashboard"		!"open /Applications/Dashboard.app &"
 	"Google Chrome"		!"open '/Applications/Google Chrome.app' &"
 	"iCal"			!"open /Applications/iCal.app &"
 	"iPhoto"		!"open /Applications/iPhoto.app &"
+	"iTunes"		!"open /Applications/iTunes.app &"
 	"Mail"			!"open /Applications/Mail.app &"
-	"Safari"		!"open /Applications/Safari.app &"
-	"Spaces"		!"open /Applications/Utilities/Spaces.app &"
+	"Preview"		!"open /Applications/Preview.app &"
+	"System Preferences"	!"open '/Applications/Utilities/System Preferences.app' &"
 	"System Profiler"	!"open '/Applications/Utilities/System Profiler.app' &"
 	"Terminal"		!"open /Applications/Terminal.app &"
 }
