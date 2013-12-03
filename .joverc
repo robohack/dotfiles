@@ -1,3 +1,6 @@
+#
+#ident	"@(#)HOME:.joverc	34.2	13/12/02 18:08:16 (woods)"
+#
 source ~/.jovemacs
 read-word-abbrev-file ~/.joveabbrev
 bind-macro-to-key parse-errors-macro ^[^E
