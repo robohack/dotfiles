@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	34.1	11/10/12 16:54:51 (woods)"
+#ident	"@(#)HOME:.twmrc	34.2	13/12/02 18:08:47 (woods)"
 #
 
 AutoRelativeResize
@@ -13,9 +13,11 @@ NoGrabServer
 NoRaiseOnMove
 NoRaiseOnResize
 
+OpaqueMove
+
 RestartPreviousState
 
-IconRegion	"500x250-0+300" NORTH EAST 25 25
+IconRegion	"500x250-0+400" NORTH EAST 25 25
 
 IconDirectory   "/usr/include/X11/bitmaps"
 
@@ -90,10 +92,14 @@ Color {
 	IconManagerHighlight	"yellow"
 }
 
-IconManagers	{ "XTerm" "=305x100-100+4" 1 }
+IconManagers	{
+	"XTerm" "=305x100-320+4" 1
+	"UXTerm" "=310x100-0+230" 1
+}
 
 IconifyByUnmapping {
 	"XTerm"
+	"UXTerm"
 }
 
 IconManagerDontShow {
