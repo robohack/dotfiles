@@ -1,7 +1,7 @@
 #
 #	.bashrc - per-shell startup stuff for bash via $ENV
 #
-#ident	"@(#)HOME:.bashrc	34.1	11/10/12 16:54:51 (woods)"
+#ident	"@(#)HOME:.bashrc	34.2	13/12/02 18:09:15 (woods)"
 
 # Assumptions:
 
@@ -16,7 +16,7 @@ if [ -z "$SHELL" ] ; then
 fi
 
 case $- in *i*)
-# everything in this file is for interactive use only
+# everything else in this file is for interactive use only
 
 set -o monitor
 if [ -r $HOME/.bashedit ] ; then
@@ -27,17 +27,39 @@ fi
 
 export PATH="$PATH"
 
-dirappend ()
+# XXX these variants using ${..##..} and ${..%%..} instead of $(expr ...) may be better
+
+# add to end of path
+append2path()
 {
-	if [ $# -le 1 ] ; then
-		echo "Usage: dirappend variable directory [...]" >&2
+	if ! eval test -z "\"\${$1##*:$2:*}\"" -o -z "\"\${$1%%*:$2}\"" -o -z "\"\${$1##$2:*}\"" -o -z "\"\${$1##$2}\"" ; then
+		eval "$1=\$$1:$2"
+	fi
+}
+
+# add to front of path
+prepend2path()
+{
+	if ! eval test -z "\"\${$1##*:$2:*}\"" -o -z "\"\${$1%%*:$2}\"" -o -z "\"\${$1##$2:*}\"" -o -z "\"\${$1##$2}\"" ; then
+		eval "$1=$2:\$$1"
+	fi
+}
+
+if typeset -f dirappend >/dev/null ; then
+	unset -f dirappend
+fi
+
+dirappend()
+{
+	if [ $# -le 1 -o -z "$1" ] ; then
+		print "Usage: dirappend variable directory [...]" >&2
 		exit 2
 	fi
 	varname=$1
 	shift
-	eval varvalue='$'$varname
+	eval varvalue='$'${varname}
 	while [ $# -gt 0 ] ; do
-		if [ -d "$1" -a `expr ":$varvalue:" : ".*:$1:.*"` -eq 0 ] ; then
+		if [ -d "$1" -a $(expr ":$varvalue:" : ".*:$1:.*") -eq 0 ] ; then
 			eval $varname='$'"$varname"'":$1"'
 		fi
 		shift
@@ -45,22 +67,71 @@ dirappend ()
 	unset varname varvalue
 }
 
-dirprepend ()
+if typeset -f dirprepend >/dev/null ; then
+	unset -f dirprepend
+fi
+
+dirprepend()
 {
-	if [ $# -le 1 ] ; then
-		echo "Usage: dirprepend variable directory [...]" >&2
+	if [ $# -le 1 -o -z "$1" ] ; then
+		print "Usage: dirprepend variable directory [...]" >&2
 		exit 2
 	fi
 	varname=$1
 	shift
-	eval varvalue='$'$varname
+	eval varvalue='$'${varname}
 	while [ $# -gt 0 ] ; do
-		if [ -d "$1" -a `expr ":$varvalue:" : ".*:$1:.*"` -eq 0 ] ; then
+		if [ -d "$1" -a $(expr ":$varvalue:" : ".*:$1:.*") -eq 0 ] ; then
 			eval $varname='"$1:"$'"$varname"
 		fi
 		shift
 	done
 	unset varname varvalue
+}
+
+if typeset -f dirremove >/dev/null ; then
+	unset -f dirremove
+fi
+
+dirremove()
+{
+	if [ $# -le 1 ] ; then
+		echo "Usage: dirremove variable directory [...]" >&2
+		exit 2
+	fi
+	varname=$1
+	shift
+	while [ $# -gt 0 ] ; do
+		if [ "$1" = ":" -o -z "$1" ] ; then
+			eval $varname=$(eval echo '$'$varname | sed -e 's|::||g' -e 's|:$||')
+		else
+			eval $varname=$(eval echo '$'$varname | sed 's|\(:*\)'$1':*|\1|')
+		fi
+		shift
+	done
+	unset varname
+}
+
+if typeset -f lnotes >/dev/null ; then
+	unset -f lnotes
+fi
+
+lnotes()
+{
+	if [ -d $HOME/notes ] ; then
+	(
+		# in a subshell
+		cd $HOME/notes
+		if [ $(ls|wc -w) != 0 ] ; then
+			if test -t 1; then
+				print '\nYou have notes on:' 
+				ls -dC *[!~]
+			else
+				ls -d *[!~]
+			fi
+		fi
+	)
+	fi
 }
 
 # UGLY, but it works
@@ -155,7 +226,7 @@ function do_first_time
 	fi
 }
 
-if type ismpx 2>&1 >/dev/null ; then
+if type ismpx >/dev/null  2>&1 ; then
 	: might just be running layers
 else
 	# otherwise it's just not possible....
@@ -197,8 +268,50 @@ fi
 if [ "$TERM" = "xterm" ] ; then
 	alias clearban='WBANNER=""; setban'
 
+	onx11server ()
+	{
+		_RDISP=""
+		_USAGE="$argv0: $0(): Usage: onx11server [-nS] [-D REMOTE_DISPLAY] SERVERNAME 'command string'"
+		_nullopt=""
+		while getopts nD:S OPTCH
+		do
+			case $OPTCH in
+			n)
+				_nullopt="-n"
+				;;
+			D)
+				_RDISP="${OPTARG}"
+				;;
+			S)
+				RSH=${SSH:-ssh}
+				;;
+			*)
+				echo "$_USAGE" >&2
+				return 2
+				;;
+			esac
+		done
+		shift $(( $OPTIND - 1 ))
+
+		if [ $# -ne 2 ]; then
+			echo "$_USAGE" >&2
+			return 2
+		fi
+
+		_X11server=$1
+		echo "$argv0: starting $RSH $_nullopt $_X11server '. ./.profile; export DISPLAY=${_RDISP:-${DISPLAY}}; exec $2'"
+		# note: don't run this in the background -- let the caller do that
+		$RSH $_nullopt $_X11server ". ./.profile; export DISPLAY=${_RDISP:-${DISPLAY}}; exec $2"
+	}
+
 	setban ()
 	{
+		if [ -z "$WBANNER" ]; then
+			WBANNER=$@
+		fi
+		if [ -z "$BANNERPWD" ]; then
+			BANNERPWD=$(pwd)
+		fi
 		eval TBANNER='"${WBANNER:-sh}://$UUNAME/${BANNERWD} | $uid{$gid}($LOGNAME)[$LEV]:$TTYN"'
 		echo -n "]0;$TBANNER"
 		WBANNER=""
@@ -227,7 +340,7 @@ if [ "$TERM" = "xterm" ] ; then
 #			PWD='src:'"${BANNERWD#*/src/}"
 #			;;
 #		esac
-		setban 
+		setban
 	}
 
 	setban
@@ -250,6 +363,9 @@ if [ -r $HOME/.bashsccs ] ; then
 	. $HOME/.bashsccs
 fi
 
+# xxx this is different than .localprofile in that it is only for
+# interactive shells...
+#
 if [ -r $HOME/.bashlocal ] ; then
 	. $HOME/.bashlocal
 fi
