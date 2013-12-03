@@ -1,7 +1,9 @@
 #
 #	.kshlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.kshlogin	34.1	11/10/12 16:54:51 (woods)"
+#ident	"@(#)HOME:.kshlogin	34.2	13/12/02 18:26:26 (woods)"
+
+echo "$0: setup for Korn Shell"
 
 set -o ignoreeof	# we only do this for our login shell....
 
