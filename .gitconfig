@@ -1,6 +1,43 @@
+#
+#	.gitconfig - per-user Git setup
+#
+#ident	"@(#)HOME:.gitconfig	34.2	13/12/02 18:24:35 (woods)"
+#
 [user]
 	name = Greg A. Woods
 	email = woods@planix.com
 [alias]
 	commit-add-amend-HEAD = commit -a --amend -C HEAD
 	caa = commit -a --amend -C HEAD
+	unstage = reset HEAD
+	track = add -N
+	untrack = rm --cached
+	rm-added = rm --cached
+	# First, in .gitattributes, you would assign the diff
+	# attribute for paths.  E.g.:
+	#	*.tex   diff=tex
+	wdiff = diff --color-words
+	# after a 'git apply', un-apply those changes that originally
+	# came from the stash:
+	stash-unapply = !git stash show -p | git apply -R
+[merge]
+	conflictstyle = diff3
+[git-up "fetch"]
+	all = true
+[git-up "rebase"]
+	arguments = --preserve-merges
+#
+# copy the following lines into the .gitattributes file of your
+# repository (to make its contents a property of the repository that
+# can be shared) or copy them to the repo's .git/info/attributes file
+# (to keep it private to just your local clone of the repository) [and
+# of course remove the leading '#' character]:
+#
+#*.c	diff=cpp
+#*.h	diff=cpp
+#*.cpk	diff=cpp
+#*.html	diff=html
+#*.py	diff=python
+#*.jpg	binary
+#*.png	binary
+#
