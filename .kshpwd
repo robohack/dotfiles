@@ -1,7 +1,7 @@
 #
 #	.kshpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.kshpwd	34.1	11/10/12 16:54:51 (woods)"
+#ident	"@(#)HOME:.kshpwd	35.1	13/12/02 18:39:35 (woods)"
 
 unalias cd
 alias cd='_cd'

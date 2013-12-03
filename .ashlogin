@@ -1,7 +1,7 @@
 #
 #	.ashlogin - login shell startup for ash
 #
-#ident	"@(#)HOME:.ashlogin	34.2	13/12/02 18:07:50 (woods)"
+#ident	"@(#)HOME:.ashlogin	35.1	13/12/02 18:39:34 (woods)"
 
 echo "$0: setup for Almquist's Shell"
 

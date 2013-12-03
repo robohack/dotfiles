@@ -1,7 +1,7 @@
 #
 #	.shlogin - login shell startup for plain Bourne Shell
 #
-#ident	"@(#)HOME:.shlogin	34.2	13/12/02 18:08:04 (woods)"
+#ident	"@(#)HOME:.shlogin	35.1	13/12/02 18:39:34 (woods)"
 
 echo "$0: setup for Bourne Shell"
 

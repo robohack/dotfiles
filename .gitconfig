@@ -1,7 +1,7 @@
 #
 #	.gitconfig - per-user Git setup
 #
-#ident	"@(#)HOME:.gitconfig	34.2	13/12/02 18:24:35 (woods)"
+#ident	"@(#)HOME:.gitconfig	35.1	13/12/02 18:39:35 (woods)"
 #
 [user]
 	name = Greg A. Woods

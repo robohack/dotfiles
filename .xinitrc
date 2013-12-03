@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	34.3	13/12/02 18:23:50 (woods)"
+#ident	"@(#)HOME:.xinitrc	35.1	13/12/02 18:39:35 (woods)"
 
 # Assumptions that may cause breakage:
 #

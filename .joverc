@@ -1,5 +1,5 @@
 #
-#ident	"@(#)HOME:.joverc	34.2	13/12/02 18:08:16 (woods)"
+#ident	"@(#)HOME:.joverc	35.1	13/12/02 18:39:34 (woods)"
 #
 source ~/.jovemacs
 read-word-abbrev-file ~/.joveabbrev

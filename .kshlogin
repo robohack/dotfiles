@@ -1,7 +1,7 @@
 #
 #	.kshlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.kshlogin	34.2	13/12/02 18:26:26 (woods)"
+#ident	"@(#)HOME:.kshlogin	35.1	13/12/02 18:39:35 (woods)"
 
 echo "$0: setup for Korn Shell"
 

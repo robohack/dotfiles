@@ -1,7 +1,7 @@
 #
 #	.bashlogin - login shell startup for bash
 #
-#ident	"@(#)HOME:.bashlogin	34.2	13/12/02 18:07:33 (woods)"
+#ident	"@(#)HOME:.bashlogin	35.1	13/12/02 18:39:34 (woods)"
 
 echo "$0: setup for BASH"
 

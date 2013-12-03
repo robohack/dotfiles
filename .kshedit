@@ -1,7 +1,7 @@
 #
 #	.kshedit - ksh editing function customisation
 #
-#ident	"@(#)HOME:.kshedit	34.2	13/12/02 18:39:14 (woods)"
+#ident	"@(#)HOME:.kshedit	35.1	13/12/02 18:39:34 (woods)"
 
 # XXX this can't be checked in with a "diff" that treats it as binary!
 
