@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some GNU bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	35.1	13/12/02 18:39:35 (woods)"
+#ident	"@(#)HOME:.profile	35.2	13/12/02 19:18:48 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -393,7 +393,7 @@ export WORKPATH
 # don't worry about openwin -- it's handled in the ISSUN case below
 #
 if [ -z "$X11PATH" ] ; then
-	for x11pc in /local/X11R? /local/X11 /usr/X11R? /usr/X11 /usr/X??? /usr/local/X11R? /usr/local/X11; do
+	for x11pc in /opt/X11 /local/X11R? /local/X11 /usr/X11R? /usr/X11 /usr/X??? /usr/local/X11R? /usr/local/X11; do
 		if [ -d $x11pc -a ! -L $x11pc -a -d $x11pc/bin ] ; then
 			X11PATH=${x11pc}
 			break;
