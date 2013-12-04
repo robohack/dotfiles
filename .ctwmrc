@@ -2,7 +2,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	35.1	13/12/02 18:39:35 (woods)"
+#ident	"@(#)HOME:.ctwmrc	35.2	13/12/04 13:19:38 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -633,7 +633,6 @@ menu "quickies"
 	"Short Cuts"		f.title
 	"Pin"			f.pin
 	"Move & Pack"		f.movepack
-	"Move & Push"		f.movepush
 	"Move"			f.move
 	"Resize"		f.resize
 	"Lower"			f.lower
