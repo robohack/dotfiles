@@ -2,7 +2,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	35.2	13/12/04 13:19:38 (woods)"
+#ident	"@(#)HOME:.ctwmrc	35.3	13/12/05 13:49:02 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -1405,7 +1405,7 @@ menu "osx-apps"
 	"Preview"		!"open /Applications/Preview.app &"
 	"System Preferences"	!"open '/Applications/Utilities/System Preferences.app' &"
 	"System Profiler"	!"open '/Applications/Utilities/System Profiler.app' &"
-	"Terminal"		!"open /Applications/Terminal.app &"
+	"Terminal"		!"open /Applications/Utilities/Terminal.app &"
 }
 ])
 
