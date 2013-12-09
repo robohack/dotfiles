@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	35.1	13/12/02 18:39:35 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	35.2	13/12/09 11:45:19 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -3671,6 +3671,7 @@ current emacs server process..."
     ("weird.com")
     ("weird.ca")
     ("weird.toronto.on.ca")
+    ("avoncote.ca")
     ("robohack.ca")
     ("planix.com")
     ("robohack.planix.com")
@@ -3908,6 +3909,8 @@ but it's seriously brain damaged so we re-define it as nothing."
   "\"Greg A. Woods\" <woods@weird.toronto.on.ca>")
 (define-mail-abbrev "robohack"
   "\"Greg A. Woods\" <woods@robohack.ca>")
+(define-mail-abbrev "me-at-avoncote"
+  "\"Greg A. Woods\" <woods@avoncote.ca>")
 (define-mail-abbrev "me-at-aci"
   "\"Greg A. Woods\" <woods@aci.on.ca>")
 (define-mail-abbrev "woods"
@@ -3928,6 +3931,8 @@ but it's seriously brain damaged so we re-define it as nothing."
   "The Weird Toronto PostMaster <postmaster@weird.toronto.on.ca>")
 (define-mail-abbrev "postmaster-robohack"
   "The RoboHack PostMaster <postmaster@robohack.ca>")
+(define-mail-abbrev "postmaster-avoncote"
+  "The Avoncote PostMaster <postmaster@avoncote.ca>")
 (define-mail-abbrev "postmaster-planix"
   "The RoboHack PostMaster <postmaster@planix.com>")
 (define-mail-abbrev "postmaster-planix.ca"
