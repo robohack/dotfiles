@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	35.1	13/12/02 18:39:34 (woods)"
+#ident	"@(#)HOME:.twmrc	35.2	13/12/08 16:01:37 (woods)"
 #
 
 AutoRelativeResize
@@ -1271,7 +1271,7 @@ menu "backgrounds"
 	"xearth on mono"		!"xearth -mono -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xphoon"			!"xphoon -t 10 &"
 	"xsetroot eschernknot"		!"xsetroot -bitmap $X11PATH/include/X11/bitmaps/escherknot"
-	"xsetroot xsnow"		!"xsetroot -bitmap $X11PATH/include/X11/bitmaps/snow"
+	"xsetroot xsnow"		!"xsetroot -bitmap $X11PATH/include/X11/bitmaps/xsnow"
 }
 
 menu "ghostviews"
