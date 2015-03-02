@@ -45,3 +45,5 @@
 .zenirc.el
 copyright
 dotfiles.list
+SCCS/
+RCS/
