@@ -1,0 +1,7 @@
+#
+#	xpdfrc - xpdf configuration
+#
+#ident	"@(#)HOME:.xpdfrc	35.1	17/04/12 10:07:41 (woods)"
+
+# use links in graphics mode to open URLs
+urlCommand	"links -g '%s'"
