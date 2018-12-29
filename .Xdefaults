@@ -1,5 +1,5 @@
 !
-!#ident	"@(#)HOME:.Xdefaults	35.2	18/12/28 11:15:03 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	35.3	18/12/29 08:24:52 (woods)"
 !
 #ifdef COLOR
 *customization:			-color
@@ -43,6 +43,26 @@ XTerm*VT100.Translations:       #override \n\
 !	Meta   <Key> Next:  scroll-forw(1,page) \n\
 !	Meta   <Key> Home:  scroll-back(1000,page) \n\
 !	Meta   <Key> End:   scroll-forw(1000,page) \n
+!
+XFontSel*sampleText:		"abcdefghijklmnopqrstuvwxyz\n\
+				ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
+				0123456789_oO0_lL1Ii\n\
+				!@\#$%^&*()_+-=\\[];'`,./|{}:\"~<>?\n\
+				ABCDEFGHIJKLMNOPQRSTUVWXYZ /0123456789\n\
+				abcdefghijklmnopqrstuvwxyz"
+!
+XFontSel*sampleTextUCS:		"abcdefghijklmnopqrstuvwxyz\n\
+				ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
+				0123456789_oO0_lL1Ii\n\
+				!@\#$%^&*()_+-=\\[];'`,./|{}:\"~<>?\n\
+				 ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿\n\
+				àáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ\n\
+				ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß\n\
+				に日本語を入れておくとよろしい。\n\
+				ABCDEFGHIJKLMNOPQRSTUVWXYZ /0123456789\n\
+				abcdefghijklmnopqrstuvwxyz £©µÀÆÖÞßéöÿ\n\
+				–―‘“”„†•…‰™œŠŸž€ ΑΒΓΔΩαβγδω АБВГДабвгд\n\
+				∀∂∈ℝ∧∪≡∞ ↑↗↨↻⇣ ┐┼╔╘░►☺♀ ﬁ�⑀₂ἠḂӥẄɐː⍎אԱა"
 !
 Netscape*XmLGrid.foreground:	Black
 Netscape*XmLGrid.background:	White
