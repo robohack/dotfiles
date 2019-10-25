@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	35.3	13/12/02 19:26:48 (woods)"
+#ident	"@(#)HOME:.kshsccs	35.4	19/10/25 13:43:13 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -232,14 +232,24 @@ function mksccs
 	if [ -n "$lastrel" ] ; then
 		REL="-r$lastrel"
 	fi
-	while getopts d:r: OPTCH
+	while getopts d:q:r:t: OPTCH
 	do
 	  	case $OPTCH in
 		d)
+			# default delta (branch)
 			DEFBR="-fd${OPTARG}"
 			;;
+		q)
+			# user-defined keyword (e.g. owner id) (:Q:)
+			QFLAG="-fq${OPTARG}"
+			;;
 		r)
+			# REL defaults to current release level
 			REL="-r${OPTARG}"
+			;;
+		t)
+			# module type (:Y:)
+			TFLAG="-ft${OPTARG}"
 			;;
 		*)
 			echo $USAGE >&2
@@ -270,13 +280,13 @@ function mksccs
 	mksccsuid=$(id | sed -e 's/^uid=[0-9]*(\(.*\)) gid=.*/\1/')
 
 	# XXX this should be PROJECTDIR iff is a username
-	if [ -z "$PROJOWNER" ] ; then
+	if [ -a "$QFLAG" -a -z "$PROJOWNER" ] ; then
 		QFLAG="$mksccsuid"
 	else
 		QFLAG="$PROJOWNER"
 	fi
 
-	if [ "$PROJECT" = "SCCS" ] ; then
+	if [ -z "$TFLAG" -a "$PROJECT" = "SCCS" ] ; then
 		TFLAG=$(basename $(pwd))
 	else
 		TFLAG=$PROJECT
