@@ -1,0 +1,61 @@
+#
+# N.B.:  To run lldb on a modern system you must be a "developer" and
+# you need to have "rights" for system.privilege.taskport.debug
+#
+# You may have to re-do these each time you upgrade the Xcode
+# command-line tools.
+#
+# Do these steps as "root", from the console:
+#
+# - make sure your userid is a member of the "_developer" group
+#
+#	dscl . append /Groups/_developer GroupMembership <username>
+#
+# - enable "Developer mode"
+#
+#       DevToolsSecurity -verbose -enable
+#
+# Then there's the trick of getting the dialog box on the console
+# which will finally enable you to do debugging.  Most recently I was
+# only able to get this to happen by running "gdb-8" on a console
+# Terminal.app window.  (Running lldb there worked without bringing up
+# the dialog box.)
+#
+# You probably then have to logout and login or even reboot to use
+# lldb (or gdb) from a remote (e.g. ssh) session.
+#
+# for klervi stuff...
+#
+settings set target.env-vars TWTEST_LOG=0
+settings set target.env-vars TWSTR_DEBUG=1
+#
+# MallocGuardEdges=1 MallocScribble=1 MallocCheckHeapStart=1 MallocCheckHeapEach=1 MallocErrorAbort=1
+# unset MallocGuardEdges MallocScribble MallocCheckHeapStart MallocCheckHeapEach MallocErrorAbort
+#
+settings set target.env-vars MallocGuardEdges=1
+settings set target.env-vars MallocScribble=1
+settings set target.env-vars MallocCheckHeapStart=1
+settings set target.env-vars MallocCheckHeapEach=1
+settings set target.env-vars MallocCheckHeapAbort=1
+settings set target.env-vars MallocErrorAbort=1
+#
+command alias malldb-set settings set target.env-vars MallocGuardEdges=1 MallocScribble=1 MallocCheckHeapStart=1 MallocCheckHeapEach=1 MallocCheckHeapAbort=1 MallocErrorAbort=1
+command alias malldb-remove settings remove target.env-vars MallocGuardEdges MallocScribble MallocCheckHeapStart MallocCheckHeapEach MallocCheckHeapAbort MallocErrorAbort
+#
+breakpoint set -F malloc_error_break
+#
+# for debugging libcoro...  XXX this seems to have to be done at
+# runtime, since if run manually before "process launch" it complains:
+#
+#       error: No current process; cannot handle signals until you have a valid process.
+#
+process handle -n true -p true -s false SIGUSR2
+# 
+# maybe something like this will suffice, though it likely means
+# starting a libcoro-using program with '-s', i.e.:
+#
+#       process launch -s -c /bin/sh -- [args]
+#
+# then running this alias, "setup-libcoro", then "process continue"
+#
+command alias setup-libcoro process handle -n true -p true -s false SIGUSR2
