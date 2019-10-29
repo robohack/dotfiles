@@ -1,5 +1,7 @@
 # -*-conf-space-*-
 #
+#ident	"@(#)HOME:.cvsrc	35.3	19/10/29 15:59:49 (woods)"
+#
 # N.B.:  DANGER WARNING!!!
 #
 # Because I use a read-only local repository a lot (NetBSD) I don't want cvs to
