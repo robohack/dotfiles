@@ -1,5 +1,11 @@
 !
-!#ident	"@(#)HOME:.Xdefaults	35.3	18/12/29 08:24:52 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	35.4	19/10/29 14:48:35 (woods)"
+!
+! reload with:
+!
+!	xrdb -override .Xdefaults
+!
+! WARNING:  Do not use single quote contractions in comments!
 !
 #ifdef COLOR
 *customization:			-color
@@ -13,8 +19,33 @@ xpdf.toolTipEnable:		false
 *cursorBlink:			true
 *deleteIsDEL:			true
 !
-Xterm*metaSendsEscape:		true
+! Even with Unicode it is still nice to type accented chars
 !
+! The Emacs FAQ says to set eightBitInput to false to get true "meta" characters
+! from Xterm, but then you cannot type accented chars to the command line or any
+! other program.
+!
+! Unfortunately metaSendsEscape is not the correct default either as there seems
+! to be a bug whereby it cannot be disabled when set to 'true' here, so you have
+! to manually enable it for Emacs, and disable it again if you want to type
+! accented characters with "Meta" to any other program.
+!
+!UXTerm*metaSendsEscape:	true
+!XTerm*metaSendsEscape:		true
+!
+UXTerm*VT100.Translations:       #override \n\
+	~Shift <Key> Up:    string(\033[A) \n\
+	~Shift <Key> Down:  string(\033[B) \n\
+	~Shift <Key> Home:  string(\033[H) \n\
+	~Shift <Key> End:   string(\033[F) \n\
+	~Shift <Key> Prior: string(\033[5~) \n\
+	~Shift <Key> Next:  string(\033[6~) \n\
+	Shift  <Key> Up:    scroll-back(1,line) \n\
+	Shift  <Key> Down:  scroll-forw(1,line) \n\
+	Shift  <Key> Prior: scroll-back(1,page) \n\
+	Shift  <Key> Next:  scroll-forw(1,page) \n\
+	Shift  <Key> Home:  scroll-back(1000,page) \n\
+	Shift  <Key> End:   scroll-forw(1000,page) \n
 XTerm*VT100.Translations:       #override \n\
 	~Shift <Key> Up:    string(\033[A) \n\
 	~Shift <Key> Down:  string(\033[B) \n\
@@ -48,6 +79,7 @@ XFontSel*sampleText:		"abcdefghijklmnopqrstuvwxyz\n\
 				ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 				0123456789_oO0_lL1Ii\n\
 				!@\#$%^&*()_+-=\\[];'`,./|{}:\"~<>?\n\
+				◆▒␉␌␍␊°±␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥π≠£·\n\
 				ABCDEFGHIJKLMNOPQRSTUVWXYZ /0123456789\n\
 				abcdefghijklmnopqrstuvwxyz"
 !
@@ -59,6 +91,7 @@ XFontSel*sampleTextUCS:		"abcdefghijklmnopqrstuvwxyz\n\
 				àáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ\n\
 				ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß\n\
 				に日本語を入れておくとよろしい。\n\
+				◆▒␉␌␍␊°±␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥π≠£·\n\
 				ABCDEFGHIJKLMNOPQRSTUVWXYZ /0123456789\n\
 				abcdefghijklmnopqrstuvwxyz £©µÀÆÖÞßéöÿ\n\
 				–―‘“”„†•…‰™œŠŸž€ ΑΒΓΔΩαβγδω АБВГДабвгд\n\
