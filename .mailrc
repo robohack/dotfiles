@@ -1,7 +1,8 @@
+# -*-conf-space-*-
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	35.1	13/12/02 18:39:33 (woods)"
+# ident	"@(#)HOME:.mailrc	35.2	19/10/29 15:02:41 (woods)"
 
 # NOTE: Comments (lines with a leading '#') must have whitespace after the '#'
 
@@ -13,7 +14,9 @@ set hold
 set crt=24
 
 set sign="\n-- \n\t\t\t\t\t\tGreg."
-set Sign="\n-- \n\t\t\t\t\t\t\t\tGreg A. Woods\n\n+1 416 218-0098;  <gwoods@acm.org>;  <g.a.woods@ieee.org>;  <woods@robohack.ca>\nPlanix, Inc. <woods@planix.com>; VE3TCP; Secrets of the Weird <woods@weird.com>"
+set Sign="\n-- \n\t\t\t\t\t\tGreg A. Woods\n\nKelowna, BC;  +1 250 762-7675;  <gwoods@acm.org>;  <woods@robohack.ca>\nPlanix, Inc. <woods@planix.com>; Secrets of the Weird <woods@weird.com>"
 
-# NOTE: only very minimal aliases without fullnames are defined in here.
-# See ~/.vm for full aliases for use with ViewMail in Emacs.
+# Local Variables:
+# comment-start: "# "
+# conf-space-keywords: "\\(alais\\|alternates\\|else\\|endif\\|if\\|ifdef\\|ifndef\\|set\\|unset\\)"
+# End:
