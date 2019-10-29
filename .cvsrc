@@ -1,3 +1,27 @@
+# -*-conf-space-*-
+#
+# N.B.:  DANGER WARNING!!!
+#
+# Because I use a read-only local repository a lot (NetBSD) I don't want cvs to
+# create locks in $TMPDIR.  However this could cause major problems for writable
+# repositories IFF there are multiple users.  Luckily NetBSD's CVS supports a
+# global '-u' option that says "Don't create locks".
+#
+# XXX Ideally I would want per-repository global flags since remote repositories
+# may not even allow the global "-u" option (e.g. OpenBSD's).  However there is
+# currently no way to specify per-repository options of any sort.
+#
+# To run against OpenBSD's repo, comment out the "cvs" line, then do the
+# following in emacs:
+#
+#	(setq cvs-cvs-flags nil)
+#	(cvs-flags-define cvs-cvs-flags '(("-f")))
+#	(cvs-reread-cvsrc)
+#
+# N.B.:  Then don't forget to uncomment the "cvs" line again!!!
+#
+cvs	-u
+#
 checkout	-P
 diff	-N -u
 export	-kv
