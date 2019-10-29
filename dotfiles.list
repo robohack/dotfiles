@@ -13,6 +13,7 @@
 .emacs
 .emacs.el
 .exrc
+.gdbinit
 .gitconfig
 .indent.pro
 .ircrc
@@ -27,6 +28,7 @@
 .kshsccs
 .kshsccsrm
 .lesskey
+.lldbinit-lldb
 .mailrc
 .mushrc
 .organization
@@ -41,9 +43,11 @@
 .vm
 .wl
 .xinitrc
+.xpdfrc
 .xsession
 .zenirc.el
 copyright
+copyright-public-domain
 dotfiles.list
 SCCS/
 RCS/
