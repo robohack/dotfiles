@@ -1,18 +1,50 @@
+# -*- conf -*-
 #
 #	.gitconfig - per-user Git setup
 #
-#ident	"@(#)HOME:.gitconfig	35.1	13/12/02 18:39:35 (woods)"
+#ident	"@(#)HOME:.gitconfig	35.2	19/10/29 18:40:13 (woods)"
+#
+# N.B.:  user.* could be set in GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL and those
+# should probably be set in ~/.localprofile, though Git is stupid and prefers
+# the environment variables over the local settings in the ${REPO}/.git/config
+# file.  If global settings are not appropriate then this is the best
+# alternative as this is a fallback since the repo config has higher precedence.
+# On the other hand if you want to use my (this) ~/.gitconfig then these values
+# can be overridden with the environment variables!
+#
+# This could be in an include file, but it's not secret!
 #
 [user]
 	name = Greg A. Woods
-	email = woods@planix.com
+	email = woods@robohack.ca
+#
+# probably this should never be "global"
+#[core]
+#        excludesfile = ~/.gitignore
+#
 [alias]
+	# this is what "git log" should probably do by default!
+	mylog = log --all --oneline --graph --decorate=full
+	# convert the date field from mymlog to ISO Week with:
+	#	gawk -F\| '{gsub(/[-:]/, " ", $3); printf("%s %-20s %s %s\n", $1, $2, strftime("%Y-W%V", mktime($3)), $4);}'
+	# n.b.:  uses %ai, not %aI, as the latter is only in more recent git
+	mymlog = log --all --date=local --abbrev-commit --pretty=tformat:'%h|%aE|%ai|%s' --decorate=full
+	#
+	myllog = log --all --date=local --abbrev-commit --pretty=tformat:'%h %aE	%ai %s' --graph --decorate=full
+        #
+        find-commits-add-or-delete = log -p -S
+        find-commits-matching = log -p -G
+	#
+	active-branch = symbolic-ref --short -q HEAD
+        #
 	commit-add-amend-HEAD = commit -a --amend -C HEAD
 	caa = commit -a --amend -C HEAD
-	unstage = reset HEAD
-	track = add -N
-	untrack = rm --cached
-	rm-added = rm --cached
+	# Amend the currently staged files to the last commit
+	amend = commit --amend --reuse-message=HEAD
+	unstage-all = reset HEAD
+	unstage-file = checkout --
+	intend2add = add -N
+	unadd = rm --cached
 	# First, in .gitattributes, you would assign the diff
 	# attribute for paths.  E.g.:
 	#	*.tex   diff=tex
@@ -20,12 +52,31 @@
 	# after a 'git apply', un-apply those changes that originally
 	# came from the stash:
 	stash-unapply = !git stash show -p | git apply -R
+        # from: https://stackoverflow.com/a/4991675/816536
+        oldest-ancestor = !bash -c 'diff --old-line-format='' --new-line-format='' <(git rev-list --first-parent "${1:-master}") <(git rev-list --first-parent "${2:-HEAD}") | head -1' -
 [merge]
 	conflictstyle = diff3
+[push]
+	default = matching
+#
+# maybe this isn't the best default...
+#[pull]
+#	rebase = true
+#
+[branch]
+	autoSetupRebase = remote
 [git-up "fetch"]
 	all = true
 [git-up "rebase"]
 	arguments = --preserve-merges
+#
+# Git 1.7.10+ supports an include path, e.g. to hide secrets:
+# (Expansion of '~' appeared in Git 1.7.10.2)
+#
+# If git can't open the target file, it silently ignores the error.
+#
+[include]
+	path = ~/.gitconfig.secrets
 #
 # copy the following lines into the .gitattributes file of your
 # repository (to make its contents a property of the repository that
@@ -37,7 +88,41 @@
 #*.h	diff=cpp
 #*.cpk	diff=cpp
 #*.html	diff=html
+#*.p	diff=pascal
 #*.py	diff=python
 #*.jpg	binary
 #*.png	binary
 #
+#
+#
+# The following are apparently the "default" hard-coded colours.
+#
+# They are not good for white backgrounds.
+#
+#[color "diff"]
+#	plain = normal
+#	meta = bold
+#	frag = cyan
+#	old = red
+#	new = green
+#	commit = yellow
+#	whitespace = normal red
+#[color "branch"]
+#	current = green
+#	local = normal
+#	remote = red
+#	plain = normal
+#[color "status"]
+#	header = normal
+#	added = red
+#	updated = green
+#	changed = red
+#	untracked = red
+#	nobranch = red
+#[color "grep"]
+#	match = normal
+#[color "interactive"]
+#	prompt = normal
+#	header = normal
+#	help = normal
+#	error = normal
