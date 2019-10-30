@@ -2,7 +2,7 @@
 #
 #	.mailrc - for mailx and emacs-VM
 #
-# ident	"@(#)HOME:.mailrc	35.2	19/10/29 15:02:41 (woods)"
+# ident	"@(#)HOME:.mailrc	35.3	19/10/29 19:04:07 (woods)"
 
 # NOTE: Comments (lines with a leading '#') must have whitespace after the '#'
 
@@ -18,5 +18,5 @@ set Sign="\n-- \n\t\t\t\t\t\tGreg A. Woods\n\nKelowna, BC;  +1 250 762-7675;  <g
 
 # Local Variables:
 # comment-start: "# "
-# conf-space-keywords: "\\(alais\\|alternates\\|else\\|endif\\|if\\|ifdef\\|ifndef\\|set\\|unset\\)"
+# conf-space-keywords: "\\(alias\\|alternates\\|else\\|endif\\|if\\|ifdef\\|ifndef\\|set\\|unset\\)"
 # End:
