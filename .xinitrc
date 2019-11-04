@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	36.1	19/11/03 17:03:00 (woods)"
+#ident	"@(#)HOME:.xinitrc	36.2	19/11/03 18:17:47 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -357,7 +357,7 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			# probably available hosts...
 			#
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server more.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server historically.local 'xauth nmerge -'
+#			xauth nextract - ${REMOTE_DISPLAY} | onx11server historically.local 'xauth nmerge -'
 #			xauth nextract - ${REMOTE_DISPLAY} | onx11server once.local 'xauth nmerge -'
 			# next ones share a home dir mounted from more.local
 			#xauth nextract - ${REMOTE_DISPLAY} | onx11server building.local 'xauth nmerge -'
@@ -367,20 +367,26 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			# (NOTE: in stacked order, 48 pixels apart)
 			onx11server -n building.local 'xload -geometry 120x40-200+48 -hl red' &
 			onx11server -n more.local 'xload -geometry 120x40-200+96 -hl red' &
-# slot for central	onx11server -n once.local 'xload -geometry 120x40-200+144 -hl red' &
+# slot for central	onx11server -n central.weird.com 'xload -geometry 120x40-200+144 -hl red' &
 			onx11server -n future.local 'xload -geometry 120x40-200+192 -hl red' &
+			onx11server -n xenful.local 'xload -geometry 120x40-200+240 -hl red' &
 			# (and there is room for one under the clocks too)
-			onx11server -n historically.local 'xload -geometry 120x40-70+240 -hl red' &
+#			onx11server -n historically.local 'xload -geometry 120x40-70+240 -hl red' &
+			onx11server -n xentastic.local 'xload -geometry 120x40-70+240 -hl red' &
 			#
 			onx11server -n building.local 'uxterm -tn xterm-256color -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
 			onx11server -n more.local 'uxterm -tn xterm-256color -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
 			onx11server -n future.local 'uxterm -tn xterm-256color -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
-			onx11server -n historically.local 'uxterm -tn xterm-256color -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+#			onx11server -n historically.local 'uxterm -tn xterm-256color -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+			onx11server -n xenful.local 'uxterm -tn xterm-256color -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+			onx11server -n xentastic.local 'uxterm -tn xterm-256color -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
 			#
 			# SSH-only hosts... (hopefully with auto-auth,
 			# but note the use of both '-f' and '&')
 			#
 			ssh -Y -C -f woods@central.weird.com '. ./.profile; exec xload -geometry 120x40-200+144 -hl red' &
+# xxx not yet...
+#			ssh -Y -C -f woods@xentral.avoncote.ca '. ./.profile; exec xload -geometry 75x40-0+240 -hl red' &
 			#
 			# possibly available hosts -- one background
 			# sub-shell for host each...
@@ -389,14 +395,9 @@ if [ "$argv0" = ".xinitrc" ] ; then
 #				xauth nextract - ${REMOTE_DISPLAY} | onx11server isit.local 'xauth nmerge -'
 #				onx11server -n isit.local 'xload -geometry 120x40-70+240 -hl red' &
 #			) &
-			(
-				xauth nextract - ${REMOTE_DISPLAY} | onx11server lilbit.local 'xauth nmerge -'
-			) &
-			(
-				xauth nextract - ${REMOTE_DISPLAY} | ssh gaw@lithium.local '/opt/X11/bin/xauth nmerge -'
-				ssh -n gaw@lithium.local ". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry 120x40-200+240 -hl red" &
-				ssh -n gaw@lithium.local ". ./.profile; exec uxterm -tn xterm-256color -display ${REMOTE_DISPLAY} -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll" &
-			) &
+#			(
+#				xauth nextract - ${REMOTE_DISPLAY} | onx11server lilbit.local 'xauth nmerge -'
+#			) &
 ###
 ### XXX these launch a terminal running on the remote host, sending
 ### X11 back through the SSH tunnel opened by each, which is obviously
@@ -581,9 +582,14 @@ very.local:*|very.weird.com:*|very.robohack.planix.com:*)
 ###	$RSH -n whats.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -i -display $DISPLAY -geometry 130x75+0+0" &
 	;;
 
-newair.*:*|macweird.*:*|lithium.*:*|*xquartz:*)
+macweird.*:*|*xquartz:*)
+	#
 	# macweird: Macbook 13" ancient
-	# lithium: Macbook Air 13-inch 1440x900 32-bit
+	#
+	# also tested:
+	#
+	#   Macbook Air 13-inch; 1440x900 32-bit
+	#   Macbook Air 13.3-inch; 2560x1600; 227 pixels per inch; 16:10 aspect ratio
 	#
 	set_osx_fontpath
 
