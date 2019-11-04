@@ -1,38 +1,45 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	35.1	13/12/02 18:39:34 (woods)"
+;;;;#ident	"@(#)HOME:.wl	35.2	19/11/03 16:56:46 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
 
-;; one can apparently use `mime-preview-toggle-content' with C-c C-t C-c to
-;; show the text part if desired, and presumably to hide the HTML crap....
+;; FixMe:
 ;;
-;; this apparently has to be done after mime-view is loaded, and so the
-;; following was also once mentioned on the mailing list:
+;; `undo' should mark a message as unread if the last action was to view it.
+
+;; do not display diary at midnight (it messes with window configurations!)
+(if (boundp 'appt-display-diary)
+    (setq appt-display-diary nil))
+
+;; Make the mouse/trackpad scroll the window more "smoothly"
 ;;
-;;	To disable rendering text/html, please try the following configuration:
+;; DO NOT EVER move the cursor with scroll input (unless doing so to keep it
+;; within the current window.
 ;;
-;(eval-after-load "mime-view"
-;  '(progn
-;     (ctree-set-calist-strictly
-;      'mime-preview-condition
-;      '((type . text)
-;	(subtype . html)
-;	(body . visible)
-;	(body-presentation-method . mime-display-text/plain)))
-;     (set-alist 'mime-view-type-subtype-score-alist
-;		'(text . html) 0)
-;     ;;
-;     ))
+(eval-after-load "wl-summary"
+  '(progn
+     (define-key wl-summary-mode-map [mouse-4] 'mwheel-scroll)
+     (define-key wl-summary-mode-map [mouse-5] 'mwheel-scroll)
+     (define-key wl-summary-mode-map [S-mouse-4] 'mwheel-scroll)
+     (define-key wl-summary-mode-map [S-mouse-5] 'mwheel-scroll)))
+
+;; same for mime-view, but maybe this doesn't work so well?
+;; xxx maybe setting `mime-view-mode-default-map' doesn't work???
 ;;
-;; however for now the following seems to do the trick all by itself:
+(eval-after-load "mime-view"
+  '(progn
+     (define-key mime-view-mode-default-map [mouse-4] 'mwheel-scroll)
+     (define-key mime-view-mode-default-map [mouse-5] 'mwheel-scroll)
+     (define-key mime-view-mode-default-map [S-mouse-4] 'mwheel-scroll)
+     (define-key mime-view-mode-default-map [S-mouse-5] 'mwheel-scroll)))
+
+;; make scrolling back work in the message view
+;; xxx maybe setting `mime-view-mode-default-map' doesn't work???
 ;;
-;; (and it must be set _before_ mime-view (or really semi-setup) is loaded,
-;; which is why it's up here at the top of ~/.wl)
-;;
-(setq mime-setup-enable-inline-html nil)
+(define-key mime-view-mode-default-map "b" 'mime-preview-scroll-down-entity)
 
 ;; turn off scoring for speed -- I never use it anyway
 ;;
@@ -42,7 +49,7 @@
 ;;
 (setq elmo-passwd-life-time 14400)	; 4 hrs
 
-;; let's try this for use with wl-refile-guess-by-from and use of "%inbox/from"
+;; let's try this for use with wl-refile-guess-by-from and use of "%INBOX/from"
 ;; as wl-refile-default-from-folder in particular since it doesn't seem to be
 ;; able to do anything any smarter than to concatenate the mailbox string onto
 ;; this prefix, thus there's no way to specify a server name in the default.
@@ -53,16 +60,24 @@
 ;;
 (setq elmo-imap4-default-server "mailbox.weird.com")
 
-;; dunno why this is suddenly necessary
+;(setq elmo-imap4-debug t)	;; for tracing the IMAP session
+(setq elmo-imap4-force-login t)	;; hmmm...  is this necessary with my Cyrus IMAPd?
+;(setq elmo-imap4-debug-inhibit-login-logging-default nil) ;; for trying to trace login, but using my own still-unpublished hacks
+
+
 ;; `mail-local-domain-name' comes from my ~/.emacs.el
 ;;
-(setq wl-local-domain (or mail-local-domain-name "weird.com"))
+(setq wl-local-domain (or mail-local-domain-name "example.org"))
 
 ;; Use SSL connection
+;;
+;; N.B.:  You MUST install WanderLust with `wl-install-utils' set in WL-CFG
+;;
 ;(setq elmo-imap4-default-stream-type 'starttls)
 (setq elmo-imap4-default-stream-type 'ssl)
 (setq elmo-imap4-default-port 993)
-;; ... else don't use SSL
+;; ... else don't use SSL...
+;; XXX WARNING XXX:  only safe if IMAP host & network to it is 100% secure!
 ;(setq elmo-imap4-default-stream-type nil)
 ;(setq elmo-imap4-default-port 143)
 
@@ -74,6 +89,15 @@
 ;;
 (setq ssl-certificate-verification-policy 3)
 
+(setq ssl-program-arguments
+      '("s_client"
+	"-tls1"			; new mailbox.weird.com requires TLSv1 (or SSLv3)
+	"-quiet"
+	"-host" host
+	"-port" service
+	"-verify" (int-to-string ssl-certificate-verification-policy)
+	"-CApath" ssl-certificate-directory))
+
 ;; password always in raw format for my servers
 ;;
 (setq elmo-imap4-default-authenticate-type 'clear)
@@ -82,10 +106,37 @@
 ;;
 (setq filename-filters '(filename-special-filter))
 
-;; Directory where icons are placed.
-;; XXX should be set by package install, but seems not to be)
+;; Directory where icons are placed (XXX should be set by configuration!)
 ;;
-(setq wl-icon-directory "/usr/pkg/share/wl")
+(setq wl-icon-directory
+      (cond ((let ((icons
+		    (expand-file-name "../../wl/icons/"
+				      (cond ((boundp 'local-site-lisp-dir)
+					     local-site-lisp-dir)
+					    ((boundp 'pkg-site-lisp-dir)
+					     pkg-site-lisp-dir)))))
+	       (if (file-directory-p icons)
+		   icons)))
+	    ;; xxx maybe this should be first?
+	    ((let ((icons
+		    (expand-file-name "icons/"
+				      (cond ((and (boundp 'package-alist)
+						  (fboundp 'package-desc-dir))
+					     (package-desc-dir
+					      (cadr (assq 'wanderlust
+							  package-alist))))
+					    (t
+					     nil)))))
+	       (if (file-directory-p icons)
+		   icons)))
+	    ((let ((icons
+		    (expand-file-name "wl/icons/"
+				      data-directory)))
+	       (if (file-directory-p icons)
+		   icons))
+	     (t
+	      nil))))
+
 
 ;; prefetch everything that's uncached, not just unread-uncached (U) and
 ;; new-uncached (N)
@@ -114,10 +165,6 @@
       (setq all-addresses (cdr all-addresses)))
     (if to-me "*" " ")))
 
-;; never search search for thread parent messages by subject!
-;;
-(setq wl-summary-search-parent-by-subject-regexp nil)
-
 ;; add "%E" to `wl-summary-line-format' to invoke `wl-summary-line-to-me'
 ;; 
 (setq wl-summary-line-format-spec-alist
@@ -132,21 +179,37 @@
 ;; after changing `wl-summary-line-format' you need to exit and re-enter the
 ;; Summary buffer to update the displayed format.
 (setq wl-summary-line-format (concat "%n %T"
-				     "%P %E %[%20(%c %f%) %] %Y/%M/%D(%W)%h:%m %-8S %t%~\"%s\" \t"))
+				     "%P %E %[%20(%c %f%) %] %Y/%M/%D(%W)%h:%m %-8S%@ %t%~\"%s\" \t"))
 (setq wl-summary-default-view 'sequence)
+
+;; never search for thread parent messages by subject!
+;;
+(setq wl-summary-search-parent-by-subject-regexp nil)
+
+;; xxx unfortunately this is results in an either-or list, with no way to
+;; combine various flags and statuses to, for example, show an "Important" but
+;; answered message with the same background as the "important" flag, and also
+;; with the grey strike-through of an answered message (IFF answered is above
+;; important)
 (setq wl-summary-persistent-mark-priority-list '(killed
 						 deleted
-						 junk
-						 flag ; user-defined flag!?!?!?
-						 important
-						 private
-						 todo
-						 business
-						 ingore
-						 new
+						 draft
 						 answered
 						 forwarded
-						 unread))
+						 redirected
+						 flag ; user-defined flag!?!?!? (XXX standin for all of them?)
+						 shouldreply
+						 junk
+						 important
+						 special
+						 private
+						 todo
+						 personal
+						 work
+						 new
+						 unread
+						 notjunk
+						 nonjunk))
 
 ;; default is blank (white on white) on monochrome displays!
 ;;
@@ -155,27 +218,42 @@
 ;;
 ;; XXX in the mean time maybe we should also check the result of:
 ;;
-;;	(frame-parameter nil 'display-type)
+;;	(frame-parameter nil 'display-type) ; (or does `display-color-p' just do that?)
 ;;
 (if (display-color-p)
-    (setq wl-summary-flag-alist '((ignore "black" " ")
-				  (important "black" "I")
+    (setq wl-summary-flag-alist '((ignore "dim gray" " ")
+				  (important "black" "I") ; see later set-face-attribute
 				  (private "blue" "P")
-				  (todo "red" "T")
-				  (business "green" "W")
-				  (junk "orange" "J")
+				  (todo "dark red" "T")
+				  (personal "dark blue" "p")
+				  (business "forest green" "W")
+				  (work "dark green" "w")
+				  (forwarded "medium blue" "F")
+				  (redirected "dark cyan" "R")
 				  (killed "grey" "K")
-				  (forwarded "grey" "F")
-				  (redirected "grey" "R")))
+				  (junk "SlateGray" "J")
+				  (unread "black" "O") ; xxx hmmm, probably not what I think
+				  (flag "black" "?") ; xxx doesn't seem to work completely (still get `wl-summary-flag-mark')
+				  (junkrecorded "black" " ") ; xxx actually should be whatever is in force without the flag!
+				  (notjunk "black" " ")
+				  ))
+  ;; else not colour...
   (setq wl-summary-flag-alist '((ignore "black" " ")
 				(important "black" "I")
 				(private "black" "P")
 				(todo "black" "T")
+				(personal "black" "p")
 				(business "black" "W")
-				(junk "black" "J")
-				(killed "black" "K")
+				(work "black" "w")
 				(forwarded "black" "F")
-				(redirected "black" "R"))))
+				(redirected "black" "R")
+				(killed "black" "K")
+				(unread "black" "O") ; xxx hmmm, probably not what I think
+				(junk "black" "J")
+				(flag "black" "?")
+				;;(junkrecorded "black" " ")
+				;;(notjunk "black" " ")
+				)))
 
 ;; XXX unfortunately just calling `defface' again to try to redefine a face
 ;; does not work.
@@ -205,25 +283,129 @@
 ;  :group 'wl-summary-faces
 ;  :group 'wl-faces)
 
-(require 'wl-highlight)
-(if (display-color-p)
-    (if (eq (frame-parameter nil 'background-mode) 'light)
+(defun my-wl-init-stuff ()
+  "Setup stuff run at the end of `wl-init'."
+  (require 'wl-highlight)
+  ;; some faces are not defined until after `wl-init'...
+  (if (display-color-p)
+      ;; xxx hmmm... some themes do wl stuff, others do not...
+      (if (eq (frame-parameter nil 'background-mode) 'light)
+	  (progn
+	    ;; message view
+	    (set-face-attribute 'wl-highlight-message-headers
+				nil
+				:foreground "black")
+	    ;; Summary
+	    (set-face-attribute 'wl-highlight-summary-new-face
+				nil
+				:foreground "dark red")
+	    (set-face-attribute 'wl-highlight-summary-unread-face
+				nil
+				:foreground "black")
+	    (set-face-attribute 'wl-highlight-summary-answered-face
+				nil
+				:foreground "sea green"
+				:strike-through "grey")
+	    (set-face-attribute 'wl-highlight-summary-resend-face
+				nil
+				:foreground "blue")
+	    ;; here "flagged" means _ANY_ flag!
+	    (set-face-attribute 'wl-highlight-summary-flagged-face
+				nil
+				:foreground "magenta"
+				:background "white")
+	    (set-face-attribute 'wl-highlight-summary-deleted-face
+				nil
+				:foreground "red"
+				:strike-through "orange red")
+	    (set-face-attribute 'wl-highlight-summary-disposed-face
+				nil
+				:foreground "saddle brown"
+				:strike-through "orange red")
+	    ;; Flagged (see wl-summary-flag-alist for primary settings -- the
+	    ;; corresponding entry in wl-summary-flag-alist must exist for these
+	    ;; to work)
+	    (set-face-attribute 'wl-highlight-summary-important-flag-face
+				nil
+				:background "lemon chiffon")
+	    (set-face-attribute 'wl-highlight-summary-personal-flag-face
+				nil
+				:background "cornsilk")
+	    (set-face-attribute 'wl-highlight-summary-work-flag-face
+				nil
+				:background "light cyan")
+	    (set-face-attribute 'wl-highlight-summary-redirected-flag-face
+				nil
+				:foreground "brown") ; xxx doesn't work?
+	    ;; xxx this is not the same as `wl-highlight-summary-junk-face'
+	    (set-face-attribute 'wl-highlight-summary-junk-flag-face
+				nil
+				:foreground "SlateGray"
+				:strike-through "LightGray")
+;;; XXX grrr.....
+;;;	    (set-face-attribute 'wl-highlight-summary-notjunk-flag-face
+;;;				nil
+;;;				:foreground "black")
+	    ;; Folder
+	    (set-face-attribute 'wl-highlight-folder-few-face
+				nil
+				:foreground "firebrick")
+	    (set-face-attribute 'wl-highlight-folder-many-face
+				nil
+				:foreground "red")
+	    (set-face-attribute 'wl-highlight-folder-opened-face
+				nil
+				:foreground "dark green")
+	    (set-face-attribute 'wl-highlight-folder-unknown-face
+				nil
+				:foreground "blue")
+	    (set-face-attribute 'wl-highlight-folder-unread-face
+				nil
+				:foreground "black")
+	    )
+        ;; else background-mode dark(?)
 	(progn
-	  (set-face-attribute 'wl-highlight-message-headers nil
-			      :foreground "black")
-	  (set-face-attribute 'wl-highlight-summary-deleted-face nil
-			      :foreground "red"
-			      :strike-through "OrangeRed"))
-      (progn
-	(set-face-attribute 'wl-highlight-message-headers nil
-			    :foreground "white")
-	(set-face-attribute 'wl-highlight-summary-deleted-face nil
-			    :foreground "IndiaRed3"
-			    :strike-through "black")))
-  (set-face-attribute 'wl-highlight-message-headers nil
-		      :foreground "black")
-  (set-face-attribute 'wl-highlight-summary-deleted-face nil
-		      :strike-through t))
+	  ;; message view
+	  (set-face-attribute 'wl-highlight-message-headers
+			      nil
+			      :foreground "white")
+	  ;; Summary
+	  (set-face-attribute 'wl-highlight-summary-new-face
+			      nil
+			      :background "black"
+			      :foreground "white")
+	  (set-face-attribute 'wl-highlight-summary-flagged-face
+			      nil
+			      :background "black"
+			      :foreground "yellow")
+	  (set-face-attribute 'wl-highlight-summary-important-flag-face
+			      nil
+			      :background "black"
+			      :foreground "white")
+;;; XXX How to make this always the same as "normal" where normal might be dynamic???
+;;;	  (set-face-attribute 'wl-highlight-summary-junkrecorded-flag-face
+;;;			      nil
+;;;			      :background "black"
+;;;			      :foreground "white")
+	  (set-face-attribute 'wl-highlight-summary-ignore-flag-face
+			      nil
+			      :background "black"
+			      :foreground "blue")
+	  (set-face-attribute 'wl-highlight-summary-deleted-face
+			      nil
+			      :foreground "orange red"
+			      :strike-through "red")
+	  (set-face-attribute 'wl-highlight-summary-disposed-face
+			      nil
+			      :foreground "dark orange"
+			      :strike-through "orange red")
+	    )
+	)
+    ;; else not color display:
+    (set-face-attribute 'wl-highlight-summary-deleted-face nil
+			:strike-through t)))
+
+(add-hook `wl-init-hook `my-wl-init-stuff)
 
 ;; show recipient in summary %f column of all folders when sender is me
 ;;
@@ -240,18 +422,36 @@
 ;; NOTE:  normally this is contrary to the standards, I think, so it should not
 ;; be necessary, but of course some stupid mailers always quote every display
 ;; name regardless of whether it needs quoting or not, and perhaps sometimes
-;; even when it must not be quoted.
+;; even when it must not be quoted, such as when it is encoded.
 ;;
-;;(setq mime-header-accept-quoted-encoded-words t)
+;; Also, you have to refresh the summary after you change this if the header is
+;; shown in a summary column.
+;;
+;; XXX This still doesn't allow for improperly encoded headers, such as when
+;; spaces are not encoded:
+;;
+;;	Subject: =?UTF-8?Q?DNEvents.com Inc. invites you to 8th Toronto Domainer Dinner (Apr 23, 2009)?=
+;;
+;; XXX these are not decoded either:
+;;
+;;	Subject: =?utf-8?Q?We=e2=80=99re_updating_our_Privacy_Policy_and_tools?=
+;;	From: "=?utf-8?Q?feedback=40slack=2ecom?=" <feedback@slack.com>
+;;
+;; N.B.:  `rfc2047-decode-string' handles all of the above just fine.
+;;
+(setq mime-header-accept-quoted-encoded-words t)
 
 (defun my-wl-summary-turn-off-disp-msg ()
   "Unconditionally turn off message display so that I don't fat-finger myself
-into too much confusion."
+into too much confusion (use this for bindings to `delete-other-windows')."
   (interactive)
   (wl-summary-toggle-disp-msg 'off)
-  ;; this used to effectively turn off the Folder window too by calling
-  ;; (delete-other-windows), but with a wide display that's NOT what I want to do
-  ;; any more.
+  ;; the default effectively turned off the Folder window too because it called
+  ;; `delete-other-windows', but with a wide display that's NOT what I want to
+  ;; do any more.
+  ;;
+  ;; note:  long ago there was code in `wl-summary-toggle-disp-msg' that hid the
+  ;; folder window when displaying the summary, but it was commented out.
   )
 
 (define-key wl-summary-mode-map "\C-x1" 'my-wl-summary-turn-off-disp-msg)
@@ -261,10 +461,30 @@ into too much confusion."
   "Turn off message display before updating the summary."
   (wl-summary-toggle-disp-msg 'off))
 
-(define-key wl-summary-mode-map "c" 'wl-jump-to-draft-buffer)
+;; maybe this could probably be done with `defadvice'?
+;; xxx this is not exactly a good mimic to `wl-summary-mark-as-unread' as it
+;; does not really follow the API for wl-summary commands
+;; xxx should also wrap `wl-summary-mark-as-unread-region'
+(defun my-wl-summary-mark-as-unread (&optional arg)
+  "Mark the current message as unread.
+If ARG is non-nil, forget everything about the message."
+  (interactive "P")
+  (cond
+   ((null (wl-summary-message-number))
+    (message "No message."))
+   (arg
+    (wl-summary-toggle-disp-msg 'off)
+    (wl-message-buffer-cache-clean-up)
+    (wl-summary-delete-cache)))
+  (wl-summary-mark-as-unread))
+
+(define-key wl-summary-mode-map "!" 'my-wl-summary-mark-as-unread)
+
+(define-key wl-summary-mode-map "c" 'wl-jump-to-draft-buffer) ; 'c'ontinue
 (define-key wl-summary-mode-map "b" 'wl-summary-prev-page)
 (define-key wl-summary-mode-map "g" 'wl-summary-sync-force-update)
 (define-key wl-summary-mode-map "G" 'wl-summary-goto-folder)
+;; 's' is currently bound to `wl-summary-sync', which is infinitely more useful!!!
 ;(define-key wl-summary-mode-map "s" 'wl-summary-save)
 
 (define-key wl-summary-mode-map "\M-n" 'wl-summary-down)
@@ -313,9 +533,21 @@ into too much confusion."
 ;;
 (define-key wl-summary-mode-map "x" nil)
 (define-key wl-summary-mode-map "X" 'my-wl-summary-exec-and-rescan)
-
+(define-key wl-summary-mode-map "\C-c\C-c" 'my-wl-summary-exec-and-rescan) ; complete selection
 
 (setq wl-thread-insert-opened t)	; XXX do we want to see the opened threads?
+
+;; xxx this is a copy just to add `interactive'
+(defun wl-summary-goto-top-of-current-thread ()
+  (interactive)
+  (wl-summary-jump-to-msg
+   (wl-thread-entity-get-number
+    (wl-thread-entity-get-top-entity (wl-thread-get-entity
+				      (wl-summary-message-number))))))
+(define-key wl-summary-mode-map "tt" 'wl-thread-goto-top-of-current-thread)
+(define-key wl-summary-mode-map "\C-\M-a" 'wl-summary-goto-top-of-current-thread)
+(define-key wl-summary-mode-map "tn" 'wl-thread-goto-bottom-of-sub-thread)
+(define-key wl-summary-mode-map (kbd "C-M-)") 'wl-thread-goto-bottom-of-sub-thread)
 
 ;(setq wl-auto-prefetch-first nil)	; is the default
 ;(setq wl-auto-select-first nil)	; is the default
@@ -332,9 +564,9 @@ into too much confusion."
 ;; with auto-selecting the next or previous folder when navigating past the end
 ;; or beginning of a "Summary" buffer
 ;;
-(add-hook 'wl-summary-mode-hook 
-	  '(lambda () 
-		   (setq wl-summary-buffer-prev-folder-function 'ignore 
+(add-hook 'wl-summary-mode-hook
+	  '(lambda ()
+		   (setq wl-summary-buffer-prev-folder-function 'ignore
 			 wl-summary-buffer-next-folder-function 'ignore)))
 
 (setq wl-message-buffer-prefetch-depth 0)
@@ -398,7 +630,9 @@ into too much confusion."
 ;;
 ;(setq wl-highlight-message-header-alist ...)
 
-;; show all the headers except those we know we don't care about...
+;; show all the headers except those we know we don't care about...  (Note that
+;; any `*-view-visible-field-list' value overwhelm's the `*-ignored-field-list'
+;; value)
 ;;
 (setq wl-message-visible-field-list nil) ; was '("^Dnas.*:" "^Message-Id:")
 (setq mime-view-visible-field-list nil) ; was '("^Dnas.*:" "^Message-Id:")
@@ -407,6 +641,7 @@ into too much confusion."
 	"[^:]*Path:"
 	"[^:]*Sender:"			; include X-Sender, X-X-Sender, etc.
 	"[^:]*Host:"
+	"^Autocrypt:"			; interesting, but contains huge key data
 	"^[cC]ontent[^:]*:"		; irrelevant!  :-)
 	"^Content-Type:"
 	"^DomainKey[^:]*:"		; bogus junk
@@ -427,22 +662,29 @@ into too much confusion."
 	"^X-CanItPRO[^:]*:"
 	"^X-CHA:"
 	"^X-CSC:"
+	"^X-Exchange[^:]*:"		; M$-Exchange
 	"^X-GMX[^:]*:"
+	"^X-Forefront[^:]*:"
+	"^X-Google-Smtp-Source:"
 	"^X-Greylist[^:]*:"
 	"^X-Hashcash[^:]*:"		; ???
 	"^X-IronPort[^:]*:"		; some silly AV crapware
 	"^X-Junkmail[^:]*:"		; mirapoint???
 	"^X-MAil-Count:"		; fml?
 	"^X-MIME-Autoconverted:"
+	"^[xX]-[mM]icrosoft[^:]*:"		; M$-Exchange
 	"^X-Mirapoint[^:]*:"		; mirapoint???
 	"^X-ML[^:]*:"			; fml
 	"^X-MS-[^:]*:"
+	"^X-MSAMetaData:"
+	"^X-MSAPipeline:"
 	"^X-Mailman[^:]*:"		; mailman
 	"^X-OriginalArrivalTime:"
 	"^X-PMAS-[^:]*:"
 	"^X-PMX[^:]*:"
 	"^X-Provags-[^:]*:"
 	"^X-RPI[^:]*:"
+	"^X-SG-EID:"
 	"^X-SKK:"
 	"^X-SMTP-Spam-[^:]*:"
 	"^X-Scanned[^:]*:"
@@ -469,25 +711,25 @@ into too much confusion."
 ;;
 ;; Sadly this is a prefix, not a format pattern, so no server name can be included
 ;;
-(setq wl-refile-default-from-folder "%inbox/from")
+(setq wl-refile-default-from-folder "%INBOX/from")
 ;;
 (setq wl-refile-rule-alist
       '(("Subject"
-	 ("^\\[Acct Event\\] " . "%inbox/planix/aci/db-trouble-tickets@mailbox.weird.com"))
+	 ("^\\[Acct Event\\] " . "%INBOX/planix/aci/db-trouble-tickets@mailbox.weird.com"))
 	("Subject"
-	 ("Aurora Cable Abuse Department" . "%inbox/planix/aci/abuse@mailbox.weird.com"))
+	 ("Aurora Cable Abuse Department" . "%INBOX/planix/aci/abuse@mailbox.weird.com"))
 	("Subject"
 	 ("\\[SpamCop " . ("To"
-			     (".*@.*aci\\.on\\.ca" . "%inbox/planix/aci/abuse@mailbox.weird.com"))))
+			     (".*@.*aci\\.on\\.ca" . "%INBOX/planix/aci/abuse@mailbox.weird.com"))))
 	(("To" "Cc" "From" "Sender")
 	 ("\\(jennifer@.*\\(wrede\\|planix\\).*\\|jen\\(nifer\\)?\\.wrede@.*\\)"
-	  . "%inbox/from/jennifer@mailbox.weird.com"))
+	  . "%INBOX/from/jennifer@mailbox.weird.com"))
 	(("To" "Cc")
 	 ("\\(abuse\\|[hp]ostmaster\\|info\\|support\\)@.*aci\\.on\\.ca"
-	  . "%inbox/planix/aci/\\1@mailbox.weird.com"))
+	  . "%INBOX/planix/aci/\\1@mailbox.weird.com"))
 	("From"
 	 ("\\(abuse\\|[hp]ostmaster\\|info\\|support\\)@.*aci\\.on\\.ca"
-	  . "%inbox/planix/aci/\\1@mailbox.weird.com"))))
+	  . "%INBOX/planix/aci/\\1@mailbox.weird.com"))))
 
 ;; we do want all the received headers on forwarded messages, but not any other
 ;; locally added headers
@@ -512,22 +754,83 @@ into too much confusion."
 (require 'mime-edit)
 (require 'mime-view)
 
-;; Make MIME understand HTML while preferring the text version if one is
+;; Make MIME understand HTML while preferring the text part, if one is
 ;; provided.
 ;;
-(if (elisp-file-in-loadpath-p "w3m")	; could use (require 'mime-w3m nil t) instead
+;; (note:  this does "(require 'w3)" and so needs w3m installed....
+;;
+;; one can use `mime-preview-toggle-content', normally C-c C-t C-c to show the
+;; content of a mime part.  See also `mime-preview-show-header'.
+;;
+(if (elisp-file-in-loadpath-p "mime-w3")
     (progn
-      (require 'mime-w3m)))
+      (require 'mime-w3)
+      (setq mime-view-type-subtype-score-alist
+	    '(((text . plain) . 6)
+	      ((text . enriched) . 5)		; RFC 1896
+	      ((text . richtext) . 4)		; RFC 1341/1521 (deprecated/obsolete)
+	      ((text . html) . 3)		; Gak!
+	      (t . 2))))			; everything else
+  (message "Please install `w3m'"))
 
-(setq mime-view-type-subtype-score-alist
-      '(((text . plain) . 4)
-	((text . enriched) . 3)		; RFC 1896
-	((text . richtext) . 2)		; RFC 1341/1521 (deprecated/obsolete)
-	((text . html) . 1)		; Gak!
-	(t . 0)))
+;; Perhaps this might also help
+;;
+(eval-after-load "semi-setup"
+  '(progn
+     (set-modified-alist 'mime-view-type-subtype-score-alist
+			 '(((multipart . mixed) . 3)))
+     (set-modified-alist 'mime-view-type-subtype-score-alist
+			 '(((multipart . related) . 3)))
+     (set-modified-alist 'mime-view-type-subtype-score-alist
+			 '(((multipart . alternative) . 3)))
+     )
+  )
+
+;; these were added more recently and when set they fix a glaring mistake in
+;; showing of MIME "buttons" for each MIME part in a message
+;;
+(setq mime-view-multipart/alternative-show-all-children t) ; XXX the default is nil!  WHY???
+(setq mime-view-multipart/related-show-all-children t) ; XXX the default is nil!  WHY???
+
+;; one can apparently use `mime-preview-toggle-content' with C-c C-t C-c to
+;; show the text/plain part if desired, and presumably to hide the HTML crap....
+;;
+;; Ideally though I would like to always have the text/plain part previewed!
+;;
+;; this apparently has to be done after mime-view is loaded, and so the
+;; following was also once mentioned on the mailing list:
+;;
+;;	To disable rendering text/html, please try the following configuration:
+;;
+;(eval-after-load "mime-view"
+;  '(progn
+;     (ctree-set-calist-strictly
+;      'mime-preview-condition
+;      '((type . text)
+;	(subtype . html)
+;	(body . visible)
+;	(body-presentation-method . mime-display-text/plain)))
+;     (set-alist 'mime-view-type-subtype-score-alist
+;		'(text . html) 0)
+;     ;;
+;     ))
+;;
+;; however for now the following seems to do the trick all by itself by just
+;; raising the score for text/plain (note this also raises text/plain above
+;; text/enriched and text/richtext):
+;;
+;(eval-after-load "mime-view"
+;  '(progn
+;     (set-alist 'mime-view-type-subtype-score-alist
+;		'(text . plain) 4)))
+
 
 ;; to have text flowing automatically in display of emails in wanderlust
+;;
+;; (this is apparently documented at: http://www.emacswiki.org/emacs/WlFormatFlowed
+;;
 (autoload 'fill-flowed "flow-fill")	; flow-fill.el is from GNUS
+(setq fill-flowed-display-column 72)	; default is `fill-column'
 (add-hook 'mime-display-text/plain-hook
  	  (lambda ()
  	    (when (string= "flowed"
@@ -540,61 +843,166 @@ into too much confusion."
 (if (fboundp 'visual-line-mode)
     (add-hook 'mime-view-mode-hook '(lambda () (visual-line-mode t))))
 
-;; PGG has been included in Emacs, courtesy of GNUS, since 22.1
-;;
-;; xxx however it lost the read-passwd wrapper, so we recreate it here
-;;
-(require 'pgg)
-(defvar pgg-read-passphrase nil)
-(defun pgg-read-passphrase (prompt &optional key notruncate)
-  "Using PROMPT, obtain passphrase for KEY from cache or user.
-
-Calls the function given in the variable `pgg-read-passphrase', if set,
-otherwise calls `read-passwd'.
-
-Truncate the key to 8 trailing characters unless NOTRUNCATE is true
-\(default false).
-
-Custom variables `pgg-cache-passphrase' and `pgg-passphrase-cache-expiry'
-regulate cache behavior."
-  (if (not pgg-read-passphrase)
-      (setq pgg-read-passphrase 'read-passwd))
-  (or (pgg-read-passphrase-from-cache key notruncate)
-      (funcall pgg-read-passphrase prompt)))
-
 ;; XXX this doesn't quite work right to turn on automatic signing globally...
 ;;
 ;(setq mime-edit-pgp-processing '(sign))
 
-(setq mime-setup-enable-pgp t)		; it is the default
-;(setq pgg-default-scheme 'pgp5)		; for composing
-;(setq pgg-scheme 'pgp5)			; for verify/decrypt
-(setq pgg-default-scheme 'gpg)		; for composing
-(setq pgg-scheme 'gpg)			; for verify/decrypt
+(setq mime-edit-pgp-verbose t)
+;; XXX this was necessary to see any keys in the *Keys* buffer when signing
+;; (it should not be necessary -- just list secret keys if this is nil!!!)
+(setq mime-edit-pgp-signers '("woods@planix.com" "woods@robohack.ca"))
 
-;; do not allow these to be hidden (removed the leading space in their names)
-(setq pgg-status-buffer "*PGG status*")
-(setq pgg-errors-buffer "*PGG errors*")
-(setq pgg-output-buffer "*PGG output*")
+(setq mime-edit-pgp-encrypt-to-self t)	; hmmm....
 
-(setq pgg-read-passphrase 'read-string)	; XXX for debugging
-(setq pgg-cache-passphrase t)		; it is the default
-(setq pgg-passphrase-cache-expiry 14400); 4 hrs
+(setq mime-setup-enable-egp t)		; it is the default if egp is installed
 
-(setq pgg-default-keyserver-address "pool.sks-keyservers.net")
+;; n.b.:  when replying to an encrypted message, if you want to quote from the
+;; encrpyted text, you will need to decrypt it by typing C-c C-v C-c (a.k.a.
+;; M-x mime-preview-show-content) with the cursor on the MIME part (i.e. on the
+;; entity-button) to decrypt the content into the message buffer (i.e. instead
+;; of just pressing 'v' (i.e. M-x mime-preview-play-current-entity) to "play"
+;; then MIME part).
 
-;; set up a way for pgg to fetch text from a URL such that it appears on stdout
+;; the default uses:  (if (executable-find "gpg2") "gpg2" "gpg")
+;(setq epg-gpg-program "gpg2")		; for NetBSD pkgsrc
+;(setq epg-debug t)	;; for tracing epg things
+;; debug output goes to the " *epg-debug*" buffer.
+;; Note that the buffer name starts with a space.
+
+(when (elisp-file-in-loadpath-p "pinentry")
+  ;; you must add the line "allow-emacs-pinentry" to "~/.gnupg/gpg-agent.conf"
+  ;; (and maybe "allow-loopback-pinentry" too, see `epa-pinentry-mode' below)
+  ;;
+  (require 'pinentry)
+  ;;
+  ;; xxx this may not be necessary in emacs-25.3, but it doesn't seem to hurt, and
+  ;; it supposedly will be necessary in 26.x:
+  ;;
+  ;; N.B.:  it now requires "allow-loopback-pinentry" in ~/.gnupg/gpg-agent.conf
+  ;;
+  (setq epa-pinentry-mode 'loopback)
+  ;;
+  ;; XXX sometimes the wrong emacs instance will ask for the passphrase, and
+  ;; unfortunately just re-running the following won't fix that problem, though it
+  ;; may make it possible to at least use the other instance and get on with
+  ;; sending a message...
+  ;;
+  ;; The real solution seems to be to run `pinentry-stop' in all instances
+  ;; (including the desired one) and then run `pinentry-start' in the desired
+  ;; instance.
+  ;;
+  (pinentry-start))
+
+;; more handy stuff for ~/.gnupg/gpg-agent.conf:
 ;;
-(setq pgg-insert-url-function  (function pgg-insert-url-with-program))
-(setq pgg-insert-url-program "ftp")
-(setq pgg-insert-url-extra-arguments '("-o" "-"))
+;;	max-cache-ttl 14400
+;;	default-cache-ttl 14400
+;;
+;; remember:  gpgconf --reload gpg-agent
 
-;; XXX almost no modern GUI-based reader and re-assemble split messages!
+;; XXX unfortunately we have to re-define this whole monster to avoid having it
+;; hide the typing.  Stupid policies should not be implemented in code!
+;; Mechanisms to allow them, but never enforce them!  Ideally this would only be
+;; done for passphrases, not for IMAP passwords, but it is too blunt a hammer
+;; given the many current stupidities in epa
+;;
+(defun read-passwd (prompt &optional confirm default)
+  "Read a password, prompting with PROMPT, and return it.
+If optional CONFIRM is non-nil, read the password twice to make sure.
+Optional DEFAULT is a default password to use instead of empty input.
+
+Once the caller uses the password, it can erase the password
+by doing (clear-string STRING)."
+  (if confirm
+      (let (success)
+        (while (not success)
+          (let ((first (read-passwd prompt nil default))
+                (second (read-passwd "Confirm password: " nil default)))
+            (if (equal first second)
+                (progn
+                  (and (arrayp second) (clear-string second))
+                  (setq success first))
+              (and (arrayp first) (clear-string first))
+              (and (arrayp second) (clear-string second))
+              (message "Password not repeated accurately; please start over")
+              (sit-for 1))))
+        success)
+    (let (minibuf)
+      (minibuffer-with-setup-hook
+          (lambda ()
+            (setq minibuf (current-buffer))
+            ;; Turn off electricity.
+            (setq-local post-self-insert-hook nil)
+            (setq-local buffer-undo-list t)
+            (setq-local select-active-regions nil)
+            (use-local-map read-passwd-map)
+            (setq-local inhibit-modification-hooks nil) ;bug#15501.
+	    (setq-local show-paren-mode nil)		;bug#16091.
+            )
+        (unwind-protect
+            (let ((enable-recursive-minibuffers t)
+		  (read-hide-char (or read-hide-char ?.)))
+              (read-string prompt nil t default)) ; t = "no history"
+          (when (buffer-live-p minibuf)
+            (with-current-buffer minibuf
+              ;; Not sure why but it seems that there might be cases where the
+              ;; minibuffer is not always properly reset later on, so undo
+              ;; whatever we've done here (bug#11392).
+              (kill-local-variable 'post-self-insert-hook)
+              ;; And of course, don't keep the sensitive data around.
+              (erase-buffer))))))))
+
+;; xxx this thing has stupid help text, no docstring, and no way to improve it!
+;; redefine the whole thing until it can be improved properly.
+;;
+(defun epa--select-keys (prompt keys)
+  (unless (and epa-keys-buffer
+               (buffer-live-p epa-keys-buffer))
+    (setq epa-keys-buffer (generate-new-buffer "*Keys*")))
+  (with-current-buffer epa-keys-buffer
+    (epa-key-list-mode)
+    ;; C-c C-c is the usual way to finish the selection (bug#11159).
+    (define-key (current-local-map) "\C-c\C-c" 'exit-recursive-edit)
+    (let ((inhibit-read-only t)
+	  buffer-read-only)
+      (erase-buffer)
+      (insert prompt "\n"
+	      (substitute-command-keys "\
+- `\\[epa-mark-key]' to mark a key on the line
+- `\\[epa-unmark-key]' to unmark a key on the line\n
+- `\\[exit-recursive-edit]' or `C-cC-c' to finish (or `\\[abort-recursive-edit]' or `q' to cancel)\n"))
+      (widget-create 'link
+		     :notify (lambda (&rest _ignore) (abort-recursive-edit))
+		     :help-echo
+		     "Click here or \\[abort-recursive-edit] to cancel"
+		     "Cancel")
+      (widget-create 'link
+		     :notify (lambda (&rest _ignore) (exit-recursive-edit))
+		     :help-echo
+		     "Click here or \\[exit-recursive-edit] to finish"
+		     "OK")
+      (insert "\n\n")
+      (epa--insert-keys keys)
+      (widget-setup)
+      (set-keymap-parent (current-local-map) widget-keymap)
+      (setq epa-exit-buffer-function #'abort-recursive-edit)
+      (goto-char (point-min))
+      (let ((display-buffer-mark-dedicated 'soft))
+        (pop-to-buffer (current-buffer))))
+    (unwind-protect
+	(progn
+	  (recursive-edit)
+	  (epa--marked-keys))
+      (kill-buffer epa-keys-buffer))))
+
+;; XXX almost no modern GUI-based reader can re-assemble split messages!
 ;;
 (setq mime-edit-split-message nil)
 
 ;; XXX this function is a copy of the original done simply to change the
 ;; default value for the encoding to be quoted-printable instead of base64
+;;
+;; (quoted-printable is infinitely easier for humans to read than base64!)
 ;;
 (defun mime-encode-region (start end encoding)
   "Encode region START to END of current buffer using ENCODING.
@@ -633,7 +1041,7 @@ ENCODING must be string."
 ;; XXX GRRR!  It seems this is impossible to do from here!
 ;; (error on startup: "eval-buffer: Symbol's value as variable is void: mime-view-mode-map")
 ;;
-;; xxx these wouldn't be right anywya -- what I want are keys to show the raw
+;; xxx these wouldn't be right anyway -- what I want are keys to show the raw
 ;; message headers and body as it would be transmitted
 ;;
 ;(define-key mime-view-mode-map "c" 'mime-preview-toggle-content)
@@ -688,9 +1096,10 @@ ENCODING must be string."
 
 (setq wl-draft-cite-function 'my-wl-default-draft-cite)
 
-;; note: 'split-horiz is a feature of some private patches
+;; note: 'msg-split-horiz and 'split-horiz are features only recently pushed
+;; upstream from my private patches
 ;;
-(setq wl-draft-buffer-style 'split-horiz)
+(setq wl-draft-buffer-style 'msg-split-horiz)
 (setq wl-draft-reply-buffer-style 'split-horiz)
 
 ;; By default Wanderlust uses Reply-to-All; but that is usually not what we
@@ -732,7 +1141,7 @@ ENCODING must be string."
 ;; Note this may be adjusted at draft buffer creation time by settings in
 ;; `wl-draft-config-alist'.
 ;;
-(setq wl-fcc "%inbox/Sent@mailbox.weird.com")
+(setq wl-fcc "%INBOX/Sent@mailbox.weird.com")
 ;;
 ;; for network-free offline support
 ;;(setq wl-fcc "+sent")
@@ -747,12 +1156,13 @@ ENCODING must be string."
 ;;
 ;; Actually.... this might work for many uses....
 ;;
-(setq wl-envelope-from (concat (user-login-name) "@" wl-local-domain))
+;(setq wl-envelope-from (concat (user-login-name) "@" wl-local-domain))
+(setq wl-envelope-from (concat (user-login-name) "@mail.weird.com"))
 
 ;; a good default, but may be adapted by wl-draft-config-alist as below
-;; (if unset the full local hostname is used)
+;; (if unset the `user-full-name' and `user-mail-address' are used)
 ;;
-(setq wl-from "\"Greg A. Woods\" <woods@weird.com>")
+;(setq wl-from "\"Greg A. Woods\" <woods@avoncote.ca>")
 
 ;; SMTP server for mail posting.  Default: `nil'
 ;;
@@ -762,8 +1172,8 @@ ENCODING must be string."
 ;; With "localhost" in both we assume a local SMTP server on port#25 that can
 ;; properly route to the world....
 ;;
-(setq smtp-fqdn "localhost")		; used in FLIM's smtp.el
-(setq wl-smtp-posting-server "localhost") ; used in wl-draft.el
+(setq smtp-fqdn "more.local")		; used in FLIM's smtp.el
+(setq wl-smtp-posting-server "more.local") ; used in wl-draft.el
 
 ;; NNTP server for news posting.  Default: `nil'
 ;;
@@ -818,6 +1228,7 @@ ENCODING must be string."
 		(("filename" . file))))
 
 ;; Unfortunately this `defadvice' is not quite sufficient on its own.
+;; XXX or maybe it is....
 ;;
 ;; XXX The only work-around I know for now is to mark the entire body of the
 ;; message as as region just before I'm ready to send and then invoke
@@ -854,7 +1265,7 @@ ENCODING must be string."
 ;; if any, and not just in front of the newly inserted signature....
 ;;
 (defadvice mime-edit-insert-signature (after my-mime-edit-signature-set-qp-encoding activate)
-  "Add quoted-printable encoding to the MIME tag for the message."
+  "Add a charset to the MIME tag for the signature of the message."
   (progn
     ;; xxx even if the buffer is edited in utf-8, the act of running
     ;; `mime-encode-region' seems to cause any non-ASCII characters to be
@@ -863,7 +1274,13 @@ ENCODING must be string."
     ;; header.
     ;;
     (mime-edit-define-charset 'iso-8859-1)
-    (mime-edit-define-encoding "quoted-printable")))
+;;
+;; hmmmm.... this _isn't_ necessary! (maybe because the charset is set)
+;;
+;; (maybe we could change the charset to utf-8 eventually now too....)
+;;
+;;  (mime-edit-define-encoding "quoted-printable")
+    ))
 
 ;; The default draft folder, first set up the local draft folder name.
 ;;
@@ -937,7 +1354,7 @@ ENCODING must be string."
 ;; Note that with `wl-template-alist' set, another template can be chosen while
 ;; composing the message with C-c C-j
 ;;
-;; add ("FCC" . "%inbox/Sent@mailbox.domain") to set FCC...
+;; add ("FCC" . "%INBOX/Sent@mailbox.domain") to set FCC...
 ;;
 ;; What about using this too:
 ;;
@@ -987,7 +1404,7 @@ ENCODING must be string."
 ;	 (pgp-sign . nil)
 ;	 ("From" . "\"Greg A. Woods\" <gwoods@teloip.com>")
 ;	 ("Reply-To" . "\"Greg A. Woods\" <gwoods@teloip.com>")
-;	 ("FCC" . "%inbox.Sent:gwoods@mail.teloip.com:993!")
+;	 ("FCC" . "%INBOX.Sent:gwoods@mail.teloip.com:993!")
 ;	 ("Precedence" . "first-class")
 ;	 ("Organization" . "TELoIP Inc."))
 ;	(reply
@@ -1034,7 +1451,7 @@ ENCODING must be string."
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Precedence" . "first-class")
 	 ("X-Priority" . "1"))
-	((string-match "^%inbox/planix.*@mailbox\\.weird\\.com"
+	((string-match "^%INBOX/planix.*@mailbox\\.weird\\.com"
 		       wl-draft-parent-folder)
 	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
@@ -1072,6 +1489,7 @@ ENCODING must be string."
 	 ;; there is no need to use Fcc in gmail if you used the gmail SMTP
 	 ;; server. gmail saves a copy of all sent messages automatically.
 ;	 ("FCC" . "%[Gmail]/Sent Mail:Woods.Greg.A@imap.gmail.com:993!")
+	 ("FCC" . "")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Me, Myself, and I")
 	 (wl-smtp-posting-user . "Woods.Greg.A@gmail.com")
@@ -1085,21 +1503,24 @@ ENCODING must be string."
 ;XXX	 (wl-draft-folder . "%[Gmail]/Drafts:\"g.woods@klervi.com\"@imap.gmail.com:993!")
 	 ("From" . "\"klervi - Greg A. Woods\" <g.woods@klervi.com>")
 	 ("Reply-To" . "\"klervi - Greg A. Woods\" <g.woods@klervi.com>")
-	 ;; there is no need to use Fcc in gmail if you used the gmail SMTP
-	 ;; server. gmail saves a copy of all sent messages automatically.
-	 ;; however since we now use celcius....
-	 ("FCC" . "%[Gmail]/Sent Mail:\"g.woods@klervi.com\"@imap.gmail.com:993!")
 	 ("Precedence" . "first-class")
-	 ("Organization" . "klervi nord amerique inc.")
-;	 (wl-smtp-posting-user . "g.woods@klervi.com")
-;	 (wl-smtp-posting-server . "smtp.gmail.com")
-;	 (wl-smtp-posting-port . 587)
-;	 (wl-smtp-connection-type . 'starttls)
-	 (wl-smtp-posting-user . "gaw")
-	 (wl-smtp-posting-server . "celcius.klervi.com")
-	 (wl-smtp-posting-port . 465)
-	 (wl-smtp-connection-type . 'ssl)
-	 (wl-smtp-authenticate-type . "plain"))
+	 ("Organization" . "GIR Nord Amerique Inc.")
+;;;	 (wl-smtp-posting-user . "gaw")
+;;;	 (wl-smtp-posting-server . "celcius.klervi.com")
+;;;	 (wl-smtp-posting-port . 465)
+;;;	 (wl-smtp-connection-type . 'ssl)
+;;;	 (wl-smtp-authenticate-type . "plain"))
+;;;	 ;; there is no need to use Fcc in gmail if you used the gmail SMTP
+;;;	 ;; server. gmail saves a copy of all sent messages automatically.
+;;;	 ;; however since we now use celcius....
+;;;	 ("FCC" . "%[Gmail]/Sent Mail:\"g.woods@klervi.com\"@imap.gmail.com:993!")
+;;; or with gmail....
+	 (wl-smtp-posting-user . "g.woods@klervi.com")
+	 (wl-smtp-posting-server . "smtp.gmail.com")
+	 (wl-smtp-posting-port . 587)
+	 (wl-smtp-connection-type . 'starttls)
+	 ("FCC" . "")
+	 )
 ;	((string-match "^%.*:woods@mailbox\\.aci\\.on\\.ca" wl-draft-parent-folder)
 ;	 (pgp-sign . nil)
 ;	 ("From" . "\"Greg A. Woods\" <woods@aci.on.ca>")
@@ -1113,9 +1534,9 @@ ENCODING must be string."
 ;	 ("Precedence" . "first-class")
 ;	 ("Organization" . "Planix, Inc."))
 	;; mailing list:  emacs-mime-en
-	((or (string-match "^%inbox/Lists-IN/emacs-mime-en-l"
+	((or (string-match "^%INBOX/Lists-IN/emacs-mime-en-l"
 			   wl-draft-parent-folder)
-	     (string-match "^%inbox/list-archive/emacs-mime-en"
+	     (string-match "^%INBOX/list-archive/emacs-mime-en"
 			   wl-draft-parent-folder))
 	 (pgp-sign . nil)
          ("From" . "\"Greg A. Woods\" <woods-emacs-mime-en-l@weird.com>")
@@ -1152,8 +1573,16 @@ ENCODING must be string."
 	 ("To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
 	 ("Reply-To" . "Cyrus User's Mailing List <info-cyrus@lists.andrew.cmu.edu>")
 	 ("Organization" . "Planix, Inc."))
+	;; mailing list:  ctwm
+	((string-match "^%INBOX/Lists-IN/ctwm-list"
+		       wl-draft-parent-folder)
+	 (pgp-sign . t)
+         ("From" . "\"Greg A. Woods\" <woods@planix.com>")
+	 ("To" . "The CTWM Mailing List <ctwm@ctwm.org>")
+	 ("Reply-To" . "The CTWM Mailing List <ctwm@ctwm.org>")
+	 ("Organization" . "Planix, Inc."))
 	;; mailing list:  git
-	((string-match "^%inbox/Lists-IN/git-list"
+	((string-match "^%INBOX/Lists-IN/git-list"
 		       wl-draft-parent-folder)
 	 (pgp-sign . t)
          ("From" . "\"Greg A. Woods\" <woods@planix.com>")
@@ -1168,7 +1597,7 @@ ENCODING must be string."
 	 ("Reply-To" . "The Git Mailing List <git@vger.kernel.org>")
 	 ("Organization" . "Planix, Inc."))
 	;; mailing list:  nsd-users
-	((string-match "^%inbox/Lists-IN/nsd-users"
+	((string-match "^%INBOX/Lists-IN/nsd-users"
 		       wl-draft-parent-folder)
 	 (pgp-sign . t)
          ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
@@ -1193,7 +1622,7 @@ ENCODING must be string."
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "")
 	 ("Organization" . "Planix, Inc."))
-	((string-match "^%inbox/Lists-IN/netbsd-lists/"
+	((string-match "^%INBOX/Lists-IN/netbsd-lists/"
 		       wl-draft-parent-folder)
 	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
@@ -1206,7 +1635,7 @@ ENCODING must be string."
 	 ("Reply-To" . "")
 	 ("Organization" . "Planix, Inc."))
 	;; mailing list:  unbound-users
-	((string-match "^%inbox/Lists-IN/unbound-users"
+	((string-match "^%INBOX/Lists-IN/unbound-users"
 		       wl-draft-parent-folder)
 	 (pgp-sign . t)
          ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
@@ -1221,28 +1650,30 @@ ENCODING must be string."
 	 ("Reply-To" . "The Unbound User's Mailing List <unbound-users@unbound.net>")
 	 ("Organization" . "Planix, Inc."))
 	;; mailing list:  wl-en
-	((or (string-match "^%inbox/Lists-IN/wl-en-l"
+	((or (string-match "^%INBOX/Lists-IN/wl-en-l"
 			   wl-draft-parent-folder)
-	     (string-match "^%inbox/list-archive/wl-en@"
+	     (string-match "^%INBOX/list-archive/wl-en@"
 			   wl-draft-parent-folder))
-	 (pgp-sign . nil)
+	 (pgp-sign . t)
          ("From" . "\"Greg A. Woods\" <woods-wl-en-l@planix.com>")
 	 ("To" . "WanderLust Users Mailing List (English) <wl-en@ml.gentei.org>")
 	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@ml.gentei.org>")
 	 ("Organization" . "Planix, Inc."))
 	(reply
 	 "^([tT][oO]|[Cc][Cc]): wl-en@"
-	 (pgp-sign . nil)
+	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods-wl-en-l@planix.com>")
 	 ("To" . "WanderLust Users Mailing List (English) <wl-en@ml.gentei.org>")
 	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@ml.gentei.org>")
 	 ("Organization" . "Planix, Inc."))
 	; defaults for everything
 	((or t)
+	 (pgp-sign . t)
 	 mime-edit-insert-signature)))
 
 (setq wl-insert-message-id nil)		; let our MTA do it....
 
+(setq mime-setup-use-signature t)	;xxx hmmmm..... doesn't work?
 (setq signature-insert-at-eof t)
 (setq signature-file-alist
       '((("From" . "@planix\\.ca") . "~/.signature-planix.ca")
@@ -1308,20 +1739,29 @@ ENCODING must be string."
 ;; mail is always stored, and this is the only place one can ever really truly
 ;; delete any mail from on Gmail.  (i.e. removing from Trash doesn't delete!)
 ;;
+;; For reference:  Gmail config in ~/.folders (multiple accounts repeat this
+;;section with different prefix and addresses):
+;;
+;;	Gmail IMAP folders{
+;;		%:Woods.Greg.A@imap.gmail.com:993!/
+;;	}
+;;
+;; Press C-RET to expand them all.
+;;
 (setq wl-dispose-folder-alist
       '(("^\\(/[^/]*/\\)?%.*[/.]Trash:.*$" . remove) ; this one must come first!!!
 	("^\\(/[^/]*/\\)?%.*Deleted Messages:.*$" . remove) ; must appear before use as targett!!!
-	("^\\(/[^/]*/\\)?%INBOX$" . "%inbox/Trash")
-	("^\\(/[^/]*/\\)?%inbox[^@]*$" . "%inbox/Trash")
-	("^\\(/[^/]*/\\)?%.*:woods@mailbox.weird.com" . "%inbox/Trash:woods@mailbox.weird.com:993!")
+	("^\\(/[^/]*/\\)?%INBOX$" . "%INBOX/Trash")
+	("^\\(/[^/]*/\\)?%inbox[^@]*$" . "%INBOX/Trash")
+	("^\\(/[^/]*/\\)?%.*:woods@mailbox.weird.com" . "%INBOX/Trash:woods@mailbox.weird.com:993!")
 	("^\\(/[^/]*/\\)?%.*:Woods.Greg.A@imap.gmail.com" . "%[Gmail]/Trash:Woods.Greg.A@imap.gmail.com:993!")
 	("^\\(/[^/]*/\\)?%[Gmail]/All Mail:Woods.Greg.A@imap.gmail.com" . remove)
 	("^\\(/[^/]*/\\)?%.*:\"g.woods@klervi.com\"@imap.gmail.com" . "%[Gmail]/Trash:\"g.woods@klervi.com\"@imap.gmail.com:993!")
 	("^\\(/[^/]*/\\)?%[Gmail]/All Mail:\"g.woods@klervi.com\"@imap.gmail.com" . remove)
 ;	("^\\(/[^/]*/\\)?%.*:t_gregwo@mail.citrix.com" . "%Deleted Messages:t_gregwo@mail.citrix.com:993!")
 ;	("^\\(/[^/]*/\\)?%.*:woods@mail.teloip.com" . "%inbox.Trash:woods@mail.teloip.com:993!")
-;	("^\\(/[^/]*/\\)?%.*:gwoods@mailbox.aci.on.ca" . "%inbox/Trash:gwoods@mailbox.aci.on.ca:993!")
-;	("^\\(/[^/]*/\\)?%.*:woods@mailbox.aci.on.ca" . "%inbox/Trash:woods@mailbox.aci.on.ca:993!")
+;	("^\\(/[^/]*/\\)?%.*:gwoods@mailbox.aci.on.ca" . "%INBOX/Trash:gwoods@mailbox.aci.on.ca:993!")
+;	("^\\(/[^/]*/\\)?%.*:woods@mailbox.aci.on.ca" . "%INBOX/Trash:woods@mailbox.aci.on.ca:993!")
 	("^-" . remove)
 	("^@" . remove)
 	("^\\+trash$" . remove)
@@ -1349,11 +1789,11 @@ ENCODING must be string."
 ;; someday set at the same time)
 ;;
 (setq wl-junk-folder-alist
-      '(("^%inbox.*Junk@" . null)	; this one must come first
+      '(("^%INBOX.*Junk@" . null)	; this one must come first
 	("^+junk" . null)		; this one too?
-	("^\\(/[^/]*/\\)?%INBOX$" . "%inbox/Junk")
-	("^\\(/[^/]*/\\)?%inbox[^@]*$" . "%inbox/Junk")
-	("^\\(/[^/]*/\\)?%.*:woods@mailbox.weird.com" . "%inbox/Junk:woods@mailbox.weird.com:993!")
+	("^\\(/[^/]*/\\)?%INBOX$" . "%INBOX/Junk")
+	("^\\(/[^/]*/\\)?%inbox[^@]*$" . "%INBOX/Junk")
+	("^\\(/[^/]*/\\)?%.*:woods@mailbox.weird.com" . "%INBOX/Junk:woods@mailbox.weird.com:993!")
 	("^\\(/[^/]*/\\)?%.*:Woods.Greg.A@imap.gmail.com" . "%[Gmail]/Spam:Woods.Greg.A@imap.gmail.com:993!")
 	("^\\(/[^/]*/\\)?%.*:\"g.woods@klervi.com\"@imap.gmail.com" . "%[Gmail]/Spam:\"g.woods@klervi.com\"@imap.gmail.com:993!")
 	))
@@ -1385,7 +1825,7 @@ ENCODING must be string."
 ;; ensure we have a `junk' flag type defined for elmo that can translate into
 ;; an appropriate IMAP flag.  (or is it the other way around?)
 ;;
-;; Currently my mail server reports the following:
+;; Currently my mail server reports the following (from ". SELECT INBOX"):
 ;;
 ;; * FLAGS (\Answered \Flagged \Draft \Deleted \Seen NonJunk Junk $NotJunk
 ;; $Junk MessageJunkMailLevel JunkRecorded MessageHasBeenViewed $Label5 $Label1
@@ -1400,23 +1840,59 @@ ENCODING must be string."
 ;; $Label2 $Label3 $Label4 $Forwarded Redirected NotJunk Forwarded MyStuff
 ;; Business Todo Private)
 ;;
-(defconst elmo-imap4-flag-specs '((important "\\Flagged")
-				  (read "\\Seen")
-				  (unread "\\Seen" 'remove)
-				  (answered "\\Answered")
+;; Wed Jan  2 18:32:11 PST 2019
+;;
+;; * FLAGS (\Answered \Flagged \Draft \Deleted \Seen NonJunk Junk $NotJunk $Junk
+;; MessageJunkMailLevel JunkRecorded MessageHasBeenViewed $Label5 $Label1
+;; $Label2 $Label3 $Label4 $Forwarded Redirected NotJunk Forwarded proxy
+;; proxy.net MyStuff Business Todo Private tectrol.com Jenny Ignore $MDNSent
+;; $Pending $Label7 $MailFlagBit0 $MailFlagBit1 $MailFlagBit2 $Personal $Work)
+;;
+;; * OK [PERMANENTFLAGS (\Answered \Flagged \Draft \Deleted \Seen NonJunk Junk
+;; $NotJunk $Junk MessageJunkMailLevel JunkRecorded MessageHasBeenViewed
+;; $Label5 $Label1 $Label2 $Label3 $Label4 $Forwarded Redirected NotJunk
+;; Forwarded proxy proxy.net MyStuff Business Todo Private tectrol.com Jenny
+;; Ignore $MDNSent $Pending $Label7 $MailFlagBit0 $MailFlagBit1 $MailFlagBit2
+;; $Personal $Work \*)]
+;;
+;; N.B.:  This is used with `assq' as in (assq flag elmo-imap4-flag-specs), so
+;; the internal keyword can be repeated, but this will result in conversion of
+;; message flags on the server to match the desired flag (this is done by
+;; `elmo-imap4-flags-to-imap'), and that may not be desirable for good
+;; interoperability.  On the other hand...
+;;
+;; Note: reusing `defconst' here hides the location of the original variable,
+;; which was in elmo-imap4.el.
+;;
+(require 'elmo-imap4)
+(defconst elmo-imap4-flag-specs '((important "\\Flagged") ; cannot change
+				  (read "\\Seen")	  ; cannot change
+				  (unread "\\Seen" 'remove) ; cannot change
+				  (answered "\\Answered")   ; cannot change
+				  (deleted "\\Deleted") ; not necessary here???
+				  (draft "\\Draft")
+				  ;;(recent "\\Recent") ; XXX per session, not STOREable
 				  ;; draft-melnikov-imap-keywords-03.txt
+				  ;; XXX see also RFC-5788 (was draft-melnikov-imap-keywords-10)
+				  ;; and https://www.iana.org/assignments/imap-keywords/
 				  (forwarded "$Forwarded")
 				  (work "$Work")
 				  (personal "$Personal")
 				  (shouldreply "$ShouldReply")
 				  ;; more!
-				  (deleted "\\Deleted")	; XXX should this now be 'killed?
-				  (forwarded "Forwarded")
-				  (ignore "JunkRecorded")
-				  (ignore "NotJunk")
-				  (ignore "$NotJunk")
-				  (junk "Junk")
-				  (junk "$Junk")))
+				  (todo "Todo")
+				  (private "Private")
+				  (special "$Important")
+				  ;(forwarded "Forwarded")
+				  (redirected "Redirected")
+				  (junkrecorded "JunkRecorded")
+				  (phishing "$Phishing")
+				  (notjunk "$NotJunk")
+				  ;(notjunk "NotJunk")
+				  (nonjunk "NonJunk")
+				  (junk "$Junk")
+				  ;(junk "Junk")
+				  ))
 
 ;; the Junk action.
 ;;
@@ -1436,16 +1912,17 @@ ENCODING must be string."
 				       (wl-summary-buffer-folder-name))
 				      "Junking messages..."))
 
-;; a font face for Junk lines in the Summary
+;; a font face for Junk lines in the Summary (those marked to be junked)
+;; N.b.:  not the same as `wl-highlight-summary-junk-flag-face'
 (wl-defface wl-highlight-summary-junk-face
   '((((type tty))
      (:foreground "grey"))
     (((class grayscale))
-     (:foreground "grey" :slant italic))
+     (:foreground "DarkSlateGray" :strike-through "LightGray" :slant italic))
     (((class mono))
-     (:foreground "black" :slant italic))
+     (:foreground "grey" :strike-through "grey" :slant italic))
     (((class color))
-     (:foreground "LightSlateGray" :slant italic)))
+     (:foreground "DarkSlateGray" :strike-through "LightGray" :slant italic)))
   "Face used for displaying messages mark as Junk."
   :group 'wl-summary-faces
   :group 'wl-faces)
@@ -1543,8 +2020,8 @@ See `wl-summary-mark-action-list' for the details of each element.")
 
 ;; it seems "difficult" to get emacs to always show the *Completions* buffer in
 ;; the most appropriate place (it all too often seems to want to use the narrow
-;; Folder window on the left side of the frame), so we give up and pop a new
-;; frame for it....
+;; Folder window on the left side of the frame), so should we give up and pop a
+;; new frame for it?
 ;;
 ;(setq special-display-regexps
 ;      (cons '(".*\\*Completions\\*.*"
@@ -1646,3 +2123,8 @@ See `wl-summary-mark-action-list' for the details of each element.")
 (add-hook 'wl-draft-mode-hook
 	  (lambda ()
 	    (jit-lock-register 'wl-draft-highlight-region)))
+
+
+;;; Local Variables:
+;;; emacs-lisp-docstring-fill-column: 77
+;;; End:
