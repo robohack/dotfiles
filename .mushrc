@@ -1,7 +1,7 @@
 #
 #	.mushrc - private mush initialization
 #
-#ident	"@(#)HOME:.mushrc	35.1	13/12/02 18:39:33 (woods)"
+#ident	"@(#)HOME:.mushrc	36.1	19/11/03 17:03:01 (woods)"
 
 # Set up the display early to allow quick exit in headers-only mode.
 # The hdrs_only flag is true if the command line was: "mush -H".

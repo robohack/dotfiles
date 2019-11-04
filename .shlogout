@@ -1,7 +1,7 @@
 #
 #	.shlogout - logout script for sh
 #
-#ident	"@(#)HOME:.shlogout	35.1	13/12/02 18:39:33 (woods)"
+#ident	"@(#)HOME:.shlogout	36.1	19/11/03 17:03:01 (woods)"
 
 trap "" 1 2 3 4 5 6 7 8 10 12 13 14 15
 trap "" 0
