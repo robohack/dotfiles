@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	36.2	19/11/03 17:29:40 (woods)"
+#ident	"@(#)HOME:.ctwmrc	36.3	19/11/03 17:54:07 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -787,6 +787,10 @@ menu "quickies"
 	"UXterm @nbt-cur"	!". ./.shrc; onx11server -n nbt-cur.local 'uxterm OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
 	"UXterm-big @nbt-cur"	!". ./.shrc; onx11server -n nbt-cur.local 'uxterm OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
 	#
+	# xxx this is not so useful as if the SSH connection drops then the
+	# window simply disappears with no hint as to when or why!
+	#
+	"Slogin @central"	!"uxterm OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C central.weird.com' &"
  ])
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, once.weird.com, [], [
@@ -805,11 +809,11 @@ menu "quickies"
 	"UXterm-big @freely"	!"$RSH -n freely.weird.com '. ./.profile; exec uxterm -display '$REMOTE_DISPLAY' OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
 	"Xterm @isit"		!"$RSH -n isit.weird.com exec /usr/X11R6/bin/xterm -display $REMOTE_DISPLAY OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP &"
 	"Xterm-big @isit"	!"$RSH -n isit.weird.com exec /usr/X11R6/bin/xterm -display $REMOTE_DISPLAY OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP &"
+ ])
 	""			f.separator
 	"Console Server"	f.menu "consoles"
 	""			f.separator
 	"TermSrvr Telnets"	f.menu "termservers"
- ])
 	""			f.separator
  ifelse([ON_OSX], [
  ], [
@@ -820,29 +824,36 @@ menu "quickies"
 	"Pin this menu"		f.pin
 }
 
-ifdef([AT_WEIRD], [
 menu "consoles"
 {
 	"Console Server"	f.title
   define(CONSOLE_REP, [
-	"$1 []"			!"xterm -geometry 88x31 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n $1 -T '\"$1 Virtual Console\"' -e console $1 &"
+	"$1 []"			!"uxterm -geometry 132x66 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n $1 -T '\"$1 Virtual Console\"' -e console $1 &"
   ])
-###	CONSOLE_REP(most)
-	CONSOLE_REP(isit)
-	CONSOLE_REP(once)
+	CONSOLE_REP(xenful)
+	CONSOLE_REP(xentastic)
+	CONSOLE_REP(bbb-1)
+	CONSOLE_REP(rpi-1)
+	CONSOLE_REP(lilbit)
+	CONSOLE_REP(more)
+	CONSOLE_REP(building)
+	CONSOLE_REP(future)
+	CONSOLE_REP(freebsd)
 	CONSOLE_REP(historically)
+	CONSOLE_REP(once)
+	CONSOLE_REP(isit)
 	CONSOLE_REP(whats)
 	CONSOLE_REP(flipping)
-	CONSOLE_REP(callerid)
- undefine(CONSOLE_REP)
+  undefine(CONSOLE_REP)
 }
 
 menu "termservers"
 {
 	"Term Srvr Telnets"	f.title
-	"telnet controlling"	!"xterm OPT_LOGIN_XTERM OPT_ZICONBEEP -n controlling -T 'controlling Virtual Console' -e telnet controlling.local 2000 &"
+	"telnet controlling"	!"uxterm OPT_LOGIN_XTERM OPT_ZICONBEEP -n controlling -T 'controlling Virtual Console' -e telnet controlling.local 2000 &"
+	""			f.separator
   define(CONTROLLING_REP, [
-	"Controlling-20$1"	!"xterm -geometry 88x31 -fn 5x7 OPT_LOGIN_XTERM OPT_ZICONBEEP -n Ctrl20$1 -T 'Controlling-20$1' -e telnet controlling.local 20$1 &"
+	"Controlling-20$1"	!"uxterm -geometry 132x66 -fn 5x7 OPT_LOGIN_XTERM OPT_ZICONBEEP -n Ctrl20$1 -T 'Controlling-20$1' -e telnet controlling.local 20$1 &"
   ])
 ###	CONTROLLING_REP(01)	# this is the physical console
 	CONTROLLING_REP(02)
@@ -854,7 +865,6 @@ menu "termservers"
 	CONTROLLING_REP(08)
   undefine(CONTROLLING_REP)
 }
-])
 
 menu "defops"
 {
