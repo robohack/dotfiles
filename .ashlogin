@@ -1,11 +1,29 @@
 #
 #	.ashlogin - login shell startup for ash
 #
-#ident	"@(#)HOME:.ashlogin	35.1	13/12/02 18:39:34 (woods)"
+#ident	"@(#)HOME:.ashlogin	35.2	19/11/03 16:58:06 (woods)"
 
-echo "$0: setup for Almquist's Shell"
+case "$-" in
+*i*)
+	#
+	# Commands for interactive shells.
+	#
+	# NOTE: This should _always_ be true for any shell sourcing this file!
+	#
+	echo "$0: setup for Almquist's Shell"
 
-set -o ignoreeof	# we only do this for our login shell....
+	set -o ignoreeof	# we only do this for our login shell....
+
+	# for emacs timeclock.el
+	#
+	if [ ! -f ~/.timelog ] ; then
+		touch ~/.timelog
+	fi
+	;;
+*)
+	echo "$0: WARNING: .shlogin being sourced by a non-interactive shell!"
+	;;
+esac
 
 # xxx NetBSD /bin/sh does not support FPATH
 export FPATH=$HOME/lib/sh

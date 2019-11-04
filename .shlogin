@@ -1,9 +1,27 @@
 #
 #	.shlogin - login shell startup for plain Bourne Shell
 #
-#ident	"@(#)HOME:.shlogin	35.1	13/12/02 18:39:34 (woods)"
+#ident	"@(#)HOME:.shlogin	35.2	19/11/03 16:58:07 (woods)"
 
-echo "$0: setup for Bourne Shell"
+case "$-" in
+*i*)
+	#
+	# Commands for interactive shells.
+	#
+	# NOTE: This should _always_ be true for any shell sourcing this file!
+	#
+	echo "$0: setup for Bourne Shell"
+
+	# for emacs timeclock.el
+	#
+	if [ ! -f ~/.timelog ] ; then
+		touch ~/.timelog
+	fi
+	;;
+*)
+	echo "$0: WARNING: .shlogin being sourced by a non-interactive shell!"
+	;;
+esac
 
 # this doesn't do anything for sub-shells but let you type '. $ENV'
 #

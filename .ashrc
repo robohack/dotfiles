@@ -1,19 +1,23 @@
 #
 #	.ashrc - per-shell startup stuff for ash via $ENV
 #
-#ident	"@(#)HOME:.ashrc	35.1	13/12/02 18:39:34 (woods)"
+#ident	"@(#)HOME:.ashrc	35.2	19/11/03 16:58:06 (woods)"
 
 # Assumptions:
 #	- chdir must be synonymous with cd, and cd can be reset to a function
 
 # Files referenced:
 #
-#	$HOME/.ashsccs		- sourced, if it is readable
+#	$HOME/.shrc		- sourced for common shell functions
 #	$HOME/.ashedit		- sourced, if it is readable else emacs editing set
-#	$HOME/.ashlocal		- sourced, if it is readable
+#	$HOME/.ashlocal		- sourced, if it is readable, at the end
+#	$HOME/.ashpwd		- sourced, if it is readable
+#	$HOME/.ashsccs		- sourced, if it is readable
 
 case $- in *i*)
-# everything in this file is for interactive use only
+# everything in this file is for interactive use only, but $ENV is set
+# to just the plain filename of this file because ash(1) doesn't have
+# arrays and so can't use the ksh(1) ${ENVFILE[]} trick.
 
 set -o monitor
 
@@ -27,108 +31,102 @@ fi
 
 export PATH="$PATH"
 
-if [ -r $HOME/.ashtype ] ; then
-	. $HOME/.ashtype
+if ! expr "`type zhead 2>/dev/null`" : 'zhead is a shell function$' > /dev/null 2>&1 ; then
+	# make sure even when using "su" or a sub-shell we get a related .shrc!
+	. $(dirname $ENVFILE)/.shrc
 fi
-
-dirappend ()
-{
-	if [ $# -le 1 ] ; then
-		echo "Usage: dirappend variable directory [...]" >&2
-		exit 2
-	fi
-	varname=$1
-	shift
-	eval varvalue='$'$varname
-	while [ $# -gt 0 ] ; do
-		if [ -d "$1" -a $(expr ":$varvalue:" : ".*:$1:.*") -eq 0 ] ; then
-			eval $varname='$'"$varname"'":$1"'
-		fi
-		shift
-	done
-	unset varname varvalue
-}
-
-dirprepend ()
-{
-	if [ $# -le 1 ] ; then
-		echo "Usage: dirprepend variable directory [...]" >&2
-		exit 2
-	fi
-	varname=$1
-	shift
-	eval varvalue='$'$varname
-	while [ $# -gt 0 ] ; do
-		if [ -d "$1" -a $(expr ":$varvalue:" : ".*:$1:.*") -eq 0 ] ; then
-			eval $varname='"$1:"$'"$varname"
-		fi
-		shift
-	done
-	unset varname varvalue
-}
-
-lnotes ()
-{
-	if [ -d $HOME/notes ] ; then
-	(
-		# in a subshell
-		cd $HOME/notes
-		if [ $(ls|wc -w) != 0 ] ; then
-			echo 'You have notes on:' 
-			ls -C *[!~]
-		fi
-	)
-	fi
-}
-
-# for window systems which don't emulate login sessions in each window
-#
-do_first_time ()
-{
-	if [ -x /usr/games/fortune ] ; then
-		/usr/games/fortune
-	elif [ -x "$FORTUNE" ] ; then
-		$FORTUNE
-	fi
-	if [ -r calendar -o -r .month ] ; then
-		print "\nToday's Events:"
-		if [ -r .month ] ; then
-			month -B
-		fi
-		if [ -r calendar ] ; then
-			calendar
-		fi
-	fi
-	lnotes
-	if [ -r $HOME/.trninit$TERM ] ; then
-		TRNINIT="$HOME/.trninit$TERM" ; export TRNINIT
-	fi
-}
+rm_alias_funcs
 
 #
-# always use ``$echo'' if any of the other variables are used...
-#	$nl - print a newline (always required at end of line if desired)
-#	$n - option to turn off final newline
-#	$c - escape sequence to turn off final newline
-# usage for a prompt is:
-#	$echo $n "prompt: $c"
-# and for a normal line
-#	$echo "message$nl"
+# XXX WARNING: lots of this stuff is probably duplicated in .shrc, and
+# for now we expect all shells to be able to source .shrc!
 #
-# XXX echo in all ASH derivatives is BSD-style
-#
-echo=echo
-nl=''
-n='-n'
-c=''
 
-# NOTE: we don't export $echo et al -- they're just in the current shell
+if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
+	if [ "$LEV" -eq 0 ] ; then
+		do_first_time	# in xterms, we are a login shell, but not in layers
+	fi
+	MYXCLR_L="$(myxban -l)"
+	MYXCLR_C="$(myxban -c)"
+	MYXCLR_R="$(myxban -r)"
+	MYXCLR="${MYXCLR_L}${MYXCLR_C}${MYXCLR_R}"
+	MYXBAN_L='$(pwd)'
+
+	# xxx this doesn't mean what it used to mean...
+	alias clearban='printf "${MYXCLR}"; WBANNER=""; setban'
+
+	# XXX this probably doesn't do what I expect it to do any more either...
+	# (because myxban is special in being able to set just one part)
+	setban ()
+	{
+		if [ $# -ge 1 ]; then
+			WBANNER="$@"
+		fi
+		if [ -z "$BANNER_PWD" ]; then
+			BANNER_PWD=$(pwd)
+		fi
+		printf "${MYXCLR}"
+		eval myxban -l "\"$MYXBAN_L\""
+		myxban -c "${WBANNER:-sh}"
+		eval myxban -r "\"$MYXBAN_R\""
+	}
+
+	# basic form -- may be re-defined in ~/.ashpwd
+	cd ()
+	{
+		chdir "$*"
+		eval myxban -l "\"$MYXBAN_L\""
+	}
+
+fi
+# else
+case "$TERM" in
+"xterm")
+
+	alias clearban='WBANNER=""; setban'
+
+	setban ()
+	{
+		if [ $# -ge 1 ]; then
+			# no trailing space -- usually just used to
+			# set alternate shell name
+			WBANNER="$@"
+		fi
+		if [ -z "$BANNER_PWD" ]; then
+			BANNER_PWD=$(pwd)
+		fi
+		if [ "$uid" = "$LOGNAME" ]; then
+			eval TBANNER='"${WBANNER:-sh}://$UUNAME/$BANNER_PWD | $uid[$LEV]:$TTYN"'
+		else
+			eval TBANNER='"${WBANNER:-sh}://$UUNAME/$BANNER_PWD | $uid:$gid($LOGNAME)[$LEV]:$TTYN"'
+		fi
+		printf "\033]0;${TBANNER}\007"
+	}
+
+	# basic form -- may be re-defined in ~/.ashpwd
+	cd ()
+	{
+		chdir "$*"
+		BANNER_PWD=${PWD}
+		setban
+	}
+	;;
+esac
 
 # UGLY, but it works
 #
-# WARNING: this sed expression breaks if there isn't a group-id for each gid
+# NOTE:  there's a trick in here -- if there's no group-ID for your
+# GID then the final expression parameter won't do anything.  However
+# since we've already pre-trimmed the extra "groups=..." stuff off the
+# end the only thing that'll be left is the original "gid=20" string,
+# and that'll have the same effect we want anyway.
 #
-eval "$(id|sed -e 's/^uid=\([0-9]*\)(\(..*\)) gid=[0-9]*(\([^) ]*\)).*$/id=\1 uid=\2 gid=\3/')"
+# That's why we call the variable which holds the primary group name
+# "gid" and not gname or group or whatever...
+#
+eval "$(id | sed -e 's/ groups=.*$//' \
+		 -e 's/uid=\([0-9]*\)(\(..*\)) /id=\1 uid=\2 /' \
+		 -e 's/gid=[0-9]*(\([^) ]*\)).*$/gid=\1/')"
 
 if [ "$id" -eq 0 ] ; then
 	# got to get rid of lone ":" or any "." in PATH
@@ -138,41 +136,142 @@ if [ "$id" -eq 0 ] ; then
 				-e 's/^\.://'	\
 				-e 's/:\.://'	\
 				-e 's/:\.$//')
-	if $ISSUN; then
-		PATH=$(echo $PATH | sed -e 's~^/bin:~~' -e 's~:/etc:~:~')
-		dirprepend PATH /usr/5bin
-		dirappend PATH /usr/openwin/bin
-	else
-		dirprepend PATH /etc
+	# also get rid of the login user's ~/bin because it's usually first
+	LOGNAMEPATH=$(eval echo ~$LOGNAME/bin)
+	PATH=$(echo $PATH | sed -e "s|$LOGNAMEPATH:||")
+
+	# must have X11BIN before openwin if newer X on system....
+	dirappend PATH /usr/lbin /usr/ucb $X11BIN
+
+	ISSUN=false; export ISSUN
+	if [ -x /usr/bin/sun ] ; then
+		if sun ; then
+			ISSUN=true
+			PATH=$(echo $PATH | sed 's/^\/bin://')
+			if [ $(uname -r | sed 's/^\([0-9]*\).*$/\1/') -lt 5 ] ; then
+				if [ "X$LOGNAME" != "Xroot" ] ; then
+					dirprepend PATH /usr/5bin
+				else
+					dirappend PATH /usr/5bin
+				fi
+			else
+				dirprepend PATH /opt/SUNWspro/bin
+			fi
+			# XXX FIXME: should use OPENWINHOME ???
+			# XXX FIXME: should only do this if DISPLAY set???
+			dirappend PATH /usr/openwin/bin /usr/openwin/demo
+			dirappend MANPATH /usr/openwin/share/man
+		fi
 	fi
 	dirprepend PATH /sbin /usr/sbin
 	dirappend PATH /usr/etc /usr/lbin /usr/ucb /usr/bin/X11
-	if [ -n "$LOCAL" ] ; then
-		dirappend PATH $LOCAL/sbin $LOCAL/bin
-		if [ ! -d $LOCAL/sbin ] ; then
-			dirappend PATH $LOCAL/etc
+
+	# this next section duplicates ~/.profile since these
+	# environment variables are not, and should not, be passed
+	# through su (or sudo)
+
+	if [ -z "$LOCAL" ] ; then
+		if [ -d /local -a ! -L /local ] ; then
+			LOCAL="/local"
+		elif [ -d /usr/local -a ! -L /usr/local ] ; then
+			LOCAL="/usr/local"
+		else
+			LOCAL="/NO-local-FOUND"
 		fi
 	fi
-	if [ -n "$GNU" ] ; then
-		dirappend PATH $GNU/sbin $GNU/bin
-		if [ ! -d $GNU/sbin ] ; then
-			dirappend PATH $GNU/etc
+	export LOCAL
+
+	if [ -z "$CONTRIB" ] ; then
+		if [ -d /contrib -a ! -L /contrib ] ; then
+			CONTRIB="/contrib"
+		elif [ -d /usr/contrib -a ! -L /usr/contrib ] ; then
+			CONTRIB="/usr/contrib"
+		else
+			CONTRIB="/NO-contrib-FOUND"
 		fi
 	fi
-	if [ -n "$CONTRIB" ] ; then
+	export CONTRIB
+
+	if [ -z "$PKG" ] ; then
+		if [ -d /pkg -a ! -L /pkg ] ; then
+			PKG="/pkg"
+		elif [ -d /usr/pkg -a ! -L /usr/pkg ] ; then
+			PKG="/usr/pkg"
+		else
+			PKG="/NO-pkg-FOUND"
+		fi
+	fi
+	export PKG
+
+	if [ -z "$SLASHOPT" ] ; then
+		if [ -d /opt -a ! -L /opt ] ; then
+			SLASHOPT="/opt"
+		elif [ -d /usr/opt -a ! -L /usr/opt ] ; then
+			SLASHOPT="/usr/opt"
+		else
+			SLASHOPT="/NO-opt-FOUND"
+		fi
+	fi
+	export SLASHOPT
+
+	if [ -z "$FINK" ] ; then
+		if [ -d /sw -a ! -L /sw ] ; then
+			FINK="/sw"
+		else
+			FINK="/NO-fink-FOUND"
+		fi
+	fi
+	export FINK
+
+
+	# we need to re-order the next paths so first we bulk remove them
+	#
+	PATH=$(echo $PATH | sed -e "s|${CONTRIB:-/NONE}/bin:||"	\
+				-e "s|${CONTRIB:-/NONE}/sbin:||"\
+				-e "s|${PKG:-/NONE}/bin:||"	\
+				-e "s|${PKG:-/NONE}/sbin:||"	\
+				-e "s|${SLASHOPT:-/NONE}/bin:||"	\
+				-e "s|${SLASHOPT:-/NONE}/sbin:||"	\
+				-e "s|${LOCAL:-/NONE}/bin:||"	\
+				-e "s|${LOCAL:-/NONE}/sbin:||"	\
+				-e "s|${FINK:-/NONE}/bin:||"	\
+				-e "s|${FINK:-/NONE}/sbin:||"	\
+				-e "s|${GNU:-/NONE}/bin:||"	\
+				-e "s|${GNU:-/NONE}/sbin:||" )
+	if [ -d "$CONTRIB" ] ; then
 		dirappend PATH $CONTRIB/sbin $CONTRIB/bin
 		if [ ! -d $CONTRIB/sbin ] ; then
 			dirappend PATH $CONTRIB/etc
 		fi
 	fi
-	if [ -n "$PKG" ] ; then
+	if [ -d "$PKG" ] ; then
 		dirappend PATH $PKG/sbin $PKG/bin
-		if [ ! -d $PKG/sbin ] ; then
-			dirappend PATH $PKG/etc
+	fi
+	if [ -d "$SLASHOPT" ] ; then
+		dirappend PATH $SLASHOPT/sbin $SLASHOPT/bin
+	fi
+	if [ -d "$LOCAL" ] ; then
+		dirappend PATH $LOCAL/sbin $LOCAL/bin
+		if [ ! -d $LOCAL/sbin ] ; then
+			dirappend PATH $LOCAL/etc
 		fi
 	fi
-	dirappend PATH /usr/lib/uucp /usr/lib
+	if [ -d "$GNU" ] ; then
+		dirappend PATH $GNU/sbin $GNU/bin
+		if [ ! -d $GNU/sbin ] ; then
+			dirappend PATH $GNU/etc
+		fi
+	fi
+	if [ -d "$FINK" ] ; then
+		dirprepend PATH $FINK/sbin $FINK/bin
+		if [ -r $FINK/bin/init.sh ] ; then
+			# this sets up other handy things for Fink
+			. $FINK/bin/init.sh
+		fi
+	fi
+
 	dirappend PATH $HOME/bin
+
 	case "$TERM" in
 	xterm)
 		PS1="$UUNAME # "
@@ -181,12 +280,47 @@ if [ "$id" -eq 0 ] ; then
 		PS1="$TTYN:<$LOGNAME@$UUNAME> # "
 		;;
 	esac
+	MAILPATH=${MAILDIR}/${LOGNAME}:${MAILDOR}/root:${MAILDIR}/uucp:${MAILDIR}/usenet
 	if [ "$VISUAL" = "emacsclient" ] ; then
 		export VISUAL="emacs -nw"
 	fi
 	if [ "$EDITOR" = "emacsclient" ] ; then
 		export EDITOR="emacs -nw"
 	fi
+	# make damn sure PAGER is set...
+	if expr "$(type less 2>/dev/null)" : '.* is .*/less$' >/dev/null ; then
+		PAGER=$(type less)
+		LESS="-M" ; export LESS
+	elif [ -x /usr/xpg4/bin/more ] ; then
+		# SunOS-5's, at least, has the 'G' command!
+		PAGER="/usr/xpg4/bin/more"
+		# use '-s' as it can't be turned on later during runtime
+		MORE="-s" ; export MORE
+	elif expr "$(type more 2>/dev/null)" : '.* is .*/more$' >/dev/null ; then
+		PAGER=$(type more)
+		# use '-s' as it can't be turned on later during runtime
+		MORE="-sw" ; export MORE
+	else
+		# meow
+		PAGER=$(type cat)
+	fi
+	PAGER=$(expr "$PAGER" : '.*/\([^/]*\)$'); export PAGER
+	if [ "$PAGER" = "less" ]; then
+		MANPAGER="$PAGER -si"; export MANPAGER
+	fi
+
+	if [ -n "$DISPLAY" ]; then
+		#
+		# XXX if root is using this .kshrc then perhaps we
+		# should try copying the "xauth" information for the
+		# current display to $HOME/.Xauthority instead of just
+		# pointing at it...
+		#
+		XAUTHORITY=$(eval echo ~${SU_FROM}/.Xauthority); export XAUTHORITY
+	fi
+	cd
+	WBANNER="SU $SHELL"
+	setban
 elif [ "$uid" != "$LOGNAME" ] ; then
 	case "$TERM" in
 	xterm)
@@ -207,68 +341,11 @@ else
 	esac
 fi
 
-if type ismpx 2>&1 >/dev/null ; then
-	: might just be running layers
-else
-	# otherwise it's just not possible....
-	ismpx ()
-	{
-		false
-	}
-fi
 
-if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
-	if [ "$LEV" -eq 0 ] ; then
-		do_first_time	# in xterms, we are a login shell, but not in layers
-	fi
-	MYXCLR_L="$(myxban -l)"
-	MYXCLR_C="$(myxban -c)"
-	MYXCLR_R="$(myxban -r)"
-	MYXCLR="${MYXCLR_L}${MYXCLR_C}${MYXCLR_R}"
-	MYXBAN_L='$(pwd)'
-
-	alias clearban='${echo} "${MYXCLR}${c}"'
-
-	setban ()
-	{
-		clearban
-		eval myxban -l "\"$MYXBAN_L\""
-		myxban -c "${WBANNER}"
-		eval myxban -r "\"$MYXBAN_R\""
-	}
-
-	# basic form -- may be re-defined in ~/.ashpwd
-	cd ()
-	{
-		chdir "$*"
-		eval myxban -l "\"$MYXBAN_L\""
-	}
-
-	setban
-
-elif [ "$TERM" = "xterm" ] ; then
-
-	alias clearban='WBANNER=""; setban'
-
-	setban ()
-	{
-		eval TBANNER='"${WBANNER:-sh}://$UUNAME/${BANNER_PWD} | $uid{$gid}($LOGNAME)[$LEV]:$TTYN"'
-		$echo "]0;$TBANNER$c"
-		WBANNER=""
-	}
-
-	# basic form -- may be re-defined in ~/.ashpwd
-	cd ()
-	{
-		chdir "$*"
-		BANNER_PWD=${PWD}
-		setban 
-	}
-
-	setban
-fi
-
-if [ "$TERM" = "xterm" -o "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
+if type setban > /dev/null ; then
+	#
+	# XXX re-factor into a function which defines functions....
+	#
 	if [ "$VISUAL" = "emacsclient" -a -z "$DISPLAY" ] ; then
 		unalias emacs
 		alias emacs=_emacs
@@ -431,20 +508,7 @@ fi
 if [ -r $HOME/.ashpwd ] ; then
 	. $HOME/.ashpwd
 fi
-if [ -r $HOME/.ashlocal ] ; then
-	. $HOME/.ashlocal
-fi
-if [ -r $HOME/.ashedit ] ; then
-	. $HOME/.ashedit
-else
-	set -o emacs
-fi
 
-
-errno ()
-{
-	grep "^#define[ 	]*[A-Z][A-Z]*[ 	]*$1[ 	]" /usr/include/sys/errno.h
-}
 
 lastcmd ()
 {
@@ -454,31 +518,24 @@ lastcmd ()
 		tail ${1+"$@"}
 }
 
-malias ()
+repfirst ()
 {
-	grep "alias[ 	]$*" $LOCAL/lib/mush/Mail.rc ~/.mushrc
-}
+	# replace only the first occurance of $1 found in the input with $2
+	#
+	# from https://stackoverflow.com/a/33416489
 
-signm ()
-{
-	grep "^#define[ 	]*SIG.*[ 	]*${1}[ 	]" /usr/include/sys/signal.h
-}
+	sed -e "1 s/${1}/${2}/; t" -e "1,// s//${2}/"
 
-signo ()
-{
-	grep -i "^#define[ 	]*.*${1}[ 	]*[0-9]" /usr/include/sys/signal.h
-}
-
-typeof ()
-{
-	if $ISSUN; then
-		LLIBDIR=/usr/lib/lint
-	else
-		LLIBDIR=/usr/lib
-	fi
-	# should expand to allow '-l{lib}'
-	egrep -i "$1" $LLIBDIR/llib-lc $LLIBDIR/llib-lm $LLIBDIR/llib-lcurses
-	unset LLIBDIR
+	# GNU Sed supports "0,/RE/" as an address range (such that if /RE/
+	# matches at the very first line of input then it will already be at the
+	# end of its range, whereas "1,/RE/" would still be at the beginning of
+	# its range) so GNU Sed can do this with just one expression:
+	#
+	#	gsed -d "0,/$1/s//$2/"
+	#
+	# AWK equivalent:
+	#
+	#	awk "/$1/ && !done { sub(/$1/, \"$2\"); done=1; }; 1;"
 }
 
 alias blstrip='sed "/./,/^$/!d"'
@@ -505,5 +562,9 @@ alias maillog='$PAGER -e -p ": \[[0-9]*\] remote [A-Z ]*:" +G $MAILLOG'
 alias rstty='stty $SANE'
 alias uuq='uusnap -av'
 alias wcvs='echo $CVSROOT'
+
+if [ -r $HOME/.ashlocal ] ; then
+	. $HOME/.ashlocal
+fi
 
 esac

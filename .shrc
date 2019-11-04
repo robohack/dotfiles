@@ -1,23 +1,91 @@
 #
-#	.shrc - per-shell startup stuff for non-POSIX compatible /bin/sh
+#	.shrc - per-shell startup stuff for all shells
 #
-#ident	"@(#)HOME:.shrc	35.1	13/12/02 18:39:34 (woods)"
+# Note:  This should be compatible with some pre-POSIX shells.  Notably:
+#
+#	- don't use $() for command expansion
+#	- no arithmetic expressions
+#
+# It may also assume .profile has already set some things, though it should not
+#
+#ident	"@(#)HOME:.shrc	35.2	19/11/03 16:58:07 (woods)"
 
-PATH="$PATH"
+PATH=$PATH
 export PATH
+
+HAVEPRINT=false ; export HAVEPRINT
+if expr "`type print 2>/dev/null`" : 'print is a shell builtin$' > /dev/null 2>&1 ; then
+	HAVEPRINT=true
+fi
+HAVEPRINTF=false ; export HAVEPRINTF
+if expr "`type printf 2>/dev/null`" : 'printf is a shell builtin$' > /dev/null 2>&1 ; then
+	HAVEPRINTF=true
+fi
+###
+### NOTE: we assume "echo" is builtin and we do not want to prefer an
+### external $echo even if it is more capable
+###
+###elif expr "`type printf 2>/dev/null`" : '.* is .*/printf$' >/dev/null 2>&1 ; then
+###	HAVEPRINTF=true
+###fi
+#
+# always use ``$echo'' if any of the other variables are used...
+#	$nl - print a newline (always required at end of line if desired)
+#	$n - option to turn off final newline
+#	$c - escape sequence to turn off final newline
+# usage for a prompt is:
+#	$echo $n "prompt: $c"
+# and for a normal line
+#	$echo "message$nl"
+#
+if ${HAVEPRINT} ; then
+	echo=print
+	nl='\n'
+	n='-n'
+	# XXX in theory '\c' is equivalent of '-n' in most shells
+	c=''
+elif ${HAVEPRINTF} ; then
+	echo=printf
+	nl='\n'
+	n=''
+	c=''
+	# for fun:
+	portable_echo ()
+	{
+		[ "$1" = -n ] && { shift; FMT="%s"; } || FMT="%s\n"
+		printf "$FMT" ${1+"${@}"}
+	}
+else
+	echo=echo
+	c=`echo "xyzzy\c" | sed 's/[^c]//g'`
+	if test -n "${c}" ; then
+		nl=''
+		n='-n'
+		c=''
+	else
+		nl='\n'
+		n=''
+		c='\c'
+	fi
+fi
+
+# NOTE: we don't export $echo et al -- they're just in the current shell
 
 dirappend ()
 {
-	if [ $# -le 1 ] ; then
+	if [ $# -le 1 -o -z "$1" ] ; then
 		echo "Usage: dirappend variable directory [...]" >&2
-		exit 2
+		return 2
 	fi
 	varname=$1
 	shift
-	eval varvalue='$'$varname
+	eval varvalue='${'${varname}'}'
 	while [ $# -gt 0 ] ; do
-		if [ -d "$1" -a `expr ":$varvalue:" : ".*:$1:.*"` -eq 0 ] ; then
-			eval $varname='$'"$varname"'":$1"'
+		if [ -d "$1" -a `expr ":${varvalue}:" : ".*:$1:.*"` -eq 0 ] ; then
+###			echo "dirappend: adding $1 to the end of ${varname}"
+			eval ${varname}='$'"${varname}"'":$1"'
+###		else
+###			echo "dirappend: ignoring $1 (for ${varname})"
 		fi
 		shift
 	done
@@ -26,20 +94,276 @@ dirappend ()
 
 dirprepend ()
 {
-	if [ $# -le 1 ] ; then
+	if [ $# -le 1 -o -z "$1" ] ; then
 		echo "Usage: dirprepend variable directory [...]" >&2
-		exit 2
+		return 2
 	fi
 	varname=$1
 	shift
-	eval varvalue='$'$varname
+	eval varvalue='${'${varname}'}'
 	while [ $# -gt 0 ] ; do
-		if [ -d "$1" -a `expr ":$varvalue:" : ".*:$1:.*"` -eq 0 ] ; then
-			eval $varname='"$1:"$'"$varname"
+		if [ -d "$1" -a `expr ":${varvalue}:" : ".*:$1:.*"` -eq 0 ] ; then
+###			echo "dirprepend: adding $1 to the beginning of ${varname}"
+			eval ${varname}='"$1:"$'"${varname}"
+###		else
+###			echo "dirprepend: ignoring $1 (for ${varname})"
 		fi
 		shift
 	done
 	unset varname varvalue
+}
+
+dirremove ()
+{
+	if [ $# -le 1 -o -z "$1" ] ; then
+		echo "Usage: dirremove variable directory [...]" >&2
+		return 2
+	fi
+	varname=$1
+	shift
+	while [ $# -gt 0 ] ; do
+		if [ "$1" = ":" -o -z "$1" ] ; then
+			eval ${varname}=`eval echo '$'${varname} | sed -e 's|::||g' -e 's|:$||'`
+		else
+			eval ${varname}=`eval echo '$'${varname} | sed 's|\(:*\)'$1':*|\1|'`
+		fi
+		shift
+	done
+	unset varname
+}
+
+pkgfirst ()
+{
+	dirremove PATH "$PKG/bin" "$PKG/sbin"
+	dirprepend PATH "$PKG/bin"
+}
+
+pkglast ()
+{
+	dirremove PATH "$PKG/bin" "$PKG/sbin"
+	dirappend PATH "$PKG/bin"
+}
+
+localfirst ()
+{
+	dirremove PATH "$LOCAL/bin" "$LOCAL/sbin"
+	dirprepend PATH "$LOCAL/bin"
+}
+
+locallast ()
+{
+	dirremove PATH "$LOCAL/bin" "$LOCAL/sbin"
+	dirappend PATH "$LOCAL/bin"
+}
+
+contribfirst ()
+{
+	dirremove PATH "$CONTRIB/bin" "$CONTRIB/sbin"
+	dirprepend PATH "$CONTRIB/bin"
+}
+
+contriblast ()
+{
+	dirremove PATH "$CONTRIB/bin" "$CONTRIB/sbin"
+	dirappend PATH "$CONTRIB/bin"
+}
+
+slashoptfirst ()
+{
+	dirremove PATH "$SLASHOPT/bin" "$SLASHOPT/sbin"
+	dirprepend PATH "$SLASHOPT/bin"
+}
+
+slashoptlast ()
+{
+	dirremove PATH "$SLASHOPT/bin" "$SLASHOPT/sbin"
+	dirappend PATH "$SLASHOPT/bin"
+}
+
+gnufirst ()
+{
+	dirremove PATH "$GNU/bin" "$GNU/sbin"
+	dirprepend PATH "$GNU/bin"
+}
+
+gnulast ()
+{
+	dirremove PATH "$GNU/bin" "$GNU/sbin"
+	dirappend PATH "$GNU/bin"
+}
+
+finkfirst ()
+{
+	dirremove PATH "$FINK/bin" "$FINK/sbin"
+	dirprepend PATH "$FINK/bin"
+}
+
+finklast ()
+{
+	dirremove PATH "$FINK/bin" "$FINK/sbin"
+	dirappend PATH "$FINK/bin"
+}
+
+if expr "`type mktable 2>/dev/null`" : 'mktable is .*$' >/dev/null 2>&1 ; then
+	MKTABLE="mktable"
+else
+	# a little ditty to throw away comment lines....
+	# TODO: should this remove trailing comments too? (-e '/#.*$//')
+	mktable ()
+	{
+		sed				\
+			-e '/^[ 	]*#/d'	\
+			-e '/^[ 	]*$/d'	\
+		${1+"$@"}
+	}
+fi
+
+# all machines without 'head' had a shell with functions...
+#
+if expr "`type head 2>/dev/null`" : '.* is .*/head$' >/dev/null 2>&1 ; then
+	: # have the real thing....
+else
+	head ()
+	{
+		N=10
+		if [ $# -ge 1 ] ; then
+			case "$1" in
+			-[0-9]*)
+				N=`expr x"$1" : '^x-\([0-9]*\)$'`
+				shift
+				;;
+			-n)
+				shift
+				N=`expr x"$1" : '^x\([0-9]*\)$'`
+				shift
+				;;
+			-*)
+				echo "Usage: head [-N] [-n lines] [[file] ...]" 1>&2
+				return 2
+			esac
+		fi
+		sed ${N}q ${1+"$@"}
+
+		unset N
+	}
+fi
+
+: ${CENTRAL_USER:="woods"}
+: ${CENTRAL_SERVER:="central.avoncote.ca"} # FQDN for outbound connections
+: ${HOME_SERVER:="more"}
+publishdotfiles ()
+{
+	if [ -z "${HOME}" ]; then
+		echo "publishdotfiles: HOME is unset or empty!" 1>&2
+		return 2
+	fi
+	case ${HOSTNAME} in
+	${CENTRAL_SERVER})
+		echo "publishdotfiles: not useful when run on server host!" 1>&2
+		return 2
+		;;
+	more*)
+		rsync -v -lptHS --stats --files-from=$HOME/dotfiles.list $HOME ${CENTRAL_USER}@${CENTRAL_SERVER}:.
+		;;
+	*)
+		echo "publishdotfiles: not useful when run on client host!" 1>&2
+		return 2
+		;;
+	esac
+}
+
+pushdotfiles ()
+{
+	_e_opt=""
+	_USAGE="pushdotfiles: Usage: pushdotfiles [-e TRANSPORT] hostname"
+	OPTIND="1"
+	while getopts "e:" OPTCH
+	do
+		case $OPTCH in
+		e)
+			_e_opt="-e ${OPTARG}"
+			;;
+		*)
+			echo "$_USAGE" >&2
+			return 2
+			;;
+		esac
+	done
+	shift `expr $OPTIND - 1`
+
+	if [ $# -ne 1 ]; then
+		echo "$_USAGE" >&2
+		return 2
+	fi
+	# XXX there should be a way to do this without rsync too...
+	rsync ${_e_opt} -v -lptHS --stats --files-from=${HOME}/dotfiles.list ${HOME} ${1}:.
+	unset _e_opt
+}
+
+syncdotfiles ()
+{
+	if [ -z "${HOME}" ]; then
+		echo "syncdotfiles: HOME is unset or empty!" 1>&2
+		return 2
+	fi
+	case ${HOSTNAME} in
+	central*)		# xxx should match $(unqualify ${CENTRAL_SERVER})
+		echo "syncdotfiles: not useful when run on server host!" 1>&2
+		return 2
+		;;
+	more*)			# xxx should check if $HOME is /home/more/$USER
+		echo "syncdotfiles: not useful when run on edit host!" 1>&2
+		return 2
+		;;
+	esac
+	rsync -v -lptHS --stats --files-from=:dotfiles.list ${CENTRAL_USER}@${CENTRAL_SERVER}:. $HOME
+	if [ -r $HOME/.xinitrc -a ! -x $HOME/.xinitrc ] ; then
+		chmod +x $HOME/.xinitrc
+	fi
+	if expr "`type emacs 2>/dev/null`" : '.* is .*/emacs$' >/dev/null 2>&1 ; then
+		if [ $HOME/.emacs.el -nt $HOME/.emacs.elc ]; then
+			( cd $HOME && emacs -batch -q -no-site-file -f batch-byte-compile .emacs.el )
+		fi
+	fi
+}
+
+# n.b.:  see also the corresponding elisp functions
+#
+dfgit2magit ()
+{
+	if [ -d $HOME/.git ]; then
+		echo "dfgit2magit: already in 'magit' mode?" >&2
+		return 2
+	fi
+	if [ ! -d $HOME/.dotfiles-git ]; then
+		echo "dfgit2magit: \~/.dotfiles-git missing?" >&2
+		return 2
+	fi
+	mv $HOME/.dotfiles-git $HOME/.git
+}
+
+# n.b.:  see also the corresponding elisp functions
+#
+magit2dfgit ()
+{
+	if [ -d $HOME/.dotfiles-git ]; then
+		echo "magit2dfgit: already in 'dfgit' mode!" >&2
+		return 2
+	fi
+	if [ ! -d $HOME/.git ]; then
+		echo "magit2dfgit: \~/.git missing?" >&2
+		return 2
+	fi
+	mv $HOME/.git $HOME/.dotfiles-git
+}
+
+dfgit ()
+{
+	if [ -d $HOME/.git -o ! -d $HOME/.dotfiles-git ]; then
+		echo "dfgit: in 'magit' mode!  Run magit2dfgit" >&2
+		return 2
+	fi
+	git --git-dir=$HOME/.dotfiles-git/ ${1+"${@}"}
 }
 
 lnotes ()
@@ -49,12 +373,357 @@ lnotes ()
 		# in a subshell
 		cd $HOME/notes
 		if [ `ls|wc -w` != 0 ] ; then
-			echo 'You have notes on:' 
-			ls -C *[!~]
+			echo 'You have notes on: '
+			ls -dC *[!~]
 		fi
 	)
 	fi
 }
+
+#
+#	more functions
+#
+
+# this is a bit like the GNU (err, vim) "xxd -p", but far more portable
+#
+hexencode ()
+{
+	hexdump -v -e '1/1 "%02x"'
+}
+
+# xxx hmmm... this works!  (assuming we have printf(1), of course)
+#
+hexdecode ()
+{
+	sed 's/\([0-9A-Fa-f]\{2\}\)/\\\\\\x\1/g' | xargs printf
+}
+
+cdpkgwrksrc ()
+{
+	# XXX don't do anything if not directly in a pacakge dir
+	cd $(make show-var VARNAME=WRKSRC)
+}
+
+cvsupdateroot ()
+{
+	_newroot=$1
+
+	find . -name Root -print | fgrep CVS/Root | while read rootfile ; do
+		echo $_newroot > $rootfile
+	done
+	unset _newroot
+}
+
+# XXX what good is this again?
+#
+difforig ()
+{
+	_DIFFOPTS=""
+	if [ $# -le 2 ]; then
+		echo "difforig [-DIFFOPTS] file" >&2
+		return 2
+	fi
+	case "$1" in
+	-*)
+		_DIFFOPTS=$1
+		shift
+		;;
+	esac
+	diff $_DIFFOPTS $1.orig $1
+	unset _DIFFOPTS
+}
+
+# xxx this needs an option to specify which column or position the address is in
+#
+ipaddrsort ()
+{
+	sed 's/\./ /g' ${1} |
+	  sort -b -n -k 1 \
+		  -n -k 2 \
+		  -n -k 3 \
+		  -n -k 4 |
+	  sed -E -e 's/([0-9]) /\1./' \
+		 -e 's/([0-9]) /\1./' \
+		 -e 's/([0-9]) /\1./'
+}
+
+imgsize ()
+{
+	exiv2 ${1+"$@"} | awk '$1 == "Image" && $2 == "size" {print $4 " " $5 " " $6;}'
+}
+
+kall ()
+{
+	_SIGOPT=""
+
+	case "$1" in
+	-*)
+		_SIGOPT=$1
+		shift;
+		;;
+	esac
+	kill $_SIGOPT `ps -x | awk '$5 == "'$1'" {print $1}'`
+	unset _SIGOPT
+}
+
+if type killall 2>/dev/null >/dev/null ; then
+	: already have a good killall?
+else
+	killall ()
+	{
+		if [ $# -eq 1 ]; then
+			_signal="-TERM"
+			_cmd=$1
+		elif [ $# -eq 2 ]; then
+			_signal=$1
+			_cmd=$2
+		fi
+		kill $_signal `ps -axuc | awk '$11 == "'$_cmd'" { print $2}'`
+		unset _signal _cmd
+	}
+fi
+
+krcmd ()
+{
+	# ps -ax -o uid,pid,ppid,ucomm
+
+	kill -9 `ps -axlc | awk '$1 == '${id}' && $3 == 1 && $13 == "rcmd" {print $2}'`
+}
+
+mailclients ()
+{
+	awk '$4 == "remote" && $5 == "connection" && $6 == "from" {
+		sub(/\[.*$/, "", $7);
+		print $7;
+	}' ${1+"$@"}
+}
+
+mailsizes ()
+{
+	awk '$5 == "Received" {
+		for (fn = 6; fn <= NF; fn++) {
+			if (substr($fn, 1, 5) == "SIZE:") {
+				size = substr($fn, 6) + 0;
+				break;
+			}
+		}
+		print size;
+	}' ${1+"$@"}
+}
+
+sedjoinnext ()
+{
+	# pattern that starts the lines to be appended to their previous lines
+	# (note a blank is inserted in place of the newline)
+	#
+	start=$1
+
+	sed -e ':a' -e '$!N;s/\n'"$start"'/ \1/;ta' -e 'P;D'
+}
+
+show_make_var ()
+{
+	# a more portable version of "make -V \${1}'
+	#
+	echo "show-var-${1}:;@echo ${1}" | make -f - -f Makefile "show-var-${1}"
+}
+
+show_cc_predef ()
+{
+	${CC} -E -dM -x c /dev/null | sort
+}
+
+#sedjoinafter ()
+#{
+#	# pattern that ends the lines to be joined with to their previous lines
+#	#
+#	end=$1
+#
+#	sed -e :a -e '/\\$/N; s/\\\n//; ta'
+#}
+
+signm ()
+{
+	grep "^#define[ 	]*SIG.*[ 	]*${1}[ 	]" /usr/include/sys/signal.h
+}
+
+signo ()
+{
+	grep -i "^#define[ 	]*.*${1}[ 	]*[0-9]" /usr/include/sys/signal.h
+}
+
+snmpmiblist ()
+{
+	cd $1; echo `awk '{print $1}' .index` | sed 's/ /:/g'
+}
+
+if [ -f /usr/adm/lastlog.ut -a -x /usr/lib/acct/fwtmp ] ; then
+	lastlog ()
+	{
+		YearGrep="grep `date +%Y`"
+		if [ $# -eq 1 -a "$1" = "-a" ] ; then
+			YearGrep="grep -v 1969"
+		elif [ $# -ne 0 ] ; then
+			echo 'Usage: lastlog [-a]' >&2
+		fi
+		/usr/lib/acct/fwtmp < /usr/adm/lastlog.ut | $YearGrep |
+			awk '{printf("%-8s %-12s %s\n", $1, $3, substr($0, 56))}'
+	}
+fi
+
+HAVETPUT=false ; export HAVETPUT
+if expr "`type tput 2>/dev/null`" : '.* is .*/tput$' >/dev/null 2>&1 ; then
+	HAVETPUT=true
+	# WARNING: this may only work with a SysV compatible tput.
+	TERMTESTCMD='tput -T"$ttytype" init >/dev/null 2>&1'
+elif expr "`type tset 2>/dev/null`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
+	# WARNING:  some tset(1)'s, esp. ULTRIX, fail if stderr is not
+	# a tty.  Worse, most will query for a new terminal type if it
+	# is unknown!  Note also that '-q' isn't accepted by even
+	# recent BSD versions, but '-' is still accepted by the
+	# ncurses variant.
+	#
+	TERMTESTCMD='tset - -I -Q "$ttytype" </dev/null >/dev/null'
+else
+	TERMTESTCMD='true'
+fi
+
+# this is a function so it can be used interactively after login....
+#
+# NOTE:  this uses $echo et al, which are not exported, so won't be
+# available outside of the initial login shell.
+#
+# XXX but this may not work if functions cannot set global/environment
+# vars, though that is only true on ancient non-POSIX compatible shells
+#
+get_newterm ()
+{
+	while [ "X$TERM" != "X$ttytype" ] ; do
+		$echo $n "Please enter your terminal type [$ttytype]: $c"
+		read newttytype
+		if [ -n "$newttytype" ] ; then
+			ttytype=$newttytype
+		fi
+		if [ "$ttytype" = "dumb" ] ; then
+			TERM="dumb"		# guarantee a way out of this!
+			break
+		fi
+		if eval $TERMTESTCMD ; then
+			TERM=$ttytype
+		else
+			echo "Sorry, I don't know that terminal type."
+			echo "Use 'dumb' if you are stuck."
+		fi
+	done
+	case "TERM" in
+	xterm*)
+		resize
+		;;
+	esac
+	unset newttytype
+}
+
+if [ -n "$DISPLAY" ]; then
+	#
+	# note: $argv0 will have been set by .xinitrc, but....
+	#
+	onx11server ()
+	{
+		_RDISPLAY=${REMOTE_DISPLAY:-${DISPLAY}}
+		_REMSHELL=${RSH:-rsh}
+		_USAGE="onx11server: Usage: onx11server [-n[S]|-[f]S] [-D REMOTE_DISPLAY] X11SERVERNAME 'command string'"
+		_nullopt=""
+		OPTIND="1"
+		while getopts "fnD:S" OPTCH
+		do
+			case $OPTCH in
+			n|f)
+				# for ssh '-f' puts itself into the
+				# background and implies '-n'
+				_nullopt="-${OPTCH}"
+				;;
+			D)
+				_RDISPLAY=${OPTARG}
+				;;
+			S)
+				_REMSHELL=${SSH:-ssh}
+				;;
+			*)
+				echo "$_USAGE" >&2
+				return 2
+				;;
+			esac
+		done
+		shift `expr $OPTIND - 1`
+
+		if [ $# -ne 2 -o -z "$1" ]; then
+			echo "$_USAGE" >&2
+			return 2
+		fi
+
+		_X11server=$1
+
+		echo "onx11server: starting $_REMSHELL $_nullopt $_X11server '. ./.profile; export DISPLAY=${_RDISPLAY}; exec $2'"
+		# note:  do not run this in the background -- let the
+		# caller do that (unfortunately we must have a shell
+		# waiting for the rsh/ssh to keep the connection open
+		# so that the remote process will continue running.
+		$_REMSHELL $_nullopt $_X11server ". ./.profile; export DISPLAY=${_RDISPLAY}; exec $2"
+
+		unset _RDISPLAY _REMSHELL _USAGE _nullopt _X11server
+	}
+	lxterm ()
+	{
+		# alternatively:  unset LC_ALL; eval export `locale` ; unset LC_ALL
+		LANG=C LC_ALL=C xterm -ziconbeep 1 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME ${1+"$@"} &
+	}
+	luxterm ()
+	{
+		uxterm -ziconbeep 1 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME ${1+"$@"} &
+	}
+	rxauth ()
+	{
+		_RDISP=${REMOTE_DISPLAY:-${DISPLAY}}
+
+		xauth nextract - ${_RDISP} | onx11server ${1+"$@"} 'xauth nmerge -'
+		unset _RDISP
+	}
+	sxauth ()
+	{
+		_RDISP=${REMOTE_DISPLAY:-${DISPLAY}}
+
+		xauth nextract - ${_RDISP} | onx11server -S ${1+"$@"} 'xauth nmerge -'
+		unset _RDISP
+	}
+	rxterm ()
+	{
+		_rhost=$1
+		shift
+		onx11server -n "$rhost" "xterm -ziconbeep 1 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -T rsh:$rhost $*" &
+		unset _rhost
+	}
+	ruxterm ()
+	{
+		_rhost=$1
+		shift
+		onx11server -n "$rhost" "uxterm -ziconbeep 1 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -T rsh:$rhost $*" &
+		unset _rhost
+	}
+	sxterm ()
+	{
+		_rhost=$1
+		shift
+		onx11server -S -f "$rhost" "xterm -ziconbeep 1 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -T ssh:$rhost $*"
+		unset _rhost
+	}
+	suxterm ()
+	{
+		rhost=$1
+		shift
+		onx11server -S -f "$rhost" "uxterm -ziconbeep 1 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -T ssh:$rhost $*"
+		unset _rhost
+	}
+fi
 
 # for window systems which don't emulate login sessions in each window
 #
@@ -66,7 +735,7 @@ do_first_time ()
 		$FORTUNE
 	fi
 	if [ -r calendar -o -r .month ] ; then
-		print "\nToday's Events:"
+		echo "\nToday's Events:"
 		if [ -r .month ] ; then
 			month -B
 		fi
@@ -75,88 +744,12 @@ do_first_time ()
 		fi
 	fi
 	lnotes
-	if [ -r $HOME/.trninit$TERM ] ; then
-		TRNINIT="$HOME/.trninit$TERM" ; export TRNINIT
+	if [ -r ${HOME}/.trninit${TERM} ] ; then
+		TRNINIT=${HOME}/.trninit${TERM} ; export TRNINIT
 	fi
 }
 
-#
-# always use ``$echo'' if any of the other variables are used...
-#	$nl - print a newline (always required at end of line if desired)
-#	$n - option to turn off final newline
-#	$c - escape sequence to turn off final newline
-# usage for a prompt is:
-#	$echo $n "prompt: $c"
-# and for a normal line
-#	$echo "message$nl"
-#
-echo=echo
-(echo "hi there\c" ; echo " ") >$HOME/echotmp
-# Configure checks to make sure grep returns a status...
-if grep c $HOME/echotmp >/dev/null 2>&1 ; then
-	nl=''
-	n='-n'
-	c=''
-else
-	nl='\n'
-	n=''
-	c='\c'
-fi
-rm -f $HOME/echotmp
-
-# NOTE: we don't export $echo et al -- they're just in the current shell
-
-# UGLY, but it works
-#
-# WARNING: this sed expression breaks if there isn't a group-id for each gid
-#
-eval "`id|sed -e 's/^uid=\([0-9]*\)(\(..*\)) gid=[0-9]*(\([^) ]*\)).*$/id=\1 uid=\2 gid=\3/'`"
-
-if [ "$id" -eq 0 ] ; then
-	# got to get rid of lone ":" or any "." in PATH
-	PATH="`echo $PATH | sed -e 's/::/:/g' -e 's/^://' -e 's/:$//' -e 's/^\.://' -e 's/:\.://' -e 's/:\.$//'`"
-	if $ISSUN; then
-		PATH="`echo $PATH | sed -e 's~^/bin:~~' -e 's~:/etc:~:~'`"
-		dirprepend PATH /usr/5bin
-		dirappend PATH /usr/openwin/bin
-	else
-		dirprepend PATH /etc
-	fi
-	dirprepend PATH /sbin /usr/sbin
-	dirappend PATH /usr/etc /usr/lbin /usr/ucb $X11BIN
-	if [ -n "$LOCAL" ] ; then
-		dirappend PATH $LOCAL/sbin $LOCAL/bin
-		if [ ! -d $LOCAL/sbin ] ; then
-			dirappend PATH $LOCAL/etc
-		fi
-	fi
-	if [ -n "$GNU" ] ; then
-		dirappend PATH $GNU/sbin $GNU/bin
-		if [ ! -d $GNU/sbin ] ; then
-			dirappend PATH $GNU/etc
-		fi
-	fi
-	if [ -n "$CONTRIB" ] ; then
-		dirappend PATH $CONTRIB/sbin $CONTRIB/bin
-		if [ ! -d $CONTRIB/sbin ] ; then
-			dirappend PATH $CONTRIB/etc
-		fi
-	fi
-	if [ -n "$PKG" ] ; then
-		dirappend PATH $PKG/sbin $PKG/bin
-		if [ ! -d $PKG/sbin ] ; then
-			dirappend PATH $PKG/etc
-		fi
-	fi
-	dirappend PATH /usr/lib/uucp /usr/lib
-	dirappend PATH $HOME/bin
-	PS1="$TTYN:<$LOGNAME@$UUNAME> # "
-elif [ "$uid" != "$LOGNAME" ] ; then
-	PS1="$TTYN:<$uid($LOGNAME)@$UUNAME)> $ "
-else
-	PS1="$TTYN:<$LOGNAME@$UUNAME> $ "
-fi
-if type ismpx 2>&1 >/dev/null ; then
+if type ismpx 2>/dev/null >/dev/null ; then # hmmm.... ksh93 and bash vs type?
 	: might just be running layers
 else
 	# otherwise it's just not possible....
@@ -168,21 +761,36 @@ fi
 
 if [ "`ismpx`" = yes -o "$TERM" = "dmd-myx" ] ; then
 	if [ "$LEV" -eq 0 ] ; then
-		do_first_time	# in xterms, we are a login shell, but not in layers
+		# in xterms, we are (normally, supposed to be) a login
+		# shell, but not in layers
+		do_first_time
 	fi
 	MYXCLR_L="`myxban -l`"
 	MYXCLR_C="`myxban -c`"
 	MYXCLR_R="`myxban -r`"
-	MYXCLR="${MYXCLR_L}${MYXCLR_C}${MYXCLR_R}"
-	MYXBAN_L='`pwd`'
+	MYXCLR=${MYXCLR_L}${MYXCLR_C}${MYXCLR_R}
+	MYXBAN_L='${BANNER_PWD}'
 
-	alias clearban='${echo} "${MYXCLR}${c}"'
+	clearban ()
+	{
+		WBANNER="${OWBANNER}";
+		setban
+	}
 
 	setban ()
 	{
-		clearban
+		if [ $# -ge 1 ]; then
+			# no trailing space -- usually just used to
+			# set alternate shell name
+			OWBANNER=${WBANNER}
+			WBANNER="$@"
+		fi
+		if [ -z "$BANNER_PWD" ]; then
+			BANNER_PWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;'`
+		fi
+		$echo $n "${MYXCLR}$c"
 		eval myxban -l "\"$MYXBAN_L\""
-		myxban -c "${WBANNER}"
+		myxban -c "${WBANNER:-`basename ${SHELL}`}"
 		eval myxban -r "\"$MYXBAN_R\""
 	}
 
@@ -191,13 +799,14 @@ if [ "`ismpx`" = yes -o "$TERM" = "dmd-myx" ] ; then
 #	cd ()
 #	{
 #		chdir ${1+"$@"}
-#		eval myxban -l "\"$MYXBAN_L\""
+#		setban
 #	}
 
 	setban
 fi
 
-if [ "$TERM" = "xterm" ] ; then
+case "$TERM" in
+*xterm*)
 	clearban ()
 	{
 		WBANNER=""
@@ -206,10 +815,20 @@ if [ "$TERM" = "xterm" ] ; then
 
 	setban ()
 	{
-		BANNERWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;'`
-		eval TBANNER='"${WBANNER:-sh}://$UUNAME/${BANNERWD} | $uid{$gid}($LOGNAME)[$LEV]:$TTYN"'
-		$echo "]0;$TBANNER$c"
-		WBANNER=""
+		if [ $# -ge 1 ]; then
+			# no trailing space -- usually just used to
+			# set alternate shell name
+			WBANNER=${1+"${@}"}
+		fi
+		if [ -z "$BANNER_PWD" ]; then
+			BANNER_PWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;'`
+		fi
+		if [ "$uid" = "$LOGNAME" ]; then
+			eval TBANNER='"${WBANNER:-`basename ${SHELL}`}://$UUNAME/$BANNER_PWD | $uid[$LEV]:$TTYN"'
+		else
+			eval TBANNER='"${WBANNER:-`basename ${SHELL}`}://$UUNAME/$BANNER_PWD | $uid:$gid($LOGNAME)[$LEV]:$TTYN"'
+		fi
+		$echo $n "\033]0;${TBANNER}\007$c"
 	}
 
 # most versions of SysV sh always run builtins before functions
@@ -217,41 +836,12 @@ if [ "$TERM" = "xterm" ] ; then
 #	cd ()
 #	{
 #		chdir ${1+"$@"}
-#		BANNERWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;'`
-#		setban 
+#		setban
 #	}
 
 	setban
-fi
-
-if $ISSUN; then
-	df ()
-	{
-		/usr/bin/df ${1+"$@"}
-	}
-fi
-if [ -d /var/spool/uucp ] ; then
-	uufollow ()
-	{
-		xtail /var/spool/uucp/.[AL]*/*
-	}
-else
-	uufollow ()
-	{
-		xtail /usr/spool/uucp/.[AL]*/*
-	}
-fi
-
-if [ -x /usr/ucb/rsh -a -x /bin/rsh ] ; then
-	rsh ()
-	{
-		/usr/ucb/rsh ${1+"$@"}
-	}
-fi
-
-if [ -r $HOME/.shsccs ] ; then
-	. $HOME/.shsccs
-fi
+	;;
+esac
 
 if [ -f /usr/share/misc/na.phone ]; then
 	areacode ()
@@ -263,14 +853,6 @@ fi
 errno ()
 {
 	grep "^#define[ 	]*[A-Z][A-Z]*[ 	]*$1[ 	]" /usr/include/sys/errno.h
-}
-
-lastcmd ()
-{
-	tr '[\001-\007]' '[\012*]' < .sh_history | \
-		tr '[\176-\377]' '[ *]' | \
-		egrep -v '^[	 }#]|^$' | \
-		tail ${1+"$@"}
 }
 
 malias ()
@@ -288,25 +870,103 @@ signo ()
 	grep -i "^#define[ 	]*.*${1}[ 	]*[0-9]" /usr/include/sys/signal.h
 }
 
+# trivial hack to quickly search a source tree where traditional
+# globbing would exceed ARG_MAX
+#
+# Requires a find with the SysVR4 "-exec ... {} ... +" feature.  (now
+# also mandated by SUSv3, aka IEEE 1003.1-2001/2004)
+#
+# Here is a command which must succeed on any POSIX conformant system
+# but which will fail if find lacks support for '+' due to a missing
+# ';' argument:
+#
+#	find /dev/null -exec true '{}' +
+#
+# The most portable alternative might be to use 'sed' and 'xargs'.
+# The sed command here is mandatory.  Contrary to popular belief,
+# xargs does NOT accept newline-delimited lists.  Rather it accepts
+# shell-quoted lists, i.e. the input list is separated by whitespace
+# and all internal whitespace must be quoted.  This command simply
+# quotes all characters with backslashes to satisfy this requirement,
+# protecting embedded whitespace in filenames.
+#
+#	find ... | sed 's/./\\&/g' | xargs command
+#
+# The best alternative is to use -print0, but that still requires a
+# pipeline to xargs.
+#
+# So, this is the a faster alternative to "find ... -print0 | xargs -0 ..."
+#
+srcfgrep ()
+{
+	find . \( -type d \( -name CVS -or -name .git -or -name .svn -or -name build -or -name 'build-*' -or -name autom4te.cache \) -prune \) -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -exec fgrep ${1+"${@}"} {} +
+}
+
 typeof ()
 {
-	if $ISSUN; then
-		LLIBDIR=/usr/lib/lint
-	else
-		LLIBDIR=/usr/lib
+	if [ -z "$LLIBDIR" ]; then
+		if $ISSUN; then
+			LLIBDIR=/usr/lib/lint
+		elif [ -d /usr/libdata/lint ]; then
+			# XXX not quite so useful when these are for xlint...
+			LLIBDIR=/usr/libdata/lint
+		else
+			LLIBDIR=/usr/lib
+		fi
 	fi
 	# should expand to allow '-l{lib}'
-	egrep -i "$1" $LLIBDIR/llib-lc $LLIBDIR/llib-lm $LLIBDIR/llib-lcurses
-	unset LLIBDIR
+	egrep -i "$1" $LLIBDIR/llib-l*
+}
+
+zhead ()
+{
+	zcat ${1+"${@}"} | head
 }
 
 #
 # the rest are implementations of favourite ksh aliases as functions
 #
+# (which can be removed by "rm_alias_funcs")
+#
+# functions are (maybe?) more overhead than aliases[???]
+#
 
-blstrip ()
+rm_alias_funcs ()
+{
+	# note: '-f' is only in ksh and bash, but that's where this is used
+	unset -f uufollow rsh blsqueeze blstrip ds e elc l la ll lla llr llra lr lra lsa nstty maillog rstty wcvs
+}
+rm_func_aliases ()
+{
+	unalias uufollow rsh blsqueeze blstrip ds e elc l la ll lla llr llra lr lra lsa nstty maillog rstty wcvs 2>/dev/null
+}
+
+# .... and in case we are sourcing this file for a second time....
+#
+rm_alias_funcs
+rm_func_aliases
+
+if [ -n "$UUCPSPOOLDIR" ]; then
+	uufollow ()
+	{
+		xtail $UUCPSPOOLDIR/.[AL]*/*
+	}
+fi
+if [ -x /usr/ucb/rsh -a -x /bin/rsh ] ; then
+	# /bin/rsh is likely the restricted shell!
+	rsh ()
+	{
+		/usr/ucb/rsh ${1+"$@"}
+	}
+fi
+
+blsqueeze ()
 {
 	sed "/./,/^$/!d"
+}
+blstrip ()
+{
+	sed "/./!d"
 }
 ds ()
 {
@@ -320,6 +980,11 @@ elc ()
 {
 	emacs -batch -q -no-site-file -f batch-byte-compile
 }
+hex2d ()
+{
+	# xxx NetBSD sh and pdksh don't seem to understand octal
+	echo "$(($@))"
+}
 l ()
 {
 	/bin/ls -CF ${1+"$@"}
@@ -330,19 +995,19 @@ la ()
 }
 ll ()
 {
-	/bin/ls -lis ${1+"$@"}
+	/bin/ls -ls ${1+"$@"}
 }
 lla ()
 {
-	/bin/ls -lisa ${1+"$@"}
+	/bin/ls -lsa ${1+"$@"}
 }
 llr ()
 {
-	/bin/ls -lisR ${1+"$@"}
+	/bin/ls -lsR ${1+"$@"}
 }
 llra ()
 {
-	/bin/ls -lisaR ${1+"$@"}
+	/bin/ls -lsaR ${1+"$@"}
 }
 lr ()
 {
@@ -359,6 +1024,7 @@ lsa ()
 nstty ()
 {
 	stty sane intr "^?" erase "^h" kill "^u" echoe echok
+	echo "(use 'tput reset', or 'tabs -8' to reset tabs, etc.)"
 }
 maillog ()
 {
@@ -367,8 +1033,11 @@ maillog ()
 rstty ()
 {
 	stty $SANE
+	echo "(use 'tput reset', or 'tabs -8' to reset tabs, etc.)"
 }
 wcvs ()
 {
-	print $CVSROOT
+	echo $CVSROOT
 }
+
+# done....

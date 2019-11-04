@@ -1,19 +1,32 @@
 #
 #	.kshlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.kshlogin	35.1	13/12/02 18:39:35 (woods)"
+#ident	"@(#)HOME:.kshlogin	35.2	19/11/03 16:58:07 (woods)"
 
-echo "$0: setup for Korn Shell"
+case "$-" in
+*i*)
+	#
+	# Commands for interactive shells.
+	#
+	# NOTE: This should _always_ be true for any shell sourcing this file!
+	#
+	echo "$0: setup for Korn Shell"
 
-set -o ignoreeof	# we only do this for our login shell....
+	set -o ignoreeof	# we only do this for our login shell....
+
+	# for emacs timeclock.el
+	#
+	if [ ! -f ~/.timelog ] ; then
+		touch ~/.timelog
+	fi
+	;;
+*)
+	# this can be misleading for .xinitrc
+	echo "$0: WARNING: .kshlogin being sourced by a non-interactive shell!"
+	;;
+esac
 
 export FPATH=$HOME/lib/ksh
-
-# this may be a good idea (from Frederick Bruckman <fredb@immanent.net>)
-#
-#for func in $(ls "$FPATH"); do
-#	autoload $func
-#done
 
 export FCEDIT="$(whence ed)"
 
@@ -22,7 +35,7 @@ export ENVFILE=$HOME/.kshrc
 if [ -n "$ENVFILE" -a -r "$ENVFILE" ] ; then
 	#
 	# This magic expression prevents a non-interactive Ksh
-	# instance from even trying to open and read any file.
+	# instance from ever even trying to open and read any file.
 	#
 	# The original Korn & Bolsky book [1989] suggests....
 	#
@@ -53,9 +66,9 @@ if [ -n "$ENVFILE" -a -r "$ENVFILE" ] ; then
 	# elements will result in an empty value.
 	#
 	#	$ export ENVFILE='~/.envfile'
-	#	$ echo $ENVFILE[0]
+	#	$ echo ${ENVFILE[0]}
 	#	~/.envfile
-	#	$ echo $ENVFILE[1]
+	#	$ echo ${ENVFILE[1]}
 	#	
 	#	$ 
 	#
@@ -145,12 +158,6 @@ export HISTSIZE=2000
 if [ -z "$LOGNAME" ] ; then
 	# some systems won't allow this...
 	export LOGNAME=${HOME##*/}
-fi
-
-# for emacs timeclock.el
-#
-if [ ! -f ~/.timelog ] ; then
-	touch ~/.timelog
 fi
 
 # Note: this depends on, and requires, the "cd" at the end of ~/.profile

@@ -1,7 +1,7 @@
 #
 #	.kshpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.kshpwd	35.1	13/12/02 18:39:35 (woods)"
+#ident	"@(#)HOME:.kshpwd	35.2	19/11/03 16:58:07 (woods)"
 
 unalias cd
 alias cd='_cd'
@@ -12,25 +12,26 @@ function _cd
 	else
 		# XXX "\cd ''" goes nowhere
 		\cd
-	fi     
+	fi
 	case "$PWD" in
-	*/work.d/*)
-		BANNER_PWD='work.d:'"${PWD#*/work.d/}"
-		;;
-	/work/${LOGNAME}/*)
-		BANNER_PWD='mywrk:'"${PWD#/work/${LOGNAME}/}"
-		;;
-	/work/*)
-		BANNER_PWD='work:'"${PWD#/work/}"
-		;;
 	${HOME})
+		# avoid the trailing slash, e.g.: sh://host/~/
 		BANNER_PWD='~'
+		;;
+	${HOME}/*)
+		BANNER_PWD='~'${PWD#$HOME}
 		;;
 	$(dirname ${HOME})/*)
 		BANNER_PWD='~'"${PWD#$(dirname $HOME)/}"
 		;;
 	/home/*)
 		BANNER_PWD='~'"${PWD#/home/}"
+		;;
+	"*/work?(.d)/${LOGNAME}/*")
+		BANNER_PWD='mywork:'"${PWD#*/work?(.d)/${LOGNAME}/}"
+		;;
+	"*/work?(.d)/*")
+		BANNER_PWD='work:'"${PWD#*/work?(.d)/}"
 		;;
 	/usr/src/*)
 		BANNER_PWD='src:'"${PWD#/usr/src/}"
@@ -42,12 +43,10 @@ function _cd
 		BANNER_PWD='xsrc:'"${PWD#/usr/xsrc/}"
 		;;
 	*)
+		# trim just the leading slash to avoid "sh://host//dir"
 		BANNER_PWD="${PWD#/}"
 		;;
 	esac
-	if [ "$(ismpx)" = yes ] ; then
-		eval myxban -l "\"$MYXBAN_L\""
-	fi
 	if type setban > /dev/null ; then
 		setban
 	fi
@@ -58,6 +57,6 @@ function _cd
 #
 case "$0" in
 -*)
-	cd; cd -
+	cd; cd - >/dev/null
 	;;
 esac

@@ -1,11 +1,12 @@
 #
 #	.ashpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.ashpwd	35.1	13/12/02 18:39:35 (woods)"
+#ident	"@(#)HOME:.ashpwd	35.2	19/11/03 16:58:06 (woods)"
 
-# NOTE: the only difference between this and .kshpwd is that this
+# NOTE: the only real difference between this and .kshpwd is that this
 # version only defines a function which hides the builtin (no alias)
-# and it then uses the alternate builtin of "chdir".
+# and it then uses the alternate builtin of "chdir".  The content of
+# the inner "case" statement should be identical.
 
 cd ()
 {
@@ -17,26 +18,35 @@ cd ()
 	else
 		# XXX "chdir ''" goes nowhere
 		chdir
-	fi     
+	fi
 	chdir "$*"
+	#
+	# NOTE:  some derivatives of ash(1) will always set $PWD to be
+	# the directory returned by getcwd(3), and not the symlink(s)
+	# given to chdir and followed to get to the current directory,
+	# so some of these abbreviations may not always have the
+	# desired effect, based on the configuration of the local
+	# system.
+	#
 	case "$PWD" in
-	*/work.d/*)
-		BANNER_PWD='work.d:'"${PWD#*/work.d/}"
-		;;
-	/work/${LOGNAME}/*)
-		BANNER_PWD='mywrk:'"${PWD#/work/${LOGNAME}/}"
-		;;
-	/work/*)
-		BANNER_PWD='work:'"${PWD#/work/}"
-		;;
 	${HOME})
+		# avoid the trailing slash, e.g.: sh://host/~/
 		BANNER_PWD='~'
+		;;
+	${HOME}/*)
+		BANNER_PWD='~'${PWD#$HOME}
 		;;
 	$(dirname ${HOME})/*)
 		BANNER_PWD='~'"${PWD#$(dirname $HOME)/}"
 		;;
 	/home/*)
 		BANNER_PWD='~'"${PWD#/home/}"
+		;;
+	"*/work?(.d)/${LOGNAME}/*")
+		BANNER_PWD='mywork:'"${PWD#*/work?(.d)/${LOGNAME}/}"
+		;;
+	"*/work?(.d)/*")
+		BANNER_PWD='work:'"${PWD#*/work?(.d)/}"
 		;;
 	/usr/src/*)
 		BANNER_PWD='src:'"${PWD#/usr/src/}"
@@ -48,22 +58,15 @@ cd ()
 		BANNER_PWD='xsrc:'"${PWD#/usr/xsrc/}"
 		;;
 	*)
+		# trim just the leading slahs to avoid "sh://host//dir"
 		BANNER_PWD="${PWD#/}"
 		;;
 	esac
 	if [ "$(ismpx)" = yes ] ; then
 		eval myxban -l "\"$MYXBAN_L\""
 	fi
+	# there would be no point without setban, but we must test it anyway
 	if type setban > /dev/null ; then
 		setban
 	fi
 }
-
-# make sure BANNER_PWD is now set as we want it,
-# but _ONLY_ for interactive shells!
-#
-case "$0" in
--*)
-	cd; cd -
-	;;
-esac

@@ -1,15 +1,28 @@
 #
 #	.bashlogin - login shell startup for bash
 #
-#ident	"@(#)HOME:.bashlogin	35.1	13/12/02 18:39:34 (woods)"
+#ident	"@(#)HOME:.bashlogin	35.2	19/11/03 16:58:06 (woods)"
 
-echo "$0: setup for BASH"
+case "$-" in
+*i*)
+	echo "$0: setup for BASH ($0)"
+	set -o ignoreeof	# we only do this for our login shell....
+	# for emacs timeclock.el
+	#
+	if [ ! -f ~/.timelog ] ; then
+		touch ~/.timelog
+	fi
+	;;
+esac
 
-set -o ignoreeof	# we only do this for our login shell....
+export ENVFILE=$HOME/.bashrc
 
-export ENV=$HOME/.bashrc
-if [ -r $ENV ] ; then
-	. $ENV
+if [ -n "$ENVFILE" -a -r "$ENVFILE" ] ; then
+	# see ~/.kshlogin for an explanation
+	export BASH_ENV='${ENVFILE[(_$-=1)+(_=0)-(_$-!=_${-%%*i*})]}'
+	# Bash is stupid.  $BASH_ENV only works automatically if it's
+	# already set in the environment!
+	. $ENVFILE
 fi
 
 export FCEDIT=$(type -path ed)
@@ -18,7 +31,6 @@ if [ "$TTY" = "not a tty" ] ; then
 	echo "Trying to fix TTY..."
 	TTY=$(tty)
 	TTYN=$(basename $TTY)
-	setban
 fi
 
 if [ -z "$LOGNAME" ] ; then

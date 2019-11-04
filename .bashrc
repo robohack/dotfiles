@@ -1,12 +1,13 @@
 #
 #	.bashrc - per-shell startup stuff for bash via $ENV
 #
-#ident	"@(#)HOME:.bashrc	35.1	13/12/02 18:39:34 (woods)"
+#ident	"@(#)HOME:.bashrc	35.2	19/11/03 16:58:06 (woods)"
 
 # Assumptions:
 
 # Files referenced:
 #
+#	$HOME/.shrc		- sourced for common shell functions
 #	$HOME/.bashsccs		- sourced, if it is readable
 #	$HOME/.bashedit		- sourced, if it is readable else emacs editing set
 #	$HOME/.bashlocal	- sourced, if it is readable
@@ -15,8 +16,14 @@ if [ -z "$SHELL" ] ; then
 	export SHELL=$BASH
 fi
 
-case $- in *i*)
-# everything else in this file is for interactive use only
+# we assume ~/.profile is sourced only by login shells, and by
+# ~/.xinitrc or by a window manager, but won't be sourced by default
+# by a non-interactive shell
+#
+if ! typeset -f zhead >/dev/null ; then
+	. $HOME/.shrc
+fi
+rm_alias_funcs
 
 set -o monitor
 if [ -r $HOME/.bashedit ] ; then
@@ -52,7 +59,7 @@ fi
 dirappend()
 {
 	if [ $# -le 1 -o -z "$1" ] ; then
-		print "Usage: dirappend variable directory [...]" >&2
+		echo "Usage: dirappend variable directory [...]" >&2
 		exit 2
 	fi
 	varname=$1
@@ -74,7 +81,7 @@ fi
 dirprepend()
 {
 	if [ $# -le 1 -o -z "$1" ] ; then
-		print "Usage: dirprepend variable directory [...]" >&2
+		echo "Usage: dirprepend variable directory [...]" >&2
 		exit 2
 	fi
 	varname=$1
@@ -124,7 +131,7 @@ lnotes()
 		cd $HOME/notes
 		if [ $(ls|wc -w) != 0 ] ; then
 			if test -t 1; then
-				print '\nYou have notes on:' 
+				printf '\nYou have notes on:\n'
 				ls -dC *[!~]
 			else
 				ls -d *[!~]
@@ -134,6 +141,142 @@ lnotes()
 	fi
 }
 
+if typeset -f do_first_time >/dev/null ; then
+	unset -f do_first_time
+fi
+
+# for window systems which don't emulate login sessions in each window
+#
+do_first_time()
+{
+	if [ -x /usr/games/fortune ] ; then
+		/usr/games/fortune
+	elif [ -x "$FORTUNE" ] ; then
+		$FORTUNE
+	fi
+	if [ -r calendar -o -r .month ] ; then
+		printf "\nToday's Events:\n"
+		if [ -r .month ] ; then
+			month -B
+		fi
+		if [ -r calendar ] ; then
+			calendar
+		fi
+	fi
+	if [ -d $HOME/notes ] ; then
+		(
+			cd $HOME/notes
+			if [ $(ls|wc -w) != 0 ] ; then
+				printf '\nNotes on: \n' *
+			fi
+		)
+	fi
+	if [ -r $HOME/.trninit$TERM ] ; then
+		TRNINIT="$HOME/.trninit$TERM" ; export TRNINIT
+	fi
+}
+
+if type ismpx >/dev/null  2>&1 ; then
+	: might just be running layers
+else
+	# otherwise it's just not possible....
+	ismpx ()
+	{
+		false
+	}
+fi
+
+if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
+	if [ "$LEV" -eq 0 ] ; then
+		do_first_time	# in xterms, we are a login shell, but not in layers
+	fi
+	MYXCLR_L="$(myxban -l)"
+	MYXCLR_C="$(myxban -c)"
+	MYXCLR_R="$(myxban -r)"
+	MYXCLR="${MYXCLR_L}${MYXCLR_C}${MYXCLR_R}"
+	MYXBAN_L='$(pwd)'
+
+	# xxx this doesn't mean what it used to mean...
+	alias clearban='printf "${MYXCLR}"; WBANNER=""; setban'
+
+	# XXX this probably doesn't do what I expect it to do any more either...
+	# (because myxban is special in being able to set just one part)
+	setban ()
+	{
+		if [ $# -ge 1 ]; then
+			WBANNER="$@"
+		fi
+		if [ -z "$BANNER_PWD" ]; then
+			BANNER_PWD=$(pwd)
+		fi
+		printf "${MYXCLR}"
+		eval myxban -l "\"$MYXBAN_L\""
+		myxban -c "${WBANNER:-$(basename ${SHELL})}"
+		eval myxban -r "\"$MYXBAN_R\""
+	}
+
+	# basic form -- may be re-defined in ~/.bashpwd
+	cd ()
+	{
+		builtin cd "$*"
+		eval myxban -l "\"$MYXBAN_L\""
+	}
+
+fi
+# else
+case "$TERM" in
+"xterm")
+	alias clearban='WBANNER=""; setban'
+
+	setban ()
+	{
+		if [ -z "$WBANNER" ]; then
+			# no trailing space -- usually just used to
+			# set alternate shell name
+			WBANNER=$@
+		fi
+		if [ -z "$BANNER_PWD" ]; then
+			# only if needed (it's expensive), usually done by 'cd'
+			BANNER_PWD=$(pwd)
+		fi
+		if [ "$uid" = "$LOGNAME" ]; then
+			eval TBANNER='"${WBANNER:-$(basename ${SHELL})}://$UUNAME/$BANNER_PWD | $uid[$LEV]:$TTYN"'
+		else
+			eval TBANNER='"${WBANNER:-$(basename ${SHELL})}://$UUNAME/$BANNER_PWD | $uid:$gid($LOGNAME)[$LEV]:$TTYN"'
+		fi
+		printf "\033]0;${TBANNER}\007"
+	}
+
+	cd ()
+	{
+		builtin cd "$@"
+		BANNER_PWD=$(pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;' -e 's;^/;;')
+# not yet implemented...
+#		BANNERWD=`pwd`
+#		case "$BANNERWD" in
+#		*/work.d/*)
+#			PWD='work.d:'"${BANNERWD#*/work.d/}"
+#			;;
+#		${HOME})
+#			BANNERWD='~'
+#			;;
+#		`dirname ${HOME}`/*)
+#			PWD='~'"${BANNERWD#`dirname $HOME`/}"
+#			;;
+#		/home/*)
+#			PWD='~'"${BANNERWD#/home/}"
+#			;;
+#		*/src/*)
+#			PWD='src:'"${BANNERWD#*/src/}"
+#			;;
+#		esac
+		setban
+	}
+
+	setban
+	;;
+esac
+
 # UGLY, but it works
 #
 # WARNING: this sed expression breaks if there isn't a group-id for each gid
@@ -142,9 +285,9 @@ eval "$(id|sed -e 's/^uid=\([0-9]*\)(\(..*\)) gid=[0-9]*(\([^) ]*\)).*$/id=\1 ui
 
 if [ "$id" -eq 0 ] ; then
 	# got to get rid of lone ":" or any "." in PATH
-	PATH="`echo $PATH | sed -e 's/::/:/g' -e 's/^://' -e 's/:$//' -e 's/^\.://' -e 's/:\.://' -e 's/:\.$//'`"
+	PATH=$(echo $PATH | sed -e 's/::/:/g' -e 's/^://' -e 's/:$//' -e 's/^\.://' -e 's/:\.://' -e 's/:\.$//')
 	if $ISSUN; then
-		PATH="`echo $PATH | sed -e 's~^/bin:~~' -e 's~:/etc:~:~'`"
+		PATH=$(echo $PATH | sed -e 's~^/bin:~~' -e 's~:/etc:~:~')
 		dirprepend PATH /usr/5bin
 		dirappend PATH /usr/openwin/bin
 	else
@@ -189,161 +332,6 @@ else
 		PS1="$TTYN:<$LOGNAME@$UUNAME> $ "
 		;;
 	esac
-fi
-
-if typeset -f do_first_time >/dev/null ; then
-	unset -f do_first_time
-fi
-
-# for window systems which don't emulate login sessions in each window
-#
-function do_first_time
-{
-	if [ -x /usr/games/fortune ] ; then
-		/usr/games/fortune
-	elif [ -x "$FORTUNE" ] ; then
-		$FORTUNE
-	fi
-	if [ -r calendar -o -r .month ] ; then
-		print "\nToday's Events:"
-		if [ -r .month ] ; then
-			month -B
-		fi
-		if [ -r calendar ] ; then
-			calendar
-		fi
-	fi
-	if [ -d $HOME/notes ] ; then
-		(
-			cd $HOME/notes
-			if [ $(ls|wc -w) != 0 ] ; then
-				print '\nNotes on: ' *
-			fi
-		)
-	fi
-	if [ -r $HOME/.trninit$TERM ] ; then
-		TRNINIT="$HOME/.trninit$TERM" ; export TRNINIT
-	fi
-}
-
-if type ismpx >/dev/null  2>&1 ; then
-	: might just be running layers
-else
-	# otherwise it's just not possible....
-	ismpx ()
-	{
-		false
-	}
-fi
-
-if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
-	if [ "$LEV" -eq 0 ] ; then
-		do_first_time	# in xterms, we are a login shell, but not in layers
-	fi
-	MYXCLR_L="$(myxban -l)"
-	MYXCLR_C="$(myxban -c)"
-	MYXCLR_R="$(myxban -r)"
-	MYXCLR="${MYXCLR_L}${MYXCLR_C}${MYXCLR_R}"
-	MYXBAN_L='`pwd`'
-
-	alias clearban='print "${MYXCLR}\c"'
-
-	setban ()
-	{
-		clearban
-		eval myxban -l "\"$MYXBAN_L\""
-		myxban -c "${WBANNER}"
-		eval myxban -r "\"$MYXBAN_R\""
-	}
-
-	cd ()
-	{
-		builtin cd "$@"
-		eval myxban -l "\"$MYXBAN_L\""
-	}
-
-	setban
-fi
-
-if [ "$TERM" = "xterm" ] ; then
-	alias clearban='WBANNER=""; setban'
-
-	onx11server ()
-	{
-		_RDISP=""
-		_USAGE="$argv0: $0(): Usage: onx11server [-nS] [-D REMOTE_DISPLAY] SERVERNAME 'command string'"
-		_nullopt=""
-		while getopts nD:S OPTCH
-		do
-			case $OPTCH in
-			n)
-				_nullopt="-n"
-				;;
-			D)
-				_RDISP="${OPTARG}"
-				;;
-			S)
-				RSH=${SSH:-ssh}
-				;;
-			*)
-				echo "$_USAGE" >&2
-				return 2
-				;;
-			esac
-		done
-		shift $(( $OPTIND - 1 ))
-
-		if [ $# -ne 2 ]; then
-			echo "$_USAGE" >&2
-			return 2
-		fi
-
-		_X11server=$1
-		echo "$argv0: starting $RSH $_nullopt $_X11server '. ./.profile; export DISPLAY=${_RDISP:-${DISPLAY}}; exec $2'"
-		# note: don't run this in the background -- let the caller do that
-		$RSH $_nullopt $_X11server ". ./.profile; export DISPLAY=${_RDISP:-${DISPLAY}}; exec $2"
-	}
-
-	setban ()
-	{
-		if [ -z "$WBANNER" ]; then
-			WBANNER=$@
-		fi
-		if [ -z "$BANNERPWD" ]; then
-			BANNERPWD=$(pwd)
-		fi
-		eval TBANNER='"${WBANNER:-sh}://$UUNAME/${BANNERWD} | $uid{$gid}($LOGNAME)[$LEV]:$TTYN"'
-		echo -n "]0;$TBANNER"
-		WBANNER=""
-	}
-
-	cd ()
-	{
-		builtin cd "$@"
-		BANNERWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;' -e 's;^/;;'`
-# not yet implemented in 4.4BSD ash...
-#		BANNERWD=`pwd`
-#		case "$BANNERWD" in
-#		*/work.d/*)
-#			PWD='work.d:'"${BANNERWD#*/work.d/}"
-#			;;
-#		${HOME})
-#			BANNERWD='~'
-#			;;
-#		`dirname ${HOME}`/*)
-#			PWD='~'"${BANNERWD#`dirname $HOME`/}"
-#			;;
-#		/home/*)
-#			PWD='~'"${BANNERWD#/home/}"
-#			;;
-#		*/src/*)
-#			PWD='src:'"${BANNERWD#*/src/}"
-#			;;
-#		esac
-		setban
-	}
-
-	setban
 fi
 
 if $ISSUN; then
@@ -410,31 +398,46 @@ typeof ()
 	unset LLIBDIR
 }
 
+alias backslashjoin='sed -e :a -e "/\\\\$/N; s/\\\\\\n//; ta"'
+alias blsqueeze='sed "/./,/^$/!d"'
 alias blstrip='sed "/./,/^$/!d"'
 alias c='tput clear'
 alias clear='tput clear'
+alias deadlinks='find . -type l -a ! \( -follow -type f \) -print'
 alias ds='$PAGER'
 alias e='${VISUAL:-$EDITOR}'
 alias ealias='e $ENV'
 alias elc='emacs -batch -q -no-site-file -f batch-byte-compile'
+# Don't list directories and links by appending "! -type d ! -type l"
+alias findls='find . ! -name . -prune'
+alias gitfind='git ls-tree -r --name-only HEAD'
 alias h='fc -l | tail'
 alias j='jobs -l'
 alias l='/bin/ls $LS_OPTIONS -CF'
+alias lD='/bin/ls -CFd'
+alias lL='/bin/ls -CFL'
 alias la='/bin/ls $LS_OPTIONS -CFa'
 alias ll='/bin/ls $LS_OPTIONS -lis'
+alias llD='/bin/ls -lisd'
+alias llL='/bin/ls -lisL'
 alias lla='/bin/ls $LS_OPTIONS -lisa'
+alias lld='/bin/ls -lisd'
 alias llr='/bin/ls $LS_OPTIONS -lisR'
 alias llra='/bin/ls $LS_OPTIONS -lisaR'
 alias lr='/bin/ls $LS_OPTIONS -CFR'
 alias lra='/bin/ls $LS_OPTIONS -CFRa'
 alias lsa='/bin/ls $LS_OPTIONS -a'
 alias logout='exit 0'
-alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok'
+alias maildate='LANG=c date "+%a, %d %b %Y %T %z"'
 alias maillog='$PAGER -e -p ": \[[0-9]*\] remote [A-Z ]*:" +G $MAILLOG'
+alias nosgr='echo '
+alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok'
 alias rstty='stty $SANE'
+alias rsyncbackup='rsync -a -H -E --numeric-ids'
+alias srcfind="find . -type d \( -name CVS -or -name .git -or -name .svn -or -name build -or -name 'build-*' -or -name autom4te.cache \) -prune -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -print"
+alias srcfind0="find . -type d \( -name CVS -or -name .git -or -name .svn -or -name build -or -name 'build-*' -or -name autom4te.cache \) -prune -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -print0"
 alias uuq='uusnap -av'
 alias wcvs='echo $CVSROOT'
+alias zds="z$PAGER"
 
 unset -f do_first_time
-
-esac
