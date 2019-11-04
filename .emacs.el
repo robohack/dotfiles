@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	35.3	19/11/03 16:50:12 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	35.5	19/11/03 16:51:54 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -1447,7 +1447,7 @@ The backup file name will have the form ‹name›~‹timestamp›~"
 	 ;;
 	 (backup-filename (concat (file-name-nondirectory filename)
 				  "~"
-				  (format-time-string "HOMEm%dT%H:%M:%S" last-mod) ; XXX watch out for SCCS keyword expansion!
+				  (format-time-string (concat "%Y" "%m" "%dT%H:%M:%S") last-mod)
 				  "~")))
     (message (concat "Backup saved as: " backup-filename))
 
