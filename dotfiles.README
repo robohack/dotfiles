@@ -46,20 +46,21 @@ using my modified version of
 
 	git-sccsimport --move-date=2010/11/5T00:00:00 --move-offset=3 --expand-kw --maildomain=robohack.ca --git-dir="$HOME/work/home" --dirs SCCS
 
-(Note:  On 2010/11/04 I arrived in Kelowna from Toronto, so since then
-local timestamps are three hours less than they were, so if the SCCS
-timestamp is from before that date, then I tell `git-sccsimport` to add
-three hours.  With `--expand-kw` it is possible to see exact
-correspondence between the new Git dates and the dates in all the SCCS
-headers using "`git log --date=local -p --full-diff`".)
+(Note:  On 2010/11/04 I arrived in Kelowna from Toronto, so since that
+time the local SCCS timestamps are three hours less than they were, so
+if an SCCS timestamp is from before that date, then I tell
+`git-sccsimport` to add three hours to it.  Combined with use of
+`--expand-kw` it is then possible to see the exact correspondence
+between the new Git dates and the dates in all the SCCS headers using
+"`git log --date=local -p --full-diff`".)
 
 Then I published my dotfiles!
 
 	cd ~/work/home
 	hub create robohack/dotfiles
 
-To use I Git to record changes to my dotfiles I just moved (or copied)
-the `.git` directory into place:
+To use Git to record changes to my dotfiles I just moved (or copied) the
+`.git` directory into place:
 
 	mv ~/work/home/.git ~/.dotfiles-git
 
@@ -73,14 +74,22 @@ You can avoid having git complain about all the other things you keep in
 
 	dfgit config --local status.showUntrackedFiles no
 
-Then you can clone to a new machine with (again note "`--bare`"):
+Then you can clone to a new machine with (again note "`--bare`", which
+you do need here else you'll get the repository cloned into
+`~/.dotfiles-git/.git` and everything initially checked out in
+`~/.dotfiles-git`):
 
 	git clone --bare https://github.com/USERNAME/dotfiles.git $HOME/.dotfiles-git
 	git --git-dir=$HOME/.dotfiles-git/ --work-tree=$HOME checkout
 	. ~/.shrc	# to get "dfgit"
 
+_Note:_  Until I figure out the Magit vs. `GIT_DIR` problem[*](#more) I
+won't likely be using Git directly to record changes -- I'll continue
+using SCCS and incrementally update
+[dotfiles](https://github.com/robohack/dotfiles) from them.
 
-## More Notes and Open Questions
+
+## More Notes and Open Questions {#more}
 
 Maybe (???) you can add the following to the end of your
 `~/.dotfiles-git/config` file to enable overriding from another (local)
@@ -109,4 +118,4 @@ But how to manage changes with Magit???
 Another detailed description of this kind of setup is found at:
 [https://www.atlassian.com/git/tutorials/dotfiles]
 
-#ident	"@(#)HOME:dotfiles.README	35.2	19/11/03 16:07:13 (woods)"
+#ident	"@(#)HOME:dotfiles.README	35.3	19/11/03 16:30:37 (woods)"
