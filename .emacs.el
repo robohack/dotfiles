@@ -2,18 +2,28 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	35.2	13/12/09 11:45:19 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	35.3	19/11/03 16:50:12 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
-;;;; primarily tested on v22.3 and v23.3; a bit on v21.4, v24.2, and v24.3
+;;;; primarily tested on v23.3, v25.3, and v26.1
 ;;;;
+;;;; (someday support for versions prior to v23.3 should just be removed)
+;;;;
+;; A simple 1-based ruler (note the column counter in the mode line is 0-based)
 ;;      10:       20:       30:       40:       50:       60:       70:       80:       90:      100:      110:      120:      130:
 ;;3456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 123456789 12
 
 ;;; This file should be stored in "~/.emacs.el".
 ;;; Saving it will normally compile it into "~/.emacs.elc".
-;;; Make a (symbolic) link from "~/.emacs" to "~/.emacs.elc" to use it.
+;;; You need to compile it with the oldest version you use in the same $HOME.
+;;; Make a (symbolic) link from "~/.emacs" pointing to "~/.emacs.elc" to use it.
+;;;
+;;; Use something like the following to compile it from the command line:
+;;;
+;;;	cd $HOME && emacs -batch -q -no-site-file -f batch-byte-compile .emacs.el
+
+;;; Run `my-packages-install' after first installing, or upgrading, emacs.
 
 ;;; NOTES:
 ;;;
@@ -25,13 +35,17 @@
 
 ;;; TODO:
 ;;;
-;;; Use `eval-after-load' more....
+;;; Use `eval-after-load' (or when available `with-eval-after-load'?) more....
+;;;
+;;; Use `use-package' more intelligently.
 
 ;;; to debug, eval (^X^E) these after starting with "emacs -q":
 ;;;
 ;;; (setq debug-on-error t)
 ;;; (load-file "~/.emacs.el")
 ;;;
+;;; [note:  newer emacs have a "--debug-init" command-line option]
+
 ;;; more goodies for debug:
 ;;;
 ;;; (setq debug-on-error nil)
@@ -39,6 +53,7 @@
 ;;; (setq stack-trace-on-error nil)
 ;;; (setq debug-on-quit t)
 ;;; (setq debug-on-quit nil)
+;;; (list-load-path-shadows)
 
 ;;; helpers for calendar session
 ;;;
@@ -47,6 +62,9 @@
 ;;;
 ;;; eval this to re-start appt-check:
 ;;; (setq appt-timer (run-at-time t 60 'appt-check))
+;;;
+;;; eval this to prevent the diary update at midnight
+;;; (setq appt-display-diary nil)	; do not display diary at midnight
 
 ;; I don't want that annoying startup message.
 (setq inhibit-startup-message t)
@@ -126,6 +144,13 @@
 ;;;; ----------
 ;;;; things to do for coding systems, MULE, etc.
 
+;; XXX N.B.:  display-graphic-p etc.
+;;
+;; Use of `window-system' as a predicate is deprecated.  Instead, use
+;; `display-graphic-p' or any of the other `display-*-p' predicates which report
+;; frame's specific UI-related capabilities.
+
+
 ;; XXX should this actually be done in the `after-init-hook' function?
 
 (if (>= init-emacs-type 20)
@@ -181,17 +206,12 @@ in `.emacs', and put all the actual code on `after-init-hook'."
     ;; (require 'time)	; this isn't provided by time.el!
     (let ((process-connection-type nil)) ; pty's are limited, pipes are not
       (display-time))	; display-time is autoload'ed
-    ;; XXX for some reason in 22.3 this appears to be on but doesn't work
-    ;; unless it's forced on like this. (see below for the `require')
+    ;; XXX for some reason in 22.3 this appears to be on but doesn't work unless
+    ;; it's forced on like this. (see below for the `require' of jka-compr)
     (if (fboundp 'auto-compression-mode)
 	(auto-compression-mode 1))
     (if (fboundp 'auto-image-file-mode)
-	(auto-image-file-mode 1))
-;    ;; sometimes handy (available, and autoload'ed, by default since 19.23)
-;    (icomplete-mode 1)
-;    (if (>= init-emacs-type 22)
-;	;; a bit like icomplete, but even more annoying....
-;	(ido-mode 1))
+	(auto-image-file-mode))
     ;;
     ;; Message-Id: <9601081816.AA07579@alex.x.org>
     ;; From: Stephen Gildea <gildea@x.org>
@@ -216,7 +236,9 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 ;;;; ----------
 ;;;; get ready to load stuff
 
-(defvar original-load-path load-path "The value of load-path at startup.")
+;; detect potential problems with `list-load-path-shadows'
+
+(defvar load-path-ORIGINAL load-path "The original value at startup.")
 
 ;; You may need to install subdirs.el into each of the following "site-lisp" or
 ;; "elisp" directories.  It should contain the following:
@@ -303,7 +325,7 @@ in `.emacs', and put all the actual code on `after-init-hook'."
   (if (and (boundp 'vc-path)
 	   (not (get 'vc-path 'byte-obsolete-variable)))
       (progn
-	(defvar original-vc-path vc-path "The value of vc-path at startup.")
+	(defvar vc-path-ORIGINAL vc-path "The original value at startup.")
 	(setq vc-path
 	      (if (file-directory-p "/usr/sccs")
 		  '("/usr/sccs")
@@ -313,36 +335,41 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 		      '("/usr/pkg/libexec/cssc")
 		    nil)))))))
 
-;; colour is nice, but on a monochrome screen vc-annotate shows invisble text
+;; colour is nice, but on a monochrome screen vc-annotate shows invisible text
 ;;
 ;; unfortunately there's no vc-annotate-hook to run to first test if the
 ;; current frame is colour-capable or not (eg. using `display-color-p') so this
 ;; is all-or-nothing....
 ;;
+;; NOTE: vc-annotate's default colours are still poorly chosen for white
+;; backgrounds, as is sadly typical of many coloured things in emacs...
+;;
 (require 'vc)
 (defvar vc-annotate-background)		; ??? for 23.3?
 (setq vc-annotate-background nil)
-(defvar vc-annotate-color-map)
-(setq vc-annotate-color-map
-   '(( 26.3672 . "black")
-    ( 52.7344 . "black")
-    ( 79.1016 . "black")
-    (105.4688 . "black")
-    (131.8359 . "grey3")
-    (158.2031 . "grey3")
-    (184.5703 . "grey3")
-    (210.9375 . "grey3")
-    (237.3047 . "grey3")
-    (263.6719 . "grey3")
-    (290.0391 . "grey3")
-    (316.4063 . "grey3")
-    (342.7734 . "grey3")
-    (369.1406 . "grey3")
-    (395.5078 . "grey3")
-    (421.8750 . "grey3")
-    (448.2422 . "grey3")))
-(defvar vc-annotate-very-old-color)
-(setq vc-annotate-very-old-color "grey1")
+(if (< (display-color-cells) 8)
+    (progn
+      (defvar vc-annotate-color-map)
+      (setq vc-annotate-color-map
+	    '(( 26.3672 . "black")
+	      ( 52.7344 . "black")
+	      ( 79.1016 . "black")
+	      (105.4688 . "black")
+	      (131.8359 . "grey3")
+	      (158.2031 . "grey3")
+	      (184.5703 . "grey3")
+	      (210.9375 . "grey3")
+	      (237.3047 . "grey3")
+	      (263.6719 . "grey3")
+	      (290.0391 . "grey3")
+	      (316.4063 . "grey3")
+	      (342.7734 . "grey3")
+	      (369.1406 . "grey3")
+	      (395.5078 . "grey3")
+	      (421.8750 . "grey3")
+	      (448.2422 . "grey3")))
+      (defvar vc-annotate-very-old-color)
+      (setq vc-annotate-very-old-color "grey1")))
 
 (eval-and-compile
   (defun file-in-pathlist-p (file-name path-list)
@@ -364,6 +391,8 @@ directory in the load-path list, otherwise returns nil."
 
 ;;; This could probably be rewritten to use mapcar
 ;;;
+;;; see also `locate-library'
+;;;
 (eval-and-compile
   (defun elisp-file-in-loadpath-p (file-name)
     "Returns t if there is an emacs lisp-library of the name FILENAME in the
@@ -382,17 +411,388 @@ returning t if any of the three are found. Nil is returned otherwise."
 ;;;; ----------
 ;;;; some default packages we'd like, if we can get them...
 
-(if (elisp-file-in-loadpath-p "package")
+(declare-function package-initialize "package" t t)
+(declare-function package-install "package" t t)
+(declare-function package-installed-p "package" t t)
+(declare-function package-refresh-contents "package" t t)
+
+;; 
+;; XXX including a redefinition of `open-tls-stream' is a bit of a hack to aid
+;; in debugging....
+;; 
+(eval-when-compile
+  (defvar tls-program)
+  (defvar tls-process-connection-type)
+  (defvar tls-success)
+  (defvar tls-end-of-info)
+  (defvar tls-checktrust)
+  (defvar tls-untrusted)
+  (defvar tls-hostmismatch))
+
+(defun open-tls-stream (name buffer host port)
+  "Open a TLS connection for a port to a host.
+Returns a subprocess-object to represent the connection.
+Input and output work as for subprocesses; `delete-process' closes it.
+Args are NAME BUFFER HOST PORT.
+NAME is name for process.  It is modified if necessary to make it unique.
+BUFFER is the buffer (or buffer name) to associate with the process.
+ Process output goes at end of that buffer, unless you specify
+ an output stream or filter function to handle the output.
+ BUFFER may be also nil, meaning that this process is not associated
+ with any buffer
+Third arg is name of the host to connect to, or its IP address.
+Fourth arg PORT is an integer specifying a port to connect to."
+  (let ((cmds tls-program)
+	(use-temp-buffer (null buffer))
+	process	cmd done)
+    (if use-temp-buffer
+	(setq buffer (generate-new-buffer " TLS"))
+      ;; BUFFER is a string but does not exist as a buffer object.
+      (unless (and (get-buffer buffer)
+		   (buffer-name (get-buffer buffer)))
+	(generate-new-buffer buffer)))
+    (with-current-buffer buffer
+      (message "Opening TLS connection to `%s'..." host)
+      (while (and (not done) (setq cmd (pop cmds)))
+	(let ((process-connection-type tls-process-connection-type)
+	      (formatted-cmd
+	       (format-spec
+		cmd
+		(format-spec-make
+                 ?t (car (gnutls-trustfiles))
+		 ?h host
+		 ?p (if (integerp port)
+			(int-to-string port)
+		      port)))))
+	  (message "Opening TLS connection with `%s'..." formatted-cmd)
+	  (setq process (start-process
+			 name buffer shell-file-name shell-command-switch
+			 formatted-cmd))
+	  (while (and process
+		      (memq (process-status process) '(open run))
+		      (progn
+			(goto-char (point-min))
+			(not (setq done (re-search-forward
+					 tls-success nil t)))))
+	    (unless (accept-process-output process 1)
+	      (sit-for 1)))
+	  (message "Opening TLS connection with `%s'...%s" formatted-cmd
+		   (if done "done" "failed"))
+	  (if (not done)
+	      (delete-process process)
+	    ;; advance point to after all informational messages that
+	    ;; `openssl s_client' and `gnutls' print
+	    ;; 
+	    ;; XXX WARNING XXX:  If the `tls-end-of-info' pattern is not found
+	    ;; in the output from the process command then this simply hangs
+	    ;; waiting with no indication whatsoever about what's happening!
+	    ;; 
+	    (message "Searching for tls-end-of-info pattern...")
+	    ;; 
+	    (let ((start-of-data nil))
+	      (while
+		  (not (setq start-of-data
+			     ;; the string matching `tls-end-of-info'
+			     ;; might come in separate chunks from
+			     ;; `accept-process-output', so start the
+			     ;; search where `tls-success' ended
+			     (save-excursion
+			       (if (re-search-forward tls-end-of-info nil t)
+				   (match-end 0)))))
+		(accept-process-output process 1))
+	      (if start-of-data
+		  ;; move point to start of client data
+		  (goto-char start-of-data)))
+	    (setq done process))))
+      (when (and done
+		 (or
+		  (and tls-checktrust
+		       (save-excursion
+			 (goto-char (point-min))
+			 (re-search-forward tls-untrusted nil t))
+		       (or
+			(and (not (eq tls-checktrust 'ask))
+			     (message "The certificate presented by `%s' is \
+NOT trusted." host))
+			(not (yes-or-no-p
+			      (tls-format-message "\
+The certificate presented by `%s' is NOT trusted. Accept anyway? " host)))))
+		  (and tls-hostmismatch
+		       (save-excursion
+			 (goto-char (point-min))
+			 (re-search-forward tls-hostmismatch nil t))
+		       (not (yes-or-no-p
+			     (format "Host name in certificate doesn't \
+match `%s'. Connect anyway? " host))))))
+	(setq done nil)
+	(delete-process process))
+      ;; Delete all the informational messages that could confuse
+      ;; future uses of `buffer'.
+      (delete-region (point-min) (point)))
+    (message "Opening TLS connection to `%s'...%s"
+	     host (if done "done" "failed"))
+    (when use-temp-buffer
+      (if done (set-process-buffer process nil))
+      (kill-buffer buffer))
+    done))
+
+(if (or (elisp-file-in-loadpath-p "package")
+	(elisp-file-in-loadpath-p "package-23"))
     (progn
-      (require 'package)
+      (if (< emacs-major-version 24)
+	  (progn
+	    (require 'package-23)
+	    (require 'package))		; xxx this doesn't trigger `eval-after-load'
+	(require 'package))
       (eval-when-compile
-	(defvar package-archives))
-      (add-to-list 'package-archives
-		   '("marmalade" . "http://marmalade-repo.org/packages/") t)))
+	(defvar package-archives)
+	(defvar package-archive-contents)
+	(defvar starttls-use-gnutls)
+	(defvar tls-end-of-info)
+	(defvar tls-program))
+      ;; xxx gnutls-cli is broken, at least when used with emacs-23.3
+      ;; (xxx "-no_ssl2" might still be required for older openssl?)
+      ;; n.b. the "-crlf" is now necessary for Gmail, but not Cyrus
+      (setq tls-program '("openssl s_client -connect %h:%p -ign_eof"))
+      (setq starttls-use-gnutls nil)	; XXX requires security/starttls be installed!!!
+      ;; 
+      ;; XXX as of OpenSSL 1.1.1a  20 Nov 2018 there's a new ending to the noise
+      ;; c_client prints before real data starts.
+      ;; 
+      ;; (XXX debugging this was HARD!  No clues -- emacs just "hung" without responding)
+      ;; 
+      ;; XXX thus the included version of `open-tls-stream' above...
+      ;; 
+      (setq tls-end-of-info
+   "\\(^\s*Verify return code: .+
+---
+\\|^    Extended master secret: .+
+---
+\\|^- Simple Client Mode:
+\\(
+\\|^\\*\\*\\* Starting TLS handshake
+\\)*\\)")
+      ;; 
+      ;; xxx for emacs-23 a limited version is available:
+      ;;
+      ;;	ftp 'http://git.savannah.gnu.org/gitweb/?p=emacs.git;a=blob_plain;hb=ba08b24186711eaeb3748f3d1f23e2c2d9ed0d09;f=lisp/emacs-lisp/package.el'
+      ;;
+      ;;diff -u /home/woods/lib/elisp/package.el\~ /home/woods/lib/elisp/package.el
+      ;;--- /home/woods/lib/elisp/package.el~	Thu Dec 18 16:41:54 2014
+      ;;+++ /home/woods/lib/elisp/package.el	Sat Dec 20 15:08:04 2014
+      ;;@@ -1034,9 +1034,12 @@
+      ;; 		      (file-name-as-directory
+      ;; 		       (expand-file-name package-user-dir)))
+      ;; 	(progn
+      ;;-	  (delete-directory dir t t)
+      ;;+	  (if (stringp dir)
+      ;;+	      (message "Deleting package `%s-%s'...." name version)
+      ;;+	    (message "May not be able to delete non-string-dir package `%s-%s'...." name version))
+      ;;+	  (delete-directory dir t)
+      ;; 	  (message "Package `%s-%s' deleted." name version))
+      ;;-      ;; Don't delete "system" packages
+      ;;+      ;; Don't (try to) delete "system" packages
+      ;;       (error "Package `%s-%s' is a system package, not deleting"
+      ;; 	     name version))))
+      ;; 
+      ;;diff -u /home/woods/lib/elisp/package.el\~ /home/woods/lib/elisp/package.el
+      ;;--- /home/woods/lib/elisp/package.el~	Sat Dec 20 15:08:04 2014
+      ;;+++ /home/woods/lib/elisp/package.el	Sat Dec 20 15:30:03 2014
+      ;;@@ -1056,6 +1056,9 @@
+      ;;   (let* ((dir (expand-file-name "archives" package-user-dir))
+      ;; 	 (dir (expand-file-name (car archive) dir)))
+      ;;     (package--with-work-buffer (cdr archive) file
+      ;;+       (save-excursion
+      ;;+	 (switch-to-buffer buffer)
+      ;;+	 (replace-regexp "\\([0-9]\\{8\\}\\)\\([0-9]+\\)" "\\1.\\2"))
+      ;;       ;; Read the retrieved buffer to make sure it is valid (e.g. it
+      ;;       ;; may fetch a URL redirect page).
+      ;;       (when (listp (read buffer))
+      ;;
+      ;;
+      (let ((proto "https"))		; M$ systems need gnutls built-in
+	;; Comment/uncomment the next two expressions to enable/disable MELPA
+	;; or MELPA Stable as desired
+	(add-to-list 'package-archives
+		     (cons "melpa" (concat proto "://melpa.org/packages/")) t)
+	;; XXX melpa-stable is not recommended
+	;;(add-to-list 'package-archives
+	;;           (cons "melpa-stable" (concat proto "://stable.melpa.org/packages/")) t)
+	(when (< emacs-major-version 24)
+	  ;; For important compatibility libraries like cl-lib
+	  (add-to-list 'package-archives '("gnu" . (concat proto
+	"://elpa.gnu.org/packages/"))))
+	;; XXX WARNING XXX:  marmalade is apparently defunct....
+	;;(add-to-list 'package-archives
+	;;	     (cons "marmalade" (concat proto "://marmalade-repo.org/packages/")) t)
+	)
+      ;;
+      ;; Set `package-user-dir' to include `emacs-version' so that multiple
+      ;; Emacs versions can be used.
+      ;;
+      (eval-when-compile
+	(defvar package-user-dir))
+      (defvar package-user-dir-ORIGINAL package-user-dir "The original value at startup.")
+      (setq package-user-dir (concat user-emacs-directory "packages-"
+				     (number-to-string emacs-version-major) "."
+				     (number-to-string emacs-version-minor)
+				     "/"))
+      ;; we must also reset things that depend on `package-user-dir'
+      (if (boundp 'package-gnupghome-dir)
+	  (progn
+	    (defvar package-gnupghome-dir-ORIGINAL package-gnupghome-dir "The original value at startup")
+	    (setq package-gnupghome-dir (expand-file-name "gnupg" package-user-dir))))
+      ;;
+      ;; N.B.:  to manually update the GNU ELPA key:
+      ;;
+      ;;	gpg2 --keyserver hkp://keys.gnupg.net --homedir /home/more/woods/.emacs.d/packages-25.3/gnupg/ --receive-keys 066DAFCB81E42C40
+      ;;
+      ;;
+      ;; XXX this should not be necessary if the first setup used the versioned
+      ;; directory name
+      ;;
+      (eval-and-compile
+	(defun my-package-user-dir-cleanup ()
+	  "Fix up old `package-user-dir' to match the new regime."
+	  (interactive)
+	  (if (and (string-equal package-user-dir-ORIGINAL "~/.emacs.d/elpa")
+		   (file-accessible-directory-p package-user-dir-ORIGINAL))
+	      (if (yes-or-no-p (concat "Rename '"
+				       package-user-dir-ORIGINAL
+				       "' to '"
+				       package-user-dir "'?"))
+		  (progn
+		    (beep)
+		    (rename-file package-user-dir-ORIGINAL package-user-dir))))))
+      ;;
+      (when (< emacs-major-version 24)   ;; For important compatibility libraries like cl-lib
+	(add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/")))
+      ;; xxx this has to come before `package-initialize'
+      (my-package-user-dir-cleanup)
+      (package-initialize)
+      ;;
+      ;; xxx and this of course has to come _after_ `package-initialize'
+      ;;
+      ;; Hmmm....  this doesn't work for emacs-23 at all
+      ;;
+      ;; See also these packages:  req-package, el-get, and use-package-el-get
+      ;;
+      ;; XXX Hmmm... this didn't work with a fresh 26.1 install....
+      ;;
+      (when (and (>= emacs-major-version 24)
+		 (<= emacs-major-version 25))
+	(unless (package-installed-p 'use-package)
+	  (when (null package-archive-contents)
+	    (package-refresh-contents))
+	  (package-install 'use-package))
+	(require 'use-package))))
+
+;; Essential packages -- many more are useful, but this is a minimum set?
+;;
+;; Note also that `package-selected-packages', typically defined in
+;; ~/.emacs-custom.el, contains the list of manually installed packages.
+;;
+(defvar my-packages
+  '(ascii
+    diff-hl
+    diffview
+    diminish
+;    emacs-xkcd				; xxx gone ?
+    gh
+;    git-commit-mode			; xxx Hmmm... fails when starting from scratch (gone?)
+    github-stars
+    gnu-elpa-keyring-update
+    go-add-tags
+    go-complete
+    go-gen-test
+    go-mode
+    gxref
+    htmlize
+    json-mode
+    json-reformat
+    json-snatcher
+    lua-mode
+    magit
+    magit-annex
+    magit-gh-pulls
+    magit-gitflow
+    magit-org-todos
+    magithub
+    markdown-mode
+    memory-usage
+    minimap
+    muse
+    nov
+    org
+    org-journal
+    org-static-blog
+    org2issue
+    osx-clipboard			; only do for OS X?
+    osx-dictionary			; only do for OS X?
+    osx-plist
+;    otp				; xxx gone?
+    package-build
+    sed-mode
+    smart-tabs-mode
+    svg
+    svg-clock
+    syslog-mode
+    ucs-utils
+    uuid
+    w3
+    w3m
+    xkcd)				; xxx only for newer?
+  "A list of packages we want to ensure are installed at launch.")
+
+;; XXX a quick hack in lieu of using `use-package' properly
+;; Run this after first installing, or upgrading, emacs.
+;;
+;;
+(defun my-packages-install ()
+  "Install the packages listed in `my-packages'."
+  (interactive)
+  (dolist (p my-packages)
+    (when (not (package-installed-p p))
+      (package-install p))))
+
+(if (elisp-file-in-loadpath-p "flex-mode")
+    (progn
+      (require 'flex-mode)))
 
 (if (elisp-file-in-loadpath-p "jka-compr")
     (progn
       (require 'jka-compr)))
+
+(when (elisp-file-in-loadpath-p "smart-tabs-mode")
+  (autoload 'smart-tabs-mode "smart-tabs-mode"
+    "Intelligently indent with tabs, align with spaces!")
+  (autoload 'smart-tabs-mode-enable "smart-tabs-mode")
+  (autoload 'smart-tabs-advice "smart-tabs-mode")
+  (autoload 'smart-tabs-insinuate "smart-tabs-mode")
+					;
+;  XXX something doesn't define the symbol `go'
+;
+;  (eval-when-compile
+;    (require 'go-mode))
+;  (eval-after-load 'smart-tabs-mode
+;    '(progn
+;       (smart-tabs-add-language-support go go-mode-hook
+;	 ((go-mode-indent-line . tab-width)))
+;       (smart-tabs-insinuate 'go 'c 'c++ 'java 'javascript 'cperl 'python 'ruby 'nxml)
+;       ;; make it safe
+;       ;;
+;       (put 'smart-tabs-mode 'safe-local-variable #'booleanp)))
+  )
+
+;; N.B.:  Python needs more helpers for smart-tabs-mode, plus possibly fixes
+;; for working with tabs (i.e. to be compatible with `indent-tabs-mode')
+;; (compare eval of `python-indent-context' after a comment indented with a tab)
+
+(eval-when-compile
+  (require 'python)
+  (defvar python-indent-string-contents))
+(eval-after-load 'python
+  '(setq python-indent-string-contents nil))
 
 (eval-and-compile
   (load "text-mode"))
@@ -402,6 +802,7 @@ returning t if any of the three are found. Nil is returned otherwise."
       (require 'grep)
       (eval-when-compile
 	(defvar grep-mode-map))
+      (global-set-key "\C-xG" 'grep)
       (define-key grep-mode-map "q" 'bury-buffer)))
 
 (if (elisp-file-in-loadpath-p "newcomment")
@@ -417,18 +818,70 @@ returning t if any of the three are found. Nil is returned otherwise."
 
 (if (elisp-file-in-loadpath-p "magit")
     (progn
+      (eval-when-compile
+	(defvar magit-status-buffer-switch-function)
+	(defvar magit-last-seen-setup-instructions)
+	(defvar magit-diff-refine-hunk)
+	(defvar magit-prefer-remote-upstream)
+	(defvar magit-log-arguments))
+      (setq magit-status-buffer-switch-function 'switch-to-buffer) ; xxx old
+      ;;(setq magit-display-buffer-function 'switch-to-buffer)
+      (setq magit-last-seen-setup-instructions "1.4.0") ; otherwise it nags
+      (setq magit-diff-refine-hunk 'all)
+      (eval-after-load 'magit-git
+	'(setq magit-prefer-remote-upstream t)) ; 2.4.2 and newer
+      (if (> (display-color-cells) 7)
+	  (eval-after-load 'magit-log
+	    ;; magit-log-arguments is in 2.3.0 and newer
+	    ;; and then it disappears after 2.90.1!!!!
+	    '(if (boundp 'magit-log-arguments)
+		 (add-to-list 'magit-log-arguments "--color")
+	       ;;
+	       ;; XXX the new regime seems to be to use a property on the
+	       ;; `magit-log-mode' function which is name by substituting the
+	       ;; "-mode" suffix of the function name with "-default-arguments"
+	       ;;
+	       (let ((defargs (get 'magit-log-mode 'magit-log-default-arguments)))
+		 (when defargs
+		   (put 'magit-log-mode 'magit-log-default-arguments
+			(add-to-list 'defargs "--color")))))))
       (require 'magit)
       (eval-when-compile
-	(defvar magit-process-popup-time))
-      (setq magit-process-popup-time 0))) ; always, immediately
+	(defvar magit-process-popup-time)
+	(defvar magit-git-global-arguments))
+      (setq magit-process-popup-time 10)
+      ;;
+      ;; Configure magit to use .dotfiles-git (and not .git) as the git
+      ;; directory when a .dotfiles-git directory is found in the current
+      ;; working directory (which Emacs calls its `default-directory' per
+      ;; buffer) and there is no ./.git directory.
+      ;;
+      ;; For example, if dotfiles are tracked with a git directory at
+      ;; $HOME/.dotfiles-git, and the Emacs process starts from $HOME (and
+      ;; nothing in its configuration changes its `default-directory' in the
+      ;; current buffer), this will configure magit to use .dotfiles-git as the
+      ;; git directory.  Note this requires "config.worktree = .."
+      ;;
+      (defun my-magit-home-repo ()
+	"XXX XXX XXX This doesn't work beyond initial 'magit: woods' setup..."
+	(let (tmp (copy-list magit-git-global-arguments))
+	  (unwind-protect
+	      (let ((mygitdir-path (expand-file-name ".dotfiles-git")))
+		(add-to-list 'magit-git-global-arguments
+			     (format "--git-dir=%s" mygitdir-path))
+		(with-current-buffer (magit-status-setup-buffer (expand-file-name ""))
+		  (make-local-variable 'magit-git-global-arguments)
+		  )
+		)
+	    (setq magit-git-global-arguments tmp))
+	  )
+	)
+      ))
 
-(if (elisp-file-in-loadpath-p "org")
+(if (elisp-file-in-loadpath-p "magit-gh-pulls")
     (progn
-      ;(require 'org)
-      ;; for better visual impact use more dense chars first!
-      (eval-when-compile
-	(defvar org-export-ascii-underline))
-      (setq org-export-ascii-underline '(?\= ?^ ?\~ ?\- ?\.))))
+      (require 'magit-gh-pulls)
+      (add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls)))
 
 ;; This is an ancient hack by Joe Wells is really only necessary on emacs-18
 ;; and very early versions of emacs-19 since the appearance of the new
@@ -448,7 +901,7 @@ returning t if any of the three are found. Nil is returned otherwise."
 (if (elisp-file-in-loadpath-p "sh-script")
     (progn
      (require 'sh-script)
-     ;; XXX should check display conditions ala `defface' for color and background attributes
+     ;; XXX should check display conditions ala `defface' for colour and background attributes
      (if (> init-emacs-type 21)
 	 (set-face-attribute 'sh-heredoc nil ':foreground "sienna"))))
 
@@ -464,17 +917,12 @@ returning t if any of the three are found. Nil is returned otherwise."
 	(defvar uniquify-buffer-name-style))
       (setq uniquify-buffer-name-style 'post-forward-angle-brackets)))
 
-(if (elisp-file-in-loadpath-p "w3m")
-    (progn
-      (require 'w3m-load)))
-
-
-(eval-when-compile
-  (defvar sgml-basic-offset))
-(eval-after-load "sgml-mode" '(setq sgml-basic-offset 8))
+;(if (elisp-file-in-loadpath-p "w3m")
+;    (progn
+;      (require 'w3m)))
 
 ;;;; ----------
-;;;; some property defintions...
+;;;; some property definitions...
 
 (put 'eval-expression 'disabled nil)	; allow ESC ESC
 (put 'narrow-to-region 'disabled nil)	; allow C-x n
@@ -492,11 +940,13 @@ returning t if any of the three are found. Nil is returned otherwise."
 
 (make-variable-buffer-local 'compile-command)
 (if (eq system-type 'darwin)
-    (setq-default compile-command "bsdmake")
+    (if (file-in-pathlist-p "bsdmake" exec-path)
+	(setq-default compile-command "bsdmake")
+      (setq-default compile-command "bmake"))
   (setq-default compile-command "make"))	; _not_ "make -k"!
 
 (setq-default case-fold-search nil)	; unless set, don't ignore case
-(setq-default indent-tabs-mode t)	; allow tabs in indentation
+(setq-default indent-tabs-mode nil)	; modes that want tab must redefine (XXX HMMM...)
 (setq-default require-final-newline 1)	; needed by some unix programs
 (eval-when-compile
   (if (< init-emacs-type 21)
@@ -555,6 +1005,9 @@ returning t if any of the three are found. Nil is returned otherwise."
 ;;
 ;; see http://www.cl.cam.ac.uk/~mgk25/ucs-fonts.html
 ;;
+;; WAY too tiny
+;;(setq preferred-frame-font "-Misc-Fixed-Medium-R-Normal--13-120-75-75-C-80-ISO10646-1")
+;;
 ;; adstyl='*' gives yucky, but narrow, chars, but no italics in some environs
 ;;(setq preferred-frame-font "-*-*-medium-r-*-*-*-100-100-100-m-*-iso10646-1")
 ;;
@@ -564,17 +1017,25 @@ returning t if any of the three are found. Nil is returned otherwise."
 ;; liberation mono, a TTF, if installed and usable, is quite complete and
 ;; reasonable looking.  pxlsz=14 is the same as ptSz=100, and is a little small
 ;; and a little more ugly, but fits 132+112 emacs columns on the 27" iMac.
-;; pxlsz=15 is a bit nicer, but only fits 132+83 emacs columns
+;; pxlsz=15 is a bit nicer, but only fits 132+85 emacs columns (good for wl!)
 ;;(setq preferred-frame-font "-*-liberation mono-medium-r-*-*-14-*-*-*-m-*-iso10646-1")
+;;(setq preferred-frame-font "-*-liberation mono-medium-r-*-*-15-*-*-*-m-*-iso10646-1")
 ;; only works on emacs-23 and newer, but uses scaled anti-aliased font nicely
 ;;(setq preferred-frame-font "-*-Liberation Mono-normal-normal-normal-*-14-*-*-*-m-0-iso10646-1")
+;;(setq preferred-frame-font "-*-Liberation Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1")
 ;;
-;; too squashed looking(???)
+;; too squashed/fine looking(???)
 ;;(setq preferred-frame-font "-urw-Nimbus Mono L-normal-normal-normal-*-14-*-*-*-m-*-iso10646-1")
+;; too large
 ;;(setq preferred-frame-font "-urw-Nimbus Mono L-normal-normal-normal-*-15-*-*-*-m-*-iso10646-1")
 ;;
 ;; ugly bold glyphs....
 ;;(setq preferred-frame-font "-*-Anonymous Pro-medium-r-*-*-14-*-*-*-m-*-iso10646-1")
+;;
+;; (set-frame-face-to-preferred-frame-font (selected-frame))
+;;
+;; update all frames:
+;; (mapc 'set-frame-face-to-preferred-frame-font (frames-on-display-list))
 ;;
 ;; XXX should use `x-font-family-list' to find valid font family names before
 ;; using them
@@ -582,64 +1043,93 @@ returning t if any of the three are found. Nil is returned otherwise."
 (if (eq window-system 'x)
     (progn
       (defvar x-select-enable-clipboard)
-      (setq x-select-enable-clipboard t) ; use the CLIPBOARD, very useful on OS X
+      (setq x-select-enable-clipboard t)  ; use the CLIPBOARD for exporting the
+					  ; selection, very useful on OS X.
+					  ; Also remember to manually choose
+					  ; "Select To Clipboard" in the Xterm
+					  ; middle menu when planning to paste
+					  ; it into an OSX application.
+      (setq focus-follows-mouse t)	  ; always true for me on X11!
+      (setq mouse-autoselect-window -0.001) ; (occasionally it is twice as long...)
       (setq orig-default-frame-font (frame-parameter nil 'font))
       (if (> (/ (x-display-pixel-height) (/ (x-display-mm-height) 25.4)) 75)
-	  (if (or (and (>= init-emacs-type 23)
+	  (if (or (>= init-emacs-type 25)
+		  (and (>= init-emacs-type 23)
 		       (eq system-type 'darwin)
 		       (> (string-to-number operating-system-release) 10.8))
 		  (and (>= init-emacs-type 24)
 		       (eq system-type 'darwin)
 		       (> (string-to-number operating-system-release) 10.6)))
 	      (setq preferred-frame-font "-*-menlo-medium-r-*--14-*-*-*-m-*-iso10646-1")
-	    (if (or (eq system-type 'darwin)
-		    (< init-emacs-type 23))
+	    (if (<= init-emacs-type 22)
 		(setq preferred-frame-font "-*-dejavu sans mono-medium-r-*--14-*-*-*-m-*-iso10646-1")
-	      (setq preferred-frame-font "-*-liberation mono-medium-r-*--14-*-*-*-m-*-iso10646-1")))
-	(setq preferred-frame-font "-*-*-medium-r-normal--15-*-*-*-m-*-iso10646-1"))))
+	      (setq preferred-frame-font "-*-Liberation Mono-normal-normal-normal-*-14-*-*-*-m-0-iso10646-1")))
+	(setq preferred-frame-font
+	      "-*-*-medium-r-normal--15-*-*-*-m-*-iso10646-1")))
+  (progn
+    ;;for xterm
+    (xterm-mouse-mode 1)))
 
 ;; for manual resets, try these with ^X^E:
 ;; (followed by the set-frame-* call below)
 ;;
 ;; (setq preferred-frame-font "-etl-fixed-medium-r-normal--16-*-*-*-c-*-iso8859-1")
 ;;
-;; (setq preferred-frame-font "-*-*-medium-r-normal--15-*-*-*-m-*-iso10646-1")	; best
-;; (setq preferred-frame-font "-*-*-medium-r-normal--15-*-*-*-c-*-iso10646-1")
-;;
 ;; (setq preferred-frame-font "-*-liberation mono-medium-r-*-*-15-*-100-100-m-*-iso10646-1")
 ;; (setq preferred-frame-font "-*-liberation mono-medium-r-*-*-14-*-100-100-m-*-iso10646-1")
-;; (setq preferred-frame-font "-*-*-medium-r-*-*-*-100-100-100-m-*-iso10646-1")
+;; (setq preferred-frame-font "-*-liberation mono-medium-r-*-*-*-100-100-100-m-*-iso10646-1")
 ;;
-;; works on emacs-22 and newer, but uses ugly non-aliased font unless
-;; configured and built using --with-x-toolkit=gtk2
+;; works on emacs-22 and newer, but uses ugly non-aliased font on emacs-22 unless
+;; configured and built using --with-x-toolkit=gtk2 (
 ;;
 ;; (setq preferred-frame-font "-*-liberation mono-medium-r-normal--14-0-0-0-m-0-iso10646-1")
 ;; (setq preferred-frame-font "-*-liberation mono-medium-r-normal-*-14-*-*-*-m-*-iso10646-1")
 ;;
 ;; less ugly non-aliased font for emacs-22
-;; (setq preferred-frame-font "-*-dejavu sans mono-medium-r-*--15-*-*-*-m-*-iso10646-1")
+;; (setq preferred-frame-font "-*-dejavu sans mono-medium-r-*--14-*-*-*-m-*-iso10646-1")
 ;;
-;; only works on emacs-23 and newer, but uses scaled anti-aliased font nicely
+;; only works on emacs-23 and newer, but uses a scaled anti-aliased font very
+;; nicely!!!  (A little bit wide at 15pt, but very readable)
+;; XXX doesn't seem to be anti-aliased with 25.3 on macOS
 ;; (setq preferred-frame-font "-*-Liberation Mono-normal-normal-normal-*-14-*-*-*-m-0-iso10646-1")
+;; (setq preferred-frame-font "-*-Liberation Mono-normal-normal-normal-*-15-*-*-*-m-0-iso10646-1")
 ;;
 ;; only works on emacs-23 and newer, and OS X 10.7 and newer, or emacs-24, but
-;; uses Apple's variant on the Bitstream fonts with a very nice zero with a
-;; slash through it (on OS X 10.6 with emacs-23 there's a bug in the font that
-;; causes X apps to die -- luckily somehow emacs-24 doesn't die though):
-;; (setq preferred-frame-font "-*-menlo-medium-r-*--14-*-*-*-m-*-iso10646-1")
+;; uses Apple's variant on the Bitstream fonts (once upon a time it had a very
+;; nice zero with a slash through it) (XXX but on OS X 10.6 with emacs-23
+;; there's a bug in the font that causes X apps to die -- luckily somehow
+;; emacs-24 doesn't die though):
+;;(setq preferred-frame-font "-*-menlo-medium-r-*--14-*-*-*-m-*-iso10646-1") ;; XXX danger!
+;;
+;; Luxi Mono is very nice, but for the zero...
+;; (setq preferred-frame-font "-*-luxi mono-medium-r-*--14-*-*-*-m-*-iso10646-1")	;; XXX danger!
+;;
+;; Hmmm.... seems evenwith menlo as the choice, this ends up being used
+;; (setq preferred-frame-font "-*-bitstream vera sans mono-medium-r-*--14-*-*-*-m-*-iso10646-1")	;; XXX danger!
 ;;
 ;; FYI:  X protocol error: BadFont (invalid Font parameter) on protocol request 47
 ;;
 ;; one of these works best?  liberation fits more lines, dejavu is a wee bit
 ;; cleaner on the MacBook Air, and it is also cleaner on the iMac without
-;; anti-aliasing (i.e. with older emacs w/o TTF support), but menlo has slashed zeros!
+;; anti-aliasing (i.e. with older emacs w/o TTF support)
 ;; (setq preferred-frame-font "-*-liberation mono-medium-r-*--13-*-*-*-m-*-iso10646-1")
 ;; (setq preferred-frame-font "-*-liberation mono-medium-r-*--14-*-*-*-m-*-iso10646-1")
 ;; (setq preferred-frame-font "-*-liberation mono-medium-r-*--15-*-*-*-m-*-iso10646-1")
 ;; (setq preferred-frame-font "-*-dejavu sans mono-medium-r-*--13-*-*-*-m-*-iso10646-1")
 ;; (setq preferred-frame-font "-*-dejavu sans mono-medium-r-*--14-*-*-*-m-*-iso10646-1")
 ;; (setq preferred-frame-font "-*-dejavu sans mono-medium-r-*--15-*-*-*-m-*-iso10646-1")
-;; (setq preferred-frame-font "-*-menlo-medium-r-*--14-*-*-*-m-*-iso10646-1")
+;;
+;; (setq preferred-frame-font "-*-lucidatypewriter-medium-r-*--14-*-*-*-m-*-iso10646-1")
+;;
+;; xlsfonts | fgrep iso10646 | grep 0-0-0-0-[cm]-
+;;
+;; Probably Menlo or Vera Sans Mono still win hands down....
+;;
+;; (setq preferred-frame-font "-*-menlo-medium-r-*--14-*-*-*-m-*-iso10646-1")     ;; XXX danger!
+;; (setq preferred-frame-font "-*-bitstream vera sans mono-medium-r-*--13-*-*-*-m-*-iso10646-1")
+;; (setq preferred-frame-font "-*-luxi mono-medium-r-*--14-*-*-*-m-*-iso10646-1") ;; XXX danger!
+;; (setq preferred-frame-font "-ibm-courier-medium-r-*--14-*-*-*-m-*-iso10646-1")
+;; (setq preferred-frame-font "-*-courier 10 pitch-medium-r-*--13-*-*-*-m-*-iso10646-1")
 ;;
 ;; (set-frame-face-to-preferred-frame-font (selected-frame))
 ;;
@@ -696,15 +1186,29 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
 àáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ\n\
 ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß\n\
 に日本語を入れておくとよろしい。\n\
+◆▒␉␌␍␊°±␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥π≠£·\n\
 ABCDEFGHIJKLMNOPQRSTUVWXYZ /0123456789
 abcdefghijklmnopqrstuvwxyz £©µÀÆÖÞßéöÿ
 –―‘“”„†•…‰™œŠŸž€ ΑΒΓΔΩαβγδω АБВГДабвгд
 ∀∂∈ℝ∧∪≡∞ ↑↗↨↻⇣ ┐┼╔╘░►☺♀ ﬁ�⑀₂ἠḂӥẄɐː⍎אԱა")
 
+(eval-when-compile
+  (if (> init-emacs-type 23)
+      (defvar blink-cursor-blinks)))
 ;; where is that damn cursor anyway?!?!?!?
 (if (and window-system
 	 (fboundp 'blink-cursor-mode))
-    (blink-cursor-mode 1))
+    (progn
+      (blink-cursor-mode 1)
+      (if (boundp 'blink-cursor-blinks)
+	  (setq blink-cursor-blinks 0))))
+
+;; allow turn off auto-fill in file variable, without asking
+(defvar orig-safe-local-eval-forms
+  safe-local-eval-forms "emacs default value for `safe-local-eval-forms'.")
+(setq safe-local-eval-forms
+      (cons '(auto-fill-mode -1)
+	    orig-safe-local-eval-forms))
 
 (setq auto-save-timeout 300)		; 30 seconds is insane!
 (setq backup-by-copying nil)		; rename is safer and faster...
@@ -715,17 +1219,22 @@ abcdefghijklmnopqrstuvwxyz £©µÀÆÖÞßéöÿ
 (setq backup-by-copying-when-privileged-mismatch 999) ; default is 200
 ;(setq backup-directory-alist ("." . "./.emacs-backups/")
 (setq colon-double-space t)		; ah ha!  this should mirror sentence-end-double-space!
+
+;; n.b.:  see indent-tabs-mode default below
+(setq-default tab-width 8)		; a tab is a tab is a tab is a tab....
+(setq-default standard-indent 8)	; a tab is a tab is a tab is a tab....
 (eval-and-compile
   (if (and (boundp 'default-tab-width)
 	   (not (get 'default-tab-width 'byte-obsolete-variable)))
       (progn
 	(setq default-tab-width 8)
 	(setq tab-width 8))))		; a tab is a tab is a tab is a tab....
-(setq-default tab-width 8)		; a tab is a tab is a tab is a tab....
 
 (setq delete-auto-save-files t)		; delete auto-save file when saved
-(setq enable-local-variables 'query)	; non-nil & non-t means query...
+;(setq enable-local-variables 'query)	; non-nil & non-t means query... XXX mabye this is too annoying!!!
 (setq file-name-handler-alist nil)	; turn off ange-ftp entirely
+;; new in 23.1
+(setq line-move-visual nil)		; old habits die very hard -- and word-processor-like behaviour is very stupid
 (setq make-backup-files t)		; better safe than sorry!
 (setq message-log-max 1000)		; default of 50 loses too much!
 (setq next-line-add-newlines nil)	; I hate it when it does that!  ;-)
@@ -736,14 +1245,44 @@ abcdefghijklmnopqrstuvwxyz £©µÀÆÖÞßéöÿ
       (defvar tab-always-indent)))
 (setq tab-always-indent nil)		; silly
 (setq track-eol nil)			; too hard to control (it's sticky!)
-(setq window-min-height 1)		; don't be snobbish
-(setq window-min-width 1)
+
+(eval-when-compile
+  (if (< init-emacs-type 23)
+      (defvar save-interprogram-paste-before-kill t)))
+;; new in 23.2
+;; save clipboard strings into kill ring before replacing them.
+(setq save-interprogram-paste-before-kill t)
+;(setq kill-do-not-save-duplicates t)
 
 (setq sentence-end
       "[.?!][]\"')}]*\\($\\| $\\|\t\\|  \\)[ \t\n]*") ; also to make sure!
 
+;; These settings would allow, in `text-mode', something like a bullet list, or
+;; attribution, etc. to immediately follow a paragraph, without a separating
+;; blank line, but not be part of the paragraph
+;;
+;; However these cause issues with indeted text (and may also be causing
+;; additional issues with comments in various programming language modes).
+;;
+;; The alternative is to leave them as they are and for cases when bullet lists
+;; or attributions should immediately follow a paragraph, such as in my
+;; "quotes" file, is to uses `paragraph-indent-text-mode'
+;;
+;; N.B.:  `paragraph-indent-minor-mode' prepends the RE equivalent of
+;; "one whitespace character OR" to the value of `paragraph-start'.
+;;
+;(setq paragraph-separate
+;      "[ 	\f]*$\\|[ 	]+[a-zA-Z0-9]*[^a-zA-Z0-9]+[ 	]")
+;(setq paragraph-start
+;      "\f\\|[ 	]*$\\|[ 	]+[a-zA-Z0-9]*[^a-zA-Z0-9]+[ 	]")
+;;
+;; the default values:
+;;
+;(setq paragraph-separate "[ \t\f]*$")	;; default value
+;(setq paragraph-start "\f\\|[ \t]*$")	;; default value
+
 (require 'compile)
-(setq compilation-window-height 10)	; default height for a compile window
+(setq compilation-window-height 40)	; default height for a compile window
 (setq compilation-scroll-output t)	; where, oh where, has this been!!!
 (if (fboundp 'compilation-first-error)
     (define-key compilation-minor-mode-map "\M-<" 'compilation-first-error))
@@ -790,6 +1329,17 @@ abcdefghijklmnopqrstuvwxyz £©µÀÆÖÞßéöÿ
 (set-face-attribute 'next-error nil ':background "Red1") ; default inherits 'region
 (set-face-attribute 'secondary-selection nil ':background "ivory") ; default is yellow1
 
+;; XXX this should probably be in an after-init-hook function
+;; (I don't remember why -- maybe because the default frame may not yet be
+;; initialized at the time .emacs is loaded.)
+;;
+;; on an 8-color Xterm the use of bold and the default yellow on a white
+;; background is unreadable!
+;;
+(if (= (display-color-cells) 8)
+    (progn
+      (set-face-attribute 'font-lock-variable-name-face nil ':foreground "red")))
+
 (eval-after-load 'compile
   (progn
     ;; re-instate background colour as in pre-23.x
@@ -803,17 +1353,16 @@ abcdefghijklmnopqrstuvwxyz £©µÀÆÖÞßéöÿ
   ;; keywords for all derived modes, but only `c-mode-common-hook' works for
   ;; all derived cc-mode modes.
   (font-lock-add-keywords nil
-			  '(("\\<\\(F[iI][xX]M[eE]\\|[tT][oO][dD][oO]\\|[xX][xX][xX]\\|!!!\\)"
+			  '(("\\<\\(F[iI][xX]M[eE]\\|[tT][oO][dD][oO]\\|[xX][xX][xX]\\|!!!\\|[nN]\\.[bB]\\.\\)"
 			     1 font-lock-warning-face prepend))))
 
-;; XXX this should probably be in an after-init-hook function
+;; these are not ideal, but for a white background "yellow" is illegal!
 ;;
-;; on an 8-color Xterm the use of bold and the default yellow on a white
-;; background is unreadable!
-;;
-(if (= (display-color-cells) 8)
-    (progn
-      (set-face-attribute 'font-lock-variable-name-face nil ':foreground "red")))
+(require 'ansi-color)
+(setq ansi-color-names-vector ["black" "red" "green" "goldenrod" "blue" "magenta" "cyan" "white"])
+;; are `:set' properties only run by `customize'?
+(setq ansi-color-map (ansi-color-make-color-map))
+;; (add-hook 'shell-mode-hook 'ansi-color-for-comint-mode-on)
 
 (require 'advice)
 
@@ -833,17 +1382,15 @@ abcdefghijklmnopqrstuvwxyz £©µÀÆÖÞßéöÿ
 ;;;
 ;;; XXX probably should use \\' instead of $ to match end of string
 ;;;
-(if window-system
-    ;; XXX probably don't need to hide this in window-system...
-    (defvar dired-font-lock-keywords
-      '(("\\S +\\([~%#]\\)$" . font-lock-variable-name-face) ; font-lock-doc-string-face
-	("\\S +\\.\\([oszZ]\\|elc\\|gz\\)$" . font-lock-string-face)
-	("^  \\(/.+\\)$" 1 font-lock-type-face)
-	("[^ ]+ -> [^ ]+$" . font-lock-function-name-face)
-	("^..\\(.....w....\\|........w.\\)" 1 font-lock-comment-face)
-	("^[^ ].*$" 0 font-lock-comment-face t)
-	("^..d.* \\([^ ]+\\)$" 1 font-lock-keyword-face))
-      "Kewords and font-lock face names to be used in dired buffers."))
+(defvar dired-font-lock-keywords
+  '(("\\S +\\([~%#]\\)$" . font-lock-variable-name-face) ; font-lock-doc-string-face
+    ("\\S +\\.\\([oszZ]\\|elc\\|gz\\)$" . font-lock-string-face)
+    ("^  \\(/.+\\)$" 1 font-lock-type-face)
+    ("[^ ]+ -> [^ ]+$" . font-lock-function-name-face)
+    ("^..\\(.....w....\\|........w.\\)" 1 font-lock-comment-face)
+    ("^[^ ].*$" 0 font-lock-comment-face t)
+    ("^..d.* \\([^ ]+\\)$" 1 font-lock-keyword-face))
+  "Kewords and font-lock face names to be used in dired buffers.")
 
 ;; (require 'time)			; this isn't provided by time.el!
 (setq display-time-day-and-date t)	; what day is it again?
@@ -900,7 +1447,7 @@ The backup file name will have the form ‹name›~‹timestamp›~"
 	 ;;
 	 (backup-filename (concat (file-name-nondirectory filename)
 				  "~"
-				  (format-time-string "HOMEm%dT%H:%M:%S" last-mod)
+				  (format-time-string "HOMEm%dT%H:%M:%S" last-mod) ; XXX watch out for SCCS keyword expansion!
 				  "~")))
     (message (concat "Backup saved as: " backup-filename))
 
@@ -964,7 +1511,7 @@ with possible additional arguments `browse-url-xterm-args'."
 				 ,@browse-url-xterm-args "-T" ,(concat "WWW-Browser:" url) "-e" ,browse-url-links-program
 				 ,url)))
 
-      (setq browse-url-xterm-args '("-cn" "-rw" "-sb" "-si" "-sk" "-ls" "-ziconbeep" "1" "-n" "WWW" ))
+      (setq browse-url-xterm-args '("-fs" "7.5" "-cn" "-rw" "-sb" "-si" "-sk" "-ls" "-ziconbeep" "1" "-n" "WWW" ))
       (setq browse-url-links-program "elinks")
 
       (setq browse-url-generic-args '("-g"))
@@ -1004,6 +1551,7 @@ with possible additional arguments `browse-url-xterm-args'."
 ;;
 (setq view-remove-frame-by-deleting nil)
 
+;; see also same-window-regexps
 (setq same-window-buffer-names
       '("*shell*"
 	"*mail*"
@@ -1061,6 +1609,7 @@ with possible additional arguments `browse-url-xterm-args'."
 ;;
 (setq special-display-buffer-names
       '("*compilation*"
+	"*Compile-Log*"
 	"*grep*"
 	"*tex-shell*"))
 
@@ -1079,7 +1628,7 @@ with possible additional arguments `browse-url-xterm-args'."
 (setq special-display-frame-alist
       '((top . 0)
 	(left . -1)
-	(height . 16)
+	(height . 16)			; 20 is OK on big displays
 	(width . 80)
 	(unsplittable . t)
 	(tool-bar-lines . 0)
@@ -1142,18 +1691,26 @@ mode according to start of the current buffer."
   "Append ELEMENT to `auto-mode-alist' if it isn't there yet."
   (add-to-list 'auto-mode-alist element t)) ; add-to-list in 19.29 and newer
 
+;; prepending can be done like:
+;;
+;;	(push '("\\.suffix\\'" . my-mode) auto-mode-alist)
+
+
 ;; The REs in each element of `auto-mode-alist' match the visited file name so
 ;; you normally only want to match names at the end and not include any
 ;; directory portion unless you always visit the file using the directory
 ;; pathname explicitly.
 ;;
-;; N.B.: "\\`" and "\\'" match the empty string, but only at the beginning or
+;; N.B.:  "\\`" and "\\'" match the empty string, but only at the beginning or
 ;; end (respectively) of the buffer or string being matched against.  These are
 ;; used instead of '^' and '$' because the latter also match against the
 ;; beginnging and end of a line and could be confused by newlines in the
 ;; filename.
 ;;
 ;; note: no CVS backup files are listed, they match "\\.#.*\\.[.0-9]+\\'"
+;;
+;; N.B.:  There isn't anything special about `indented-text-mode' any more as
+;; these days (since 1997, emacs-20.1) it is simply an alias for `text-mode'.
 ;;
 (mapc 'add-to-auto-mode-alist
       (list
@@ -1162,6 +1719,7 @@ mode according to start of the current buffer."
        '("/rc\\.[^/]*\\'" . sh-mode)
        '("/rc\\.[^/]+/[^/]*\\'" . sh-mode)	; anything in an rc.* directory
        '("[-\\.]ash[^/\\.]*\\'" . sh-mode)
+       '("[-\\.]bash[^/\\.]*\\'" . sh-mode)
        '("[-\\.]ksh[^/\\.]*\\'" . sh-mode)
        '("[-\\.]sh[^/\\.]*\\'" . sh-mode)
        '("\\.[^/]*profile" . sh-mode)
@@ -1262,7 +1820,7 @@ mode according to start of the current buffer."
 (if (elisp-file-in-loadpath-p "wl")
     (progn
       ;; autoload configuration
-      ;; (Not required if you have installed Wanderlust as XEmacs package)
+      ;; (Not required if you have installed Wanderlust as a package)
       (autoload 'wl "wl" "Wanderlust" t)
       (autoload 'wl-other-frame "wl" "Wanderlust on new frame." t)
       (autoload 'wl-draft "wl-draft" "Write draft with Wanderlust." t)
@@ -1329,14 +1887,10 @@ next ARG-1 words if ARG is greater than 1), moving over."
 (global-set-key "\ec" 'upcase-initials-word)
 (global-set-key "\eC" 'capitalize-word)
 
-(defun get-buffer-file-name ()
-  "Echo the current buffer's file name and put it into the kill ring"
-  (interactive)
-  (let ((bn (buffer-file-name nil)))
-   (kill-new bn)
-   (message "%s" bn)))
-
-(global-set-key "\M-?-B" 'get-buffer-file-name)
+(defun find-ctrl-chars ()
+  "Find control characters using the regular expression [^@-^H^K-^_^?]."
+  ;; ToDo
+)
 
 ;; Message-ID: <14865.20524.263889.867670@vegemite.chem.nottingham.ac.uk>
 ;; Date: Tue, 14 Nov 2000 14:46:04 +0000
@@ -1749,7 +2303,7 @@ advancing point."
 		   (1- (string-to-number (format-time-string "%m" time)))
 		   rfc822-month-alist)))
 	    (format-time-string " %Y %H:%M:%S" time)
-	    (format " %s%02d%02d"
+	    (format " %s%02d%02d"	; XXX watch out for SCCS keyword expansion!
 		    (if (< timezone 0) "-" "+")
 		    (abs hour)
 		    (abs min))
@@ -1896,6 +2450,16 @@ the window showing completions."
 ;;; modified to use `symbol-file' -- dunno when that became available.
 ;;;
 (require 'help)
+
+;; XXX `interactive-p' is obsolete since 23.2... but should we define it?
+;; (XXX these API changes in more recent releases are getting ANNOYING!)
+;; (this one is particularly and stupidly egregious -- it's a great shortcut!)
+;(if (not (fboundp 'interactive-p))
+;    (defun interactive-p ()
+;      "See `called-interactively-p'.
+;Same as: (called-interactively-p 'interactive)"
+;      (called-interactively-p 'interactive)))
+
 (defun load-file-defining-function (function)
   "Return the name of the source file from which FUNCTION was loaded.
 If FUNCTION was defined by reading from a buffer, return 'buffer.
@@ -1914,7 +2478,7 @@ If FUNCTION is a subr, or a lisp function dumped with Emacs, return nil."
 	     (intern val)))))
   (let ((file nil))
     (setq file (symbol-file function))
-    (if (interactive-p)
+    (if (called-interactively-p 'interactive)
         (message
          (cond
           ((stringp file)
@@ -1970,6 +2534,7 @@ might have been overridden by the major mode."
   (setq case-fold-search t		; allow case-insensitive searches
         indent-tabs-mode t		; allow tabs in indentation
 	show-trailing-whitespace t	; see what's not supposed to be there
+	fill-column 80			; it's code, damn it!
         selective-display nil))		; don't allow selective display
 
 (defun override-local-key-settings ()
@@ -2098,6 +2663,17 @@ argument.  As a consequence, you can always delete a whole line by typing
 
 (global-set-key (kbd "C-c d") 'delete-line)
 
+;; XXX Stupid obsolescence idiocracy!  W.T.F.????
+;; (at some point `toggle-read-only' may actually go away, but hopefully not)
+;(eval-and-compile
+;  (if (not (functionp 'toggle-read-only))		; since 24.3
+;      (defun toggle-read-only (&optional arg interactive)
+;	"Change whether this buffer is read-only."
+;	(interactive (list current-prefix-arg t))
+;	(if interactive
+;	    (call-interactively 'read-only-mode)
+;	  (read-only-mode (or arg 'toggle))))))
+
 ;;;; ----------
 ;;;; some special hooks.....
 
@@ -2146,6 +2722,17 @@ argument.  As a consequence, you can always delete a whole line by typing
   (defvar gud-key-prefix))
 (setq gud-key-prefix "\C-x\C-g")	; this makes more sense anyway....
 
+(eval-when-compile
+  (require 'dns)
+  (defvar dns-mode-soa-increment-serial))
+(eval-after-load 'dns
+  '(setq dns-mode-soa-increment-serial nil))
+
+(eval-when-compile
+  (require 'sgml-mode))
+(eval-after-load 'sgml-mode
+ '(setq sgml-basic-offset 8))
+
 ;;; Date: Wed, 2 Feb 1994 12:49:31 GMT
 ;;; Message-Id: <1994Feb2.124931.19715@nessie.mcc.ac.uk>
 ;;; Organization: Manchester Computing Centre, Manchester, England
@@ -2165,10 +2752,7 @@ argument.  As a consequence, you can always delete a whole line by typing
 
 (defun my-emacs-lisp-mode-setup-func ()
   "Private emacs-lisp-mode setup."
-  (override-local-key-settings)
-  (override-default-variable-settings)
-  (my-font-lock-keyword-setup)
-  (setq fill-column 79)
+  (setq fill-column 80)
   (turn-on-auto-fill)
   (local-set-key "\eJ" 'indent-sexp)
   (local-set-key "\ej" 'lisp-fill-paragraph))
@@ -2178,31 +2762,88 @@ argument.  As a consequence, you can always delete a whole line by typing
 
 (defun my-lisp-interaction-mode-setup-func ()
   "Private lisp-interaction-mode-hook."
-  (setq mode-name "LispInteraction")
-  (override-local-key-settings)
-  (override-default-variable-settings)
-  (my-font-lock-keyword-setup))
+  (setq mode-name "LispInteraction"))
 
 (add-hook 'lisp-interaction-mode-hook
 	  'my-lisp-interaction-mode-setup-func)
 
-(defun my-makefile-mode-setup-func ()
-  "Private makefile-mode-hook."
-  (override-local-key-settings)		; mostly to get `compile' binding
-  (override-default-variable-settings)
-  (my-font-lock-keyword-setup))
-
-(add-hook 'makefile-mode-hook
-	  'my-makefile-mode-setup-func)
-
-(defun my-js-mode-setup-func ()
-  "Private js-mode-hook."
+(defun my-prog-mode-setup-func ()
+  "Private for prog-mode-hook."
+  ;; many derivatives of `prog-mode' are too over-bearing and will insist on
+  ;; re-setting some key bindings without regard to the global key map...
   (override-local-key-settings)
   (override-default-variable-settings)
   (my-font-lock-keyword-setup))
 
-(add-hook 'js-mode-hook
-	  'my-js-mode-setup-func)
+;; `prog-mode-hook' covers a vast number of derived modes, including:
+;;
+;; `emacs-lisp-mode' and thus `lisp-interaction-mode'
+;; `go-mode'
+;; `js-mode'
+;; `lisp-mode'
+;; `makefile-mode'
+;; `perl-mode'
+;; `tcl-mode'
+;;
+(add-hook 'prog-mode-hook
+	  'my-prog-mode-setup-func)
+
+;; conf-colon-mode-hook 	conf-javaprop-mode-hook 	conf-ppd-mode-hook
+;; conf-space-mode-hook 	conf-unix-mode-hook 	conf-windows-mode-hook
+;; conf-xdefaults-mode-hook
+(mapc
+ (function (lambda (m)
+	     (add-hook m 'my-prog-mode-setup-func)))
+ '(conf-colon-mode-hook conf-javaprop-mode-hook conf-ppd-mode-hook
+   conf-space-mode-hook conf-unix-mode-hook conf-windows-mode-hook
+   conf-xdefaults-mode-hook))
+
+;;(require 'go-mode)
+(eval-after-load 'go-mode
+  (add-hook 'go-mode-hook
+	    (lambda ()
+;; hmmm...    (add-hook 'before-save-hook 'gofmt-before-save)
+	      (local-set-key "\C-c\C-t" 'go-add-tags)
+	      (eval-when-compile
+		(defvar gofmt-args))
+	      (setq gofmt-args '("-d"))	; xxx hmmm.... this doesn't seem to work!
+	      (if (not (string-match "go" compile-command))
+		  (set (make-local-variable 'compile-command)
+			"go build -v && go test -v && go vet")))))
+
+;;(require 'org)
+(defun my-org-mode-setup-func ()
+  "Private org-mode setup."
+  (setq indent-tabs-mode nil)		; make sure this is off...
+  (eval-when-compile
+    (defvar org-fontify-whole-heading-line)
+    (defvar org-cycle-global-at-bob)
+    (defvar org-todo-regexp)
+    (defvar org-startup-folded)
+    (defvar org-startup-truncated)
+    (defvar org-return-follows-link)
+    (defvar org-src-fontify-natively)
+    (defvar org-export-ascii-underline))
+  ;; in case we set background colours for faces
+  ;; (extends the background colour across the whole window(?))
+  (setq org-fontify-whole-heading-line t)
+  ;; maybe handy for poor finger memory....
+  (setq org-cycle-global-at-bob t)
+  ;; matching `my-font-lock-keyword-setup' for ToDo
+  (setq org-todo-regexp "\\([dD][oO][nN][eE]\\|[tT][oO][dD][oO]\\)")
+  ;; when opening a org file, don't collapse headings
+  (setq org-startup-folded nil)
+  ;; wrap long lines. don't let it disappear to the right
+  (setq org-startup-truncated nil)
+  ;; when in a url link, enter key should open it
+  (setq org-return-follows-link t)
+  ;; make org-mode” syntax color embedded source code
+  (setq org-src-fontify-natively t)
+  ;; for better visual impact use more dense chars first!
+  (setq org-export-ascii-underline '(?\= ?^ ?\~ ?\- ?\.)))
+
+(add-hook 'org-mode-hook
+	  'my-org-mode-setup-func)
 
 ;; once upon a time PCL-CVS was not distributed with GNU Emacs...
 ;;
@@ -2211,7 +2852,7 @@ argument.  As a consequence, you can always delete a whole line by typing
 ;; here we try modifying the default to keep separate diff, status, tree, and
 ;; log message buffers based on the filename.
 ;;
-;; also use indented-text-mode for commit message buffers.
+;; also use `text-mode' for commit message buffers.
 ;;
 (setq cvs-buffer-name-alist
       '(("diff"
@@ -2228,17 +2869,23 @@ argument.  As a consequence, you can always delete a whole line by typing
 	 cvs-status-mode)
 	("message"
 	 "*cvs-commit*"
-	 indented-text-mode log-edit)
+	 text-mode log-edit)
 	("log"
 	 (expand-file-name
 	  (format "*cvs-%s*" cmd))
 	 log-view-mode)))
 
 (defun my-cvs-mode-setup-func ()
-  "Private cvs-mode hook to get rid of that horrid `z' key binding!"
+  "Private cvs-mode hook to update `cvs-mode-map' and especially
+to get rid of that horrid `z' key binding!"
   (eval-when-compile
     (defvar cvs-mode-map))
-  (define-key cvs-mode-map "z" 'nil))
+  ;; mimic magit for lazy finger memory
+  (define-key cvs-mode-map "\t" 'cvs-mode-diff)
+  (define-key cvs-mode-map "g" 'nil)	; too easy to accidentally re-run
+					; cvs-examine this way
+  (define-key cvs-mode-map "G" 'cvs-examine) ; but it is quite useful!
+  (define-key cvs-mode-map "z" 'nil))	; NEVER kill the buffer!!!
 
 ;; note that once upon a time this hook variable was called `pcl-cvs-load-hook'
 ;;
@@ -2339,8 +2986,16 @@ argument.  As a consequence, you can always delete a whole line by typing
 	"unchar"
 	"ushort"))
 
+;; xxx hmmm.... smart-tabs-mode
+;;
+(defun my-c-style-hook ()
+  "Other stuff for `my-c-style'"
+  (progn
+    (setq tab-width 8)
+    (setq indent-tabs-mode t)))
+
 (defconst my-c-style
-  '((c-backslash-column . 78)
+  '((c-backslash-column . 80)
     (c-basic-offset . 8)
     (c-block-comment-prefix . "* ")
     (c-recognize-knr-p . t)
@@ -2381,14 +3036,16 @@ argument.  As a consequence, you can always delete a whole line by typing
     ;; `c-basic-offset' is added; 1, -1, 2, -2, 0.5, and -0.5, respectively); a
     ;; vector; a function; or a list.
     (c-offsets-alist . ((arglist-close . c-lineup-close-paren) ; +
+			(arglist-cont . c-lineup-argcont)
 			(arglist-cont-nonempty . c-lineup-arglist) ; +
+			(arglist-intro . c-lineup-arglist-intro-after-paren) ; +
 			(arglist-intro . +) ; +
 			(block-open . -) ; 0
 			(func-decl-cont . +) ; +
 			(inline-open . 0) ; +
 			(knr-argdecl-intro . +)
 			(knr-argdecl . 0)
-			(label . -)
+			(label . *) ; -
 			(member-init-intro . ++)
                         (statement-case-open . *) ; 0
 			(statement-cont . c-lineup-math) ; +
@@ -2396,6 +3053,18 @@ argument.  As a consequence, you can always delete a whole line by typing
   "My PERSONAL C Style, similar to NetBSD KNF.")
 (c-add-style "PERSONAL" my-c-style nil)
 
+;; see http://www.emacswiki.org/emacs/download/guess-offset.el
+
+(defun four ()
+  "use four space for indentation."
+  ;; from https://www.emacswiki.org/emacs/EmacsInitFileOfSylecn
+  (interactive)
+  (setq tab-width 4)
+  (setq c-basic-offset tab-width)
+  (setq indent-tabs-mode nil))
+
+;; XXX this could be changed to have tab-width 4 and use smart-tabs-mode
+;;
 (defconst smail-c-style
   (append my-c-style '((c-basic-offset . 4)))
   "Smail C Style; my personal style, but at offset 4.")
@@ -2403,14 +3072,15 @@ argument.  As a consequence, you can always delete a whole line by typing
 
 ;; XXX figure out how to add space squishing after keywords..
 ;;
+;; XXX and how the heck can we cancel smart-tabs-mode???
+;;
 (defconst klervi-c-style
-  (append my-c-style '((c-basic-offset . 2)
-		       (compile-command . "cd ~/tmp/build/... && make")))
+  (append my-c-style '((c-basic-offset . 2)))
   "Klervi C Style; Klervi Corporate style, using offset 2.")
 (c-add-style "KLERVI" klervi-c-style nil)
 
 (defconst my-awk-style
-  '((c-backslash-column . 78)
+  '((c-backslash-column . 72)
     (c-basic-offset . 8)
     (c-block-comment-prefix . "# ")
     (c-cleanup-list . (brace-else-brace
@@ -2528,12 +3198,13 @@ argument.  As a consequence, you can always delete a whole line by typing
 	(c-mode . "PERSONAL")
 	(other . "PERSONAL")))
 
+(declare-function smart-tabs-mode "smart-tabs-mode" t t)
 (defun my-c-mode-common-setup-func ()
   "My setup hook to be called by all CC Mode modes for common initializations."
 
   ;; other customizations
   (setq tab-width 8)			; normal, standard, default TAB chars
-  (setq fill-column 79)
+  (setq fill-column 80)
   (setq comment-column 40)
   (eval-when-compile
     (if (< init-emacs-type 21)
@@ -2548,13 +3219,24 @@ argument.  As a consequence, you can always delete a whole line by typing
   (setq c-recognize-knr-p t)		; yes, PLEASE!
   (setq c-tab-always-indent nil)	; insert tabs if not in left margin
 
-  (my-font-lock-keyword-setup)
   (eval-and-compile			; XXX doesn't work embedded here in 22.3...
     (if (and (fboundp 'c-toggle-auto-state)
 	     (not (eq (get 'c-toggle-auto-state 'byte-compile) 'byte-compile-obsolete)))
 	(c-toggle-auto-state 1)))	; try this on for size!
   (if (fboundp 'c-toggle-auto-newline)
       (c-toggle-auto-newline 1))	; ... or under its new name
+
+  ;; xxx eventually for smail mode we'll leave smart-tabs-mode on and set
+  ;; tab-width to 4 instead
+  ;; XXX hmmm....  this doesn't work, even if c-file-style is set in the mode line!
+  (if (and (boundp 'smart-tabs-mode)
+	   smart-tabs-mode)
+      (if (or (string-equal c-indentation-style "smail") ; for now...
+	      (string-equal c-indentation-style "klervi"))
+	  (smart-tabs-mode 0)))
+
+  (if (elisp-file-in-loadpath-p "ispell")
+      (local-set-key "\eS" 'ispell-comments-and-strings))
 
   ;; keybindings for all of the supported languages.  We can put these in
   ;; c-mode-base-map because awk-mode-map, c-mode-map, c++-mode-map,
@@ -2563,11 +3245,12 @@ argument.  As a consequence, you can always delete a whole line by typing
   (define-key c-mode-base-map "\C-m" 'c-context-line-break)
   (define-key c-mode-base-map "\ej" 'c-fill-paragraph)
 
-  ;; even cc-mode is sometimes too over-bearing.  It seems to
-  ;; insist re-setting some key bindings without regard to the
-  ;; global key map.
-  (override-local-key-settings)
-  (override-default-variable-settings))
+  ;; XXX ToDo:  Need `c-beginning-of-block' and `c-end-of-block' to jump to the
+  ;; beginning or end of the inner-most enclosing block.
+
+  ;; these are analagous to M-C-( and M-C-) in lisp modes
+  (define-key c-mode-base-map (kbd "M-C-{") 'c-beginning-of-defun) ; is also M-C-a
+  (define-key c-mode-base-map (kbd "M-C-}") 'c-end-of-defun))
 
 (add-hook 'c-mode-common-hook 'my-c-mode-common-setup-func)
 
@@ -2619,10 +3302,64 @@ argument.  As a consequence, you can always delete a whole line by typing
   (eval-when-compile
     (defvar vc-maximum-comment-ring-size)) ; not defvar'ed!
   (setq vc-maximum-comment-ring-size 64)   ; 32 is too small!
+  ;; make sure RCS is never used!
+  (delq 'RCS vc-handled-backends)
   (add-hook 'vc-checkin-hook
 	    'vc-comment-to-change-log))
+
 (add-hook 'vc-mode-hook
 	  'my-vc-mode-setup-func)
+
+;; XXX mksccs (from ~/.kshsccs) could be reimplemented here, perhaps mostly just
+;; with `vc-sccs-register-switches', but maybe since it is a one-time operation,
+;; warning to use it will suffice...
+;;
+;; XXX probably this should be:  (defalias 'vc-register-with 'vc-register)
+(defadvice vc-register (around vc-ask activate)
+  (if (y-or-n-p "Are you sure you want to use `vc-register' (maybe mksccs instead?)? ")
+      ad-do-it))
+(defadvice vc-register-with (around vc-ask activate)
+  (if (y-or-n-p "Are you sure you want to use `vc-register-with' (maybe mksccs instead?)? ")
+      ad-do-it))
+
+;; Francesco Potorti` <pot@gnu.org> also advises this:
+;;
+;; Ask before using version control: maybe toggle-read-only is enough
+(defadvice vc-toggle-read-only (around vc-ask activate)
+  (if (and (vc-backend buffer-file-name)
+	   (y-or-n-p "Toggle version control status? "))
+      ad-do-it
+    (toggle-read-only)))
+
+(eval-when-compile
+  (defvar vc-sccs-header))
+(setq vc-sccs-header '("#ident	\"%Z\045%Y\045:%M\045	%I\045	%E\045 %U\045 (%Q\045)\""))
+
+;; As-is `vc-dir' will show checked-in files as having "unlocked-changes" and
+;; `vc-diff' will show those changes as being the expanded keywords.  This is
+;; both useful and annoying; useful because it can show unexpected and
+;; unintended sequences matching SCCS keywords, and annoying because it then
+;; shows all files (with keywords) in the VC dir buffer as having something
+;; odd/wrong with them...
+;;
+;; XXX Unfortunately these are passed to "diff", not "sccs diff"...
+;; 
+;;(eval-when-compile
+;;  (defvar vc-sccs-diff-switches))
+;;(setq vc-sccs-diff-switches '("-k"))
+
+;; XXX this is apparently broken in the 24.x and 25.x releases!
+(defun vc-sccs-dir-status-files (dir files update-function)
+  (if (not files) (setq files (vc-expand-dirs (list dir) 'SCCS)))
+  (let ((result nil))
+    (dolist (file files)
+      (let ((state (vc-state file))
+	    (frel (file-relative-name file)))
+	(when (and (eq (vc-backend file) 'SCCS)
+		   (not (eq state 'up-to-date)))
+	  (push (list frel state) result))))
+    (funcall update-function result)))
+
 
 ;;;
 ;;; misc other hooks
@@ -2631,10 +3368,12 @@ argument.  As a consequence, you can always delete a whole line by typing
 (defun my-isearch-mode-setup-func ()
   "Private isearch-mode stuff."
   ;; xxx do these custom mode-map setups have to be done in a mode hook???
+;;(define-key isearch-mode-map "\C-e" 'isearch-edit-string)
+;;(define-key isearch-mode-map "\C-\M-g" 'isearch-yank-sexp)	;; xxx there is no such thing, but there should be!!!
+  (define-key isearch-mode-map "\C-h" 'isearch-delete-char)
 ;;(define-key isearch-mode-map "\C-t" 'isearch-toggle-case-fold)
   (define-key isearch-mode-map "\C-t" 'isearch-toggle-regexp)
-;;(define-key isearch-mode-map "\C-e" 'isearch-edit-string)
-  (define-key isearch-mode-map "\C-h" 'isearch-delete-char)
+  (define-key isearch-mode-map "\C-x" 'isearch-yank-x-selection)
   (define-key isearch-mode-map "\C-\\" 'isearch-repeat-forward)
   (define-key isearch-mode-map "\C-^" 'isearch-quote-char))
 
@@ -2642,7 +3381,7 @@ argument.  As a consequence, you can always delete a whole line by typing
 	  'my-isearch-mode-setup-func)
 
 (defun my-text-mode-setup ()
-  "Private text-mode and indented-text-mode stuff."
+  "Private text-mode stuff."
   ;; If for some reason the *scratch* buffer was killed earlier
   ;; and is recreated here because all other buffers have been
   ;; killed, then reset the major mode to emacs-lisp-mode.
@@ -2720,24 +3459,7 @@ argument.  As a consequence, you can always delete a whole line by typing
       (setq sh-indent-after-do '+)
       (setq sh-indent-for-then 0)
       (setq sh-indent-after-case 0)		; for rc
-      (setq sh-indent-after-switch 0)		; for rc
-      (defun my-sh-mode-setup-func ()
-	"Private sh-mode-hook."
-	(override-local-key-settings)
-	(override-default-variable-settings)
-	(my-font-lock-keyword-setup))
-      (add-hook 'sh-mode-hook
-		'my-sh-mode-setup-func)))
-
-(if (elisp-file-in-loadpath-p "perl-mode")
-    (progn
-      (defun my-perl-mode-setup-func ()
-	"Private perl-mode-hook."
-	(override-default-variable-settings)
-	(override-local-key-settings)
-	(my-font-lock-keyword-setup))
-      (add-hook 'perl-mode-hook
-		'my-perl-mode-setup-func)))
+      (setq sh-indent-after-switch 0)))		; for rc
 
 (if (elisp-file-in-loadpath-p "tcl")
     (progn
@@ -2746,15 +3468,16 @@ argument.  As a consequence, you can always delete a whole line by typing
 	(defvar tcl-indent-level)
 	(defvar tcl-continued-indent-level))
       (setq tcl-indent-level 8)
-      (setq tcl-continued-indent-level 8)
-      (defun my-tcl-mode-setup-func ()
-	"Private tcl-mode-hook."
-	(override-default-variable-settings)
-	(override-local-key-settings)
-	(my-font-lock-keyword-setup))
-      (add-hook 'tcl-mode-hook
-		'my-tcl-mode-setup-func)))
+      (setq tcl-continued-indent-level 8)))
 
+(if (elisp-file-in-loadpath-p "textile-mode")
+    (progn
+      (require 'textile-mode)
+      (add-to-list 'auto-mode-alist '("\\.textile\\'" . textile-mode))))
+
+(if (elisp-file-in-loadpath-p "ox-textile")
+    (progn
+      (require 'ox-textile)))
 
 ;;;; ----------
 ;;;; more hooks for non-default packages
@@ -2784,6 +3507,10 @@ argument.  As a consequence, you can always delete a whole line by typing
 
 ;;;; ----------
 ;;;; some default key re-binding....
+
+;;; think about M-: doing a multi-line comment instead of `comment-dwim', or
+;;; maybe it can be made smart enough to do that.
+
 
 ;;; first off, we do some fancy stuff to make C-h work "properly," but still
 ;;; have good access to the help functions!
@@ -2822,12 +3549,16 @@ argument.  As a consequence, you can always delete a whole line by typing
 (global-set-key "\e?" 'help-command)	; this is the first step to set up help
 (global-set-key "\e?F" 'view-emacs-FAQ)	; in 19.34 it needs more help...
 ;; should help-char be just ? instead?
-(setq help-char ?\M-?)			; this should "fix" the rest.
+;(setq help-char ?\M-?)			; this should "fix" the rest.
+;; xxx the above doesn't work because \M-? is not a "characterp"
+;; so indeed we will make it '?'
+(setq help-char 63)		; this should "fix" the rest.
 
 ;; some more handy help-related binding...
 ;;
+(define-key help-map "\e?" 'help-for-help)	; press it twice for help help
 (define-key help-map "c" 'describe-char)	; orig is weird
-(define-key help-map "?" 'describe-key-briefly) ; also C-x? for Jove compat
+(define-key help-map "?" 'describe-key-briefly)
 
 ;;; Now for function key mappings...
 ;;;
@@ -2882,7 +3613,9 @@ of `function-key-map' for 22.3(?) vs. older,"))
   ;; guarantees though....
   ;;
   (if (boundp normal-erase-is-backspace)
-      (setq normal-erase-is-backspace t)))
+      (setq normal-erase-is-backspace t))
+  (if (fboundp 'reindent-then-newline-and-indent)
+      (global-set-key [\C-return] 'reindent-then-newline-and-indent)))
 
 (define-minor-mode normal-erase-is-backspace-mode
   "a fine replacement for this brain-damaged idea"
@@ -2983,6 +3716,13 @@ more recent emacs versions."
 (define-key query-replace-map [return] 'act)
 (define-key query-replace-map "\C-m" 'act)
 
+;; It seems sometimes one gets accidentally "stuck" in a completion pop-up
+;; window, and then C-g doesn't have an *immediate* effect!
+;;
+;; from simple.el, loaded above for the help-mode mess
+(if (boundp 'completion-list-mode-map)
+    (define-key completion-list-mode-map "\C-g" 'quit-window))
+
 ;; these are really just for Sun-style keyboards....
 (global-set-key [cancel] 'keyboard-quit)
 (global-set-key [redo] 'repeat)
@@ -3021,15 +3761,6 @@ more recent emacs versions."
 (global-set-key "\C-xq" 'toggle-read-only)
 (global-set-key "\C-xvq" 'vc-toggle-read-only)
 
-;; Francesco Potorti` <pot@gnu.org> also advises this:
-;;
-;; Ask before using version control: maybe toggle-read-only is enough
-(defadvice vc-toggle-read-only (around vc-ask activate)
-  (if (and (vc-backend buffer-file-name)
-	   (y-or-n-p "Toggle version control status? "))
-      ad-do-it
-    (toggle-read-only)))
-
 ;;; some of the remainder is to get back some Jove/Gosmacs comaptability, but
 ;;; without getting it all....
 ;;;
@@ -3067,18 +3798,53 @@ more recent emacs versions."
 
 (global-set-key "\e\C-z" 'suspend-emacs)
 
-(global-set-key "\C-x?" 'describe-key-briefly)
+;; this used to make sense, but it interferes with using '?' as `help-char'
+;;(global-set-key "\C-x?" 'describe-key-briefly)
 (if (fboundp 'super-apropos)
     (global-set-key "\C-x\C-a" 'super-apropos)
   (if (fboundp 'apropos-documentation)
       (global-set-key "\C-x\C-a" 'apropos-documentation)))
 
-
+;; XXX these (M-. and M-,) over-write the default bindings for the new `xref'
+;; functions.
+;;
 (global-set-key "\e," 'top-of-window)		; mirror M-<
 (global-set-key "\e." 'bottom-of-window)	; mirror M->
 
-(global-set-key "\C-xT" 'find-tag)
-(global-set-key "\C-x4T" 'find-tag-other-window)
+;; note "grep" is bound above to C-x G
+
+(if (elisp-file-in-loadpath-p "xref")
+    (progn
+      (require 'xref)
+      (eval-when-compile
+	(defvar xref-buffer-name)
+	(defvar xref-prompt-for-identifier))
+      ;; some people love change.  I don't when it affects decades of finger
+      ;; memory!
+      (setq xref-prompt-for-identifier t)
+      ;; XXX this will need fixing if/when moving to `display-buffer-alist'
+      (add-to-list 'special-display-buffer-names xref-buffer-name)
+      (global-set-key "\C-x\et" 'xref-find-apropos)		    ; also C-M-.
+      (global-set-key "\C-xT" 'xref-find-definitions)		    ; originally M-.
+      (global-set-key "\C-x4T" 'xref-find-definitions-other-window) ; also C-x 4 .
+      (global-set-key "\C-x5T" 'xref-find-definitions-other-frame)  ; also C-x 5 .
+      (global-set-key "\C-xR" 'xref-find-references)
+      ;;
+      ;; note there is no `xref-find-references-other-window' because
+      ;; `xref-find-references' is likely to open a window with a list of refs
+      ;; in it, and the latter is also already bound to C-x 4 . but for best
+      ;; finger memory we give the same bindings anyway (and we've already set
+      ;; the "*xref*" buffer to always pop up in another frame, so....
+      ;;
+      (global-set-key "\C-x4R" 'xref-find-references)
+      (global-set-key "\C-x5R" 'xref-find-references)
+      (global-set-key "\C-x," 'xref-pop-marker-stack)) ; originally M-,
+  ;; n.b.:  etags is obsolete since 25.1
+  (global-set-key "\C-xT" 'find-tag)
+  (global-set-key "\C-x4T" 'find-tag-other-window))
+
+(when (elisp-file-in-loadpath-p "gxref")
+  (add-to-list 'xref-backend-functions 'gxref-xref-backend))
 
 (require 'hippie-exp)
 ;; M-S-tab is normally bound to whatever M-tab is bound to (via translation?),
@@ -3146,7 +3912,7 @@ more recent emacs versions."
 ;;;;-------
 ;;;; more goodies
 
-;;;(if (= init-emacs-type '19)
+;;;(if (= init-emacs-type 19)
 ;;;      (dont-compile
 ;;;	(defun display-buffer-in-frame-or-window (buf)
 ;;;	  "Try to find buffer BUF in another (visible) frame, otherwise call
@@ -3155,10 +3921,55 @@ more recent emacs versions."
 ;;;	      (display-buffer buf)))
 ;;;	(setq temp-buffer-show-function 'display-buffer-in-frame-or-window)))
 
-;; This is tagged as obsolete in 24.3.  Some idiot apparently thought the new
-;; and infinitely more complex `display-buffer-alist' mess is preferred.
+;; This too is tagged as obsolete in 24.3.  Some idiot apparently thought the
+;; new and infinitely more complex and monsterous `display-buffer-alist'
+;; P.O.S. mess is preferred.  Grrr....  (On the other hand it does bring
+;; together under one umbrella a bunch of also very-complex baroque vars!)
 ;;
-(setq display-buffer-reuse-frames t)
+
+;; XXX the following by no means replaces all the settings above!
+;;
+;;FOR TESTING:  (setq display-buffer-alist nil)
+(if (>= init-emacs-type 24)
+    (progn
+      (eval-when-compile
+	(defvar display-buffer-alist))
+      ;;
+      ;; xxx the following may not be ideal yet.  I was using
+      ;; `display-buffer-at-bottom', but it didn't always do what I expected.
+      ;;
+      (add-to-list 'display-buffer-alist
+		   '("\\*Buffer List\\*" .
+		     ((display-buffer-reuse-window
+		       display-buffer-below-selected)
+		      . ((inhibit-switch-frame . t)
+			 (window-height . shrink-window-if-larger-than-buffer)))))
+      ;; XXX the following should hopefully have the same effect as putting this
+      ;; same regexp into `same-window-regexps'
+      (add-to-list 'display-buffer-alist
+		   '("^\\*magit: " .
+		     ((display-buffer-same-window)
+		      . ((inhibit-switch-frame . t)))))
+      ;;
+      ;; In theory this last entry should prevent raising of any existing frame
+      ;; for any buffer not yet matched thus approximately mimicing the turning
+      ;; off of the now obsolete `display-buffer-reuse-frames' setting above.
+      ;; This must come last to avoid matching before a more specific match,
+      ;;
+      ;; XXX Hopefully this isn't the cause of `buffer-menu-other-window'
+      ;; opening new frames!!! (XXX but something is)
+      ;;
+      (setq display-buffer-alist
+	    (append display-buffer-alist
+		    '(("." nil (inhibit-switch-frame . t))))))
+  ;; else older...
+  ;; (XXX how to shut up the compiler's "obsolete" warnings?)
+  (progn
+    ;;
+    ;; The unexpected raising of some frames is very annoying at times -- so don't
+    ;; do it at all (except as specifically configured elsewhere).
+    ;;
+    (setq display-buffer-reuse-frames nil)))
 
 ;;; From: dsmith@spam.maths.adelaide.edu.au (David Smith)
 ;;; Subject: framepop.el: Display temporary buffers in dedicated frame
@@ -3194,6 +4005,8 @@ more recent emacs versions."
 ;;; Distribution: world
 ;;; Message-Id: <CA.93Oct8162822@yangtze.cs.umd.edu>
 ;;;
+;;; XXX not really used any longer...
+;;;
 (if (and (elisp-file-in-loadpath-p "compile-frame")
 	 window-system)
     (progn
@@ -3205,11 +4018,11 @@ more recent emacs versions."
 	(autoload 'raise-frame "frame"	; actually in frame.c
 	  "Bring FRAME to the front, so it occludes any frames it overlaps."
 	  nil nil))
-      (defun my-compilation-fram-selected-setup-func ()
+      (defun my-compilation-frame-selected-setup-func ()
 	"Private compilation-frame stuff."
 	(raise-frame compilation-frame-id))
       (add-hook 'compilation-frame-selected-hook
-		'my-compilation-fram-selected-setup-func)))
+		'my-compilation-frame-selected-setup-func)))
 
 (if (or window-system (and (fboundp 'server-process)
 			   server-process))
@@ -3283,6 +4096,10 @@ current emacs server process..."
 	(defvar LaTeX-mode-hook)
 	(defvar nroff-mode-hook))
       (require 'ispell)
+      ;; for GNU Aspell the variant dicts have to be added with
+      ;; '--extra-dicts=...' as they only add additional variant spellings of
+      ;; words already in the main dictionary.  If you want to use them it's
+      ;; probably best to configure "extra-dict ..." in ~/.aspell.conf
       (setq ispell-dictionary (getenv "DICTIONARY"))
       (if (not ispell-dictionary)
 	  (setq ispell-dictionary "british")) ; that's what's best!!!
@@ -3360,7 +4177,9 @@ current emacs server process..."
 ;;
 (eval-and-compile
   (if (not (functionp 'defvaralias))		; since 22.1
-      (defvar my-american-date-diary-pattern american-date-diary-pattern)
+      (progn
+	(defvar american-date-diary-pattern)
+	(defvar my-american-date-diary-pattern american-date-diary-pattern))
     (if (and (boundp 'american-date-diary-pattern)
 	     (not (get 'american-date-diary-pattern 'byte-obsolete-variable)))
 	(defvaralias 'my-american-date-diary-pattern 'american-date-diary-pattern
@@ -3391,13 +4210,13 @@ current emacs server process..."
 ;; clobber each other as only one can be shown at a time.
 (setq appt-message-warning-time 15)	; minutes of warning prior to appt
 
+(eval-when-compile
+  (defvar appt-visible))
 (eval-and-compile			; XXX in 22.3 this doesn't work at all,
 					; in 23.3 it only works for appt-msg-window
   (if (and (boundp 'appt-msg-window)
 	   (not (get 'appt-msg-window 'byte-obsolete-variable)))
       (progn
-	(eval-when-compile
-	  (defvar appd-visible))
 	(setq appt-msg-window nil)	; do not show appt message in a separate window!
 	(setq appt-visible t))		; show appt msg in echo area (only if appt-msg-window is nil)
     (setq appt-display-format 'echo)))	; do show appt messages in the echo area!
@@ -3466,7 +4285,9 @@ current emacs server process..."
 
 (eval-and-compile
   (if (not (functionp 'defvaralias))		; since 22.1
-      (defvar my-number-of-diary-entries number-of-diary-entries)
+      (progn
+	(defvar number-of-diary-entries)
+	(defvar my-number-of-diary-entries number-of-diary-entries))
     (if (and (boundp 'number-of-diary-entries)
 	     (not (get 'number-of-diary-entries 'byte-obsolete-variable)))
 	(defvaralias 'my-diary-number-of-entries 'number-of-diary-entries
@@ -3486,7 +4307,9 @@ current emacs server process..."
 
 (eval-and-compile
   (if (not (functionp 'defvaralias))		; since 22.1
-      (defvar my-other-holidays other-holidays)
+      (progn
+	(defvar other-holidays)
+	(defvar my-other-holidays other-holidays))
     (if (and (boundp 'other-holidays)
 	     (not (get 'other-holidays 'byte-obsolete-variable)))
 	(defvaralias 'my-other-holidays 'other-holidays
@@ -3563,12 +4386,9 @@ current emacs server process..."
       ;; ~/.emacs.el):
       ;;
       (require 'timeclock)
-
-      ;; hmmm.... this seems to print a warning on load, possibly because we
-      ;; have not yet activated `display-time-mode' (that will be done in
-      ;; `my-main-after-init-func')  It defaults to `t' anyway...
-      ;;
-      (setq timeclock-use-display-time t)
+      (eval-when-compile
+	(defvar timeclock-use-display-time))
+      (setq timeclock-use-display-time t) ; it is the default...
 
       ;; NOTE:  you must have a ~/.timelog file or this will crap out...
       ;;
@@ -3618,6 +4438,8 @@ current emacs server process..."
 ;;;;
 ;;;; todo stuff....
 ;;;;
+;;;; - unfortunately todo is rather un-intuitive and somewhat obtuse.
+;;;;
 
 (if (elisp-file-in-loadpath-p "todo-mode")
     (progn
@@ -3645,6 +4467,233 @@ current emacs server process..."
 
 (require 'sendmail)
 
+;; If t, it means to insert the contents of the file `mail-signature-file'.
+;; If a string, that string is inserted.
+;;
+;; Otherwise, it should be an expression; which will be evaluated by
+;; `mail-signature' and that expression should return a string containing
+;; whatever text you want to insert.
+;;
+;; Note the expression magic is not currently documented.
+;;
+(defvar default-mail-signature-file mail-signature-file
+  "*Original value of `mail-signature-file' for safe keeping.")
+(setq mail-signature t)
+
+(eval-and-compile
+  (defconst mail-default-domains-completion-alist
+    '(
+      ("avoncote.ca")
+      ("weird.com")
+      ("weird.ca")
+      ("weird.toronto.on.ca")
+      ("robohack.ca")
+      ("planix.com")
+      ("robohack.planix.com")
+      ("planix.ca")
+      ("planix.net")
+      ("klervi.com")
+      ("reptiles.org")
+      ("vex.net")
+      ("proxy.net")
+      )
+    "*Default list of domains for mail-local-domain-name.
+
+Should normally be for networks where this ~/.emacs.el might be
+used."))
+(eval-and-compile
+  (defvar mail-local-domain-name
+    (or (let ((envvalue (getenv "MAILDOMAIN")))
+	  (if (or (null envvalue)
+		  (string-equal envvalue ".local")
+		  (string-equal envvalue ""))
+	      nil
+	    (if (string-equal "." (substring envvalue 0 1))
+		(substring envvalue 1)
+	      envvalue)))
+	(let ((envvalue (getenv "DOMAINNAME")))
+	  (if (or (null envvalue)
+		  (string-equal envvalue ".local")
+		  (string-equal envvalue ""))
+	      nil
+	    (if (string-equal "." (substring envvalue 0 1))
+		(substring envvalue 1)
+	      envvalue)))
+	(let ((hostdom (system-name)))
+	  (if (not (string-match "\\." hostdom))
+	      nil
+	    (setq hostdom (substring hostdom (match-end 0)))
+	    (if (or (null hostdom)
+		    (string-equal hostdom "local")
+		    (string-equal hostdom ""))
+		nil
+	      hostdom)))
+	;; xxx we should try running domainname to see if it returns anything or
+	;; not...  though it is likely to be the same as $DOMAINNAME anyway
+	;;
+	;; our last resort....
+	(completing-read
+	 "Enter a domain name for local mail (without host part): "
+	 mail-default-domains-completion-alist))
+    "*Local domain name to be used for mail purposes."))
+
+(defun my-mail-signature-selector ()
+  "Select an appropriate signature file"
+  (let ((custom-sigfile (concat mail-signature-file "-" mail-local-domain-name)))
+    (if (file-exists-p custom-sigfile)
+	(setq mail-signature-file custom-sigfile)
+      (setq mail-signature-file default-mail-signature-file))))
+
+(add-hook 'after-init-hook 'my-mail-signature-selector)
+
+(eval-and-compile
+  (if (not (boundp 'message-signature-separator))
+      (defvar message-signature-separator  "^-- *$"
+	"*Regexp matching the signature separator.")))
+
+;; more fancy .sig handling adapted from:
+;; <URL:http://www-xray.ast.cam.ac.uk/~gmorris/dotvm.txt>
+;;
+(defun my-mail-goto-signature ()
+  "Move point to the signature separator, if present.  Otherwise go to the end
+and return nil."
+  (goto-char (point-max))
+  (re-search-backward message-signature-separator (mail-text-start) t))
+
+(defun my-mail-signature-start ()
+  "Return start position of signature in current buffer, or nil if none."
+  (save-excursion
+    (goto-char (point-max))
+    (and (re-search-backward message-signature-separator nil t)
+         (point))))
+
+(defface my-signature-face
+  '((((class color)
+      (background dark))
+     (:foreground "light pink"))
+    (((class color)
+      (background light))
+     (:background "light pink"))
+    (t
+     (:italic t)))
+  "My signature face"
+  :group 'basic-faces)
+
+(defun my-signature-highlight ()
+  "Highlight the signature in an article with `my-signature-face'."
+  (interactive)
+  (save-excursion
+    (let ((start (my-mail-signature-start)))
+      (and start
+           (facep 'my-signature-face)
+           (overlay-put (make-overlay start (point-max))
+                        'face 'my-signature-face)))))
+
+(defun my-signature-insert (sig &optional replace highlight)
+  "Insert SIG as signature at end of current buffer, unless a signature is
+already present, in which case REPLACE must be supplied.  If a file matching
+string SIG exists, its contents will be inserted, otherwise SIG is treated as a
+literal string. With HIGHLIGHT, highlight the new signature."
+  (save-excursion
+    (let ((sigsep "\n-- \n")	; should match message-signature-separator
+	  (exists (my-mail-goto-signature))) ; moves point
+      (when (and exists replace)
+	(delete-region (point) (point-max))
+	(delete-char -1))
+      (when (or (not exists) (and exists replace))
+	(insert sigsep)
+	(if (file-exists-p sig) (insert-file-contents sig)
+	  (insert sig))
+	(and highlight (my-signature-highlight))))))
+
+(defun my-signature-kill ()
+  "Remove signature in current buffer."
+  (interactive)
+  (save-excursion
+    (and (my-mail-goto-signature) (delete-region (point) (point-max)))))
+
+(defvar my-randomsig-file "~/quotes"
+  "")
+(defvar my-randomsig-delimiter-pattern "\n\n"
+  "")
+(defvar my-randomsig-comment-pattern "#c#"
+  "")
+(defvar my-randomsig-sigflag-pattern ""	; "#s#"
+  "")
+
+(defun my-get-random-quote (&optional include-commented lines sigflag)
+  "Return a random quote from `my-randomsig-file'.
+If INCLUDE-COMMENTED is non-nil, include private quotes.
+If LINES is non-nil, do not return a quote with more than LINES lines.
+If SIG is non-nil, only return quotes marked as sig-suitable, ignoring
+any line-limit."
+  (interactive)
+  (or (file-exists-p my-randomsig-file)
+      (error "File `%s' not found" my-randomsig-file))
+    (with-temp-buffer
+      (insert-file-contents my-randomsig-file)
+      (goto-char (point-min))
+      (let ((sigcount 0)
+            (try 0)
+            (maxtry 100)
+            found sigstring selected)
+	;; Count number of signatures.
+	(while (re-search-forward my-randomsig-delimiter-pattern nil t)
+	  (setq sigcount (1+ sigcount)))
+	;; search for a suitable signature...
+        (while (not sigstring)
+          (while (and (not found) (< try maxtry))
+            ;; Select random signature.
+            (setq try (1+ try))
+	    (setq selected (1+ (random sigcount)))
+            (goto-char (point-min))
+            ;; Note this expects a separator before first quote.
+            (or (re-search-forward my-randomsig-delimiter-pattern
+                                   (point-max) t selected)
+                (error "Failed to find selected quote"))
+            (setq found (if (looking-at my-randomsig-comment-pattern)
+			    include-commented
+			  t))
+            ;; If requested, reject those not explicitly marked as sigs.
+            ;; Ugly.
+            (and found
+                 (setq found
+		       (or (not sigflag)
+			   (re-search-forward
+			    my-randomsig-sigflag-pattern
+			    (line-end-position) t)))))
+          (or found (error "Tried %s quotes and failed" maxtry))
+          ;; Cut signature and return it.
+          (let ((start (point))
+                (end (save-excursion
+                       (and (re-search-forward
+                             my-randomsig-delimiter-pattern (point-max) 'move)
+                            (beginning-of-line))
+                       (point)))
+                thislines)
+            ;; Move to end, or comment section.
+            (and (re-search-forward my-randomsig-comment-pattern end 'move)
+                 (beginning-of-line))
+            (setq end (point)
+                  sigstring (buffer-substring start end)
+                  thislines (count-lines start end))
+            ;; Reject signature if too long.
+            (and lines (not sigflag) (> thislines lines)
+                 (setq found nil sigstring nil))))
+        (if (called-interactively-p 'interactive)
+	    (message "%s" sigstring)
+          sigstring))))
+
+;; This is bogus, but serves as an example.
+;;
+;; what we really want is just to replace the quotation part, not the whole .sig
+;;
+(defun my-sig-replace-random-and-highlight (&optional prefix)
+  "Insert and highlight random signature, from those marked OK.
+With PREFIX, select from all quotes."
+  (interactive "*P")			; suitable for keybinding
+  (my-signature-insert (my-get-random-quote prefix nil nil) t t))
+
 ;; With Smail's content filtering we will get an error if we try to post
 ;; something that's forbidden -- however the current stupid `sendmail-send-it'
 ;; seems to ignore errors from the mailer unless `mail-interactive' is set.
@@ -3666,40 +4715,6 @@ current emacs server process..."
 
 (setq mail-archive-file-name "~/Mail/.outgoing") ; for non-VM use
 
-(defconst mail-default-domains-completion-alist
-  '(
-    ("weird.com")
-    ("weird.ca")
-    ("weird.toronto.on.ca")
-    ("avoncote.ca")
-    ("robohack.ca")
-    ("planix.com")
-    ("robohack.planix.com")
-    ("planix.ca")
-    ("planix.net")
-    ("klervi.com")
-    ("reptiles.org")
-    ("vex.net")
-    ("proxy.net")
-   )
-  "*Default list of domains for mail-local-domain-name.
-
-Should normally be for networks where this ~/.emacs.el might be
-used.")
-
-(eval-and-compile
-  (defvar mail-local-domain-name (or (let ((envvalue (getenv "DOMAINNAME")))
-				       (if (or (null envvalue)
-					       (string-equal envvalue ""))
-					   nil
-					 (if (string-equal "." (substring envvalue 0 1))
-					     (substring envvalue 1)
-					   envvalue)))
-				     (if (string-match "\\." (system-name))
-					 (substring (system-name) (match-end 0)))
-				     (completing-read "Enter a domain name for local mail (without host part): "
-						      mail-default-domains-completion-alist))
-    "*Local domain name to be used for mail purposes."))
 
 (defun mail-reset-mail-local-domain-name-users ()
   "To be run after changing `mail-local-domain-name'."
@@ -3826,7 +4841,10 @@ Use it by evaluating `(setq mail-default-x-face mail-alternate-x-face)'")
 ;;
 (add-hook 'mail-setup-hook 'mail-insert-x-face)
 
-(if (elisp-file-in-loadpath-p "x-face-e21")
+(if (and (elisp-file-in-loadpath-p "x-face-e21")
+	 window-system)			; probably not quite right, but
+					; otherwise we fail with an unknown
+					; image type
     (progn
       (load-library "x-face-e21")
       ;; (lambda nil (memq major-mode '(message-mode wl-draft-mode)))
@@ -4326,175 +5344,6 @@ but it's seriously brain damaged so we re-define it as nothing."
 (define-mail-abbrev "old-spamcop" "spamcop@spamcop.net (defunct)")
 (define-mail-abbrev "wirehub"	"abuse-silent@wirehub.net (defunct)")
 
-;; If t, it means to insert the contents of the file `mail-signature-file'.
-;; If a string, that string is inserted.
-;;
-;; Otherwise, it should be an expression; which will be evaluated by
-;; `mail-signature' and that expression should return a string containing
-;; whatever text you want to insert.
-;;
-;; Note the expression magic is not currently documented.
-;;
-(defvar default-mail-signature-file mail-signature-file
-  "*Original value of `mail-signature-file' for safe keeping.")
-(setq mail-signature t)
-
-(defun my-mail-signature-selector ()
-  "Select an appropriate signature file"
-  (let ((custom-sigfile (concat mail-signature-file "-" mail-local-domain-name)))
-    (if (file-exists-p custom-sigfile)
-	(setq mail-signature-file custom-sigfile)
-      (setq mail-signature-file default-mail-signature-file))))
-
-(add-hook 'after-init-hook 'my-mail-signature-selector)
-
-(eval-and-compile
-  (if (not (boundp 'message-signature-separator))
-      (defvar message-signature-separator  "^-- *$"
-	"*Regexp matching the signature separator.")))
-
-;; more fancy .sig handling adapted from:
-;; <URL:http://www-xray.ast.cam.ac.uk/~gmorris/dotvm.txt>
-;;
-(defun my-mail-goto-signature ()
-  "Move point to the signature separator, if present.  Otherwise go to the end
-and return nil."
-  (goto-char (point-max))
-  (re-search-backward message-signature-separator (mail-text-start) t))
-
-(defun my-mail-signature-start ()
-  "Return start position of signature in current buffer, or nil if none."
-  (save-excursion
-    (goto-char (point-max))
-    (and (re-search-backward message-signature-separator nil t)
-         (point))))
-
-(defface my-signature-face
-  '((((class color)
-      (background dark))
-     (:foreground "light pink"))
-    (((class color)
-      (background light))
-     (:background "light pink"))
-    (t
-     (:italic t)))
-  "My signature face"
-  :group 'basic-faces)
-
-(defun my-signature-highlight ()
-  "Highlight the signature in an article with `my-signature-face'."
-  (interactive)
-  (save-excursion
-    (let ((start (my-mail-signature-start)))
-      (and start
-           (facep 'my-signature-face)
-           (overlay-put (make-overlay start (point-max))
-                        'face 'my-signature-face)))))
-
-(defun my-signature-insert (sig &optional replace highlight)
-  "Insert SIG as signature at end of current buffer, unless a signature is
-already present, in which case REPLACE must be supplied.  If a file matching
-string SIG exists, its contents will be inserted, otherwise SIG is treated as a
-literal string. With HIGHLIGHT, highlight the new signature."
-  (save-excursion
-    (let ((sigsep "\n-- \n")	; should match message-signature-separator
-	  (exists (my-mail-goto-signature))) ; moves point
-      (when (and exists replace)
-	(delete-region (point) (point-max))
-	(delete-char -1))
-      (when (or (not exists) (and exists replace))
-	(insert sigsep)
-	(if (file-exists-p sig) (insert-file-contents sig)
-	  (insert sig))
-	(and highlight (my-signature-highlight))))))
-
-(defun my-signature-kill ()
-  "Remove signature in current buffer."
-  (interactive)
-  (save-excursion
-    (and (my-mail-goto-signature) (delete-region (point) (point-max)))))
-
-(defvar my-randomsig-file "~/quotes"
-  "")
-(defvar my-randomsig-delimiter-pattern "\n\n"
-  "")
-(defvar my-randomsig-comment-pattern "#c#"
-  "")
-(defvar my-randomsig-sigflag-pattern ""	; "#s#"
-  "")
-
-(defun my-get-random-quote (&optional include-commented lines sigflag)
-  "Return a random quote from `my-randomsig-file'.
-If INCLUDE-COMMENTED is non-nil, include private quotes.
-If LINES is non-nil, do not return a quote with more than LINES lines.
-If SIG is non-nil, only return quotes marked as sig-suitable, ignoring
-any line-limit."
-  (interactive)
-  (or (file-exists-p my-randomsig-file)
-      (error "File `%s' not found" my-randomsig-file))
-    (with-temp-buffer
-      (insert-file-contents my-randomsig-file)
-      (goto-char (point-min))
-      (let ((sigcount 0)
-            (try 0)
-            (maxtry 100)
-            found sigstring selected)
-	;; Count number of signatures.
-	(while (re-search-forward my-randomsig-delimiter-pattern nil t)
-	  (setq sigcount (1+ sigcount)))
-	;; search for a suitable signature...
-        (while (not sigstring)
-          (while (and (not found) (< try maxtry))
-            ;; Select random signature.
-            (setq try (1+ try))
-	    (setq selected (1+ (random sigcount)))
-            (goto-char (point-min))
-            ;; Note this expects a separator before first quote.
-            (or (re-search-forward my-randomsig-delimiter-pattern
-                                   (point-max) t selected)
-                (error "Failed to find selected quote"))
-            (setq found (if (looking-at my-randomsig-comment-pattern)
-			    include-commented
-			  t))
-            ;; If requested, reject those not explicitly marked as sigs.
-            ;; Ugly.
-            (and found
-                 (setq found
-		       (or (not sigflag)
-			   (re-search-forward
-			    my-randomsig-sigflag-pattern
-			    (line-end-position) t)))))
-          (or found (error "Tried %s quotes and failed" maxtry))
-          ;; Cut signature and return it.
-          (let ((start (point))
-                (end (save-excursion
-                       (and (re-search-forward
-                             my-randomsig-delimiter-pattern (point-max) 'move)
-                            (beginning-of-line))
-                       (point)))
-                thislines)
-            ;; Move to end, or comment section.
-            (and (re-search-forward my-randomsig-comment-pattern end 'move)
-                 (beginning-of-line))
-            (setq end (point)
-                  sigstring (buffer-substring start end)
-                  thislines (count-lines start end))
-            ;; Reject signature if too long.
-            (and lines (not sigflag) (> thislines lines)
-                 (setq found nil sigstring nil))))
-        (if (interactive-p) (message "%s" sigstring)
-          sigstring))))
-
-;; This is bogus, but serves as an example.
-;;
-;; what we really want is just to replace the quotation part, not the whole .sig
-;;
-(defun my-sig-replace-random-and-highlight (&optional prefix)
-  "Insert and highlight random signature, from those marked OK.
-With PREFIX, select from all quotes."
-  (interactive "*P")			; suitable for keybinding
-  (my-signature-insert (my-get-random-quote prefix nil nil) t t))
-
 ;;;;
 ;;;; maybe someday some smtpmail.el stuff....
 ;;;;
@@ -4510,11 +5359,11 @@ With PREFIX, select from all quotes."
 ;;;
 ;(if (elisp-file-in-loadpath-p "smtpmail")
 ;    (progn
-;      (require 'smtpmail)
-;      (setq send-mail-function 'smtpmail-send-it)
 ;      (setq smtpmail-default-smtp-server (concat "mail" mail-local-domain-name))
-;      (setq smtpmail-smtp-service "smtp")
-;      (setq smtpmail-local-domain mail-local-domain-name)))
+;      (setq smtpmail-smtp-service "smtp")	; default is 25
+;      (setq smtpmail-local-domain mail-local-domain-name)
+;      (require 'smtpmail)
+;      (setq send-mail-function #'smtpmail-send-it)))
 
 ;;;
 ;;; GNUS specific stuff
@@ -4555,6 +5404,20 @@ With PREFIX, select from all quotes."
 
 ;;(setq gnus-read-active-file t)		; default of 'some sometimes causes it to hang
 (setq gnus-read-active-file 'some)		; try with shaw
+
+;; I always forget to do this....
+;;
+;; ToDo:  should only activate if current hostname has an auto-save-file
+;;
+;; XXX also, this seems to be evaluated sometimes at odd times....
+;;
+(if (directory-files (file-name-directory auto-save-list-file-prefix)
+		 nil
+		 (concat "\\`" (regexp-quote
+				(file-name-nondirectory
+				 auto-save-list-file-prefix)))
+		 t)
+    (recover-session))
 
 ;;;;-------
 ;;;; the closing comments.....
