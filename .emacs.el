@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	36.1	19/11/03 17:03:01 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	36.2	19/11/15 18:17:48 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -5144,6 +5144,8 @@ but it's seriously brain damaged so we re-define it as nothing."
   "TPC-Int <tpc-rp@aarnet.edu.au>")
 (define-mail-abbrev "trn-test"
   "TRN Beta Test List <trn-test@borland.com>")
+(define-mail-abbrev "tuhs"
+  "The Unix Heritage Society mailing list <tuhs@tuhs.org>")
 (define-mail-abbrev "unix-virus"
   "Unix Virus Mailing List <unix-virus@virus.beergrave.net>")
 (define-mail-abbrev "vmailer-testers"
