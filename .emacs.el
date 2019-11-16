@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	36.2	19/11/15 18:17:48 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	36.3	19/11/16 15:59:01 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -2847,7 +2847,23 @@ argument.  As a consequence, you can always delete a whole line by typing
 
 ;; once upon a time PCL-CVS was not distributed with GNU Emacs...
 ;;
+;; xxx this should probably not always be loaded....
+;;
 (require 'pcvs)
+
+;; N.B.:  This adds a :postproc function to enable log-view-mode to interact
+;; with CVS.  If I knew how to access the list of files being logged then maybe
+;; it would also be usefult to do set `log-view-vc-fileset' too.
+(defun-cvs-mode (cvs-mode-log . NOARGS) (flags)
+  "Display the cvs log of all selected files.
+With prefix argument, prompt for cvs flags."
+  (interactive (list (cvs-add-branch-prefix
+		      (cvs-flags-query 'cvs-log-flags "cvs log flags"))))
+  (cvs-mode-do "log" flags nil :show t
+	       :postproc (lambda ()
+			   (set (make-local-variable
+				 'log-view-vc-backend)
+				'CVS))))
 
 ;; here we try modifying the default to keep separate diff, status, tree, and
 ;; log message buffers based on the filename.
