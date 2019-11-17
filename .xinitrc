@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	36.2	19/11/03 18:17:47 (woods)"
+#ident	"@(#)HOME:.xinitrc	36.3	19/11/16 16:10:38 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -359,6 +359,7 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server more.local 'xauth nmerge -'
 #			xauth nextract - ${REMOTE_DISPLAY} | onx11server historically.local 'xauth nmerge -'
 #			xauth nextract - ${REMOTE_DISPLAY} | onx11server once.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | RSH=ssh onx11server freebsd.local 'xauth nmerge -'
 			# next ones share a home dir mounted from more.local
 			#xauth nextract - ${REMOTE_DISPLAY} | onx11server building.local 'xauth nmerge -'
 			#xauth nextract - ${REMOTE_DISPLAY} | onx11server future.local 'xauth nmerge -'
