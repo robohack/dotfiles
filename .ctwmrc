@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	36.3	19/11/03 17:54:07 (woods)"
+#ident	"@(#)HOME:.ctwmrc	36.4	19/11/16 16:09:12 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -782,13 +782,16 @@ menu "quickies"
 	"UXterm-big @historically" !". ./.shrc; onx11server -n historically.local 'uxterm OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
 	"UXterm @once"		!". ./.shrc; onx11server -n once.local 'uxterm OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
 	"UXterm-big @once"	!". ./.shrc; onx11server -n once.local 'uxterm OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @freebsd"	!". ./.shrc; RSH=ssh onx11server -n freebsd.local 'uxterm OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @freebsd"	!". ./.shrc; RSH=ssh onx11server -n freebsd.local 'uxterm OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
 	"UXterm @nbt"		!". ./.shrc; onx11server -n nbt.local 'uxterm OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
 	"UXterm-big @nbt"	!". ./.shrc; onx11server -n nbt.local 'uxterm OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
 	"UXterm @nbt-cur"	!". ./.shrc; onx11server -n nbt-cur.local 'uxterm OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
 	"UXterm-big @nbt-cur"	!". ./.shrc; onx11server -n nbt-cur.local 'uxterm OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
 	#
 	# xxx this is not so useful as if the SSH connection drops then the
-	# window simply disappears with no hint as to when or why!
+	# window simply disappears with no hint as to when or why!  See further
+	# discussion in ~/.xinitrc regarding running X11 via tunnels, etc.
 	#
 	"Slogin @central"	!"uxterm OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C central.weird.com' &"
  ])
@@ -1287,6 +1290,8 @@ menu "monitors"
 	"xload @future"		!"$RSH -n future.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 120x40-200+192 -hl red\" &"
 	"xload @xenful"		!"$RSH -n xenful.local \". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry 120x40-200+240 -hl red\" &"
 	"xload @xentastic"	!"$RSH -n xentastic.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 120x40-70+240 -hl red\" &"
+	"xload @xentral"	!"ssh -Y -n woods@xentral.avoncote.ca '. ./.profile; exec xload -geometry 75x40-0+240 -hl red' &"
+	#
 	"xload @historically"	!"$RSH -n historically.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 120x40-70+240 -hl red\" &"
  ])
 	"xosview"		!"xosview -geometry 120x137-200+0 &"
