@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	36.1	19/11/03 17:03:00 (woods)"
+#ident	"@(#)HOME:.kshrc	36.2	19/11/25 10:41:06 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -571,11 +571,11 @@ elif [ "$uid" != "$LOGNAME" ] ; then
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		# xxx should do this in setban...
 		MYXBAN_R='$uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN'
-		PS1='[${LEV:+${LEV}.}] $ '
+		PS1='[${LEV:+${LEV}.}!] $ '
 	fi
 	case "$TERM" in
 	xterm* | dmd-myx)
-		PS1='[${LEV:+${LEV}.}] $ '
+		PS1='[${LEV:+${LEV}.}!] $ '
 		;;
 	*)
 		PS1='$TTYN:$uid($LOGNAME)@$UUNAME)[${LEV:+${LEV}.}!] ${BANNER_PWD#$HOME} $ '
