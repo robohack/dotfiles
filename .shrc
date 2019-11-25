@@ -8,7 +8,7 @@
 #
 # It may also assume .profile has already set some things, though it should not
 #
-#ident	"@(#)HOME:.shrc	36.1	19/11/03 17:02:59 (woods)"
+#ident	"@(#)HOME:.shrc	36.2	19/11/25 11:24:24 (woods)"
 
 PATH=$PATH
 export PATH
@@ -190,18 +190,6 @@ gnulast ()
 {
 	dirremove PATH "$GNU/bin" "$GNU/sbin"
 	dirappend PATH "$GNU/bin"
-}
-
-finkfirst ()
-{
-	dirremove PATH "$FINK/bin" "$FINK/sbin"
-	dirprepend PATH "$FINK/bin"
-}
-
-finklast ()
-{
-	dirremove PATH "$FINK/bin" "$FINK/sbin"
-	dirappend PATH "$FINK/bin"
 }
 
 if expr "`type mktable 2>/dev/null`" : 'mktable is .*$' >/dev/null 2>&1 ; then
