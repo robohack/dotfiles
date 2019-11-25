@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	36.1	19/11/03 17:03:02 (woods)"
+;;;;#ident	"@(#)HOME:.wl	36.2	19/11/25 15:46:03 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -88,6 +88,11 @@
 ;; `3' means "Reject connection if verification fails"
 ;;
 (setq ssl-certificate-verification-policy 3)
+
+;    ;; https://github.com/wanderlust/wanderlust/issues/166
+;   (setq gnutls-verify-error nil)	; xxx ???
+;   (setq gnutls-min-prime-bits 1024)
+;   (setq gnutls-algorithm-priority "SECURE128:-VERS-SSL3.0:-VERS-TLS1.3")
 
 (setq ssl-program-arguments
       '("s_client"
