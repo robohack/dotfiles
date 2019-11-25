@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	36.1	19/11/03 17:03:01 (woods)"
+#ident	"@(#)HOME:.kshsccs	36.2	19/11/25 15:42:26 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -89,6 +89,17 @@ export PROJECT
 : ${SCCS:="sccs"}
 export SCCS
 
+# a likely story....
+if ${SCCS} help sccs > /dev/null 2>&1; then
+	export SCCS_SHILY=true
+	alias vannotate='${SCCS} -p $PROJECT get -p -Am'
+	alias vann='${SCCS} -p $PROJECT get -p -Am'
+else
+	export SCCS_SHILY=false
+	alias vannotate='${SCCS} -p $PROJECT get -p -m'
+	alias vann='${SCCS} -p $PROJECT get -p -m'
+fi
+
 # TODO: if the 'x' bit is set on the SCCS file, set it on the g-file too
 
 alias vadmin='${SCCS} -p $PROJECT admin'
@@ -102,7 +113,6 @@ alias vdelget='${SCCS} -p $PROJECT delget'
 alias vdelta='${SCCS} -p $PROJECT delta'
 alias vdiff='${SCCS} -p $PROJECT diffs'
 alias vedit='${SCCS} -p $PROJECT edit'
-alias venter='${SCCS} -p $PROJECT enter' # XXX should this warn to use vmksccs instead?
 alias vfix='${SCCS} -p $PROJECT fix'
 alias vget='${SCCS} -p $PROJECT get'
 alias vgeted='${SCCS} -p $PROJECT edit'
@@ -189,7 +199,7 @@ function vwproj
 	# able.  If PROJECTDIR does not begin with a slash, it is tak-
 	# en as the name of a user,  and  sccs  searches  the  src  or
 	# source subdirectory of that user's home directory for histo-
-	# ry files. 
+	# ry files.
 	#
 	# Note though that vproj may set PROJECT to be $1/SCCS
 	#
@@ -280,7 +290,7 @@ function mksccs
 	mksccsuid=$(id | sed -e 's/^uid=[0-9]*(\(.*\)) gid=.*/\1/')
 
 	# XXX this should be PROJECTDIR iff is a username
-	if [ -a "$QFLAG" -a -z "$PROJOWNER" ] ; then
+	if [ -z "$QFLAG" -a -z "$PROJOWNER" ] ; then
 		QFLAG="$mksccsuid"
 	else
 		QFLAG="$PROJOWNER"
@@ -318,6 +328,22 @@ function mksccs
 
 	unset DEFBR REL sdir QFLAG mksccsuid TFLAG
 	return $rc
+}
+
+#
+#	venter - suggest using vmksccs instead!
+#
+function venter
+{
+	trap '' 2
+	echo $n "Are you sure you want to use 'venter' instead of 'vmksccs'? (y/[n]) $c"
+	read yn
+	trap 2
+	case "$yn" in
+	[yY]*)
+		${SCCS} -p $PROJECT enter ${1+"$@"}
+		;;
+	esac
 }
 
 #
