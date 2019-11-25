@@ -8,7 +8,7 @@
 #
 # It may also assume .profile has already set some things, though it should not
 #
-#ident	"@(#)HOME:.shrc	36.3	19/11/25 15:44:06 (woods)"
+#ident	"@(#)HOME:.shrc	36.4	19/11/25 15:49:09 (woods)"
 
 PATH=$PATH
 export PATH
@@ -381,6 +381,8 @@ adjlinks ()
 {
 	# XXX are separate "from" and "to" options better, or should they be
 	# just one sed expression, and should it/they be options or args?
+	#
+	# XXX could/should check if new target exists?
 
 	_USAGE="Usage: adjlinks -f fromRE -t toSTR symlink ..."
 	OPTIND="1"
