@@ -8,7 +8,7 @@
 #
 # It may also assume .profile has already set some things, though it should not
 #
-#ident	"@(#)HOME:.shrc	36.2	19/11/25 11:24:24 (woods)"
+#ident	"@(#)HOME:.shrc	36.3	19/11/25 15:44:06 (woods)"
 
 PATH=$PATH
 export PATH
@@ -253,6 +253,11 @@ publishdotfiles ()
 	more*)
 		rsync -v -lptHS --stats --files-from=$HOME/dotfiles.list $HOME ${CENTRAL_USER}@${CENTRAL_SERVER}:.
 		;;
+	future*)
+		vinfo
+		( cd && git-sccsimport --move-date=2010/11/5T00:00:00 --move-offset=3 --expand-kw --maildomain=robohack.ca --git-dir="$HOME/work/home" --dirs SCCS && cd $HOME/work/home && git reset --hard HEAD && git push --mirror )
+		rsync -v -lptHS --stats --files-from=$HOME/dotfiles.list $HOME ${CENTRAL_USER}@${CENTRAL_SERVER}:.
+		;;
 	*)
 		echo "publishdotfiles: not useful when run on client host!" 1>&2
 		return 2
@@ -372,6 +377,48 @@ lnotes ()
 #	more functions
 #
 
+adjlinks ()
+{
+	# XXX are separate "from" and "to" options better, or should they be
+	# just one sed expression, and should it/they be options or args?
+
+	_USAGE="Usage: adjlinks -f fromRE -t toSTR symlink ..."
+	OPTIND="1"
+	while getopts "f:t:" OPTCH
+	do
+		case $OPTCH in
+		f)
+			_from=${OPTARG}
+			;;
+		t)
+			_to=${OPTARG}
+			;;
+		*)
+			echo "$_USAGE" >&2
+			return 2
+			;;
+		esac
+	done
+	shift $(expr $OPTIND - 1)
+
+	if [ -z "${_from}" -o -z "${_to}" -o $# -lt 1 -o -z "$1" ]; then
+		echo "$_USAGE" >&2
+		return 2
+	fi
+
+	for _lnk
+	do
+		_otarg=$(readlink "${_lnk}")
+		if [ $? -eq 0 ]; then
+			_ntarg=$(echo "${_otarg}" | sed "s|${_from}|${_to}|")
+			if [ "${_otarg}" != "${_ntarg}" ]; then
+				ln -fs "${_ntarg}" "${_lnk}" && echo adjusted: "${_lnk}" '->' "${_otarg}" to: '->' "${_ntarg}"
+			fi
+		fi
+	done
+	unset _USAGE _from _to _lnk _otarg _ntarg
+}
+
 # this is a bit like the GNU (err, vim) "xxd -p", but far more portable
 #
 hexencode ()
@@ -396,10 +443,10 @@ cvsupdateroot ()
 {
 	_newroot=$1
 
-	find . -name Root -print | fgrep CVS/Root | while read rootfile ; do
-		echo $_newroot > $rootfile
+	find . -name Root -print | fgrep CVS/Root | while read _rootfile ; do
+		echo $_newroot > $_rootfile
 	done
-	unset _newroot
+	unset _newroot _rootfile
 }
 
 # XXX what good is this again?
@@ -437,7 +484,7 @@ ipaddrsort ()
 
 imgsize ()
 {
-	exiv2 ${1+"$@"} | awk '$1 == "Image" && $2 == "size" {print $4 " " $5 " " $6;}'
+	exiv2 ${1+"$@"} 2>/dev/null | awk '$1 == "Image" && $2 == "size" {print $4 " " $5 " " $6;}'
 }
 
 kall ()
@@ -504,9 +551,10 @@ sedjoinnext ()
 	# pattern that starts the lines to be appended to their previous lines
 	# (note a blank is inserted in place of the newline)
 	#
-	start=$1
+	_start=$1
 
-	sed -e ':a' -e '$!N;s/\n'"$start"'/ \1/;ta' -e 'P;D'
+	sed -e ':a' -e '$!N;s/\n'"${_start}"'/ \1/;ta' -e 'P;D'
+	unset _start
 }
 
 show_make_var ()
@@ -608,7 +656,7 @@ get_newterm ()
 		resize
 		;;
 	esac
-	unset newttytype
+	unset newttytype ttytype
 }
 
 if [ -n "$DISPLAY" ]; then
