@@ -1,4 +1,4 @@
--*- markdown -*-
+[//]: # (-*- markdown -*-)
 
 # dotfiles -- shell and tool configuration files from $HOME
 
@@ -118,4 +118,4 @@ But how to manage changes with Magit???
 Another detailed description of this kind of setup is found at:
 [https://www.atlassian.com/git/tutorials/dotfiles]
 
-#ident	"@(#)HOME:README.md	36.1	19/11/03 17:03:02 (woods)"
+#ident	"@(#)HOME:README.md	36.2	19/11/25 16:00:20 (woods)"
