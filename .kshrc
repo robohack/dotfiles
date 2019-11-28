@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	36.4	19/11/28 12:27:27 (woods)"
+#ident	"@(#)HOME:.kshrc	36.5	19/11/28 15:08:08 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -35,7 +35,6 @@ if ! typeset -f zhead >/dev/null ; then
 	if [ -n "${ENVFILE}" ]; then
 		. $(dirname ${ENVFILE})/.shrc
 		# also try to set MAILDOMAIN for .emacs.el if it was not set...
-		echo "$0: trying for $(dirname ${ENVFILE})/.localprofile  ..."
 		if [ -z "${MAILDOMAIN}" -a -r $(dirname ${ENVFILE})/.localprofile ]; then
 			. $(dirname ${ENVFILE})/.localprofile
 		fi
