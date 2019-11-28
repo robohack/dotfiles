@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	36.3	19/11/16 15:59:01 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	36.4	19/11/28 11:04:48 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -933,7 +933,7 @@ match `%s'. Connect anyway? " host))))))
 
 (condition-case ()
     (read-abbrev-file nil t)
-  (file-error nil))
+  (error nil))
 
 ;;;; ----------
 ;;;; Set defaults of other buffer-local variables
