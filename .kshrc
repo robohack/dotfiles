@@ -1,14 +1,16 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	36.3	19/11/28 11:21:45 (woods)"
+#ident	"@(#)HOME:.kshrc	36.4	19/11/28 12:27:27 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
 
 # Files referenced:
 #
-#	$(dirname ${ENVFILE})/.shrc - sourced for common shell functions, if avail.
+#	$(dirname ${ENVFILE})/.shrc - sourced for common funcs if needed & avail.
+#	~${LOGNAME}/.shrc       - sourced for common functs, if still needed
+#	~${LOGNAME}/.localprofile - sourced for $MAILDOMAIN, if needed & avail.
 #	$HOME/.kshsccs		- sourced, if it is readable
 #	$HOME/.kshpwd		- sourced, if it is readable
 #	$HOME/.kshedit		- sourced, if it is readable else gmacs editing set
@@ -19,14 +21,36 @@ set -o nolog		# no functions in $HISTFILE
 
 export PATH
 
-# we assume ~/.profile is sourced only by login shells, and by
-# ~/.xinitrc or by a window manager, but won't be sourced by default
-# by a non-interactive shell
+# Handle the case of sourcing this file e.g. by a "su" shell user, or some other
+# interactive sub-shell, etc.
+#
+# It is assumed that ~/.profile, which would otherwise source ~/.shrc, is
+# sourced only by login shells, and by ~/.xinitrc or by a window manager, but
+# won't be sourced by default by a non-interactive shell or a "su" shell.  It is
+# also assumed of course that "zhead" is defined as a function in the desired
+# ~/.shrc file.
 #
 if ! typeset -f zhead >/dev/null ; then
 	# try to find a related .shrc, even when using "su" or a sub-shell
 	if [ -n "${ENVFILE}" ]; then
 		. $(dirname ${ENVFILE})/.shrc
+		# also try to set MAILDOMAIN for .emacs.el if it was not set...
+		echo "$0: trying for $(dirname ${ENVFILE})/.localprofile  ..."
+		if [ -z "${MAILDOMAIN}" -a -r $(dirname ${ENVFILE})/.localprofile ]; then
+			. $(dirname ${ENVFILE})/.localprofile
+		fi
+	elif [ -n "${LOGNAME}" ]; then
+		eval shrc=~${LOGNAME}/.shrc
+		if [ -r ${shrc} ]; then
+			. ${shrc}
+		fi
+		eval lprof=~${LOGNAME}/.localprofile
+		if [ -z "${MAILDOMAIN}" -a -r ${lprof} ]; then
+			. ${lprof}
+		fi
+		unset shrc lprof
+	fi
+	if typeset -f rm_alias_funcs >/dev/null ; then
 		rm_alias_funcs
 	fi
 fi
@@ -1030,7 +1054,7 @@ alias lss='/bin/ls -s'
 alias local='typeset'		# always in pdksh, but not ast-ksh, used by git
 alias logout='exit 0'
 alias maildate='LANG=c date "+%a, %d %b %Y %T %z"'
-alias nosgr='echo '
+alias nosgr='echo '
 alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok'
 alias pkg_sizes="/usr/sbin/pkg_info -s \* | sed -e '/^$/d' -e 's/Information for //' -e 's/:$/:\\\\/' | sed -e :a -e '$!N;s/Size of this package in bytes://;ta' -e 'P;D' | backslashjoin"
 alias realias='let LEV=$LEV-1;exec ksh'		# useless?
