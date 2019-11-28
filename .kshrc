@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	36.2	19/11/25 10:41:06 (woods)"
+#ident	"@(#)HOME:.kshrc	36.3	19/11/28 11:21:45 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -427,15 +427,6 @@ if [ "$id" -eq 0 ] ; then
 	fi
 	export SLASHOPT
 
-	if [ -z "$FINK" ] ; then
-		if [ -d /sw -a ! -L /sw ] ; then
-			FINK="/sw"
-		else
-			FINK="/NO-fink-FOUND"
-		fi
-	fi
-	export FINK
-
 	if [ -z "${GNU}" ] ; then
 		# NOTE:  ${GNU} must not contain multiple words!
 		if [ -d /local/gnu -a ! -L /local/gnu -a -d /local/gnu/bin ] ; then
@@ -462,8 +453,6 @@ if [ "$id" -eq 0 ] ; then
 				-e "s|${SLASHOPT:-/NONE}/sbin:||"	\
 				-e "s|${LOCAL:-/NONE}/bin:||"	\
 				-e "s|${LOCAL:-/NONE}/sbin:||"	\
-				-e "s|${FINK:-/NONE}/bin:||"	\
-				-e "s|${FINK:-/NONE}/sbin:||"	\
 				-e "s|${GNU:-/NONE}/bin:||"	\
 				-e "s|${GNU:-/NONE}/sbin:||" )
 	if [ -d "$CONTRIB" ] ; then
@@ -488,13 +477,6 @@ if [ "$id" -eq 0 ] ; then
 		append2path PATH $GNU/sbin $GNU/bin
 		if [ ! -d $GNU/sbin ] ; then
 			append2path PATH $GNU/etc
-		fi
-	fi
-	if [ -d "$FINK" ] ; then
-		dirprepend PATH $FINK/sbin $FINK/bin
-		if [ -r $FINK/bin/init.sh ] ; then
-			# this sets up other handy things for Fink
-			. $FINK/bin/init.sh
 		fi
 	fi
 
