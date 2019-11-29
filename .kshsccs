@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	36.2	19/11/25 15:42:26 (woods)"
+#ident	"@(#)HOME:.kshsccs	36.3	19/11/29 15:45:44 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -91,11 +91,11 @@ export SCCS
 
 # a likely story....
 if ${SCCS} help sccs > /dev/null 2>&1; then
-	export SCCS_SHILY=true
+	export SCCS_SCHILY=true
 	alias vannotate='${SCCS} -p $PROJECT get -p -Am'
 	alias vann='${SCCS} -p $PROJECT get -p -Am'
 else
-	export SCCS_SHILY=false
+	export SCCS_SCHILY=false
 	alias vannotate='${SCCS} -p $PROJECT get -p -m'
 	alias vann='${SCCS} -p $PROJECT get -p -m'
 fi
