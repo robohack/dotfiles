@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	36.3	19/11/29 15:45:44 (woods)"
+#ident	"@(#)HOME:.kshsccs	36.4	19/11/29 16:01:31 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -235,19 +235,26 @@ function vwproj
 alias vmksccs=mksccs
 function mksccs
 {
-	USAGE="Usage: $0 [-rSID] [-dDEFBR] file ..."
+	USAGE="Usage: $0 [-dDEFBR] [-o] [-qQFLAG] [-rSID] [-tMTYPE] file ..."
 	DEFBR=""
+	OFLAG=""
+	QFLAG=""
 	REL=""
+	TFLAG=""
 	lastrel=$(vlastrel 2>/dev/null)
 	if [ -n "$lastrel" ] ; then
 		REL="-r$lastrel"
 	fi
-	while getopts d:q:r:t: OPTCH
+	while getopts d:oq:r:t: OPTCH
 	do
 	  	case $OPTCH in
 		d)
 			# default delta (branch)
 			DEFBR="-fd${OPTARG}"
+			;;
+		o)
+			# this is a SCCS_SCHILY option....
+			OFLAG="-o"
 			;;
 		q)
 			# user-defined keyword (e.g. owner id) (:Q:)
@@ -301,7 +308,7 @@ function mksccs
 	else
 		TFLAG=$PROJECT
 	fi
-	${SCCS} -p $PROJECT enter $REL $*
+	${SCCS} -p $PROJECT enter $OFLAG $REL $*
 	if [ $? -eq 0 ] ; then
 		${SCCS} -p $PROJECT admin $DEFBR -fb -fq"$QFLAG" -ft"$TFLAG" $*
 	else
@@ -326,7 +333,8 @@ function mksccs
 		/bin/rm -f ,*
 	fi
 
-	unset DEFBR REL sdir QFLAG mksccsuid TFLAG
+	unset DEFBR OFLAG REL QFLAG TFLAG USAGE lastrel mksccsuid sdir
+
 	return $rc
 }
 
