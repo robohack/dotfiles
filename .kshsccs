@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	36.4	19/11/29 16:01:31 (woods)"
+#ident	"@(#)HOME:.kshsccs	36.5	19/11/29 16:11:14 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -138,6 +138,8 @@ alias vpident='echo "#ident	\"%Z\045%Y\045:%M\045	%I\045	%E\045 %U\045 (%Q\045)\
 #
 function vproj
 {
+	typeset TRYHOME
+
 	if [ $# -gt 1 ] ; then
 		echo "Usage: $0 project-name" >&2
 		return 2
@@ -157,7 +159,6 @@ function vproj
 		else
 			export PROJECT=${1}
 		fi
-		unset TRYHOME
 	else
 		export PROJECT=${1}
 	fi
@@ -174,6 +175,7 @@ function vprojdir
 	fi
 	case "$1" in
 	"")
+		# hmmm... does this unexport from the executing shell?
 		unset PROJECTDIR
 		;;
 	-*)
@@ -191,6 +193,8 @@ function vprojdir
 #
 function vwproj
 {
+	typeset TRYHOME
+
 	# should mimic how sccs(1) finds things....  From the manual:
 	#
 	# If the environment variable PROJECTDIR is set to contain  an
@@ -221,7 +225,6 @@ function vwproj
 		elif [ -d ${TRYHOME}/source/${PROJECT} ] ; then
 			echo ${TRYHOME}/source/${PROJECT}
 		fi
-		unset TRYHOME
 		;;
 	esac
 }
@@ -235,13 +238,13 @@ function vwproj
 alias vmksccs=mksccs
 function mksccs
 {
-	USAGE="Usage: $0 [-dDEFBR] [-o] [-qQFLAG] [-rSID] [-tMTYPE] file ..."
-	DEFBR=""
-	OFLAG=""
-	QFLAG=""
-	REL=""
-	TFLAG=""
-	lastrel=$(vlastrel 2>/dev/null)
+	typeset USAGE="Usage: $0 [-dDEFBR] [-o] [-qQFLAG] [-rSID] [-tMTYPE] file ..."
+	typeset DEFBR=""
+	typeset OFLAG=""
+	typeset QFLAG=""
+	typeset REL=""
+	typeset TFLAG=""
+	typeset lastrel=$(vlastrel 2>/dev/null)
 	if [ -n "$lastrel" ] ; then
 		REL="-r$lastrel"
 	fi
@@ -281,7 +284,7 @@ function mksccs
 	fi
 	# we don't really use "$sdir" -- we only want to be sure it exists
 	# and if it doesn't then we'll create it now....
-	sdir="$(vwproj)"
+	typeset sdir="$(vwproj)"
 	if [ -z "$sdir" ] ; then
 		echo "$0: no project set!" >&2
 		return 1
@@ -294,7 +297,7 @@ function mksccs
 	fi
 
 	# safer than $LOGNAME or $USER, so long as you have id(1)...
-	mksccsuid=$(id | sed -e 's/^uid=[0-9]*(\(.*\)) gid=.*/\1/')
+	typeset mksccsuid=$(id | sed -e 's/^uid=[0-9]*(\(.*\)) gid=.*/\1/')
 
 	# XXX this should be PROJECTDIR iff is a username
 	if [ -z "$QFLAG" -a -z "$PROJOWNER" ] ; then
@@ -315,7 +318,7 @@ function mksccs
 		return 1
 	fi
 
-	rc=$?
+	typeset rc=$?
 
 	if ${SCCS} -p $PROJECT val $* ; then
 		: # It's OK Jim....
@@ -333,8 +336,6 @@ function mksccs
 		/bin/rm -f ,*
 	fi
 
-	unset DEFBR OFLAG REL QFLAG TFLAG USAGE lastrel mksccsuid sdir
-
 	return $rc
 }
 
@@ -343,6 +344,7 @@ function mksccs
 #
 function venter
 {
+	typeset yn
 	trap '' 2
 	echo $n "Are you sure you want to use 'venter' instead of 'vmksccs'? (y/[n]) $c"
 	read yn
@@ -359,10 +361,11 @@ function venter
 #
 function vverify
 {
-	sdir="$(vwproj)"
+	typeset sdir="$(vwproj)"
+	typeset sfilepath
 	for sfilepath in ${sdir}/s.* ; do
-		sfile=$(basename ${sfilepath})
-		file=${sfile##s.}
+		typeset sfile=$(basename ${sfilepath})
+		typeset file=${sfile##s.}
 		if [ ! -r "${file}" ] ; then
 			echo "${file}: missing (needs vget?)!"
         	fi
@@ -370,7 +373,6 @@ function vverify
 			echo "${file}: writable but not being edited!"
 		fi
 	done
-	unset sdir sfilepath sfile file
 }
 
 
@@ -379,7 +381,7 @@ function vverify
 #
 function vlist
 {
-	PRSLIST=":Z::Y:\::M:\t:I:\t(:Q:)\t:D: :T: :P:\tBF=:BF: MF=:MF:"
+	typeset PRSLIST=":Z::Y:\::M:\t:I:\t(:Q:)\t:D: :T: :P:\tBF=:BF: MF=:MF:"
 	# work around some silly pdksh bug....
 	if  expr "$PRSLIST" : '.*\\' > /dev/null ; then
 		PRSLIST=":Z::Y:::M:\t:I:\t(:Q:)\t:D: :T: :P:\tBF=:BF: MF=:MF:"
@@ -389,7 +391,6 @@ function vlist
 		shift
 	fi
 	${SCCS} -p $PROJECT prs -d"$PRSLIST" ${1+"$@"} $PROJECT
-	unset PRSLIST
 }
 
 #
@@ -444,7 +445,7 @@ function vlastrel
 		echo "Usage: $0" >&2
 		return 2
 	fi
-	somefile=$(ls -f $(vwproj) | awk '/^s\./{print substr($1, 3); exit}')
+	typeset somefile=$(ls -f $(vwproj) | awk '/^s\./{print substr($1, 3); exit}')
 	if [ -n "$somefile" ] ; then
 		vprs -d:R: $somefile
 	else
@@ -467,11 +468,12 @@ function vlastrel
 #
 function vnewrel
 {
-	USAGE="Usage: $0 [RELEASE]"
+	typeset USAGE="Usage: $0 [RELEASE]"
 	if [ -n "$(vtell)" ] ; then
 		echo "$0: files still being edited!." >&2
 		return 1
 	fi
+	typeset REL
 	if [ $# -eq 1 ] ; then
 		REL=$1
 		# XXX error check that it's an integer?
@@ -492,11 +494,12 @@ alias vmkrel='vnewrel'
 #
 function vgetprev
 {
-	USAGE="Usage: $0 [RELEASE]"
+	typeset USAGE="Usage: $0 [RELEASE]"
 	if [ -n "$(vtell)" ] ; then
 		echo "$0: files still being edited!." >&2
 		return 1
 	fi
+	typeset REL
 	if [ $# -eq 1 ] ; then
 		REL=$1
 		# XXX error check that it's an integer?
