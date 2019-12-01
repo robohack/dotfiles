@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	36.2	19/11/25 15:46:03 (woods)"
+;;;;#ident	"@(#)HOME:.wl	36.3	19/11/30 18:30:46 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -1353,8 +1353,11 @@ ENCODING must be string."
 	     '((pgp-encrypt . mime-edit-set-encrypt))))
 
 ;; try to predict who I should be....
-;; (XXX there's probably a more efficient way to write this, indeed this might
-;; be a lot simpler with templates, which are set in `wl-template-alist')
+;;
+;; XXX there's probably a more efficient way to write this
+;;
+;; xxx similar things can also be done with "templates", which are set in
+;; `wl-template-alist'
 ;;
 ;; Note that with `wl-template-alist' set, another template can be chosen while
 ;; composing the message with C-c C-j
@@ -1366,34 +1369,43 @@ ENCODING must be string."
 ;;	;; If non-nil, applied only one element of `wl-draft-config-alist'.
 ;;	(setq wl-draft-config-matchone t)
 ;;
-;; xxx there doesn't seem to be any way to define a condition that triggers
-;; only for messages that didn't match any other condition -- the actions for
-;; the "default" condition at the bottom "(or t)" are always applied (which
-;; might also be a clue as to how this could be simplified somewhat?)
+;; N.B.:  All matching conditions are applied!  There doesn't seem to be any way
+;; to define a condition that prevents any other condition from matching, nor is
+;; there any way to define a condition that only matches for messages that
+;; didn't match any other condition -- so, the actions for the "default"
+;; condition at the bottom "(or t)" are also always applied.
 ;;
 ;; XXX When set here, `wl-draft-folder' is properly set inside the draft
 ;; buffer, but the draft is still not saved to the proper draft folder!!!
 ;;
 (setq wl-draft-config-alist
       '((reply
-	 "^From: [\"]?Andreas Wrede[\"]?"
+	 "^[Ff]rom: [\"]?Andreas Wrede[\"]?"
 	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@weird.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@weird.ca>")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
+	;; XXX the following are perhaps not ideal REs....
 	(reply
-	 "^From: .*@.*planix\\."
+	 "^\\([Tt][Oo]\\|[Cc][Cc]\\|[fF]rom\\): .*@.*planix\\."
 	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "^To: .*@.*planix\\."
+	 "^\\([Tt][Oo]\\|[Cc][Cc]\\|[fF]rom\\): .*@.*avoncote\\.ca"
 	 (pgp-sign . t)
-	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
-	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 ("From" . "\"Greg A. Woods\" <woods@avoncote.ca>")
+	 ("Reply-To" . "\"Greg A. Woods\" <woods@avoncote.ca>")
+	 ("Precedence" . "first-class")
+	 ("Organization" . "Avoncote Farms"))
+	(reply
+	 "^\\([Tt][Oo]\\|[Cc][Cc]\\|[fF]rom\\): .*gwoods@acm\\.org"
+	 (pgp-sign . t)
+	 ("From" . "\"Greg A. Woods\" <gwoods@acm.org>")
+	 ("Reply-To" . "\"Greg A. Woods\" <gwoods@acm.org>")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 ;	(reply
@@ -1427,7 +1439,7 @@ ENCODING must be string."
 ;	 ("Precedence" . "first-class")
 ;	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "^From: [\"]?Scott Lindsay[\"]?"
+	 "^[Ff]rom: [\"]?Scott Lindsay[\"]?"
 	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
@@ -1435,7 +1447,7 @@ ENCODING must be string."
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "^From: .*Ted Gray.*"
+	 "^[Ff]rom: .*Ted Gray.*"
 	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.ca>")
@@ -1443,14 +1455,14 @@ ENCODING must be string."
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 ;	(reply
-;	 "^From: .*@.*\\(aci\\|opc\\)\\.on\\.ca"
+;	 "^[Ff]rom: .*@.*\\(aci\\|opc\\)\\.on\\.ca"
 ;	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 ;	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
 ;	 ("Precedence" . "first-class")
 ;	 ("X-Priority" . "2")
 ;	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "^From: .*@.*\\(lawyermediator\\|gelmanlaw\\)\\.ca"
+	 "^[Ff]rom: .*@.*\\(lawyermediator\\|gelmanlaw\\)\\.ca"
 	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "\"Greg A. Woods\" <woods@planix.com>")
@@ -1556,7 +1568,7 @@ ENCODING must be string."
 	 ("Reply-To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "^To: woods-emacs-mime-en-l@weird.com"
+	 "^[Tt]o: woods-emacs-mime-en-l@weird.com"
 	 (pgp-sign . nil)
 	 ("From" . "\"Greg A. Woods\" <woods-emacs-mime-en-l@weird.com>")
 	 ("To" . "EMACS-MIME Users Mailing List (English) <emacs-mime-en@m17n.org>")
@@ -1622,7 +1634,7 @@ ENCODING must be string."
 	;; write some complex editing function?
 	;; mailing list:  nsd-users
 	(reply
-	 "^Delivered-To: .*@[Nn][Ee][Tt][Bb][Ss][Dd]\\.[Oo][Rr][Gg]"
+	 "^[Dd]elivered-[Tt]o: .*@[Nn][Ee][Tt][Bb][Ss][Dd]\\.[Oo][Rr][Gg]"
 	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "")
@@ -1634,10 +1646,18 @@ ENCODING must be string."
 	 ("Reply-To" . "")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "^List-Id: .*\\.[Nn][Ee][Tt][Bb][Ss][Dd]\\.[Oo][Rr][Gg]>"
+	 "^[Ll]ist-[Ii]d: .*\\.[Nn][Ee][Tt][Bb][Ss][Dd]\\.[Oo][Rr][Gg]>"
 	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
 	 ("Reply-To" . "")
+	 ("Organization" . "Planix, Inc."))
+	;; mailing list:  tuhs
+	((string-match "^%INBOX/Lists-IN/tuhs"
+		       wl-draft-parent-folder)
+	 (pgp-sign . t)
+         ("From" . "\"Greg A. Woods\" <woods@robohack.ca>")
+	 ("To" . "The Unix Heritage Society mailing list <tuhs@tuhs.org>")
+	 ("Reply-To" . "The Unix Heritage Society mailing list <tuhs@tuhs.org>")
 	 ("Organization" . "Planix, Inc."))
 	;; mailing list:  unbound-users
 	((string-match "^%INBOX/Lists-IN/unbound-users"
@@ -1665,13 +1685,13 @@ ENCODING must be string."
 	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@ml.gentei.org>")
 	 ("Organization" . "Planix, Inc."))
 	(reply
-	 "^([tT][oO]|[Cc][Cc]): wl-en@"
+	 "^\\([Tt][Oo]\\|[Cc][Cc]\\): wl-en@"
 	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods-wl-en-l@planix.com>")
 	 ("To" . "WanderLust Users Mailing List (English) <wl-en@ml.gentei.org>")
 	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@ml.gentei.org>")
 	 ("Organization" . "Planix, Inc."))
-	; defaults for everything
+	; defaults for everything (unfortunately this also always matches)
 	((or t)
 	 (pgp-sign . t)
 	 mime-edit-insert-signature)))
