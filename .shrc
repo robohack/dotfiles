@@ -8,7 +8,7 @@
 #
 # It may also assume .profile has already set some things, though it should not
 #
-#ident	"@(#)HOME:.shrc	36.4	19/11/25 15:49:09 (woods)"
+#ident	"@(#)HOME:.shrc	36.5	19/12/01 13:37:04 (woods)"
 
 PATH=$PATH
 export PATH
@@ -255,7 +255,7 @@ publishdotfiles ()
 		;;
 	future*)
 		vinfo
-		( cd && git-sccsimport --move-date=2010/11/5T00:00:00 --move-offset=3 --expand-kw --maildomain=robohack.ca --git-dir="$HOME/work/home" --dirs SCCS && cd $HOME/work/home && git reset --hard HEAD && git push --mirror )
+		( cd && git-sccsimport --move-date=2010/11/5T00:00:00 --move-offset=3 --expand-kw --maildomain=robohack.ca --git-dir="$HOME/work/home" --dirs SCCS && cd $HOME/work/home && git push --mirror )
 		rsync -v -lptHS --stats --files-from=$HOME/dotfiles.list $HOME ${CENTRAL_USER}@${CENTRAL_SERVER}:.
 		;;
 	*)
