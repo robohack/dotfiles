@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	36.3	19/11/30 18:30:46 (woods)"
+;;;;#ident	"@(#)HOME:.wl	36.4	19/11/30 19:21:00 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -1674,6 +1674,14 @@ ENCODING must be string."
 	 ("To" . "The Unbound User's Mailing List <unbound-users@unbound.net>")
 	 ("Reply-To" . "The Unbound User's Mailing List <unbound-users@unbound.net>")
 	 ("Organization" . "Planix, Inc."))
+	;; mailing list: u-u (unix unanimous)
+	(reply
+	 "^\\([Tt][Oo]\\|[Cc][Cc]\|[Ss]ender\\): .*u-u@[^.]*\\.*unixunanimous\\.org"
+	 (pgp-sign . t)
+	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 ("To" . "Unix Unanimous Mailing List <u-u@unixunanimous.org>")
+	 ("Reply-To" . "Unix Unanimous Mailing List <u-u@unixunanimous.org>")
+	 ("Organization" . "Planix, Inc."))
 	;; mailing list:  wl-en
 	((or (string-match "^%INBOX/Lists-IN/wl-en-l"
 			   wl-draft-parent-folder)
@@ -1684,6 +1692,7 @@ ENCODING must be string."
 	 ("To" . "WanderLust Users Mailing List (English) <wl-en@ml.gentei.org>")
 	 ("Reply-To" . "WanderLust Users Mailing List (English) <wl-en@ml.gentei.org>")
 	 ("Organization" . "Planix, Inc."))
+	;; mailing list wl-en
 	(reply
 	 "^\\([Tt][Oo]\\|[Cc][Cc]\\): wl-en@"
 	 (pgp-sign . t)
