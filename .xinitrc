@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	36.3	19/11/16 16:10:38 (woods)"
+#ident	"@(#)HOME:.xinitrc	36.4	19/12/04 18:26:33 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -258,8 +258,8 @@ if [ -n "$XDMHOST" -a "$XDMHOST" = "`echo $DISPLAY | sed 's/:.*$//'`" ] ; then
 		xauth extract - $DISPLAY | onx11server historically.weird.com 'xauth merge -' &
 		# now start server programs we like for this scenario
 		onx11server -n $X11SERVER 'xload -display $DISPLAY -geometry 120x40-200+48 -hl red' &
-		onx11server -n $X11SERVER 'uxterm -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
-		onx11server -n $X11SERVER 'uxterm -display $DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+		onx11server -n $X11SERVER 'uxterm -tn xterm-256color -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+		onx11server -n $X11SERVER 'uxterm -tn xterm-256color -display $DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
 		;;
 	*)
 		# not setting X11SERVER hopefully just makes the WM run all X11SERVER clients on
@@ -442,8 +442,8 @@ if [ "$argv0" = ".xinitrc" ] ; then
 		xauth nextract - $DISPLAY | onx11server historically.weird.com 'xauth nmerge -'
 		# and then start some useful programs...
 		onx11server -n $X11SERVER 'xload -display $DISPLAY -geometry 120x40-200+48 -hl red' &
-		onx11server -n $X11SERVER 'uxterm -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
-		onx11server -n $X11SERVER 'uxterm -display $DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+		onx11server -n $X11SERVER 'uxterm -tn xterm-256color -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
+		onx11server -n $X11SERVER 'uxterm -tn xterm-256color -display $DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
 		;;
 	esac
 	if $HAVEXV && [ -d '/Library/Desktop Pictures/Nature' ]; then
