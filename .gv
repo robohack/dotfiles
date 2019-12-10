@@ -1,0 +1,22 @@
+GV.antialias:		True
+GV.autoResize:		False
+!GV.beNiceToColormap:	True
+GV.fallbackOrientation:	Portrait
+GV.fallbackPageMedia:	Letter
+GV.ignoreEOF:		True
+GV.orientation:		Automatic
+GV.pageMedia:		Automatic
+GV.respectDSC:		True
+GV.scale:		1
+GV.scaleBase:		1
+GV.scratchDir:		~/tmp/
+GV.swapLandscape:	False
+GV.watchFile:		False
+
+GV.gsQuiet:		True
+GV.gsSafer:		True
+GV.gsArguments:		
+! add -dBATCH and quote file names!!!
+! quote file names!!!
+GV.gsCmdScanPDF:	gs -dNODISPLAY -dQUIET -sPDFname='%s' -sDSCname='%s' pdf2dsc.ps -c quit
+GV.gsInterpreter:	gs
