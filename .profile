@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some GNU bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	36.1	19/11/03 17:03:00 (woods)"
+#ident	"@(#)HOME:.profile	36.2	19/12/26 09:50:03 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -440,9 +440,9 @@ if [ -z "${MANPATH}" -a ! -r /etc/man.conf ] ; then
 	fi
 	export MANPATH
 fi
-dirprepend MANPATH ${LOCAL}/share/man ${LOCAL}/man ${GNU}/man ${CONTRIB}/share/man ${CONTRIB}/man ${PKG}/share/man ${PKG}/man ${X11PATH}/man
+dirprepend MANPATH ${LOCAL}/share/man ${LOCAL}/man ${GNU}/man ${CONTRIB}/share/man ${CONTRIB}/man ${PKG}/share/man ${PKG}/gnu/share/man ${PKG}/man ${X11PATH}/man
 
-dirprepend INFOPATH ${LOCAL}/share/info ${LOCAL}/info ${GNU}/info ${CONTRIB}/share/info ${CONTRIB}/info ${PKG}/share/info ${PKG}/info ${X11PATH}/info
+dirprepend INFOPATH ${LOCAL}/share/info ${LOCAL}/info ${GNU}/info ${CONTRIB}/share/info ${CONTRIB}/info ${PKG}/share/info ${PKG}/gnu/share/info ${PKG}/info ${X11PATH}/info
 
 ISSUN=false; export ISSUN
 if [ -x /usr/bin/sun ] ; then
@@ -572,21 +572,6 @@ if [ -z "${LC_CTYPE}" -a -z "${LC_ALL}" -a -z "${LANG}" ]; then
 		;;
 	esac
 fi
-
-if [ -r /var/log/smail/logfile ] ; then
-	MAILLOG="/var/log/smail/logfile"
-elif [ -r /var/spool/smail/log/logfile ] ; then
-	MAILLOG="/var/spool/smail/log/logfile"
-elif [ -r /usr/spool/smail/log/logfile ] ; then
-	MAILLOG="/usr/spool/smail/log/logfile"
-elif [ -r ${LOCAL}/var/log/smail/logfile ] ; then
-	MAILLOG=${LOCAL}/var/log/smail/logfile
-elif [ -r ${LOCAL}/spool/smail/log/logfile ] ; then
-	MAILLOG=${LOCAL}/spool/smail/log/logfile
-else
-	MAILLOG="/var/log/smail/logfile"
-fi
-export MAILLOG
 
 # XXX can these ($RSH and $SSH) cause problems with other tools?
 # (will be OK with at least cvs and rsync which use ${ARGV0}_RSH)
@@ -776,6 +761,7 @@ emacs | "" )
 			case "${TERM}" in
 			xterm*)
 				# XXX this is ugly and not exactly right.
+				# (should use type to test "id" for one)
 				if [ -x /usr/bin/id ] ; then
 					eval `id | sed 's/[^a-z0-9=].*//'`
 					# TODO: maybe not?
@@ -845,10 +831,13 @@ HAVEAUPLAY=false ; export HAVEAUPLAY
 if expr "`type auplay 2>/dev/null`" : '.* is .*/auplay$' >/dev/null 2>&1 ; then
 	HAVEAUPLAY=true
 fi
-
 HAVEAUDIOPLAY=false ; export HAVEAUDIOPLAY
 if expr "`type audioplay 2>/dev/null`" : '.* is .*/audioplay$' >/dev/null 2>&1 ; then
 	HAVEAUDIOPLAY=true
+fi
+HAVEESDPLAY=false ; export HAVEESDPLAY
+if expr "`type esdplay 2>/dev/null`" : '.* is .*/esdplay$' >/dev/null 2>&1 ; then
+	HAVEESDPLAY=true
 fi
 
 if [ -n "${AUDIOPLAYER}" ] ; then
@@ -860,7 +849,15 @@ if [ -n "${AUDIOPLAYER}" ] ; then
 		if ${HAVEAUDIOPLAY} ; then
 			AUDIOPLAYER="audioplay"
 		fi
+	else
+		if ${HAVEESDPLAY} ; then
+			AUDIOPLAYER="esdplay"
+		fi
 	fi
+fi
+if [ -n "${AUDIOPLAYER}" ] ; then
+	# avoid trying to run audio files...
+	AUDIOPLAYER=":"
 fi
 export AUDIOPLAYER
 
