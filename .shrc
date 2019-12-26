@@ -12,7 +12,7 @@
 # especially any that are only used by functions here, e.g. as was
 # done with MAILLOG.
 #
-#ident	"@(#)HOME:.shrc	36.6	19/12/26 09:44:31 (woods)"
+#ident	"@(#)HOME:.shrc	36.7	19/12/26 09:51:58 (woods)"
 
 PATH=$PATH
 export PATH
@@ -452,6 +452,15 @@ cdpkgwrksrc ()
 {
 	# XXX don't do anything if not directly in a pacakge dir
 	cd $(make show-var VARNAME=WRKSRC)
+}
+
+# this name is chosen so as to complement cdpkgwrksrc to facilitate easier
+# completion after typing the first three letters
+#
+cdwrkpkg ()
+{
+	# XXX don't do anything if not directly in a pacakge dir
+	cd $(make show-var VARNAME=WRKDIR)
 }
 
 cvsupdateroot ()
