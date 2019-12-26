@@ -8,10 +8,23 @@
 #
 # It may also assume .profile has already set some things, though it should not
 #
-#ident	"@(#)HOME:.shrc	36.5	19/12/01 13:37:04 (woods)"
+# Maybe more envirionment variable settings should move here,
+# especially any that are only used by functions here, e.g. as was
+# done with MAILLOG.
+#
+#ident	"@(#)HOME:.shrc	36.6	19/12/26 09:44:31 (woods)"
 
 PATH=$PATH
 export PATH
+
+if [ -r /var/log/smail/logfile ] ; then
+	MAILLOG="/var/log/smail/logfile"
+elif [ -r ${LOCAL}/var/log/smail/logfile ] ; then
+	MAILLOG=${LOCAL}/var/log/smail/logfile
+else
+	MAILLOG="/var/log/smail/logfile"
+fi
+export MAILLOG
 
 HAVEPRINT=false ; export HAVEPRINT
 if expr "`type print 2>/dev/null`" : 'print is a shell builtin$' > /dev/null 2>&1 ; then
@@ -972,11 +985,11 @@ zhead ()
 rm_alias_funcs ()
 {
 	# note: '-f' is only in ksh and bash, but that's where this is used
-	unset -f uufollow rsh blsqueeze blstrip ds e elc l la ll lla llr llra lr lra lsa nstty maillog rstty wcvs
+	unset -f uufollow rsh blsqueeze blstrip ds e elc l la ll lla llr llra lr lra lsa nstty rstty wcvs
 }
 rm_func_aliases ()
 {
-	unalias uufollow rsh blsqueeze blstrip ds e elc l la ll lla llr llra lr lra lsa nstty maillog rstty wcvs 2>/dev/null
+	unalias uufollow rsh blsqueeze blstrip ds e elc l la ll lla llr llra lr lra lsa nstty rstty wcvs 2>/dev/null
 }
 
 # .... and in case we are sourcing this file for a second time....
@@ -1066,7 +1079,12 @@ nstty ()
 }
 maillog ()
 {
-	$PAGER -e -p ": \[[0-9]*\] remote [A-Z ]*:" +G $MAILLOG
+	# Warning:  less (at least up to v. 394) has a limitation of about 95
+	# chars (or perhaps UNGOT_SIZE, 100) to the length of the '-p'
+	# parameter.  (xxx otherwise I would also include words like "core",
+	# "signal", and "trace")
+	#
+	$PAGER -enM -p ": \[[0-9]+\] (\[.+\] )?((remote[A-Z ]*:)|remote ..LO: (rejected: inv[^:]*:|refusing) )|^.*kill.*" +G $MAILLOG ${!+"$@"}
 }
 rstty ()
 {

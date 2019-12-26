@@ -1,7 +1,7 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	36.5	19/11/28 15:08:08 (woods)"
+#ident	"@(#)HOME:.kshrc	36.6	19/12/26 09:45:59 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -1010,7 +1010,6 @@ alias cvsfind0="find . -type d -name CVS -prune -or -type f ! -name '.#*' ! -nam
 alias srcfind="find . -type d \( -name CVS -or -name .git -or -name .svn -or -name build -or -name 'build-*' -or -name autom4te.cache \) -prune -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -print"
 alias srcfind0="find . -type d \( -name CVS -or -name .git -or -name .svn -or -name build -or -name 'build-*' -or -name autom4te.cache \) -prune -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -print0"
 alias deadlinks='find . -type l -a ! \( -follow -type f \) -print'
-alias dlog='$PAGER -en +G /var/log/debug'
 alias ds='$PAGER'
 alias e='${VISUAL:-$EDITOR}'
 alias ealias='e $ENV'
@@ -1028,7 +1027,6 @@ alias gitfind='git ls-tree -r --name-only HEAD'
 alias h='fc -l'
 alias history='fc -l 1'
 alias hmeme='fc -l 1 | awk "\$1 > 0 {print \$2}" | sort  | uniq -c | sort -rn | sed 20q'
-alias ilog='$PAGER -en +G /var/log/important'
 alias j='jobs -l'
 alias l='/bin/ls -CF'
 alias la='/bin/ls -CFa'
@@ -1072,13 +1070,14 @@ alias xload-3="xload -geometry 120x40-200+144 -hl red &"
 alias xload-4="xload -geometry 120x40-200+192 -hl red &"
 alias xload-5="xload -geometry 120x40-200+240 -hl red &"
 
+alias dlog='$PAGER -en +G /var/log/debug'
+alias ilog='$PAGER -en +G /var/log/important'
+alias klog='$PAGER -en +G /var/log/kern'
+alias mlog='$PAGER -en +G /var/log/messages'
+
 # Smail related tools...
 #
 alias badsenders='fgrep RHSBL: $MAILLOG | sed "s/[<>]/ /g" | awk "{print \$8}" | sort -u'
-# Warning: less (at least as of v. 374) has a limitation of about 95
-# chars to the length of the '-p' parameter.
-alias maillog='$PAGER -enM -p ": \[[0-9]+\] (\[.+\] )?((remote[A-Z ]*:)|remote ..LO: (rejected: inv[^:]*:|refusing) )|^.*kill.*" +G $MAILLOG'
-alias mlog='$PAGER -en +G /var/log/messages'
 alias rblcount='fgrep " matched " $MAILLOG | cut -d " " -f 13 | cut -d . -f 5- | sort | uniq -c'
 alias rblstats='fgrep " matched " $MAILLOG | cut -d " " -f 10- | sort | uniq -c | sort -n | ds'
 
