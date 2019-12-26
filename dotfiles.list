@@ -50,5 +50,6 @@ copyright
 copyright-public-domain
 dotfiles.README
 dotfiles.list
-SCCS/
 RCS/
+README.md
+SCCS/
