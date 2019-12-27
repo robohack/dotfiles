@@ -1,7 +1,7 @@
 #
 #	.bashrc - per-shell startup stuff for bash via $ENV
 #
-#ident	"@(#)HOME:.bashrc	36.1	19/11/03 17:03:00 (woods)"
+#ident	"@(#)HOME:.bashrc	36.2	19/12/27 08:30:22 (woods)"
 
 # Assumptions:
 
@@ -225,7 +225,7 @@ if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 fi
 # else
 case "$TERM" in
-"xterm")
+xterm*)
 	alias clearban='WBANNER=""; setban'
 
 	setban ()
@@ -307,7 +307,7 @@ if [ "$id" -eq 0 ] ; then
 	dirappend PATH /usr/lib/uucp /usr/lib
 	dirappend PATH $HOME/bin
 	case "$TERM" in
-	xterm)
+	xterm*)
 		PS1="$UUNAME # "
 		;;
 	*)
@@ -316,7 +316,7 @@ if [ "$id" -eq 0 ] ; then
 	esac
 elif [ "$uid" != "$LOGNAME" ] ; then
 	case "$TERM" in
-	xterm)
+	xterm*)
 		PS1="$UUNAME $ "
 		;;
 	*)
@@ -325,7 +325,7 @@ elif [ "$uid" != "$LOGNAME" ] ; then
 	esac
 else
 	case "$TERM" in
-	xterm)
+	xterm*)
 		PS1="$UUNAME $ "
 		;;
 	*)
