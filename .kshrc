@@ -1,7 +1,9 @@
 #
 #	.kshrc - per-interactive-shell startup stuff
 #
-#ident	"@(#)HOME:.kshrc	36.6	19/12/26 09:45:59 (woods)"
+# This should also work for bash and other ksh-compatibles
+#
+#ident	"@(#)HOME:.kshrc	36.7	19/12/27 13:08:44 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -17,9 +19,40 @@
 #	$HOME/.kshdir		- dir autoload aliases set, if it is readable
 #	$HOME/.kshlocal		- local-only hacks
 
-set -o nolog		# no functions in $HISTFILE
+case $SHELL in
+*bash*)
+	# note this is the "history number", matching the numbers as shown by
+	# 'fc -l' vs. the so-called "command number" ('\#')
+	_c='\!'
+	;;
+*)
+	set -o nolog		# no functions in $HISTFILE
+	_c='!'
+	;;
+esac
 
 export PATH
+
+# If I remember correctly SHLVL was not in early Ksh....
+#
+# Also, LEV counts from zero, and is not set at level zero so as to avoid
+# presenting redundant useless information using a simple ${LEV:+${LEV}} style
+# of expansion.
+#
+# XXX this should try to detect if this is a shell stared by a "terminal" window
+#
+if [ ${SHLVL:-0} -eq 1 -o ${PPID:-0} -eq 1 -o ${PPID:-1} -eq ${LAYERSPID:-0} ] ; then
+	unset LEV
+else
+	typeset -i LEV
+	if [ -n "$LEV" ] ; then
+		let LEV+=1
+	else
+		let LEV=${SHLVL:-0}-1
+	fi
+	export LEV
+fi
+
 
 # Handle the case of sourcing this file e.g. by a "su" shell user, or some other
 # interactive sub-shell, etc.
@@ -147,20 +180,85 @@ else
 	alias ismpx=false
 fi
 
-if [ "$PPID" -eq 1 -o "$PPID" -eq ${LAYERSPID:-0} ] ; then
-	typeset -i LEV=0
-else
-	if [ -n "$LEV" ] ; then
-		let LEV+=1
-	else
-		let LEV=0
-	fi
-fi
-export LEV
+# initialize SECONDS to the number of seconds since the last
+# local wall-clock midnight hour
+#
+# For our purposes this is more useful than the shell's total
+# wall-clock run time.
+#
+alias set_secs_to_midnight='SECONDS=$(date "+3600*%H+60*%M+%S")'
+#
+#set_secs_to_midnight
+#
+# XXX we can't actually use the alias here because in real Ksh the
+# alias must be defined before any command using it is read, and when
+# sourcing this file from a script it seems somehow possible that the
+# whole block of text containing both the definition and use might be
+# read at the same time, eg. on Mac OS X's "Version M 1993-12-28 s+".
+#
+# Note also the expression produced by 'date' is evaluated immediately by 'bc'
+# for the benefit of Bash, which doesn't expand variables and then evaluate
+# their content whenever they are referenced in an arithmetic expression like
+# Ksh does.
+#
+SECONDS=$(date '+3600*%H+60*%M+%S' | bc)
+
+# We wouldn't normally have to reset $SECONDS since our calculations
+# for hours and minutes only need to find the remainder values for the
+# seconds/unit since any epoch.  However wall-clock time will shift
+# when daylight savings time transitions happen.  Resetting $SECONDS
+# once per hour is probably overkill but will do the job -- it only
+# really needs to be done once a day at most in order to catch any
+# number of daylight savings time transitions.
+#
+# The first one in the loop should only sleep to the top of the hour,
+# but calculating that would really be overkill!
+#
+# The extra sub-shell is to prevent the main shell from tracking the
+# kill job...
+#
+#trap 'SECONDS="$(date '+3600*%H+60*%M+%S')"; ( { sleep 3600; kill -14 $$; } & )' 14
+
+# start the cycle
+#
+#kill -14 $$
+
+# expressions to calculate hours, minutes, and seconds since midnight
+# given the number of $SECONDS (we ignore the number of days that may
+# have passed since that midnight hour)
+#
+_hh="(SECONDS/3600)%24"
+_mm="(SECONDS/60)%60"
+_ss="(SECONDS)%60"
+
+# We'll be wanting zero-filled 2-digit expansion for our hours and minutes
+# variables.  Sadly Bash cannot do this, so shows ugly times for ten minutes of
+# every hour.
+#
+case $SHELL in
+*bash*)
+	;;
+*)
+	typeset -Z2 _h _m
+	;;
+esac
+
+# a magic expression that evaluates the above expressions to set the two
+# variables we've configured specially above, and then expands those two
+# variables in a standard "HH:MM" 24-hr format to show the current time.
+#
+_time='${_x[(_m=_mm)==(_h=_hh)]}$_h:$_m'
+
+# note this will be appended to.... (and must be set with double quotes)
+PS1="${_time} "
+
+PS2=">>> "
+PS3="??? "
+
 
 if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 
-	if [ "$LEV" -eq 0 ] ; then
+	if [ "${LEV:-0}" -eq 0 ] ; then
 		# in xterms, we are (normally, supposed to be) a login
 		# shell, but not in layers
 		do_first_time
@@ -174,7 +272,7 @@ if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	# xxx this doesn't mean what it used to mean...
 	function clearban
 	{
-		print "${MYXCLR}\c";
+		printf '%s' "${MYXCLR}";
 		WBANNER="${OWBANNER}";
 		setban
 	}
@@ -188,14 +286,13 @@ if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		if [ -z "$BANNER_PWD" ]; then
 			BANNER_PWD=$(pwd)
 		fi
-		print "${MYXCLR}\c"
+		printf '%s' "${MYXCLR}"
 		eval myxban -l "\"$MYXBAN_L\""
 		myxban -c "${WBANNER:-$(basename ${SHELL})}"
 		eval myxban -r "\"$MYXBAN_R\""
 	}
 
 	# NOTE:  may be re-defined in ~/.kshpwd
-	unalias cd
 	alias cd='_cd'
 	function _cd
 	{
@@ -215,6 +312,8 @@ fi
 # else
 case "$TERM" in
 xterm*)
+	PS1+='[${LEV:+${LEV}.}'"${_c}"']'
+
 	function clearban
 	{
 		WBANNER="${OWBANNER}";
@@ -238,11 +337,10 @@ xterm*)
 		else
 			eval TBANNER='"${WBANNER:-$(basename ${SHELL})}://$UUNAME/$BANNER_PWD | $uid:$gid($LOGNAME)[$LEV]:$TTYN"'
 		fi
-		print "\033]0;${TBANNER}\007\c"
+		printf "\033]0;${TBANNER}\007"
 	}
 
 	# NOTE:  may be re-defined in ~/.kshpwd
-	unalias cd
 	alias cd='_cd'
 	function _cd
 	{
@@ -252,6 +350,13 @@ xterm*)
 	}
 
 	setban
+	;;
+*)
+	if [ "$uid" != "$LOGNAME" ] ; then
+		PS1+='$TTYN:$uid($LOGNAME)@$UUNAME)[${LEV:+${LEV}.}'"$_"'] ${BANNER_PWD#$HOME}'
+	else
+		PS1+='$TTYN:$LOGNAME@$UUNAME[${LEV:+${LEV}.}'"$_"'] ${BANNER_PWD#$HOME}'
+	fi
 	;;
 esac
 
@@ -511,14 +616,7 @@ if [ "$id" -eq 0 ] ; then
 		append2path PATH $DMD/bin $DMDSGS/bin/3b5 $DMD/local/bin
 	fi
 
-	case "$TERM" in
-	xterm* | dmd-myx)
-		PS1='[${LEV:+${LEV}.}!] # '
-		;;
-	*)
-		PS1='$TTYN:$LOGNAME@$UUNAME[${LEV:+${LEV}.}!] ${BANNER_PWD#$HOME} # '
-		;;
-	esac
+	PS1+=' # '
 	MAILPATH=${MAILDIR}/${LOGNAME}:${MAILDOR}/root:${MAILDIR}/uucp:${MAILDIR}/usenet
 	if [ "$VISUAL" = "emacsclient" ] ; then
 		export VISUAL="emacs -nw"
@@ -576,30 +674,14 @@ elif [ "$uid" != "$LOGNAME" ] ; then
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		# xxx should do this in setban...
 		MYXBAN_R='$uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN'
-		PS1='[${LEV:+${LEV}.}!] $ '
 	fi
-	case "$TERM" in
-	xterm* | dmd-myx)
-		PS1='[${LEV:+${LEV}.}!] $ '
-		;;
-	*)
-		PS1='$TTYN:$uid($LOGNAME)@$UUNAME)[${LEV:+${LEV}.}!] ${BANNER_PWD#$HOME} $ '
-		;;
-	esac
+	PS1+=' $ '
 else
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		# xxx should do this in setban...
 		MYXBAN_R='$LOGNAME{$gid}@$UUNAME[$LEV]:$TTYN'
-		PS1='[!] $ '
 	fi
-	case "$TERM" in
-	xterm* | dmd-myx)
-		PS1='[!] $ '
-		;;
-	*)
-		PS1='$TTYN:$LOGNAME@$UUNAME[${LEV:+${LEV}.}!] ${BANNER_PWD#$HOME} $ '
-		;;
-	esac
+	PS1+=' $ '
 fi
 
 if type setban > /dev/null ; then
@@ -608,7 +690,6 @@ if type setban > /dev/null ; then
 	# XXX re-factor into a function which defines functions....
 	#
 	if [ "$VISUAL" = "emacsclient" -a -z "$DISPLAY" ] ; then
-		unalias emacs
 		alias emacs=_emacs
 		function _emacs
 		{
@@ -625,7 +706,6 @@ if type setban > /dev/null ; then
 		}
 	fi
 
-	unalias cu
 	alias cu=_cu
 	function _cu
 	{
@@ -646,7 +726,6 @@ if type setban > /dev/null ; then
 		clearban
 	}
 
-	unalias ckermit
 	alias ckermit=_ckermit
 	function _ckermit
 	{
@@ -669,7 +748,6 @@ if type setban > /dev/null ; then
 
 	_cmd=$(type rlogin 2>/dev/null)
 	if [ "${_cmd##*/}" = "rlogin" ] ; then
-		unalias rlogin
 		alias rlogin=_rlogin
 		function _rlogin
 		{
@@ -688,7 +766,6 @@ if type setban > /dev/null ; then
 
 	_cmd=$(type slogin 2>/dev/null)
 	if [ "${_cmd##*/}" = "slogin" ] ; then
-		unalias slogin
 		alias slogin=_slogin
 		function _slogin
 		{
@@ -707,7 +784,6 @@ if type setban > /dev/null ; then
 
 	_cmd=$(type console 2>/dev/null)
 	if [ "${_cmd##*/}" = "console" ] ; then
-		unalias console
 		alias console=_console
 		function _console
 		{
@@ -726,7 +802,6 @@ if type setban > /dev/null ; then
 
 	_cmd=$(type telnet 2>/dev/null)
 	if [ "${_cmd##*/}" = "telnet" ] ; then
-		unalias telnet
 		alias telnet=_telnet
 		function _telnet
 		{
@@ -749,7 +824,6 @@ if type setban > /dev/null ; then
 	fi
 
 	if $HAVEMUSH ; then
-		unalias mushC
 		alias mushC=_mushC
 		function _mushC
 		{
@@ -768,7 +842,6 @@ if type setban > /dev/null ; then
 
 	_cmd=$(type irc 2>/dev/null)
 	if [ "${_cmd##*/}" = "irc" ] ; then
-		unalias irc
 		alias irc=_irc
 		function _irc
 		{
@@ -787,7 +860,6 @@ if type setban > /dev/null ; then
 
 	_cmd=$(type trn 2>/dev/null)
 	if [ "${_cmd##*/}" = "trn" ] ; then
-		unalias trn
 		alias trn=_trn
 		function _trn
 		{
@@ -804,7 +876,6 @@ if type setban > /dev/null ; then
 		}
 	fi
 
-	unalias su
 	alias su=_su
 	function _su
 	{
@@ -862,67 +933,6 @@ if type setban > /dev/null ; then
 		}
 	fi
 fi
-
-# initialize SECONDS to the number of seconds since the last
-# local wall-clock midnight hour
-#
-# For our purposes this is more useful than the shell's total
-# wall-clock run time.
-#
-alias set_secs_to_midnight='SECONDS=$(date "+3600*%H+60*%M+%S")'
-#
-#set_secs_to_midnight
-#
-# XXX we can't actually use the alias here because in real Ksh the
-# alias must be defined before any command using it is read, and when
-# sourcing this file from a script it seems somehow possible that the
-# whole block of text containing both the definition and use might be
-# read at the same time, eg. on Mac OS X's "Version M 1993-12-28 s+".
-#
-SECONDS=$(date '+3600*%H+60*%M+%S')
-
-# We wouldn't normally have to reset $SECONDS since our calculations
-# for hours and minutes only need to find the remainder values for the
-# seconds/unit since any epoch.  However wall-clock time will shift
-# when daylight savings time transitions happen.  Resetting $SECONDS
-# once per hour is probably overkill but will do the job -- it only
-# really needs to be done once a day at most in order to catch any
-# number of daylight savings time transitions.
-#
-# The first one in the loop should only sleep to the top of the hour,
-# but calculating that would really be overkill!
-#
-# The extra sub-shell is to prevent the main shell from tracking the
-# kill job...
-#
-#trap 'SECONDS="$(date '+3600*%H+60*%M+%S')"; ( { sleep 3600; kill -14 $$; } & )' 14
-
-# start the cycle
-#
-#kill -14 $$
-
-# expressions to calculate hours, minutes, and seconds since midnight
-# given the number of $SECONDS (we ignore the number of days that may
-# have passed since that midnight hour)
-#
-_hh="(SECONDS/3600)%24"
-_mm="(SECONDS/60)%60"
-_ss="(SECONDS)%60"
-
-# We'll be wanting zero-filled 2-digit expansion for our hours and
-# minutes variables
-#
-typeset -Z2 _h _m
-
-# a magic expression that evaluates the above expressions to set the two
-# variables we've configured specially above, and then expands those two
-# variables in a standard "HH:MM" 24-hr format to show the current time.
-#
-_time='${_x[(_m=_mm)==(_h=_hh)]}$_h:$_m'
-
-PS1="$_time $PS1"
-PS2=">>> "
-PS3="??? "
 
 if [ "$uid" = usenet -o "$uid" = news ] ; then
 	dirprepend PATH $LOCAL/lib/newsbin $LOCAL/lib/newsbin/maint $LOCAL/lib/newsbin/input
@@ -1054,14 +1064,14 @@ alias maildate='LANG=c date "+%a, %d %b %Y %T %z"'
 alias nosgr='echo '
 alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok'
 alias pkg_sizes="/usr/sbin/pkg_info -s \* | sed -e '/^$/d' -e 's/Information for //' -e 's/:$/:\\\\/' | sed -e :a -e '$!N;s/Size of this package in bytes://;ta' -e 'P;D' | backslashjoin"
-alias realias='let LEV=$LEV-1;exec ksh'		# useless?
+alias realias='let LEV=$LEV-1;exec ${SHELL}'		# useless?
 alias rehash='_SV_PATH=$PATH; PATH=$_SV_PATH; unset _SV_PATH'
 alias rinfo='rlog -L -h -l $(find RCS -type f -print)'
 alias rstty='stty $SANE'
 alias rsyncbackup='rsync -a -H -E --numeric-ids'
 alias scvs='export CVSROOT="$(< CVS/Root)"; print "CVSROOT=$CVSROOT"'
 alias snmpoidinfo='snmptranslate -T d -O f'
-alias wcvs='print $CVSROOT'
+alias wcvs="printf '%s' \$CVSROOT"
 alias zds="z$PAGER"
 
 alias xload-1="xload -geometry 120x40-200+48 -hl red &"
@@ -1145,20 +1155,34 @@ case "$0" in
 	set -o monitor
 	;;
 esac
-if [ -r $HOME/.kshedit ] ; then
-	. $HOME/.kshedit
-else
-	set -o gmacs
+case $SHELL in
+*bash*)
+	if [ -r $HOME/.bashedit ] ; then
+		. $HOME/.bashedit
+	else
+		set -o emacs
+	fi
+	;;
+*)
+	if [ -r $HOME/.kshedit ] ; then
+		. $HOME/.kshedit
+	else
+		set -o gmacs
+	fi
 	alias __A=''		# up arrow
 	alias __B=''		# down arrow
 	alias __C=''		# right arrow
 	alias __D=''		# left arrow
 	alias __H=''		# beginning of line, HOME key
-fi
+	;;
+esac
+
+# Do this at very nearly the very end...
+#
 if [ -r $HOME/.kshlocal ] ; then
 	. $HOME/.kshlocal
 fi
 
 # N.B.:  Do this only at the very very end!
 #
-set -o trackall
+set -h

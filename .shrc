@@ -12,7 +12,7 @@
 # especially any that are only used by functions here, e.g. as was
 # done with MAILLOG.
 #
-#ident	"@(#)HOME:.shrc	36.7	19/12/26 09:51:58 (woods)"
+#ident	"@(#)HOME:.shrc	36.8	19/12/27 13:08:44 (woods)"
 
 PATH=$PATH
 export PATH
@@ -820,7 +820,7 @@ else
 fi
 
 if [ "`ismpx`" = yes -o "$TERM" = "dmd-myx" ] ; then
-	if [ "$LEV" -eq 0 ] ; then
+	if [ "${LEV:-0}" -eq 0 ] ; then
 		# in xterms, we are (normally, supposed to be) a login
 		# shell, but not in layers
 		do_first_time

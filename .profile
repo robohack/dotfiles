@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some GNU bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	36.2	19/12/26 09:50:03 (woods)"
+#ident	"@(#)HOME:.profile	36.3	19/12/27 13:08:44 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -1047,9 +1047,9 @@ elif [ -r ${HOME}/.shlogin ] ; then
 	fi
 else
 	if [ "X${LOGNAME}" = "Xroot" ] ; then
-		PS1="[${TTYN}]<${LOGNAME}@${UUNAME}> # "
+		PS1="login [${TTYN}]<${LOGNAME}@${UUNAME}> # "
 	else
-		PS1="[${TTYN}]<${LOGNAME}@${UUNAME}> $ "
+		PS1="login [${TTYN}]<${LOGNAME}@${UUNAME}> $ "
 	fi
 fi
 
@@ -1179,12 +1179,6 @@ fi
 #
 if [ -n "${ENV}" -a -r "${ENV}" ] ; then
 	. ${ENV}
-else
-	if [ "X${LOGNAME}" = "Xroot" ] ; then
-		PS1="login [${TTYN}]<${LOGNAME}@${UUNAME}> # "
-	else
-		PS1="login [${TTYN}]<${LOGNAME}@${UUNAME}> $ "
-	fi
 fi
 
 # minor cleanup
