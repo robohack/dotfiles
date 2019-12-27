@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	36.7	19/12/27 13:08:44 (woods)"
+#ident	"@(#)HOME:.kshrc	36.8	19/12/27 13:21:03 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -312,7 +312,7 @@ fi
 # else
 case "$TERM" in
 xterm*)
-	PS1+='[${LEV:+${LEV}.}'"${_c}"']'
+	PS1="${PS1}"'[${LEV:+${LEV}.}'"${_c}"']'
 
 	function clearban
 	{
@@ -353,9 +353,9 @@ xterm*)
 	;;
 *)
 	if [ "$uid" != "$LOGNAME" ] ; then
-		PS1+='$TTYN:$uid($LOGNAME)@$UUNAME)[${LEV:+${LEV}.}'"$_"'] ${BANNER_PWD#$HOME}'
+		PS1="${PS1}"'$TTYN:$uid($LOGNAME)@$UUNAME)[${LEV:+${LEV}.}'"$_"'] ${BANNER_PWD#$HOME}'
 	else
-		PS1+='$TTYN:$LOGNAME@$UUNAME[${LEV:+${LEV}.}'"$_"'] ${BANNER_PWD#$HOME}'
+		PS1="${PS1}"'$TTYN:$LOGNAME@$UUNAME[${LEV:+${LEV}.}'"$_"'] ${BANNER_PWD#$HOME}'
 	fi
 	;;
 esac
@@ -616,7 +616,7 @@ if [ "$id" -eq 0 ] ; then
 		append2path PATH $DMD/bin $DMDSGS/bin/3b5 $DMD/local/bin
 	fi
 
-	PS1+=' # '
+	PS1="${PS1}"' # '
 	MAILPATH=${MAILDIR}/${LOGNAME}:${MAILDOR}/root:${MAILDIR}/uucp:${MAILDIR}/usenet
 	if [ "$VISUAL" = "emacsclient" ] ; then
 		export VISUAL="emacs -nw"
@@ -675,13 +675,13 @@ elif [ "$uid" != "$LOGNAME" ] ; then
 		# xxx should do this in setban...
 		MYXBAN_R='$uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN'
 	fi
-	PS1+=' $ '
+	PS1="${PS1}"' $ '
 else
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		# xxx should do this in setban...
 		MYXBAN_R='$LOGNAME{$gid}@$UUNAME[$LEV]:$TTYN'
 	fi
-	PS1+=' $ '
+	PS1="${PS1}"' $ '
 fi
 
 if type setban > /dev/null ; then
