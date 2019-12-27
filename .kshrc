@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	36.8	19/12/27 13:21:03 (woods)"
+#ident	"@(#)HOME:.kshrc	36.9	19/12/27 13:51:46 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -33,26 +33,38 @@ esac
 
 export PATH
 
-# If I remember correctly SHLVL was not in early Ksh....
+# If I remember correctly SHLVL was not in early Ksh.... (and it's not in pdksh
+# nor its derivatives)
 #
-# Also, LEV counts from zero, and is not set at level zero so as to avoid
-# presenting redundant useless information using a simple ${LEV:+${LEV}} style
-# of expansion.
+# Also, LEV counts (effectively) from zero, and is not set at level zero so as
+# to avoid presenting redundant useless information using a simple
+# ${LEV:+${LEV}} style of expansion.
 #
-# XXX this should try to detect if this is a shell stared by a "terminal" window
-#
-if [ ${SHLVL:-0} -eq 1 -o ${PPID:-0} -eq 1 -o ${PPID:-1} -eq ${LAYERSPID:-0} ] ; then
+case ${0} in
+-*)
+	: this is a login shell
 	unset LEV
-else
-	typeset -i LEV
-	if [ -n "$LEV" ] ; then
-		let LEV+=1
+	;;
+*)
+	if [ ${SHLVL:-0} -eq 1 -o ${PPID:-0} -eq 1 -o ${PPID:-1} -eq ${LAYERSPID:-0} ] ; then
+		: this is still considered a "login" shell
+		unset LEV
 	else
-		let LEV=${SHLVL:-0}-1
+		typeset -i LEV
+		if [ -n "${LEV}" ] ; then
+			let LEV+=1
+		else
+			# iff SHLVL is available, try starting with it...
+			if [ -n "${SHLVL}" ]; then
+				let LEV=${SHLVL}-1
+			else
+				let LEV=1
+			fi
+		fi
+		export LEV
 	fi
-	export LEV
-fi
-
+	;;
+esac
 
 # Handle the case of sourcing this file e.g. by a "su" shell user, or some other
 # interactive sub-shell, etc.
