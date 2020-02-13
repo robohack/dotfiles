@@ -2,40 +2,32 @@
 
 # dotfiles -- shell and tool configuration files from $HOME
 
-:copyright: Copyright 1989-2019 Greg A. Woods, and other contributors.
+:copyright: Copyright 1989-2020 Greg A. Woods, and other contributors.
 
 See the file [copyright](copyright) for details.
 
 
 ## How To Track Dotfiles Changes With Git
 
-Various people[*](#references) suggest starting a "dotfiles" repository with:
+Various people[*](#references) suggest starting a "dotfiles" repository
+in a wide variety of ways, some quite convoluted.
 
-	git init --bare $HOME/.dotfiles-git
+The simplest though is to simply make your `$HOME` a Git working
+repository (one containing only your (public) dotfiles).
 
-(Here the "`--bare`" avoids creating a sub-directory first, and is in
-effect the way to name the `GIT_DIR` in the current directory instead of
-having it default to "`.git`".)
+Thanks to [Drew
+DeVault](https://drewdevault.com/2019/12/30/dotfiles.html) for giving me
+the one tiny clue I needed to making this safe and simple to use.  The
+trick is to create a one-line `$HOME/.gitignore` file (and be sure to
+add and commit it to your Git repository:
 
-Tell git to find the actual worktree in the parent of the repository:
+    *
 
-	git config --git-dir=$HOME/.dotfiles-git core.worktree ..
-	git config --git-dir=$HOME/.dotfiles-git core.bare false
-
-(the above doesn't work right if you're not within your `$HOME` when
-running git)
-
-Then use a shell alias to D.T.R.T. to operate on the repository and your
-`$HOME`:
-
-	alias dfgit='git --git-dir=$HOME/.dotfiles-git/'
-
-Or better yet a more portable shell function:
-
-	dfgit ()
-	{
-		git --git-dir=$HOME/.dotfiles-git/ ${1+"${@}"}
-	}
+This means you will have to explicitly add files you want to track
+(i.e. with `git add -f .dotfile`), but it also means Git won't be
+constantly nagging you about files you don't want to track, and most
+critically it will make it (relatively?) safe to use Git for other
+repositories in any sub-directory of your `$HOME`.
 
 
 ## Moving from SCCS to Git(Hub)
@@ -62,55 +54,35 @@ Then I published my dotfiles!
 To use Git to record changes to my dotfiles I just moved (or copied) the
 `.git` directory into place:
 
-	mv ~/work/home/.git ~/.dotfiles-git
+	mv ~/work/home/.git ~/
 
-If you do this then you don't need to add the `core.bare = true` git
-config entry as "_By default a repository that ends in "`/.git`" is
-assumed to be not bare (`bare = false`), while all other repositories
-are assumed to be bare (`bare = true`)._"
+_Note:_ Until I test this more I won't likely be using Git directly on
+my main home server to record changes -- I'll continue using SCCS and
+incrementally update [dotfiles](https://github.com/robohack/dotfiles)
+from them.
 
-You can avoid having git complain about all the other things you keep in
-`$HOME` not being tracked by turning off that feature:
 
-	dfgit config --local status.showUntrackedFiles no
+## Replicating Your `$HOME` On Another Machine
 
-Then you can clone to a new machine with (again note "`--bare`", which
-you do need here else you'll get the repository cloned into
-`~/.dotfiles-git/.git` and everything initially checked out in
-`~/.dotfiles-git`):
+You can now _"clone"_ to a new machine (or share with others) with this
+set of commands:
 
-	git clone --bare https://github.com/USERNAME/dotfiles.git $HOME/.dotfiles-git
-	git --git-dir=$HOME/.dotfiles-git/ --work-tree=$HOME checkout
-	. ~/.shrc	# to get "dfgit"
-
-_Note:_  Until I figure out the Magit vs. `GIT_DIR` problem[*](#more) I
-won't likely be using Git directly to record changes -- I'll continue
-using SCCS and incrementally update
-[dotfiles](https://github.com/robohack/dotfiles) from them.
+    cd
+    git init
+    git remote add origin git@github.com:USERNAME/dotfiles.git
+    git fetch
+    git checkout -f master
 
 
 ## More Notes and Open Questions {#more}
 
-Maybe (???) you can add the following to the end of your
-`~/.dotfiles-git/config` file to enable overriding from another (local)
-repository:
-
-	[include]
-		path = ~/.dotfiles_local-git
-
-Note you could just name the GIT_DIR "`~/.git`", but that is very
-dangerous!  An inadvertent "`git clean`" in a non-git-controlled
-sub-directory of `$HOME` would **wipe your world** (well all but what's
+When you use the default name name for your `GIT_DIR` of "`~/.git`", as
+I've show above, it can be **very** dangerous if your `~/.gitignore`
+file ever ends up missing or with anything but a lone `*` in it!  In
+such a case an inadvertent "`git clean`" in a non-Git-controlled
+sub-directory of `$HOME` would **wipe your world** (well but what's
 tracked in `~/.git`)!!!  Indeed any other "`git`" command in a
-non-git-controlled sub-directory of `$HOME` could cause you headaches.
-
-Maybe the `GIT_DIR` should be called "`$HOME/.home-git`" since it can track
-any file under `$HOME`.
-
-But how to manage changes with Magit???
-
-- That is the question -- how do we get Magit to use a different `GIT_DIR`
-  for just one repository!?!?!?
+non-Git-controlled sub-directory of `$HOME` could cause you headaches.
 
 
 ## References
@@ -118,4 +90,4 @@ But how to manage changes with Magit???
 Another detailed description of this kind of setup is found at:
 [https://www.atlassian.com/git/tutorials/dotfiles]
 
-#ident	"@(#)HOME:README.md	36.2	19/11/25 16:00:20 (woods)"
+#ident	"@(#)HOME:README.md	36.3	20/02/12 20:59:21 (woods)"
