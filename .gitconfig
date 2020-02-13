@@ -2,7 +2,7 @@
 #
 #	.gitconfig - per-user Git setup
 #
-#ident	"@(#)HOME:.gitconfig	36.1	19/11/03 17:03:00 (woods)"
+#ident	"@(#)HOME:.gitconfig	36.2	20/02/12 20:57:23 (woods)"
 #
 # N.B.:  user.* could be set in GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL and those
 # should probably be set in ~/.localprofile, though Git is stupid and prefers
@@ -35,7 +35,12 @@
         find-commits-add-or-delete = log -p -S
         find-commits-matching = log -p -G
 	#
+	what = remote show origin
+	which = remote -v
 	active-branch = symbolic-ref --short -q HEAD
+	#
+	ahead = !sh -c 'git log --pretty=oneline --abbrev-commit $(git rev-parse --abbrev-ref --symbolic-full-name @{u})..'
+	behind = !sh -c 'git log --pretty=oneline --abbrev-commit ..$(git rev-parse --abbrev-ref --symbolic-full-name @{u})'
         #
 	commit-add-amend-HEAD = commit -a --amend -C HEAD
 	caa = commit -a --amend -C HEAD
