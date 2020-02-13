@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	36.5	19/11/29 16:11:14 (woods)"
+#ident	"@(#)HOME:.kshsccs	36.6	20/02/12 20:58:16 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -432,6 +432,18 @@ function vsact
 	else
 		${SCCS} -p $PROJECT sact $*
 	fi
+}
+
+#
+#	vcommitters - get the list of all UIDs for all commits
+#
+function vcommitters
+{
+	if [ $# -eq 0 ] ; then
+		${SCCS} -p $PROJECT prs -e -d:P: $(vwproj)/s.*
+	else
+		${SCCS} -p $PROJECT prs -e -d:P: $*
+	fi | sort -u
 }
 
 #
