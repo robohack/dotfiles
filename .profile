@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some GNU bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	36.3	19/12/27 13:08:44 (woods)"
+#ident	"@(#)HOME:.profile	36.4	20/02/15 14:14:42 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -442,6 +442,14 @@ if [ -z "${MANPATH}" -a ! -r /etc/man.conf ] ; then
 fi
 dirprepend MANPATH ${LOCAL}/share/man ${LOCAL}/man ${GNU}/man ${CONTRIB}/share/man ${CONTRIB}/man ${PKG}/share/man ${PKG}/gnu/share/man ${PKG}/man ${X11PATH}/man
 
+if [ -z "${INFOPATH}" ] ; then
+	if [ -d /usr/share/info ] ; then
+		INFOPATH="/usr/share/info"
+	else
+		INFOPATH="/usr/man"
+	fi
+	export INFOPATH
+fi
 dirprepend INFOPATH ${LOCAL}/share/info ${LOCAL}/info ${GNU}/info ${CONTRIB}/share/info ${CONTRIB}/info ${PKG}/share/info ${PKG}/gnu/share/info ${PKG}/info ${X11PATH}/info
 
 ISSUN=false; export ISSUN
