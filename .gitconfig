@@ -2,7 +2,7 @@
 #
 #	.gitconfig - per-user Git setup
 #
-#ident	"@(#)HOME:.gitconfig	36.2	20/02/12 20:57:23 (woods)"
+#ident	"@(#)HOME:.gitconfig	36.3	20/02/17 13:47:37 (woods)"
 #
 # N.B.:  user.* could be set in GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL and those
 # should probably be set in ~/.localprofile, though Git is stupid and prefers
@@ -99,10 +99,19 @@
 #*.png	binary
 #
 #
+# The basic colors accepted are normal, black, red, green, yellow, blue,
+# magenta, cyan and white. The first color given is the foreground; the second
+# is the background.
+#
+# The accepted attributes are bold, dim, ul, blink, reverse, italic, and strike
+#
+# Specific attributes may be turned off by prefixing them with no or no- (e.g.,
+# noreverse, no-ul, etc).
 #
 # The following are apparently the "default" hard-coded colours.
+# [from http://shallowsky.com/blog/programming/gitcolors.html]
 #
-# They are not good for white backgrounds.
+# They are not good for white backgrounds.  ("yellow bold" is evil!)
 #
 #[color "diff"]
 #	plain = normal
@@ -131,3 +140,37 @@
 #	header = normal
 #	help = normal
 #	error = normal
+#[color "decorate"]
+#	branch = ???
+#	remoteBranch = ???
+#	tag = ???
+#	stash = ???
+#	HEAD = ???
+#
+#[color]
+#	branch = auto
+#	decorate = auto
+#	diff = auto
+#	grep = auto
+#	interactive = auto
+#	pager = true
+#	showbranch = auto
+#	status = auto
+#	ui = auto
+#
+# the following for "light" backgrounds was originally
+# from: https://phdru.name/Software/dotfiles/lib/config/git/light_bg
+#
+[color "decorate"]
+#	HEAD = cyan
+	remoteBranch = green bold
+	branch = green bold
+	tag = blue bold
+[color "diff"]
+	commit = yellow
+[color "status"]
+	added = blue
+	changed = red
+	nobranch = green
+	untracked = red bold
+	updated = magenta
