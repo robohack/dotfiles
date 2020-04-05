@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some GNU bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	36.5	20/04/05 15:43:39 (woods)"
+#ident	"@(#)HOME:.profile	36.6	20/04/05 15:44:52 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -864,7 +864,7 @@ if expr "`type esdplay 2>/dev/null`" : '.* is .*/esdplay$' >/dev/null 2>&1 ; the
 	HAVEESDPLAY=true
 fi
 
-if [ -n "${AUDIOPLAYER}" ] ; then
+if [ -z "${AUDIOPLAYER}" ] ; then
 	if [ -n "${AUDIOSERVER}" ] ; then
 		if ${HAVEAUPLAY} ; then
 			AUDIOPLAYER="auplay -v 20"
