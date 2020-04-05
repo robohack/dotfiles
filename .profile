@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some GNU bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	36.4	20/02/15 14:14:42 (woods)"
+#ident	"@(#)HOME:.profile	36.5	20/04/05 15:43:39 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -549,8 +549,12 @@ fi
 # try to be smart about when we can tell it about which charset it
 # should try to use.
 #
-# note: LC_ALL overrides all LC_* variables, LANG is the default for
-# unset LC_* variables, and LESSCHARSET is the equivalent of LC_CTYPE
+# note:  LC_ALL, if valid, overrides all LC_* variables, LANG is the default for
+# unset LC_* variables, and LESSCHARSET is the equivalent of LC_CTYPE (just for
+# "less", of course)
+#
+# Note also that "uxterm" will (have) set LC_CTYPE=en_US.UTF-8 if none of
+# LC_ALL, LC_CTYPE, or LANG were set on invocation.
 #
 if [ -z "${LC_CTYPE}" -a -z "${LC_ALL}" -a -z "${LANG}" ]; then
 	case "${TERM}" in
@@ -570,7 +574,8 @@ if [ -z "${LC_CTYPE}" -a -z "${LC_ALL}" -a -z "${LANG}" ]; then
 		# XXX when can I jump to UTF-8????
 		;;
 	xterm*)
-		# Xterm probably set things up OK itself, especially if uxterm
+		# Xterm probably set things up OK itself, i.e. if it was uxterm
+		# then we're probably not in this 'if' block....
 		#
 		# For less, from the man page:
 		#	If neither LESSCHARSET nor LESSCHARDEF is set, but any of the strings
@@ -579,6 +584,17 @@ if [ -z "${LC_CTYPE}" -a -z "${LC_ALL}" -a -z "${LANG}" ]; then
 		unset LESSCHARSET
 		;;
 	esac
+else
+	# xxx printf(3)'s "%'d" flag (i.e. the "'") is pedantic about having a
+	# known locale set for at least LC_NUMERIC before it does commification!
+	#
+	# XXX XXX but this hard-coded choice may not be available everywhere,
+	# never mind appropriate for anyone but me...
+	#
+	export LC_NUMERIC="en_CA.UTF-8"
+
+	# XXX BTW, why is $(LANG= LC_ALL= LC_CTYPE= locale charmap)=="646" on NetBSD???
+	# (it should be "US-ASCII"!)
 fi
 
 # XXX can these ($RSH and $SSH) cause problems with other tools?
