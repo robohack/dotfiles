@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some GNU bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	36.6	20/04/05 15:44:52 (woods)"
+#ident	"@(#)HOME:.profile	36.7	20/04/05 15:46:49 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -879,7 +879,7 @@ if [ -z "${AUDIOPLAYER}" ] ; then
 		fi
 	fi
 fi
-if [ -n "${AUDIOPLAYER}" ] ; then
+if [ -z "${AUDIOPLAYER}" ] ; then
 	# avoid trying to run audio files...
 	AUDIOPLAYER=":"
 fi
