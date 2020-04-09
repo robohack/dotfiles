@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	36.4	19/11/28 11:04:48 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	36.5	20/04/09 13:14:36 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -770,19 +770,19 @@ match `%s'. Connect anyway? " host))))))
   (autoload 'smart-tabs-advice "smart-tabs-mode")
   (autoload 'smart-tabs-insinuate "smart-tabs-mode")
 					;
-;  XXX something doesn't define the symbol `go'
-;
-;  (eval-when-compile
-;    (require 'go-mode))
-;  (eval-after-load 'smart-tabs-mode
-;    '(progn
-;       (smart-tabs-add-language-support go go-mode-hook
-;	 ((go-mode-indent-line . tab-width)))
-;       (smart-tabs-insinuate 'go 'c 'c++ 'java 'javascript 'cperl 'python 'ruby 'nxml)
-;       ;; make it safe
-;       ;;
-;       (put 'smart-tabs-mode 'safe-local-variable #'booleanp)))
-  )
+  (eval-when-compile
+    (if (elisp-file-in-loadpath-p "go-mode")
+	(require 'go-mode)))
+  (eval-after-load 'smart-tabs-mode
+    '(progn
+       (smart-tabs-add-language-support go go-mode-hook
+	 ((go-mode-indent-line . tab-width)))
+;;; XXX something doesn't define the symbol `go'
+;;;    (smart-tabs-insinuate 'go 'c 'c++ 'java 'javascript 'cperl 'python 'ruby 'nxml)
+       (smart-tabs-insinuate 'c 'c++ 'java 'javascript 'cperl 'python 'ruby 'nxml)
+       ;; make it safe
+       ;;
+       (put 'smart-tabs-mode 'safe-local-variable #'booleanp))))
 
 ;; N.B.:  Python needs more helpers for smart-tabs-mode, plus possibly fixes
 ;; for working with tabs (i.e. to be compatible with `indent-tabs-mode')
@@ -2851,6 +2851,8 @@ argument.  As a consequence, you can always delete a whole line by typing
 ;;
 (require 'pcvs)
 
+(eval-when-compile
+  (defvar log-view-vc-backend))
 ;; N.B.:  This adds a :postproc function to enable log-view-mode to interact
 ;; with CVS.  If I knew how to access the list of files being logged then maybe
 ;; it would also be usefult to do set `log-view-vc-fileset' too.
@@ -3348,8 +3350,10 @@ to get rid of that horrid `z' key binding!"
     (toggle-read-only)))
 
 (eval-when-compile
-  (defvar vc-sccs-header))
+  (defvar vc-sccs-header)
+  (defvar vc-git-header))
 (setq vc-sccs-header '("#ident	\"%Z\045%Y\045:%M\045	%I\045	%E\045 %U\045 (%Q\045)\""))
+(setq vc-git-header  '("#ident	\"@(#)PROJ:FILE:$Format:%D:%ci:%cN:%h$\""))
 
 ;; As-is `vc-dir' will show checked-in files as having "unlocked-changes" and
 ;; `vc-diff' will show those changes as being the expanded keywords.  This is
@@ -3366,6 +3370,7 @@ to get rid of that horrid `z' key binding!"
 
 ;; XXX this is apparently broken in the 24.x and 25.x releases!
 (defun vc-sccs-dir-status-files (dir files update-function)
+  ;; XXX and in 23.x `vc-expand-dirs' takes only one parameter
   (if (not files) (setq files (vc-expand-dirs (list dir) 'SCCS)))
   (let ((result nil))
     (dolist (file files)
@@ -5425,7 +5430,8 @@ but it's seriously brain damaged so we re-define it as nothing."
 
 ;; I always forget to do this....
 ;;
-;; ToDo:  should only activate if current hostname has an auto-save-file
+;; ToDo:  should only activate if current hostname has an auto-save-file, AND
+;; IFF the process for that file is not still running!
 ;;
 ;; XXX also, this seems to be evaluated sometimes at odd times....
 ;;
