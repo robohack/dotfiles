@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some GNU bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	36.7	20/04/05 15:46:49 (woods)"
+#ident	"@(#)HOME:.profile	36.8	20/06/05 10:55:08 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -114,7 +114,7 @@ if expr "`type ulimit 2>/dev/null`" : 'ulimit is a shell builtin$' > /dev/null 2
 	# force core, data, nofile, stack, and nproc limits to be equal to
 	# their maximum hard limit.
 	#
-	# (assume RLIMIT_CPU and RLIMIT_FSIZE are already either
+	# (assume RLIMIT_CPU (time) and RLIMIT_FSIZE (file) are already either
 	# unlimited or as big as they can get)
 	#
 	# XXX sadly POSIX 1003.1 2004 only specifies '-f' (file size
@@ -918,12 +918,13 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 		case "${TERM}" in
 		""|network|dialup|unknown|none)
 			ttytype=${TERM}
-			# xxx a function may not work to set an env var
+			# xxx a function may not work to set an env var, see
+			# note above .shrc:get_newterm()
 			get_newterm
 			;;
 		*)
 			if ${HAVETPUT} ; then
-				tput init || { ttytype=dumb; get_newterm; }
+				tput init || { echo "NOTICE:  preset TERM=$TERM is unknown."; ttytype=dumb; get_newterm; }
 			else
 				if expr "`type tset 2>/dev/null`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
 					# n.b.:  this asks if TERM is unknown...
