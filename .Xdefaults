@@ -1,5 +1,5 @@
 !
-!#ident	"@(#)HOME:.Xdefaults	36.1	19/11/03 17:03:00 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	36.2	20/06/05 10:59:32 (woods)"
 !
 ! reload with:
 !
@@ -18,6 +18,15 @@ xpdf.toolTipEnable:		false
 !
 *cursorBlink:			true
 *deleteIsDEL:			true
+!
+! cleaner looking Xaw (Athena Widget Set) scrollbar appearance
+! (some say this is more like 9term)
+!
+!  borderWidth seems to do nothing for XTerm (1 is the default)
+!*Scrollbar.borderWidth: 4
+*Scrollbar.foreground: gray80
+*Scrollbar.background: gray50
+*Scrollbar.thumb: None
 !
 ! Even with Unicode it is still nice to type accented chars
 !
