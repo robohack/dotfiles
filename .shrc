@@ -12,7 +12,7 @@
 # especially any that are only used by functions here, e.g. as was
 # done with MAILLOG.
 #
-#ident	"@(#)HOME:.shrc	36.10	20/04/09 13:27:52 (woods)"
+#ident	"@(#)HOME:.shrc	36.11	20/06/05 10:49:58 (woods)"
 
 PATH=$PATH
 export PATH
@@ -1123,6 +1123,15 @@ rstty ()
 {
 	stty $SANE
 	echo "(use 'tput reset', or 'tabs -8' to reset tabs, etc.)"
+}
+sshsendkey ()
+{
+	# not all systems have ssh-copy-id(1)
+	cat ~/.ssh/id_rsa.pub | ssh $1 '
+		mkdir -pm 700 $HOME/.ssh
+		cat >> $HOME/.ssh/authorized_keys
+		chmod 600 $HOME/.ssh/authorized_keys
+	'
 }
 wcvs ()
 {
