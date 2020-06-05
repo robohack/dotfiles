@@ -12,7 +12,7 @@
 # especially any that are only used by functions here, e.g. as was
 # done with MAILLOG.
 #
-#ident	"@(#)HOME:.shrc	36.11	20/06/05 10:49:58 (woods)"
+#ident	"@(#)HOME:.shrc	36.12	20/06/05 10:51:16 (woods)"
 
 PATH=$PATH
 export PATH
@@ -783,28 +783,28 @@ if [ -n "$DISPLAY" ]; then
 	{
 		_rhost=$1
 		shift
-		onx11server -n "$rhost" "xterm -ziconbeep 1 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -T rsh:$rhost $*" &
+		onx11server -n "$_rhost" "xterm -ziconbeep 1 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -T rsh:$_rhost $*" &
 		unset _rhost
 	}
 	ruxterm ()
 	{
 		_rhost=$1
 		shift
-		onx11server -n "$rhost" "uxterm -ziconbeep 1 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -T rsh:$rhost $*" &
+		onx11server -n "$_rhost" "uxterm -ziconbeep 1 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -T rsh:$_rhost $*" &
 		unset _rhost
 	}
 	sxterm ()
 	{
 		_rhost=$1
 		shift
-		onx11server -S -f "$rhost" "xterm -ziconbeep 1 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -T ssh:$rhost $*"
+		onx11server -S -f "$_rhost" "xterm -ziconbeep 1 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -T ssh:$_rhost $*"
 		unset _rhost
 	}
 	suxterm ()
 	{
-		rhost=$1
+		_rhost=$1
 		shift
-		onx11server -S -f "$rhost" "uxterm -ziconbeep 1 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -T ssh:$rhost $*"
+		onx11server -S -f "$_rhost" "uxterm -ziconbeep 1 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -T ssh:$_rhost $*"
 		unset _rhost
 	}
 fi
