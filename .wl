@@ -1,10 +1,12 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	36.4	19/11/30 19:21:00 (woods)"
+;;;;#ident	"@(#)HOME:.wl	36.5	20/06/05 10:59:00 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
+;;
+;; See also https://www.emacswiki.org/emacs/WlFaq
 
 ;; FixMe:
 ;;
@@ -47,6 +49,8 @@
 
 ;; don't leave my passwords sitting in memory too long!
 ;;
+;; (use `elmo-passwd-alist-clear' to manually clear cache and start over)
+;;
 (setq elmo-passwd-life-time 14400)	; 4 hrs
 
 ;; let's try this for use with wl-refile-guess-by-from and use of "%INBOX/from"
@@ -63,6 +67,25 @@
 ;(setq elmo-imap4-debug t)	;; for tracing the IMAP session
 (setq elmo-imap4-force-login t)	;; hmmm...  is this necessary with my Cyrus IMAPd?
 ;(setq elmo-imap4-debug-inhibit-login-logging-default nil) ;; for trying to trace login, but using my own still-unpublished hacks
+
+
+;; Check these folders for new mail
+;;
+;(setq wl-biff-check-folder-list
+;      '("%INBOX:\"user@gmail.com\"/clear@imap.gmail.com:993"
+;	"%INBOX:\"user@other.domain\"/clear@imapserver.other.domain:993"))
+;;
+;; Use strict diff so wl-biff works with Gmail and others
+;;
+;(setq wl-strict-diff-folders wl-biff-check-folder-list)
+
+;; Check for mail every 60 seconds
+;;
+(setq wl-biff-check-interval 60)
+
+;; Check only when idle
+;;
+(setq wl-biff-use-idle-timer t)
 
 
 ;; `mail-local-domain-name' comes from my ~/.emacs.el
@@ -103,7 +126,7 @@
 	"-verify" (int-to-string ssl-certificate-verification-policy)
 	"-CApath" ssl-certificate-directory))
 
-;; password always in raw format for my servers
+;; password always sent in the clear for my servers (over TLS, of course)
 ;;
 (setq elmo-imap4-default-authenticate-type 'clear)
 
@@ -146,11 +169,25 @@
 ;; prefetch everything that's uncached, not just unread-uncached (U) and
 ;; new-uncached (N)
 ;;
-(setq wl-summary-incorporate-marks
-      (list wl-summary-uncached-mark
-	    wl-summary-new-uncached-mark
-	    wl-summary-unread-uncached-mark
-	    wl-summary-answered-uncached-mark))
+;; aka: (setq wl-summary-incorporate-marks '("N" "U" "!" "A" "F" "$"))
+;;
+;; Visiting any folder will now pre-fetch all messages.
+;;
+;; Also one can explicity call `wl-folder-prefetch-current-entity' (bound to I
+;; in the Folder buffer).
+;;
+;(setq wl-summary-incorporate-marks
+;      (list wl-summary-uncached-mark
+;	    wl-summary-new-uncached-mark
+;	    wl-summary-unread-uncached-mark
+;	    wl-summary-answered-uncached-mark))
+;;
+;; XXX _HOWEVER_ prefetching is extremely slow!  but this does not stop it!
+;;
+;(setq wl-summary-incorporate-marks nil)
+
+;(setq wl-summary-force-prefetch-folder-list nil) ; is the default
+
 
 (setq wl-stay-folder-window t)
 
@@ -574,9 +611,12 @@ If ARG is non-nil, forget everything about the message."
 		   (setq wl-summary-buffer-prev-folder-function 'ignore
 			 wl-summary-buffer-next-folder-function 'ignore)))
 
-(setq wl-message-buffer-prefetch-depth 0)
+(setq wl-message-buffer-prefetch-idle-time 10)
+;(setq wl-message-buffer-prefetch-depth 1) ; is the default
+;(setq wl-prefetch-confirm t)	; is the default
 (setq wl-message-buffer-prefetch-threshold 1000000)
 
+;(setq elmo-message-fetch-confirm t)	; is the default
 (setq elmo-message-fetch-threshold 1000000)
 
 ;; additional fields to retrieve when fetching headers
@@ -777,6 +817,27 @@ If ARG is non-nil, forget everything about the message."
 	      ((text . html) . 3)		; Gak!
 	      (t . 2))))			; everything else
   (message "Please install `w3m'"))
+
+;; Under Emacs 24.4 and later, you can force using `shr' (Emacs’ built-in HTML
+;; formatter) with:
+;;
+(if (or (> emacs-major-version 24)
+	(and (= emacs-major-version 24)
+	     (>= emacs-minor-version 4)))
+    (setq mime-view-text/html-previewer 'shr)
+  (progn
+    ;; content of a mime part.  See also `mime-preview-show-header'.
+    ;;
+    (if (elisp-file-in-loadpath-p "mime-w3")
+	(progn
+	  (require 'mime-w3)
+	  (setq mime-view-type-subtype-score-alist
+		'(((text . plain) . 6)
+		  ((text . enriched) . 5)		; RFC 1896
+		  ((text . richtext) . 4)		; RFC 1341/1521 (deprecated/obsolete)
+		  ((text . html) . 3)		; Gak!
+		  (t . 2))))			; everything else
+      (message "Please install `w3m'"))))
 
 ;; Perhaps this might also help
 ;;
@@ -1220,6 +1281,14 @@ ENCODING must be string."
 ;;
 (add-hook 'wl-mail-setup-hook (lambda ()
 				(mail-abbrevs-setup)))
+
+;; also incorporate aliases from ~/.mailrc:
+;;
+(setq wl-address-init-function 'my-wl-address-init)
+(defun my-wl-address-init ()
+  (wl-local-address-init)
+  (setq wl-address-completion-list
+	(append wl-address-completion-list (build-mail-aliases))))
 
 ;; more MIME file types
 ;;
