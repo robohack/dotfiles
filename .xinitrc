@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	36.4	19/12/04 18:26:33 (woods)"
+#ident	"@(#)HOME:.xinitrc	36.5	21/03/21 17:41:44 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -364,16 +364,20 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			#xauth nextract - ${REMOTE_DISPLAY} | onx11server building.local 'xauth nmerge -'
 			#xauth nextract - ${REMOTE_DISPLAY} | onx11server future.local 'xauth nmerge -'
 			#
+			# XXX for starting windows it would be ideal if we could
+			# tell the window manager to do these using its existing
+			# menu operations!
+			#
 			# local server performance levels we want to be aware of
 			# (NOTE: in stacked order, 48 pixels apart)
 			onx11server -n building.local 'xload -geometry 120x40-200+48 -hl red' &
 			onx11server -n more.local 'xload -geometry 120x40-200+96 -hl red' &
 # slot for central	onx11server -n central.weird.com 'xload -geometry 120x40-200+144 -hl red' &
 			onx11server -n future.local 'xload -geometry 120x40-200+192 -hl red' &
-			onx11server -n xenful.local 'xload -geometry 120x40-200+240 -hl red' &
-			# (and there is room for one under the clocks too)
-#			onx11server -n historically.local 'xload -geometry 120x40-70+240 -hl red' &
-			onx11server -n xentastic.local 'xload -geometry 120x40-70+240 -hl red' &
+			onx11server -n xenful.local 'xload -geometry 80x40-418+192 -hl red' &
+			onx11server -n xentastic.local 'xload -geometry 80x40-332+192 -hl red' &
+			onx11server -n once.local 'xload -geometry 80x40-332+240 -hl red' &
+#			onx11server -n historically.local 'xload -geometry 120x40-200+240 -hl red' &
 			#
 			onx11server -n building.local 'uxterm -tn xterm-256color -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
 			onx11server -n more.local 'uxterm -tn xterm-256color -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
@@ -385,9 +389,10 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			# SSH-only hosts... (hopefully with auto-auth,
 			# but note the use of both '-f' and '&')
 			#
-			ssh -Y -C -f woods@central.weird.com '. ./.profile; exec xload -geometry 120x40-200+144 -hl red' &
-# xxx not yet...
-#			ssh -Y -C -f woods@xentral.avoncote.ca '. ./.profile; exec xload -geometry 75x40-0+240 -hl red' &
+			ssh -CY -C -f woods@central.weird.com '. ./.profile; exec xload -geometry 120x40-200+144 -hl red' &
+# xxx not until more stable...
+			ssh -CY -C -f woods@b2.avoncote.ca '. ./.profile; exec xload -geometry 120x40-70+240 -hl red' &
+			ssh -CY -C -f woods@xentral.avoncote.ca '. ./.profile; exec xload -geometry 80x40-418+240 -hl red' &
 			#
 			# possibly available hosts -- one background
 			# sub-shell for host each...
