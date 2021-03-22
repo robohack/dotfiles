@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	36.9	19/12/27 13:51:46 (woods)"
+#ident	"@(#)HOME:.kshrc	36.10	21/03/21 17:38:13 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -24,6 +24,7 @@ case $SHELL in
 	# note this is the "history number", matching the numbers as shown by
 	# 'fc -l' vs. the so-called "command number" ('\#')
 	_c='\!'
+	alias print=echo
 	;;
 *)
 	set -o nolog		# no functions in $HISTFILE
@@ -113,7 +114,7 @@ function append2path
 	shift
 	# the eval of 'test' below will trigger the ERR trap because the shell
 	# doesn't see it as a condition expression, so disable ERR...
-	trap '' ERR
+	trap - ERR
 	while [ $# -gt 0 ] ; do
 		if [ -d "$1" ]; then
 			# xxx hmmm... I can't remember why this uses inverted logic...
@@ -1179,7 +1180,7 @@ case $SHELL in
 	if [ -r $HOME/.kshedit ] ; then
 		. $HOME/.kshedit
 	else
-		set -o gmacs
+		set -o gmacs || set -o emacs
 	fi
 	alias __A=''		# up arrow
 	alias __B=''		# down arrow
