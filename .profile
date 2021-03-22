@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some GNU bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	36.8	20/06/05 10:55:08 (woods)"
+#ident	"@(#)HOME:.profile	36.9	21/03/21 17:31:47 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -63,9 +63,9 @@ fi
 
 if ${ISATTY}; then
 	if [ -r ${HOME}/.bashlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} -a -n "${BASH}" ] ; then
-		trap '. ${HOME}/.bashlogout ; exit $?' 0
+		trap '. ${HOME}/.bashlogout ; exit $?' EXIT
 	elif [ -r ${HOME}/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} -a -z "${BASH}" ] ; then
-		trap '. ${HOME}/.kshlogout ; exit $?' 0
+		trap '. ${HOME}/.kshlogout ; exit $?' EXIT
 	elif [ -r ${HOME}/.shlogout ] ; then
 		trap '. ${HOME}/.shlogout ; exit $?' 0
 	fi
@@ -496,12 +496,12 @@ if [ -f ${HOME}/.xinitrc ] ; then
 		chmod +x ${HOME}/.xinitrc
 	fi
 	if [ ! -f ${HOME}/.xsession ] ; then
-		ln -fs .xinitrc ${HOME}/.xsession
+		ln -fhs .xinitrc ${HOME}/.xsession
 	fi
 fi
 # note .emacs.elc may not yet exist
 if [ ! -f ${HOME}/.emacs -a -f ${HOME}/.emacs.el ] ; then
-	ln -fs .emacs.elc ${HOME}/.emacs
+	ln -fhs .emacs.elc ${HOME}/.emacs
 fi
 
 if [ "X${HOME}" != "X/" ] ; then
