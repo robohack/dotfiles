@@ -2,7 +2,7 @@
 #
 #	.gitconfig - per-user Git setup
 #
-#ident	"@(#)HOME:.gitconfig	36.3	20/02/17 13:47:37 (woods)"
+#ident	"@(#)HOME:.gitconfig	36.4	21/03/21 17:43:44 (woods)"
 #
 # N.B.:  user.* could be set in GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL and those
 # should probably be set in ~/.localprofile, though Git is stupid and prefers
@@ -61,17 +61,44 @@
         oldest-ancestor = !bash -c 'diff --old-line-format='' --new-line-format='' <(git rev-list --first-parent "${1:-master}") <(git rev-list --first-parent "${2:-HEAD}") | head -1' -
 [merge]
 	conflictstyle = diff3
+#
+# XXX this is the pre-2.0 default, but it apparently can cause some problems
+# when working with a shared central repository, e.g. when others push to the
+# same "shared" branch.  The new default is "simple", but I don't think I ever
+# had a problem with "matching" at Klervi; and "matching" should work better
+# when pulling from a forked upstream repo and pushing to the fork (which should
+# probably have a remote named after your github(e.g.) username.
+#
 [push]
 	default = matching
 #
-# maybe this isn't the best default...
-#[pull]
-#	rebase = true
+# We set rebase=false by default, so remote tracking branches can be ff-only,
+# and then local tracking branches get rebase=true.
 #
+# The theory is if you're following a project and keeping local changes, or
+# making changes to be submitted upstream, then you want remote tracking
+# branches to fast-forward only on pull, but to be rebase your local branch when
+# you pull from, e.g., "master".  (And, i.e., you never want to commit to your
+# local (tracking) "master" branch!  Always make a "local" branch that tracks
+# the local remote-tracking "master" branch.)
+#
+# XXX Maybe "merge.ff=false" and "pull.ff=only" would be good defaults as the
+# latter overrides the former when pulling.
+#
+[pull]
+	rebase = false
 [branch]
-	autoSetupRebase = remote
+	autoSetupRebase = local
+#
+# For git-up:
+#
+# N.B.:  get it with "pip install git-up" (as root for all users) (NOT gitup!)
+#
 [git-up "fetch"]
 	all = true
+#
+# N.B.:  ???
+#
 [git-up "rebase"]
 	arguments = --preserve-merges
 #
