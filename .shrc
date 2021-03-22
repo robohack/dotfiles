@@ -12,7 +12,7 @@
 # especially any that are only used by functions here, e.g. as was
 # done with MAILLOG.
 #
-#ident	"@(#)HOME:.shrc	36.12	20/06/05 10:51:16 (woods)"
+#ident	"@(#)HOME:.shrc	36.13	21/03/21 17:36:22 (woods)"
 
 PATH=$PATH
 export PATH
@@ -70,6 +70,7 @@ elif ${HAVEPRINTF} ; then
 	}
 else
 	echo=echo
+	alias print=echo
 	c=`echo "xyzzy\c" | sed 's/[^c]//g'`
 	if test -n "${c}" ; then
 		nl=''
@@ -451,7 +452,7 @@ adjlinks ()
 		if [ $? -eq 0 ]; then
 			_ntarg=$(echo "${_otarg}" | sed "s|${_from}|${_to}|")
 			if [ "${_otarg}" != "${_ntarg}" ]; then
-				ln -fs "${_ntarg}" "${_lnk}" && echo adjusted: "${_lnk}" '->' "${_otarg}" to: '->' "${_ntarg}"
+				ln -fhs "${_ntarg}" "${_lnk}" && echo adjusted: "${_lnk}" '->' "${_otarg}" to: '->' "${_ntarg}"
 			fi
 		fi
 	done
@@ -514,6 +515,17 @@ difforig ()
 	esac
 	diff $_DIFFOPTS $1.orig $1
 	unset _DIFFOPTS
+}
+
+# Display the opening doc comment in a script file.
+#
+shelp () {
+        _binfile=$(which "$0")
+
+        _hdr=$(dd if="$_binfile" count=2 bs=1)
+        if [ "$_hdr" = "#!" ]; then
+	        sed -rn 's/^### ?//;T;p' "$_binfile"
+        fi
 }
 
 # xxx this needs an option to specify which column or position the address is in
