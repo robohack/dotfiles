@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	36.5	19/12/04 18:26:06 (woods)"
+#ident	"@(#)HOME:.ctwmrc	36.6	21/03/21 17:42:59 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -37,11 +37,15 @@
 changequote([, ])
 
 ifelse(eval(index(HOSTNAME, weird.com) >= 0), 1, [define(AT_WEIRD, [@weird.com])], [])
+ifelse(eval(index(HOSTNAME, local) >= 0), 1, [define(AT_WEIRD, [@local])], [])
 ifelse(eval(index(HOSTNAME, robohack.planix.com) >= 0), 1, [define(AT_WEIRD, [@robohack.planix.com])], [])
 
 ifelse(eval(index(HOSTNAME, very.local) >= 0), 1, [define(AT_VERY_WEIRD, [@very.local])], [])
 
 ifdef([AT_VERY_WEIRD], [define(ON_OSX, [yes])])
+ifelse(eval(index(HOSTNAME, macbook.local) >= 0), 1, [define(ON_OSX, [yes])], [])
+ifelse(eval(index(HOSTNAME, macweird.local) >= 0), 1, [define(ON_OSX, [yes])], [])
+ifelse(eval(index(HOSTNAME, fezzik.local) >= 0), 1, [define(ON_OSX, [yes])], [])
 
 ifelse([SERVERHOST], [CLIENTHOST], [define(USE_X11SERVER, [yes])], [])
 
@@ -306,7 +310,7 @@ IconRegionJustification		"border"
 # to 380 _and_ get a 50x80 xterm under it if all systems had Apple's
 # nice "fixed" TrueType font.  Note it has to be on the XTerm system.
 #
-ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [IconRegion	"1000x350-0+296" North East 10 10],
+ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [IconRegion	"1000x450-0+245" North East 10 10],
  [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [IconRegion	"800x580-0+310" North East 10 10],
   [IconRegion	"500x250-0+300" North East 10 10]
  )]
@@ -446,10 +450,10 @@ Cursors {
 # for the downstairs machine this can move 90 to the left (leaving room for
 # a 132-column window at the default font)
 #
-ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [WorkSpaceManagerGeometry	"170x285-330+0" 2],
- [ifelse(eval(WIDTH >= 1440 && HEIGHT >= 900), 1, [WorkSpaceManagerGeometry	"170x230-330+0" 2],
-  [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [WorkSpaceManagerGeometry	"127x230-192+0" 2],
-   [WorkSpaceManagerGeometry	"115x235-112+0" 2]
+ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [WorkSpaceManagerGeometry	"170x180-330+0" 3],
+ [ifelse(eval(WIDTH >= 1440 && HEIGHT >= 900), 1, [WorkSpaceManagerGeometry	"170x230-330+0" 3],
+  [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [WorkSpaceManagerGeometry	"127x230-192+0" 3],
+   [WorkSpaceManagerGeometry	"115x235-112+0" 3]
   )]
  )]
 )
@@ -462,19 +466,26 @@ WorkSpaces {
 	"Browsing"
 	"Coding"
 	"Work 1"
-	"Play"
 	"Work 2"
+	"Play"
 }
 ], [
 WorkSpaces {
 	"Consoles"
-	"Mail"
 	"VMs"
-	"Central"
-	"Coding"
+	"Mail"
+
 	"Home"
+	"Play"
+	"Central"
+
+	"Coding"
+	"Testing 1"
+	"Testing 2"
+
 	"Work 1"
 	"Work 2"
+	"Work 3"
 }
 ])
 
@@ -716,6 +727,11 @@ menu "quickies"
 	"Occupy All"		f.occupyall
 	"Vanish"		f.vanish
 	""			f.separator
+ ifdef([ON_OSX], [
+	""			f.separator
+	"Pasteboard Copy"	!"uxterm OPT_XTERM_TN OPT_LITTLE_XTERM -T 'Paste text to PasteBoard here' -e pbcopy &"
+	""			f.separator
+ ])
 	"Toggle workspace"	f.togglestate
 	"Screen Refresh"	f.refresh
 	"Window Refresh"	f.winrefresh
@@ -730,18 +746,21 @@ menu "quickies"
  ])
 	""			f.separator
 	"emacs [@CLIENTHOST]"	!"emacs -i &"
- ifdef([AT_VERY_WEIRD], [
+ ifdef([AT_WEIRD], [
   ifdef([USE_X11SERVER], [
 	"emacs @X11SERVER"	!". ./.shrc; onx11server $X11SERVER 'emacs -i' &"
   ])
-	#
-	"emacs @future"		!". ./.shrc; onx11server future.local 'emacs -i' &"
-	"emacs @building"	!". ./.shrc; onx11server building.local 'emacs -i' &"
 	"emacs @more"		!". ./.shrc; onx11server more.local 'emacs -i' &"
+	"Emacs Everywhere..."	f.menu "emacs"
+	#
 	""			f.separator
-	"links -g @future"	!". ./.shrc; onx11server -n future.local 'links -g' &"
+	"links -g [@CLIENTHOST]"	!"links -g &"
+  ifdef([USE_X11SERVER], [
+	"links -g [@X11SERVER]"	!". ./.shrc; onx11server -n $X11SERVER 'links -g' &"
+  ])
 	"links -g @more"	!". ./.shrc; onx11server -n more.local 'links -g' &"
-	"google something"	!". ./.shrc; onx11server -n future.local 'links -g https://google.ca/' &"
+	# xxx unfortunately duckduckgo.com isn't very usable with links
+	"Google something"	!". ./.shrc; onx11server -n xentastic.local 'links -g https://google.ca/' &"
 	""			f.separator
 	"Xauth..."		f.menu "xauth"
  ])
@@ -762,59 +781,7 @@ menu "quickies"
 	"Xterm-big @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER 'xterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
 	"UXterm-big @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
  ])
- ifdef([AT_VERY_WEIRD], [
-	"UXterm @xenful"	!". ./.shrc; onx11server -n xenful.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @xenful"	!". ./.shrc; onx11server -n xenful.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @xentastic"	!". ./.shrc; onx11server -n xentastic.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @xentastic"	!". ./.shrc; onx11server -n xentastic.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	#
-	"UXterm @building"	!". ./.shrc; onx11server -n building.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @building"	!". ./.shrc; onx11server -n building.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @more"		!". ./.shrc; onx11server -n more.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @more"	!". ./.shrc; onx11server -n more.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @future"	!". ./.shrc; onx11server -n future.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @future"	!". ./.shrc; onx11server -n future.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @isit"		!". ./.shrc; onx11server -n isit.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @isit"	!". ./.shrc; onx11server -n isit.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @lilbit"	!". ./.shrc; onx11server -n lilbit.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @lilbit"	!". ./.shrc; onx11server -n lilbit.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @rpi"		!". ./.shrc; onx11server -n rpi.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @rpi"	!". ./.shrc; onx11server -n rpi.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @historically"	!". ./.shrc; onx11server -n historically.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @historically" !". ./.shrc; onx11server -n historically.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @once"		!". ./.shrc; onx11server -n once.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @once"	!". ./.shrc; onx11server -n once.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @freebsd"	!". ./.shrc; RSH=ssh onx11server -n freebsd.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @freebsd"	!". ./.shrc; RSH=ssh onx11server -n freebsd.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @nbt"		!". ./.shrc; onx11server -n nbt.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @nbt"	!". ./.shrc; onx11server -n nbt.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @nbt-cur"	!". ./.shrc; onx11server -n nbt-cur.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @nbt-cur"	!". ./.shrc; onx11server -n nbt-cur.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	#
-	# xxx this is not so useful as if the SSH connection drops then the
-	# window simply disappears with no hint as to when or why!  See further
-	# discussion in ~/.xinitrc regarding running X11 via tunnels, etc.
-	#
-	"Slogin @central"	!"uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C central.weird.com' &"
- ])
- ifdef([AT_WEIRD], [
-  ifelse(HOSTNAME, once.weird.com, [], [
-	"UXterm @once"		!"$RSH -n once.weird.com '. ./.profile; exec uxterm OPT_XTERM_TN -display '$REMOTE_DISPLAY' OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @once"	!"$RSH -n once.weird.com '. ./.profile; exec uxterm OPT_XTERM_TN -display '$REMOTE_DISPLAY' OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-  ])
-	"Xterm @most"		!"$RSH -n most.weird.com exec /usr/X11R6/bin/xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP &"
-	"UXterm @most"		!"$RSH -n most.weird.com '. ./.profile; exec uxterm OPT_XTERM_TN -display '$REMOTE_DISPLAY' OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"Xterm-big @most"	!"$RSH -n most.weird.com exec /usr/X11R6/bin/xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP &"
-	"UXterm-big @most"	!"$RSH -n most.weird.com '. ./.profile; exec uxterm OPT_XTERM_TN -display '$REMOTE_DISPLAY' OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-  ifelse(HOSTNAME, historically.weird.com, [], [
-  	"UXterm @historically"		!"$RSH -n historically.weird.com '. ./.profile; exec uxterm OPT_XTERM_TN -display '$REMOTE_DISPLAY' OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @historically"	!"$RSH -n historically.weird.com '. ./.profile; exec uxterm OPT_XTERM_TN -display '$REMOTE_DISPLAY' OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-  ])
-	"UXterm @freely"	!"$RSH -n freely.weird.com '. ./.profile; exec uxterm OPT_XTERM_TN -display '$REMOTE_DISPLAY' OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @freely"	!"$RSH -n freely.weird.com '. ./.profile; exec uxterm OPT_XTERM_TN -display '$REMOTE_DISPLAY' OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"Xterm @isit"		!"$RSH -n isit.weird.com exec /usr/X11R6/bin/xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP &"
-	"Xterm-big @isit"	!"$RSH -n isit.weird.com exec /usr/X11R6/bin/xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP &"
- ])
+	"Xterm's Everywhere..."	f.menu "xterms"
 	""			f.separator
 	"Console Server"	f.menu "consoles"
 	""			f.separator
@@ -936,8 +903,8 @@ menu "wmops"
 	"Window Summary..."	f.menu "TwmAllWindows"
 	""			f.separator
 	"Toggle workspace"	f.togglestate
-	"ShowWorkspaceManager"	f.showWorkspaceMgr
-	"HideWorkspaceManager"	f.hideWorkspaceMgr
+	"ShowWorkSpaceManager"	f.showWorkspaceMgr
+	"HideWorkSpaceManager"	f.hideWorkspaceMgr
 	"Adopt Window"		f.adoptwindow
 	"Identify Window"	f.identify
 	""			f.separator
@@ -1116,7 +1083,7 @@ menu "applications"
 	"Xauth to Weird.com..."		f.menu "xauth-to-weird"
 	""				f.separator
  ])
- ifdef([AT_VERY_WEIRD], [
+ ifdef([AT_WEIRD], [
 	"Xauth..."			f.menu "xauth"
 	""				f.separator
  ])
@@ -1125,7 +1092,7 @@ menu "applications"
 	""				f.separator
  ])
 	""				f.separator
-	"Xterm's Everywhere..."		f.menu "xterm"
+	"Xterm's Everywhere..."		f.menu "xterms"
 	"Emacs Everywhere..."		f.menu "emacs"
 	""				f.separator
 	"Monitors..."			f.menu "monitors"
@@ -1221,44 +1188,19 @@ menu "emacs"
  ifdef([USE_X11SERVER], [
 	"@X11SERVER"		!"$RSH -n $X11SERVER 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
  ])
- ifdef([AT_VERY_WEIRD], [
-	"@more"			!"$RSH -n more.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
+ ifdef([AT_WEIRD], [
 	"@more"			!"$RSH -n more.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
 	"@building"		!"$RSH -n building.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
-	"@building"		!"$RSH -n building.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
 	"@future"		!"$RSH -n future.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
-	"@future"		!"$RSH -n future.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
+	"@xenful"		!"$RSH -n xenful.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
+	"@xentastic"		!"$RSH -n xentastic.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
 	"@once"			!"$RSH -n once.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
-	"@once"			!"$RSH -n once.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
- ])
-ifdef([AT_WEIRD], [
- ifelse(HOSTNAME, most.weird.com, [], [
-	"@most"			!"$RSH -n most.weird.com 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
- ])
- ifelse(HOSTNAME, building.weird.com, [], [
-	"@building"		!"$RSH -n building.weird.com 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
- ])
- ifelse(HOSTNAME, once.weird.com, [], [
-	"@once"			!"$RSH -n once.weird.com 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
- ])
- ifelse(HOSTNAME, whats.weird.com, [], [
-	"@whats"		!"$RSH -n whats.weird.com 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
- ])
- ifelse(HOSTNAME, almost.weird.com, [], [
-	"@almost"		!"$RSH -n almost.weird.com 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
- ])
- ifelse(HOSTNAME, always.weird.com, [], [
-	"@always"		!"$RSH -n always.weird.com 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
- ])
- ifelse(HOSTNAME, historically.weird.com, [], [
-	"@historically"		!"$RSH -n historically.weird.com 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
- ])
- ifelse(HOSTNAME, starting-out.weird.com, [], [
-	"@starting-out"		!"$RSH -n starting-out.weird.com 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
- ])
- ifelse(HOSTNAME, sometimes.weird.com, [], [
-	"@sometimes"		!"$RSH -n sometimes.weird.com 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
- ])
+	"@whats"		!"$RSH -n whats.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
+	"@almost"		!"$RSH -n almost.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
+	"@always"		!"$RSH -n always.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
+	"@historically"		!"$RSH -n historically.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
+	"@starting-out"		!"$RSH -n starting-out.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
+	"@sometimes"		!"$RSH -n sometimes.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
 ])
 }
 
@@ -1285,16 +1227,18 @@ menu "monitors"
  ifdef([USE_X11SERVER], [
 	"xload @X11SERVER"	!". ./.profile; onx11server -n $X11SERVER 'xload -display $REMOTE_DISPLAY -geometry 120x40-200+48 -hl XLOAD_HL' &"
  ])
- ifdef([AT_VERY_WEIRD], [
+ ifdef([AT_WEIRD], [
 	"xload @building"	!"$RSH -n building.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 120x40-200+48 -hl red\" &"
 	"xload @more"		!"$RSH -n more.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 120x40-200+96 -hl red\" &"
-	"xload @central"	!"ssh -Y -n woods@central.avoncote.ca '. ./.profile; exec xload -geometry 120x40-200+144 -hl red' &"
+	"xload @central"	!"ssh -CY -n woods@central.avoncote.ca '. ./.profile; exec xload -geometry 120x40-200+144 -hl red' &"
 	"xload @future"		!"$RSH -n future.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 120x40-200+192 -hl red\" &"
-	"xload @xenful"		!"$RSH -n xenful.local \". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry 120x40-200+240 -hl red\" &"
-	"xload @xentastic"	!"$RSH -n xentastic.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 120x40-70+240 -hl red\" &"
-	"xload @xentral"	!"ssh -Y -n woods@xentral.avoncote.ca '. ./.profile; exec xload -geometry 75x40-0+240 -hl red' &"
+	"xload @xenful"		!"$RSH -n xenful.local \". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry 80x40-418+192 -hl red\" &"
+	"xload @xentastic"	!"$RSH -n xentastic.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 80x40-332+192 -hl red\" &"
+	"xload @xentral"	!"ssh -CY -n woods@xentral.avoncote.ca '. ./.profile; exec xload -geometry 80x40-418+240 -hl red' &"
+	"xload @once"		!"$RSH -n once.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 80x40-332+240 -hl red\" &"
 	#
 	"xload @historically"	!"$RSH -n historically.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 120x40-70+240 -hl red\" &"
+	"xload @b2"		!"ssh -CY -n woods@b2.avoncote.ca '. ./.profile; exec xload -geometry 120x40-200+240 -hl red' &"
  ])
 	"xosview"		!"xosview -geometry 120x137-200+0 &"
  ifdef([USE_X11SERVER], [
@@ -1384,10 +1328,53 @@ menu "samplegames"
 	"puzzle"		!"puzzle &"
 }
 
-menu "xterm"
+menu "xterms"
 {
 	"Xterms Everywhere"	f.title
 	"Xterm @localhost"	!"$X11BIN/xterm OPT_XTERM_TN OPT_LOGIN_XTERM OPT_ZICONBEEP &"
+ ifdef([AT_WEIRD], [
+	"UXterm @xenful"	!". ./.shrc; onx11server -n xenful.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @xenful"	!". ./.shrc; onx11server -n xenful.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @xentastic"	!". ./.shrc; onx11server -n xentastic.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @xentastic"	!". ./.shrc; onx11server -n xentastic.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	#
+	"UXterm @building"	!". ./.shrc; onx11server -n building.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @building"	!". ./.shrc; onx11server -n building.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @more"		!". ./.shrc; onx11server -n more.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @more"	!". ./.shrc; onx11server -n more.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @future"	!". ./.shrc; onx11server -n future.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @future"	!". ./.shrc; onx11server -n future.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @isit"		!". ./.shrc; onx11server -n isit.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @isit"	!". ./.shrc; onx11server -n isit.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @lilbit"	!". ./.shrc; onx11server -n lilbit.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @lilbit"	!". ./.shrc; onx11server -n lilbit.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @rpi"		!". ./.shrc; onx11server -n rpi.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @rpi"	!". ./.shrc; onx11server -n rpi.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @historically"	!". ./.shrc; onx11server -n historically.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @historically" !". ./.shrc; onx11server -n historically.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @once"		!". ./.shrc; onx11server -n once.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @once"	!". ./.shrc; onx11server -n once.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @freebsd"	!". ./.shrc; RSH=ssh onx11server -n freebsd.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @freebsd"	!". ./.shrc; RSH=ssh onx11server -n freebsd.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @nbt"		!". ./.shrc; onx11server -n nbt.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @nbt"	!". ./.shrc; onx11server -n nbt.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @nbtest"	!". ./.shrc; onx11server -n nbtest.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @nbtest"	!". ./.shrc; onx11server -n nbtest.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	#
+	# xxx these are not so useful as if the SSH connection drops then the
+	# window simply disappears with no hint as to when or why!  See further
+	# discussion in ~/.xinitrc regarding running X11 via tunnels, etc.
+	#
+	"Slogin @xentral"	!"uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C xentral.avoncote.ca' &"
+	"Slogin @central"	!"uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C central.weird.com' &"
+	"Slogin @central"	!"uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C bw.avoncote.ca' &"
+  ifdef([AT_VERY_WEIRD], [], [
+	"Xterm @very"		!". ./.profile; onx11server -n very.local 'xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM' &"
+	"Slogin @very"		!"uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C very.local' &"
+  ])
+ ])
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
 	"Xterm @most"		!". ./.profile; onx11server -n most.weird.com 'xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
@@ -1412,14 +1399,14 @@ menu "xterm"
   ])
   ifelse(HOSTNAME, sometimes.weird.com, [], [
 	"Xterm @sometimes" 	!". ./.profile; onx11server -n sometimes.weird.com 'xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-  ])ksrv
+  ])
   ifelse(HOSTNAME, always.weird.com, [], [
 	"Xterm @always" 	!". ./.profile; onx11server -n always.weird.com 'xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
   ])
   ifelse(HOSTNAME, freely.weird.com, [], [
 	"Xterm @freely" 	!". ./.profile; onx11server -n freely.weird.com 'xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
   ])
-])
+ ])
 }
 
 # for pushing our AUTH cookies over to the various target hosts in case they
@@ -1443,7 +1430,7 @@ menu "xauth-to-weird"
 }
 ])
 
-ifdef([AT_VERY_WEIRD], [
+ifdef([AT_WEIRD], [
 menu "xauth"
 {
 	"Xauth pushes"		f.title
@@ -1456,6 +1443,8 @@ ifdef([ON_OSX], [
 menu "osx-apps"
 {
 	"Mac OS X Applications"	f.title
+	"pasteboard copy"	!"uxterm OPT_XTERM_TN OPT_LITTLE_XTERM -T 'Paste text to PasteBoard here' -e pbcopy"
+	""			f.separator
 	"Activity Monitor"	!"open '/Applications/Utilities/Activity Monitor.app' &"
 	"Adium"			!"open /Applications/Adium.app &"
 	"Console"		!"open /Applications/Utilities/Console.app &"
