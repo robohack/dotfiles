@@ -1,7 +1,7 @@
 #
 #	.shlogin - login shell startup for plain Bourne Shell
 #
-#ident	"@(#)HOME:.shlogin	36.1	19/11/03 17:03:00 (woods)"
+#ident	"@(#)HOME:.shlogin	36.2	21/03/21 17:39:26 (woods)"
 
 case "$-" in
 *i*)
@@ -17,15 +17,20 @@ case "$-" in
 	if [ ! -f ~/.timelog ] ; then
 		touch ~/.timelog
 	fi
+
+        # this may not do anything for sub-shells but let you type '. $ENV'
+        #
+        # (POSIX(2008) says ENV is only to be read by interactive
+        # shells, while more modern NetBSD and some other systems will
+        # read it for all shells, thus placing it herein, but most
+        # older shells ignore $ENV entirely)
+        #
+        ENV=$HOME/.shrc ; export ENV
 	;;
 *)
 	echo "$0: WARNING: .shlogin being sourced by a non-interactive shell!"
 	;;
 esac
-
-# this doesn't do anything for sub-shells but let you type '. $ENV'
-#
-ENV=$HOME/.shrc ; export ENV
 
 # NOTE: ~/.profile will source $ENV if the file it names exists
 
