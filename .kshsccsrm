@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.UUCP> <woods@planix.com>
 #
-#ident	"@(#)HOME:.kshsccsrm	37.1	21/03/23 11:43:08 (woods)"
+#ident	"@(#)HOME:.kshsccsrm	37.2	21/03/23 12:18:33 (woods)"
 
 # These aliases and functions provide some release and configuration
 # management functions over and above sccs(1).  They are useful for small
@@ -166,7 +166,7 @@ function vrmdorelease
 			;;
 		esac
 	done
-	shift $(( $OPTIND - 1)
+	shift $(( $OPTIND - 1 ))
 	if [ $# -lt 1 ] ; then
 		echo "Usage: $0 [-c] [-p] [-rSID] [-s STATE] release-manifest [module ...]" >&2
 		return 2
