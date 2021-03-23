@@ -12,7 +12,7 @@
 # especially any that are only used by functions here, e.g. as was
 # done with MAILLOG.
 #
-#ident	"@(#)HOME:.shrc	37.1	21/03/23 11:43:01 (woods)"
+#ident	"@(#)HOME:.shrc	37.2	21/03/23 12:41:29 (woods)"
 
 PATH=$PATH
 export PATH
@@ -301,6 +301,12 @@ publishdotfiles ()
 		return 2
 		;;
 	esac
+}
+
+archivedotfiles ()
+{
+	pax -wzf ${HOME}/dotffiles.tar.gz < ${HOME}/dotfiles.list
+	scp dotfiles.list dotfiles.tar.gz ${CENTRAL_USER}@${CENTRAL_SERVER}:.
 }
 
 pushdotfiles ()
