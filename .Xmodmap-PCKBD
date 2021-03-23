@@ -1,7 +1,7 @@
 !
 ! Swap Caps_Lock and Control_L
 !
-!#ident      "@(#)HOME:.Xmodmap-PCKBD   36.1  19/11/03 17:03:00 (woods)"
+!#ident      "@(#)HOME:.Xmodmap-PCKBD   37.1  21/03/23 11:43:03 (woods)"
 !
 remove Lock = Caps_Lock
 remove Control = Control_L

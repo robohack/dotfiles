@@ -1,6 +1,6 @@
 " -*-conf-space-*-
 "
-"ident	"@(#)HOME:.exrc	36.1	19/11/03 17:03:00 (woods)"
+"ident	"@(#)HOME:.exrc	37.1	21/03/23 11:43:03 (woods)"
 "
 set report=2 showmatch showmode wm=0
 " novice helpers

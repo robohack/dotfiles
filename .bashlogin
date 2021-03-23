@@ -1,7 +1,7 @@
 #
 #	.bashlogin - login shell startup for bash
 #
-#ident	"@(#)HOME:.bashlogin	36.1	19/11/03 17:03:01 (woods)"
+#ident	"@(#)HOME:.bashlogin	37.1	21/03/23 11:43:05 (woods)"
 
 case "$-" in
 *i*)

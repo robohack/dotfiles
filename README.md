@@ -90,4 +90,4 @@ non-Git-controlled sub-directory of `$HOME` could cause you headaches.
 Another detailed description of this kind of setup is found at:
 [https://www.atlassian.com/git/tutorials/dotfiles]
 
-#ident	"@(#)HOME:README.md	36.3	20/02/12 20:59:21 (woods)"
+#ident	"@(#)HOME:README.md	37.1	21/03/23 11:43:08 (woods)"

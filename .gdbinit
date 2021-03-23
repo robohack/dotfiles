@@ -1,7 +1,7 @@
 #
 #	.gdbinit -- startup configuration for GDB
 #
-#ident	"@(#)HOME:.gdbinit	36.2	19/11/16 16:17:21 (woods)"
+#ident	"@(#)HOME:.gdbinit	37.1	21/03/23 11:43:09 (woods)"
 #
 # See github.com/gdbinit/Gdbinit for a huge pile of related setup.
 #

@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	36.10	21/03/21 17:38:13 (woods)"
+#ident	"@(#)HOME:.kshrc	37.1	21/03/23 11:43:02 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history

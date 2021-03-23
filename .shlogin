@@ -1,7 +1,7 @@
 #
 #	.shlogin - login shell startup for plain Bourne Shell
 #
-#ident	"@(#)HOME:.shlogin	36.2	21/03/21 17:39:26 (woods)"
+#ident	"@(#)HOME:.shlogin	37.1	21/03/23 11:43:02 (woods)"
 
 case "$-" in
 *i*)
