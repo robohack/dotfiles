@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	37.1	21/03/23 11:43:07 (woods)"
+#ident	"@(#)HOME:.kshsccs	37.2	21/03/23 12:40:53 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -495,6 +495,16 @@ function vnewrel
 		echo "$USAGE" >&2
 		return 2
 	fi
+	vinfo
+	typeset ans
+	echo "Is this OK? [y] \c"
+	read ans
+	case "$ans" in
+	[nN]*)
+		return 1
+		;;
+	esac
+	# XXX abort if anything is being edited!
 	vedit -r$REL $PROJECT
 	vdelget -y"START RELEASE $REL" $PROJECT
 }
@@ -525,3 +535,47 @@ function vgetprev
 }
 
 alias vgetcur='vgetprev $(vlastrel)'
+
+#
+#	vreldotfiles - special hack for $HOME
+#
+vreldotfiles ()
+{
+	case ${HOSTNAME} in
+	${CENTRAL_SERVER})
+		echo "publishdotfiles: not useful when run on server host!" 1>&2
+		return 2
+		;;
+	more*|building*)
+		echo "releasedotfiles: this host needs upgrading!" 1>&2
+		return 2
+		;;
+	future*)
+		cd ${HOME}
+
+		# make the new release
+		#
+		vnewrel
+		# XXX sometimes this is needed???
+		# vgeted ${PROJECT}
+
+		# update the FTP files
+		#
+		typeset REL
+		REL=$(vlastrel)
+		scp dotfiles.list ${CENTRAL_USER}@${CENTRAL_SERVER}:\~ftp/pub/local/dotfiles-v$REL.list
+		scp dotfiles.tar.gz ${CENTRAL_USER}@${CENTRAL_SERVER}:\~ftp/pub/local/dotfiles-v$REL.tar.gz
+		ssh ${CENTRAL_USER}@${CENTRAL_SERVER} ln -fhs dotfiles-v${REL}.list \~ftp/pub/local/dotfiles.list
+		ssh ${CENTRAL_USER}@${CENTRAL_SERVER} ln -fhs dotfiles-v${REL}.tar.gz \~ftp/pub/local/dotfiles.tar.gz
+
+		# update github
+		#
+		( cd && git-sccsimport --move-date=2010/11/5T00:00:00 --move-offset=3 --expand-kw --maildomain=robohack.ca --git-dir="$HOME/work/home" --dirs SCCS && cd $HOME/work/home && git push --mirror )
+
+		# update central:$HOME
+		#
+		rsync -v -lptHS --stats --files-from=$HOME/dotfiles.list $HOME ${CENTRAL_USER}@${CENTRAL_SERVER}:.
+		archivedotfiles
+		;;
+	esac
+}
