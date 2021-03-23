@@ -1,12 +1,23 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	36.5	20/06/05 10:59:00 (woods)"
+;;;;#ident	"@(#)HOME:.wl	36.6	21/03/23 11:40:18 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
 ;;
 ;; See also https://www.emacswiki.org/emacs/WlFaq
+
+;; N.B.:  the following packages are effectively required:
+;;
+;;	graphics/compface
+;;	security/gnupg2		; with security/pinentry
+;;	textproc/aspell		; or...
+;;	textproc/ispell
+;;
+;; OpenSSL is also required (for "openssl s_client:)
+;;
+;; Some emacs packages listed in ~/.emacs.el will also be needed.
 
 ;; FixMe:
 ;;
@@ -188,10 +199,12 @@
 
 ;(setq wl-summary-force-prefetch-folder-list nil) ; is the default
 
-
 (setq wl-stay-folder-window t)
 
 ;; support for marking messages addressed "to-me" in the Summary buffer.
+;;
+;; (Uses `wl-address-user-mail-address-p', thus `wl-user-mail-address-regexp' if
+;; non-nil, else `wl-user-mail-address-list'.)
 ;;
 ;; By Ron Isaacson with thanks to Erik Hetzner for some fixes:
 ;;
@@ -686,38 +699,51 @@ If ARG is non-nil, forget everything about the message."
 	"[^:]*Path:"
 	"[^:]*Sender:"			; include X-Sender, X-X-Sender, etc.
 	"[^:]*Host:"
+	"^ARC-Authentication-Results:"
+	"^ARC-Message-Signature:"
+	"^ARC-Seal:"
+	"^Authentication-Results:"
 	"^Autocrypt:"			; interesting, but contains huge key data
-	"^[cC]ontent[^:]*:"		; irrelevant!  :-)
-	"^Content-Type:"
+	"^Content[^:]*:"		; irrelevant!  :-)
+	"^DKIM-Signature:"		; useless junk
 	"^DomainKey[^:]*:"		; bogus junk
 	"^Errors-To:"
 	"^In-Reply-To:"			; just another message-id
 	"^Lines:"
 	"^List-[^:]*:"			; rfc????
 	"^Message-I[dD]:"		; RFC 2036 too!
-	"^[mM][iI][mM][eE]-[vV]ersion:"	; irrelevant!  :-)
+	"^MIME-Version:"		; irrelevant!  :-)
+	"^Received-SPF:"		; supid and meaningless!
 	"^References:"
 	"^Replied:"
 	"^Status:"
 	"^Thread-Index:"
+	"^Topicbox-Delivery-ID:"
+	"^Topicbox-Message-UUID:"
 	"^X-Accept-Language:"
+	"^x-authority-analysis:"
 	"^X-Barracuda[^:]*:"		; some stupid virus scanner
 	"^X-BeenThere:"			; mailman?
+	"^X-Brightmail-Tracker:"
 	"^X-Cam[^:]*:"			; some stupid virus scanner
 	"^X-CanItPRO[^:]*:"
-	"^X-CHA:"
 	"^X-CSC:"
+	"^X-CHA:"
+	"^X-CMAE-Envelope:"
 	"^X-Exchange[^:]*:"		; M$-Exchange
-	"^X-GMX[^:]*:"
 	"^X-Forefront[^:]*:"
+	"^X-GMX[^:]*:"
+	"^X-Gm-Message-State:"
+	"^X-Google-DKIM-Signature:"
 	"^X-Google-Smtp-Source:"
 	"^X-Greylist[^:]*:"
 	"^X-Hashcash[^:]*:"		; ???
 	"^X-IronPort[^:]*:"		; some silly AV crapware
 	"^X-Junkmail[^:]*:"		; mirapoint???
 	"^X-MAil-Count:"		; fml?
+	"^X-ME-[^:]*:"
 	"^X-MIME-Autoconverted:"
-	"^[xX]-[mM]icrosoft[^:]*:"		; M$-Exchange
+	"^X-Microsoft[^:]*:"		; M$-Exchange
 	"^X-Mirapoint[^:]*:"		; mirapoint???
 	"^X-ML[^:]*:"			; fml
 	"^X-MS-[^:]*:"
@@ -728,15 +754,18 @@ If ARG is non-nil, forget everything about the message."
 	"^X-PMAS-[^:]*:"
 	"^X-PMX[^:]*:"
 	"^X-Provags-[^:]*:"
+	"^X-Received-Authentication-Results:"
 	"^X-RPI[^:]*:"
 	"^X-SG-EID:"
 	"^X-SKK:"
 	"^X-SMTP-Spam-[^:]*:"
+	"^X-SONIC-DKIM-SIGN:"
 	"^X-Scanned[^:]*:"
 	"^X-Sieve:"			; cyrus
 	"^X-Spam[^:]*:"
 	"^X-VM-[^:]*:"
 	"^X-Virus[^:]*:"
+	"^X-YMail-OSG:"			; some Mozilla mailer?
 	"^Xref:"
 ;	"^X-Original-To:"		; fml?
 	))
@@ -891,20 +920,134 @@ If ARG is non-nil, forget everything about the message."
 ;		'(text . plain) 4)))
 
 
-;; to have text flowing automatically in display of emails in wanderlust
-;;
-;; (this is apparently documented at: http://www.emacswiki.org/emacs/WlFormatFlowed
-;;
-(autoload 'fill-flowed "flow-fill")	; flow-fill.el is from GNUS
-(setq fill-flowed-display-column 72)	; default is `fill-column'
-(add-hook 'mime-display-text/plain-hook
- 	  (lambda ()
- 	    (when (string= "flowed"
- 			   (cdr (assoc "format"
- 				       (mime-content-type-parameters
- 					(mime-entity-content-type entity)))))
- 	      (fill-flowed))))
+;; XXX temporary(?) override of text/plain display helper(s)
+(require 'mime-view)
 
+;; "content-type: plain/text; format=flowed" are automatically re-filled by
+;; wanderlust (well, by SEMI) to the following width (with the default width
+;; taken from `fill-column').
+;;
+(setq mime-display-text/plain-flowed-fill-column 42)
+
+;; However some mailers also send whole paragraphs as single fixed lines!
+;;
+(defvar mime-display-text/plain-hook-fill-column 66
+  "Fill column for plain/text in messages matching reflow-for-buggy-mailers
+  or reflow-for-senders.  Default is `fill-column'")
+
+(defun mime-display-text/plain-hook-fill-lines ()
+  "Helper to re-flow plain/text parts in mail messages."
+  (let ((fill-column
+	 (cond
+	  ((and (integerp mime-display-text/plain-hook-fill-column)
+		(< mime-display-text/plain-hook-fill-column 1))
+	   (+ (window-width) mime-display-text/plain-hook-fill-column))
+	  ((integerp mime-display-text/plain-hook-fill-column)
+	   mime-display-text/plain-hook-fill-column)
+	  ((numberp mime-display-text/plain-hook-fill-column)
+	   (floor
+	    (* (window-width) mime-display-text/plain-hook-fill-column)))
+	  (mime-display-text/plain-hook-fill-column
+	   (eval mime-display-text/plain-hook-fill-column))
+	  (t fill-column)))
+	(count 0))
+    ;; XXX this is good enough, but not ideal as it doesn't preserve blank lines
+    ;; in quoted text.
+    (fill-individual-paragraphs (point-min)(point-max) nil
+				mail-citation-prefix-regexp))) ; requires 20.3?
+
+;; N.B.:  Some mailers, notably newer versions of Apple Mail (e.g. some time
+;; after version "(2.919.2)" and before "(2.3445.104.11)"), don't insert the
+;; "format=flowed" attribute even though they normally spit out one-line
+;; paragraphs that really do need re-flowing.
+;;
+;; This is currently used with `string-prefix-p', which works for the Apple set,
+;; but maybe it should be a list of regexs?  Also maybe they should be matched
+;; against the contents of the "User-Agent" field as well? (though for now the
+;; known troublmakers are using X-Mailer)
+;;
+(defcustom mime-display-text/plain-reflow-for-buggy-mailers
+  '("Apple Mail" "iPhone Mail" "iPad Mail")
+  "A list of mailers that don't set format=flowed properly.
+These should be just the first part of the 'X-Mailer' header
+value, without any version info."
+  :group 'mime-view
+  :type '(repeat string))
+
+;; Similarly some senders don't use format=flowed and also send one-line
+;; paragraphs, making for difficult reading
+;;
+;; XXX this doesn't work quite so well for technews as they send some parts that
+;; look like paragraphs, but which should have been kept as a list of lines,
+;; e.g. the subject summary.
+;;
+(defcustom mime-display-text/plain-reflow-for-senders
+  '("technews-editor@acm.org" "learning@acm.org")
+  "A list of regexps for senders that don't set format=flowed properly.
+These should match the 'from' header value."
+  :group 'mime-view
+  :type '(repeat regexp))
+
+(defun my-mime-display-text/plain-helper ()
+  "Re-reflow a text/plain part."
+  (let ((e-beg (point-min))
+	(e-end (point-max)))
+    (save-restriction
+      (widen)
+      (let* ((x-mailer (std11-field-body "x-mailer"))
+	     (is-buggy (car
+			(memq t (mapcar
+				 (lambda (s)
+				   (string-prefix-p ; xxx use string-match-p too???
+                                    s (or x-mailer "")))    ; xxx pass t for IGNORE-CASE too???
+				 mime-display-text/plain-reflow-for-buggy-mailers))))
+	     (sender (std11-field-body "from"))
+	     (bad-sender (not (null
+			       (delete nil (mapcar
+                                            (lambda (s)
+                                              (string-match-p s sender))
+                                            mime-display-text/plain-reflow-for-senders))))))
+	(narrow-to-region e-beg e-end)
+	(message "Would we reflow message by %s 'X-Mailer: %s' from %s '%s'?"
+;;; XXX once upon a time the caller's parameters were in scope, but no longer in
+;;; emacs 26.1?
+;;;
+;;;		 (if (boundp 'situation)
+;;;		     (or (cdr (assoc "format" situation)) "fixed")
+;;;		   "<UNKNOWN>(fixed?)")
+		 (if is-buggy "BUGGY" "normal")
+		 (or x-mailer "<NIL>")
+		 (if bad-sender "BAD sender" "sender")
+		 sender)
+	(if (or is-buggy bad-sender)
+	    (mime-display-text/plain-hook-fill-lines))))))
+
+(add-hook 'mime-display-text/plain-hook 'my-mime-display-text/plain-helper)
+
+;; To write format=flowed messages we add “--[[text/plain; format=flowed]]" at
+;; the beginning of the message, using this hook, then to truly do the right
+;; thing when composing one might use the equivalent of something like this:
+;;
+;; (require "http://www.pps.univ-paris-diderot.fr/~jch/software/files/format-flowed.el")
+;; (add-hook 'mime-edit-translate-hook 'format-flowed-translate-message)
+;;
+;; However I haven't enabled that part yet as I don't want it to happen
+;; automatically behind the scenes while sending!  I (think I) want an editing
+;; mode which does proper "format=flowed" encoding on the fly.
+;;
+(defun my-mail-setup-format-flowed ()
+  (save-excursion
+    (mail-text)				; xxx hmmm... not working here?
+    (mime-edit-insert-tag "text" "plain" "; format=flowed")))
+;;
+;; XXX I also don't want this always, i.e. without having some editing mode
+;; which does proper "format=flowed" encoding on the fly....
+;;
+;(add-hook 'wl-mail-setup-hook 'my-mail-setup-format-flowed)
+
+;; hmmm....  automatic word-wrap is great, but there are some aspects of
+;; `visual-line-mode' might not always be desiable.
+;;
 (require 'simple)
 (if (fboundp 'visual-line-mode)
     (add-hook 'mime-view-mode-hook '(lambda () (visual-line-mode t))))
@@ -924,10 +1067,10 @@ If ARG is non-nil, forget everything about the message."
 
 ;; n.b.:  when replying to an encrypted message, if you want to quote from the
 ;; encrpyted text, you will need to decrypt it by typing C-c C-v C-c (a.k.a.
-;; M-x mime-preview-show-content) with the cursor on the MIME part (i.e. on the
-;; entity-button) to decrypt the content into the message buffer (i.e. instead
-;; of just pressing 'v' (i.e. M-x mime-preview-play-current-entity) to "play"
-;; then MIME part).
+;; M-x mime-preview-show-content) with the cursor on the PGP/MIME part (i.e. on
+;; the entity-button for the application/pgp-encrypted MIME part) to decrypt the
+;; content into the message buffer (i.e. instead of just pressing 'v' (i.e. M-x
+;; mime-preview-play-current-entity) to "play" then MIME part).
 
 ;; the default uses:  (if (executable-find "gpg2") "gpg2" "gpg")
 ;(setq epg-gpg-program "gpg2")		; for NetBSD pkgsrc
@@ -959,6 +1102,16 @@ If ARG is non-nil, forget everything about the message."
   ;;
   (pinentry-start))
 
+(when (elisp-file-in-loadpath-p "pgg.el")
+  (if (not (fboundp 'pgg-display-error-buffer))
+      (defun pgg-display-error-buffer ()
+        "Pop up an error buffer indicating the reason for an en/decryption failure."
+        (let ((temp-buffer-show-function
+               (function pgg-temp-buffer-show-function)))
+          (with-output-to-temp-buffer pgg-echo-buffer
+            (set-buffer standard-output)
+            (insert-buffer-substring pgg-errors-buffer))))))
+
 ;; more handy stuff for ~/.gnupg/gpg-agent.conf:
 ;;
 ;;	max-cache-ttl 14400
@@ -972,51 +1125,56 @@ If ARG is non-nil, forget everything about the message."
 ;; done for passphrases, not for IMAP passwords, but it is too blunt a hammer
 ;; given the many current stupidities in epa
 ;;
-(defun read-passwd (prompt &optional confirm default)
-  "Read a password, prompting with PROMPT, and return it.
-If optional CONFIRM is non-nil, read the password twice to make sure.
-Optional DEFAULT is a default password to use instead of empty input.
+;; XXX XXX XXX this version only works with 
+;;
+;; (defun read-passwd (prompt &optional confirm default)
+;;   "Read a password, prompting with PROMPT, and return it.
+;; If optional CONFIRM is non-nil, read the password twice to make sure.
+;; Optional DEFAULT is a default password to use instead of empty input.
 
-Once the caller uses the password, it can erase the password
-by doing (clear-string STRING)."
-  (if confirm
-      (let (success)
-        (while (not success)
-          (let ((first (read-passwd prompt nil default))
-                (second (read-passwd "Confirm password: " nil default)))
-            (if (equal first second)
-                (progn
-                  (and (arrayp second) (clear-string second))
-                  (setq success first))
-              (and (arrayp first) (clear-string first))
-              (and (arrayp second) (clear-string second))
-              (message "Password not repeated accurately; please start over")
-              (sit-for 1))))
-        success)
-    (let (minibuf)
-      (minibuffer-with-setup-hook
-          (lambda ()
-            (setq minibuf (current-buffer))
-            ;; Turn off electricity.
-            (setq-local post-self-insert-hook nil)
-            (setq-local buffer-undo-list t)
-            (setq-local select-active-regions nil)
-            (use-local-map read-passwd-map)
-            (setq-local inhibit-modification-hooks nil) ;bug#15501.
-	    (setq-local show-paren-mode nil)		;bug#16091.
-            )
-        (unwind-protect
-            (let ((enable-recursive-minibuffers t)
-		  (read-hide-char (or read-hide-char ?.)))
-              (read-string prompt nil t default)) ; t = "no history"
-          (when (buffer-live-p minibuf)
-            (with-current-buffer minibuf
-              ;; Not sure why but it seems that there might be cases where the
-              ;; minibuffer is not always properly reset later on, so undo
-              ;; whatever we've done here (bug#11392).
-              (kill-local-variable 'post-self-insert-hook)
-              ;; And of course, don't keep the sensitive data around.
-              (erase-buffer))))))))
+;; Once the caller uses the password, it can erase the password
+;; by doing (clear-string STRING)."
+;;   (if confirm
+;;       (let (success)
+;;         (while (not success)
+;;           (let ((first (read-passwd prompt nil default))
+;;                 (second (read-passwd "Confirm password: " nil default)))
+;;             (if (equal first second)
+;;                 (progn
+;;                   (and (arrayp second) (not (eq first second)) (clear-string second))
+;;                   (setq success first))
+;;               (and (arrayp first) (clear-string first))
+;;               (and (arrayp second) (clear-string second))
+;;               (message "Password not repeated accurately; please start over")
+;;               (sit-for 1))))
+;;         success)
+;;     (let (minibuf)
+;;       (minibuffer-with-setup-hook
+;;           (lambda ()
+;;             (setq minibuf (current-buffer))
+;;             ;; Turn off electricity.
+;;             (setq-local post-self-insert-hook nil)
+;;             (setq-local buffer-undo-list t)
+;;             (setq-local select-active-regions nil)
+;;             (use-local-map read-passwd-map)
+;;             (setq-local inhibit-modification-hooks nil) ;bug#15501.
+;; 	    (setq-local show-paren-mode nil)		;bug#16091.
+;; ;; XXX no!  (add-hook 'post-command-hook 'read-password--hide-password nil t)
+;;             )
+;;         (unwind-protect
+;;             (let ((enable-recursive-minibuffers t)
+;; 		  (read-hide-char (or read-hide-char ?.)))
+;;               (read-string prompt nil t default)) ; t = "no history"
+;;           (when (buffer-live-p minibuf)
+;;             (with-current-buffer minibuf
+;;               ;; Not sure why but it seems that there might be cases where the
+;;               ;; minibuffer is not always properly reset later on, so undo
+;;               ;; whatever we've done here (bug#11392).
+;; ;; XXX        (remove-hook 'after-change-functions 'read-password--hide-password
+;; ;; XXX                     'local)
+;;               (kill-local-variable 'post-self-insert-hook)
+;;               ;; And of course, don't keep the sensitive data around.
+;;               (erase-buffer))))))))
 
 ;; xxx this thing has stupid help text, no docstring, and no way to improve it!
 ;; redefine the whole thing until it can be improved properly.
@@ -1214,21 +1372,22 @@ ENCODING must be string."
 
 ;; this should work for me, but it won't work for everyone
 ;; (and it especially won't work for mobile laptop users!)
+;; XXX should probably use variable `mail-host-address' instead of system-name!
 ;;
 (setq system-fqdn (if (string-match "\\." (system-name))
 		      (system-name)
 		    (concat (system-name) "." wl-local-domain)))
-;;(setq wl-envelope-from (concat (user-login-name) "@" system-fqdn))
+;;(setq wl-envelope-from (concat user-login-name "@" system-fqdn))
 ;;
 ;; Actually.... this might work for many uses....
 ;;
-;(setq wl-envelope-from (concat (user-login-name) "@" wl-local-domain))
-(setq wl-envelope-from (concat (user-login-name) "@mail.weird.com"))
+;(setq wl-envelope-from (concat user-login-name "@" wl-local-domain))
+(setq wl-envelope-from (concat user-login-name "@mail.weird.com"))
 
 ;; a good default, but may be adapted by wl-draft-config-alist as below
 ;; (if unset the `user-full-name' and `user-mail-address' are used)
 ;;
-;(setq wl-from "\"Greg A. Woods\" <woods@avoncote.ca>")
+;(setq wl-from "\"Greg A. Woods\" <Greg.A.Woods@avoncote.ca>")
 
 ;; SMTP server for mail posting.  Default: `nil'
 ;;
@@ -1263,14 +1422,19 @@ ENCODING must be string."
 ;; we want to match the same wildcard mailbox forms used in the aliases file(s)
 ;;
 (setq wl-user-mail-address-regexp
-      "^\\(\\(woods\\(-[^@]*\\)?@\\(\
+      "^\\(\\(woods\\([-+][^@]*\\)?@\\(\
+\\(avoncote\\.\\ca\\)\\|\
 \\(weird\\.\\(com\\|ca\\)\\)\\|\
+\\(weird\\.toronto\\.ca\\)\\|\
 \\(planix\\.\\(ca\\|com\\|net\\)\\)\\|\
+\\(robohack\\.planix\\.\\(ca\\|com\\|net\\)\\)\\|\
 \\(robohack\\.\\(ca\\|org\\)\\)\
+\\(robo-hack\\.\\(ca\\|com\\)\\)\
 \\)\
 \\)\
-\\|g\\.woods@klervi\\.com\
-\\|woods\\.greg\\.a@gmail\\.com\\)$")
+\\|greg\\(\\.a\\)?\\.woods\\([-+][^@]*\\)?@avoncote\\.\\ca\\|\
+\\|gwoods@acm\\.\\org\\|\
+\\|woods\\.greg\\.a\\(+[^@]*\\)?@gmail\\.com\\)$")
 
 ;; also turn on flyspell explicitly
 ;;
@@ -1356,6 +1520,8 @@ ENCODING must be string."
 ;;  (mime-edit-define-encoding "quoted-printable")
     ))
 
+(setq wl-auto-save-drafts-interval 5)	; default was 1, will be 300
+
 ;; The default draft folder, first set up the local draft folder name.
 ;;
 ;; Someday this may be adjusted at draft buffer creation time by settings in
@@ -1410,6 +1576,16 @@ ENCODING must be string."
 
 (add-hook 'wl-mail-send-pre-hook 'my-wl-draft-subject-check)
 (add-hook 'wl-mail-send-pre-hook 'my-wl-draft-attachment-check)
+
+(defun my-wl-draft-set-send-via-gmail ()
+  "Set message up to be relayed through Gmail."
+  (interactive)
+  (setq-local wl-smtp-posting-user "Woods.Greg.A@gmail.com")
+  (setq-local wl-smtp-posting-server "smtp.gmail.com")
+  (setq-local wl-smtp-posting-port 587)
+  (setq-local wl-smtp-connection-type 'starttls)
+  (setq-local wl-smtp-authenticate-type "plain"))
+(define-key wl-draft-mode-map "\C-cG" 'my-wl-draft-set-send-via-gmail)
 
 ;; add a (pgp-sign . BOOL) action for wl-draft-config-alist
 (unless (assq 'pgp-sign wl-draft-config-sub-func-alist)
@@ -1466,8 +1642,8 @@ ENCODING must be string."
 	(reply
 	 "^\\([Tt][Oo]\\|[Cc][Cc]\\|[fF]rom\\): .*@.*avoncote\\.ca"
 	 (pgp-sign . t)
-	 ("From" . "\"Greg A. Woods\" <woods@avoncote.ca>")
-	 ("Reply-To" . "\"Greg A. Woods\" <woods@avoncote.ca>")
+	 ("From" . "\"Greg A. Woods\" <Greg.A.Woods@avoncote.ca>")
+	 ("Reply-To" . "\"Greg A. Woods\" <Greg.A.woods@avoncote.ca>")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Avoncote Farms"))
 	(reply
@@ -1583,30 +1759,30 @@ ENCODING must be string."
 	 (wl-smtp-posting-port . 587)
 	 (wl-smtp-connection-type . 'starttls)
 	 (wl-smtp-authenticate-type . "plain"))
-	((string-match "^%.*@klervi\\.com"
-		       wl-draft-parent-folder)
-	 (pgp-sign . nil)
-;XXX	 (wl-draft-folder . "%[Gmail]/Drafts:\"g.woods@klervi.com\"@imap.gmail.com:993!")
-	 ("From" . "\"klervi - Greg A. Woods\" <g.woods@klervi.com>")
-	 ("Reply-To" . "\"klervi - Greg A. Woods\" <g.woods@klervi.com>")
-	 ("Precedence" . "first-class")
-	 ("Organization" . "GIR Nord Amerique Inc.")
-;;;	 (wl-smtp-posting-user . "gaw")
-;;;	 (wl-smtp-posting-server . "celcius.klervi.com")
-;;;	 (wl-smtp-posting-port . 465)
-;;;	 (wl-smtp-connection-type . 'ssl)
-;;;	 (wl-smtp-authenticate-type . "plain"))
-;;;	 ;; there is no need to use Fcc in gmail if you used the gmail SMTP
-;;;	 ;; server. gmail saves a copy of all sent messages automatically.
-;;;	 ;; however since we now use celcius....
-;;;	 ("FCC" . "%[Gmail]/Sent Mail:\"g.woods@klervi.com\"@imap.gmail.com:993!")
-;;; or with gmail....
-	 (wl-smtp-posting-user . "g.woods@klervi.com")
-	 (wl-smtp-posting-server . "smtp.gmail.com")
-	 (wl-smtp-posting-port . 587)
-	 (wl-smtp-connection-type . 'starttls)
-	 ("FCC" . "")
-	 )
+; 	((string-match "^%.*@klervi\\.com"
+; 		       wl-draft-parent-folder)
+; 	 (pgp-sign . nil)
+; ;XXX	 (wl-draft-folder . "%[Gmail]/Drafts:\"g.woods@klervi.com\"@imap.gmail.com:993!")
+; 	 ("From" . "\"klervi - Greg A. Woods\" <g.woods@klervi.com>")
+; 	 ("Reply-To" . "\"klervi - Greg A. Woods\" <g.woods@klervi.com>")
+; 	 ("Precedence" . "first-class")
+; 	 ("Organization" . "GIR Nord Amerique Inc.")
+; ;;;	 (wl-smtp-posting-user . "gaw")
+; ;;;	 (wl-smtp-posting-server . "celcius.klervi.com")
+; ;;;	 (wl-smtp-posting-port . 465)
+; ;;;	 (wl-smtp-connection-type . 'ssl)
+; ;;;	 (wl-smtp-authenticate-type . "plain"))
+; ;;;	 ;; there is no need to use Fcc in gmail if you used the gmail SMTP
+; ;;;	 ;; server. gmail saves a copy of all sent messages automatically.
+; ;;;	 ;; however since we now use celcius....
+; ;;;	 ("FCC" . "%[Gmail]/Sent Mail:\"g.woods@klervi.com\"@imap.gmail.com:993!")
+; ;;; or with gmail....
+; 	 (wl-smtp-posting-user . "g.woods@klervi.com")
+; 	 (wl-smtp-posting-server . "smtp.gmail.com")
+; 	 (wl-smtp-posting-port . 587)
+; 	 (wl-smtp-connection-type . 'ssl)
+; 	 ("FCC" . "")
+; 	 )
 ;	((string-match "^%.*:woods@mailbox\\.aci\\.on\\.ca" wl-draft-parent-folder)
 ;	 (pgp-sign . nil)
 ;	 ("From" . "\"Greg A. Woods\" <woods@aci.on.ca>")
@@ -1798,6 +1974,9 @@ ENCODING must be string."
 ;;
 (define-key wl-draft-mode-map "\C-xk" 'wl-draft-kill)
 
+;; note `mime-edit-insert-signature' just inserts the signature boundary
+(define-key wl-draft-mode-map "\C-cs" 'insert-signature)
+
 ;; For some reason, `wl-draft-save' is not bound in `wl-draft-mode' even though
 ;; it should rightfully override the default save operation.
 ;;
@@ -1855,7 +2034,7 @@ ENCODING must be string."
       '(("^\\(/[^/]*/\\)?%.*[/.]Trash:.*$" . remove) ; this one must come first!!!
 	("^\\(/[^/]*/\\)?%.*Deleted Messages:.*$" . remove) ; must appear before use as targett!!!
 	("^\\(/[^/]*/\\)?%INBOX$" . "%INBOX/Trash")
-	("^\\(/[^/]*/\\)?%inbox[^@]*$" . "%INBOX/Trash")
+	("^\\(/[^/]*/\\)?%INBOX[^@]*$" . "%INBOX/Trash")
 	("^\\(/[^/]*/\\)?%.*:woods@mailbox.weird.com" . "%INBOX/Trash:woods@mailbox.weird.com:993!")
 	("^\\(/[^/]*/\\)?%.*:Woods.Greg.A@imap.gmail.com" . "%[Gmail]/Trash:Woods.Greg.A@imap.gmail.com:993!")
 	("^\\(/[^/]*/\\)?%[Gmail]/All Mail:Woods.Greg.A@imap.gmail.com" . remove)
@@ -1895,7 +2074,7 @@ ENCODING must be string."
       '(("^%INBOX.*Junk@" . null)	; this one must come first
 	("^+junk" . null)		; this one too?
 	("^\\(/[^/]*/\\)?%INBOX$" . "%INBOX/Junk")
-	("^\\(/[^/]*/\\)?%inbox[^@]*$" . "%INBOX/Junk")
+	("^\\(/[^/]*/\\)?%INBOX[^@]*$" . "%INBOX/Junk")
 	("^\\(/[^/]*/\\)?%.*:woods@mailbox.weird.com" . "%INBOX/Junk:woods@mailbox.weird.com:993!")
 	("^\\(/[^/]*/\\)?%.*:Woods.Greg.A@imap.gmail.com" . "%[Gmail]/Spam:Woods.Greg.A@imap.gmail.com:993!")
 	("^\\(/[^/]*/\\)?%.*:\"g.woods@klervi.com\"@imap.gmail.com" . "%[Gmail]/Spam:\"g.woods@klervi.com\"@imap.gmail.com:993!")
