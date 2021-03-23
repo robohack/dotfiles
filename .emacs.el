@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	36.5	20/04/09 13:14:36 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	36.6	21/03/23 09:37:34 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -23,7 +23,7 @@
 ;;;
 ;;;	cd $HOME && emacs -batch -q -no-site-file -f batch-byte-compile .emacs.el
 
-;;; Run `my-packages-install' after first installing, or upgrading, emacs.
+;;; N.B.:  Run `my-packages-install' after first installing, or upgrading, emacs.
 
 ;;; NOTES:
 ;;;
@@ -38,6 +38,10 @@
 ;;; Use `eval-after-load' (or when available `with-eval-after-load'?) more....
 ;;;
 ;;; Use `use-package' more intelligently.
+;;;
+;;; Use `password-store' (package) with 27.7 and pkgsrc/security/password-store
+;;;
+;;; Think about using `emacs-everywhere' (package) (needs 26.3)
 
 ;;; to debug, eval (^X^E) these after starting with "emacs -q":
 ;;;
@@ -137,6 +141,11 @@
   "Major version number for this Emacs.")
 (defconst emacs-version-minor (emacs-version-get-component 'minor)
   "Minor version number for this Emacs.")
+(defconst emacs-version-nobuild (string-to-number
+				 (concat
+				  (number-to-string (emacs-version-get-component 'major)) "."
+				  (number-to-string (emacs-version-get-component 'minor))))
+  "Version number for this Emacs (as a floating point number).")
 (defconst emacs-version-build (emacs-version-get-component 'build)
   "Build number for this Emacs.")
 ;;; end by Noah Freidman from /home/fsf/friedman/etc/init/emacs/init.el
@@ -416,6 +425,23 @@ returning t if any of the three are found. Nil is returned otherwise."
 (declare-function package-installed-p "package" t t)
 (declare-function package-refresh-contents "package" t t)
 
+;;
+;; N.B.: gnutls-cli needs a CA bundle, install security/mozilla-rootcerts,
+;; and dont' forget to run (as root):
+;;
+;;	mozilla-rootcerts install
+;;
+;; XXX this should be eval-after-load 'gnutls
+(require 'gnutls)
+(add-to-list 'gnutls-trustfiles "/etc/openssl/certs/ca-certificates.crt")
+
+;; https://www.reddit.com/r/emacs/comments/cdei4p/failed_to_download_gnu_archive_bad_request/
+(setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3") ; xxx fixed in 26.3???
+
+;;(eval-when-compile
+;;  (defvar starttls-use-gnutls))
+;;(setq starttls-use-gnutls nil)	; XXX defaults to nil if security/starttls is installed
+
 ;; 
 ;; XXX including a redefinition of `open-tls-stream' is a bit of a hack to aid
 ;; in debugging....
@@ -547,14 +573,12 @@ match `%s'. Connect anyway? " host))))))
       (eval-when-compile
 	(defvar package-archives)
 	(defvar package-archive-contents)
-	(defvar starttls-use-gnutls)
 	(defvar tls-end-of-info)
 	(defvar tls-program))
-      ;; xxx gnutls-cli is broken, at least when used with emacs-23.3
-      ;; (xxx "-no_ssl2" might still be required for older openssl?)
-      ;; n.b. the "-crlf" is now necessary for Gmail, but not Cyrus
-      (setq tls-program '("openssl s_client -connect %h:%p -ign_eof"))
-      (setq starttls-use-gnutls nil)	; XXX requires security/starttls be installed!!!
+;      ;; xxx gnutls-cli is broken when used with emacs-23.3
+;      ;; (xxx "-no_ssl2" might still be required for older openssl?)
+;      ;; n.b. the "-crlf" is now necessary for Gmail, but not Cyrus
+;      (setq tls-program '("openssl s_client -connect %h:%p -quiet -ign_eof"))
       ;; 
       ;; XXX as of OpenSSL 1.1.1a  20 Nov 2018 there's a new ending to the noise
       ;; c_client prints before real data starts.
@@ -615,13 +639,15 @@ match `%s'. Connect anyway? " host))))))
 	;; or MELPA Stable as desired
 	(add-to-list 'package-archives
 		     (cons "melpa" (concat proto "://melpa.org/packages/")) t)
-	;; XXX melpa-stable is not recommended
+	;; XXX melpa-stable is not recommended:  "Note that the MELPA
+	;; maintainers do not use MELPA Stable themselves, and do not
+	;; particularly recommend its use."
+	;;
 	;;(add-to-list 'package-archives
 	;;           (cons "melpa-stable" (concat proto "://stable.melpa.org/packages/")) t)
 	(when (< emacs-major-version 24)
 	  ;; For important compatibility libraries like cl-lib
-	  (add-to-list 'package-archives '("gnu" . (concat proto
-	"://elpa.gnu.org/packages/"))))
+	  (add-to-list 'package-archives '("gnu" . (concat proto "://elpa.gnu.org/packages/"))))
 	;; XXX WARNING XXX:  marmalade is apparently defunct....
 	;;(add-to-list 'package-archives
 	;;	     (cons "marmalade" (concat proto "://marmalade-repo.org/packages/")) t)
@@ -643,10 +669,7 @@ match `%s'. Connect anyway? " host))))))
 	    (defvar package-gnupghome-dir-ORIGINAL package-gnupghome-dir "The original value at startup")
 	    (setq package-gnupghome-dir (expand-file-name "gnupg" package-user-dir))))
       ;;
-      ;; N.B.:  to manually update the GNU ELPA key:
-      ;;
-      ;;	gpg2 --keyserver hkp://keys.gnupg.net --homedir /home/more/woods/.emacs.d/packages-25.3/gnupg/ --receive-keys 066DAFCB81E42C40
-      ;;
+      ;; N.B.:  to manually update the GNU ELPA key run the `shell-command' below!
       ;;
       ;; XXX this should not be necessary if the first setup used the versioned
       ;; directory name
@@ -663,10 +686,12 @@ match `%s'. Connect anyway? " host))))))
 				       package-user-dir "'?"))
 		  (progn
 		    (beep)
-		    (rename-file package-user-dir-ORIGINAL package-user-dir))))))
+		    (rename-file package-user-dir-ORIGINAL package-user-dir))))
+	  (unless (file-exists-p (concat package-user-dir "/gnupg"))
+	    (shell-command (concat "gpg2 --keyserver hkp://keys.gnupg.net --homedir "
+				   package-user-dir "gnupg/"
+				   " --receive-keys 066DAFCB81E42C40 474F05837FBDEF9B")))))
       ;;
-      (when (< emacs-major-version 24)   ;; For important compatibility libraries like cl-lib
-	(add-to-list 'package-archives '("gnu" . "https://elpa.gnu.org/packages/")))
       ;; xxx this has to come before `package-initialize'
       (my-package-user-dir-cleanup)
       (package-initialize)
@@ -679,8 +704,14 @@ match `%s'. Connect anyway? " host))))))
       ;;
       ;; XXX Hmmm... this didn't work with a fresh 26.1 install....
       ;;
-      (when (and (>= emacs-major-version 24)
-		 (<= emacs-major-version 25))
+      ;;	had to do `list-packages' then install use-package by hand first
+      ;;	and still `package-install' fails with "bad request", while
+      ;;	manual installs from the *Pacakges* menu work OK.
+      ;;
+      ;;	XXX This is possibly due to the `gnutls-algorithm-priority' bug
+      ;;	affecting 26.[12]....
+      ;;
+      (when (>= emacs-major-version 24)
 	(unless (package-installed-p 'use-package)
 	  (when (null package-archive-contents)
 	    (package-refresh-contents))
@@ -693,15 +724,16 @@ match `%s'. Connect anyway? " host))))))
 ;; ~/.emacs-custom.el, contains the list of manually installed packages.
 ;;
 (defvar my-packages
-  '(ascii
+  '(ascii-table			; xxx was called "ascii"!!!
     diff-hl
     diffview
     diminish
-;    emacs-xkcd				; xxx gone ?
+    forge			; esp for magit
     gh
-;    git-commit-mode			; xxx Hmmm... fails when starting from scratch (gone?)
+    ghub			; for forge
+;    git-commit-mode		; xxx Hmmm... fails when starting from scratch (gone?)
     github-stars
-    gnu-elpa-keyring-update
+;    gnu-elpa-keyring-update	; xxx gone ? hmmmm..... why was this here anyway?
     go-add-tags
     go-complete
     go-gen-test
@@ -714,34 +746,39 @@ match `%s'. Connect anyway? " host))))))
     lua-mode
     magit
     magit-annex
-    magit-gh-pulls
+;    magit-gh-pulls		; xxx broken?
     magit-gitflow
     magit-org-todos
-    magithub
+;    magithub			; xxx old and unreliable -- see forge
     markdown-mode
-    memory-usage
-    minimap
-    muse
+;    memory-usage		; xxx gone ?
+;    minimap			; xxx gone ?
+;    muse			; xxx gone ?
     nov
     org
     org-journal
+    org-preview-html
     org-static-blog
     org2issue
-    osx-clipboard			; only do for OS X?
-    osx-dictionary			; only do for OS X?
+    osx-clipboard		; only do for OS X?
+    osx-dictionary		; only do for OS X?
     osx-plist
-;    otp				; xxx gone?
+;    otp			; xxx gone?
     package-build
-    sed-mode
+    pinentry
+;    sed-mode			; xxx gone?
     smart-tabs-mode
     svg
-    svg-clock
+;    svg-clock			; xxx MELPA version already requires emacs 27.0!
     syslog-mode
     ucs-utils
     uuid
-    w3
+    vc-fossil
+    vc-hgcmd
+;    w3				; xxx gone...  see eww
     w3m
-    xkcd)				; xxx only for newer?
+;    wanderlust			; xxx usually locally installed
+    xkcd)			; xxx was called emacs-xkcd
   "A list of packages we want to ensure are installed at launch.")
 
 ;; XXX a quick hack in lieu of using `use-package' properly
@@ -775,6 +812,10 @@ match `%s'. Connect anyway? " host))))))
 	(require 'go-mode)))
   (eval-after-load 'smart-tabs-mode
     '(progn
+       ;;
+       ;; NOTE: All language support must be added before the call to
+       ;; `smart-tabs-insinuate'.
+       ;;
        (smart-tabs-add-language-support go go-mode-hook
 	 ((go-mode-indent-line . tab-width)))
 ;;; XXX something doesn't define the symbol `go'
@@ -958,6 +999,10 @@ match `%s'. Connect anyway? " host))))))
 ;;;; ----------
 ;;;; some new global variable settings...
 
+(eval-when-compile
+  (defvar global-eldoc-mode))
+(setq global-eldoc-mode nil)		; it's just too damn annoying
+
 (defvar orig-default-frame-font
   nil
   "The original default frame font.")
@@ -1042,13 +1087,15 @@ match `%s'. Connect anyway? " host))))))
 ;;
 (if (eq window-system 'x)
     (progn
-      (defvar x-select-enable-clipboard)
+      (defvar x-select-enable-clipboard) ; xxx obsolete as of 25.1 (use `select-enable-clipboard')
       (setq x-select-enable-clipboard t)  ; use the CLIPBOARD for exporting the
 					  ; selection, very useful on OS X.
 					  ; Also remember to manually choose
 					  ; "Select To Clipboard" in the Xterm
 					  ; middle menu when planning to paste
 					  ; it into an OSX application.
+      (if (boundp 'select-enable-clipboard)
+	  (setq select-enable-clipboard t))
       (setq focus-follows-mouse t)	  ; always true for me on X11!
       (setq mouse-autoselect-window -0.001) ; (occasionally it is twice as long...)
       (setq orig-default-frame-font (frame-parameter nil 'font))
@@ -1292,7 +1339,7 @@ abcdefghijklmnopqrstuvwxyz £©µÀÆÖÞßéöÿ
 ; we like fancy font faces!
 (require 'font-lock)
 (global-font-lock-mode t)		; Turn on font-lock in all modes that support it
-;; obsolete variable (as of 24.1).
+;; xxx obsolete variable (as of 24.1).
 (setq font-lock-maximum-size nil)	; don't worry about the buffer size...
 (setq font-lock-maximum-decoration t)	; maximum colours!
 
@@ -1562,7 +1609,7 @@ with possible additional arguments `browse-url-xterm-args'."
 ;; Warning: `special-display-regexps' is an obsolete variable (as of 24.3); use
 ;; `display-buffer-alist' instead.
 ;;
-(setq special-display-regexps
+(setq special-display-regexps		; xxx obsolete as of 24.3
       '((".*\\*Apropos\\*.*"
 	 '((top . 0)
 	   (left . -1)
@@ -1607,7 +1654,7 @@ with possible additional arguments `browse-url-xterm-args'."
 ;; Warning: `special-display-buffer-names' is an obsolete variable (as of
 ;; 24.3); use `display-buffer-alist' instead.
 ;;
-(setq special-display-buffer-names
+(setq special-display-buffer-names	; xxx obsolete as of 24.3
       '("*compilation*"
 	"*Compile-Log*"
 	"*grep*"
@@ -1625,7 +1672,7 @@ with possible additional arguments `browse-url-xterm-args'."
 ;; Warning: `special-display-frame-alist' is an obsolete variable (as of 24.3);
 ;; use `display-buffer-alist' instead.
 ;;
-(setq special-display-frame-alist
+(setq special-display-frame-alist	; xxx obsolete as of 24.3
       '((top . 0)
 	(left . -1)
 	(height . 16)			; 20 is OK on big displays
@@ -3316,7 +3363,7 @@ to get rid of that horrid `z' key binding!"
   (setq vc-command-messages t)
   ;; Warning: `vc-initial-comment' is an obsolete variable (as of 23.2); it has
   ;; no effect.
-  (setq vc-initial-comment t)
+  (setq vc-initial-comment t)		; xxx obsolete as of 23.2 (has no effect)
   (eval-when-compile
     (defvar vc-maximum-comment-ring-size)) ; not defvar'ed!
   (setq vc-maximum-comment-ring-size 64)   ; 32 is too small!
@@ -3464,7 +3511,7 @@ to get rid of that horrid `z' key binding!"
 	      (ash . posix)
 	      (sh . posix)
 	      (sh5 . sh)))
-      (setq sh-indentation 8)
+      (setq sh-indentation 8)		; xxx obsolete as of 26.1 (use `sh-basic-offset')
       (setq sh-basic-offset 8)
       (setq sh-learn-basic-offset nil)	; never....
       (setq sh-indent-comment t)
@@ -3951,7 +3998,7 @@ more recent emacs versions."
 ;; XXX the following by no means replaces all the settings above!
 ;;
 ;;FOR TESTING:  (setq display-buffer-alist nil)
-(if (>= init-emacs-type 24)
+(if (>= emacs-version-nobuild 24.3)
     (progn
       (eval-when-compile
 	(defvar display-buffer-alist))
@@ -3984,13 +4031,13 @@ more recent emacs versions."
 	    (append display-buffer-alist
 		    '(("." nil (inhibit-switch-frame . t))))))
   ;; else older...
-  ;; (XXX how to shut up the compiler's "obsolete" warnings?)
+  ;; (XXX how to shut up the compiler's "obsolete" warnings????)
   (progn
     ;;
     ;; The unexpected raising of some frames is very annoying at times -- so don't
     ;; do it at all (except as specifically configured elsewhere).
     ;;
-    (setq display-buffer-reuse-frames nil)))
+    (setq display-buffer-reuse-frames nil))) ; xxx obsolete as of 24.3
 
 ;;; From: dsmith@spam.maths.adelaide.edu.au (David Smith)
 ;;; Subject: framepop.el: Display temporary buffers in dedicated frame
@@ -4165,17 +4212,11 @@ current emacs server process..."
 ;;; eval this to re-start appt-check:
 ;;; (setq appt-timer (run-at-time t 60 'appt-check))
 
-;; For 567 B Christleton Avenue:
-;;
-;; According to Google Earth:
-;;	N49 52.287 W119 29.414
-;;	49.871462 -119.490491
-;;
-;; the GPS essentially agrees:  N49.86157 W119.49038
+;; For 4112 Lemky Road:
 ;;
 (require 'solar)
-(setq calendar-latitude 49.86157)
-(setq calendar-longitude -119.49038)
+(setq calendar-latitude 49.833317)
+(setq calendar-longitude -119.406903)
 
 (setq calendar-time-display-form
       '(24-hours ":" minutes
@@ -4513,10 +4554,6 @@ current emacs server process..."
       ("robohack.planix.com")
       ("planix.ca")
       ("planix.net")
-      ("klervi.com")
-      ("reptiles.org")
-      ("vex.net")
-      ("proxy.net")
       )
     "*Default list of domains for mail-local-domain-name.
 
@@ -4743,6 +4780,10 @@ With PREFIX, select from all quotes."
   (setq user-mail-address (concat (cond ((and (string-equal (user-login-name) "gaw")
 					      (string-equal mail-local-domain-name "klervi.com"))
 					 "g.woods")
+					((string-equal mail-local-domain-name "avoncote.ca")
+					 "Greg.A.Woods")
+					((string-equal mail-local-domain-name "gmail.com")
+					 "woods.greg.a")
 					(t
 					 (user-login-name)))
 				  "@" mail-local-domain-name))
@@ -5308,7 +5349,7 @@ but it's seriously brain damaged so we re-define it as nothing."
 (define-mail-abbrev "strange"
   "\"Kristofer P. Cox\" <strange@strange.com>")
 (define-mail-abbrev "kris"
-  "Kris Cox (not at corelan!) <kris@corelan.com>")
+  "Kris Cox <kritter@strange.com>")
 (define-mail-abbrev "kyle"
   "Kyle Jones <kyle_jones@wonderworks.com>")
 (define-mail-abbrev "lcis"
@@ -5353,6 +5394,10 @@ but it's seriously brain damaged so we re-define it as nothing."
   "Weird NOC <ops@weird.com>")
 (define-mail-abbrev "wiznet"
   "Wiznet Support <support@wiznet.ca>")
+(define-mail-abbrev "wiznet"
+  "Wiznet Support <support@wiznet.ca>")
+(define-mail-abbrev "walled"
+  "Walled Networks Support <support@walled.net>")
 
 (define-mail-abbrev "dduffey"
   "dduffey@slb.com (sandra's friend sending baby pictures)")
@@ -5433,7 +5478,8 @@ but it's seriously brain damaged so we re-define it as nothing."
 ;; ToDo:  should only activate if current hostname has an auto-save-file, AND
 ;; IFF the process for that file is not still running!
 ;;
-;; XXX also, this seems to be evaluated sometimes at odd times....
+;; XXX also, this seems to be evaluated sometimes at odd times....  (perhaps the
+;; whole startup file is reloaded occasionally for some reason?)
 ;;
 (if (directory-files (file-name-directory auto-save-list-file-prefix)
 		 nil
