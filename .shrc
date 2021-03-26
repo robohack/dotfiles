@@ -12,7 +12,7 @@
 # especially any that are only used by functions here, e.g. as was
 # done with MAILLOG.
 #
-#ident	"@(#)HOME:.shrc	37.2	21/03/23 12:41:29 (woods)"
+#ident	"@(#)HOME:.shrc	37.3	21/03/26 10:39:55 (woods)"
 
 PATH=$PATH
 export PATH
@@ -289,12 +289,12 @@ publishdotfiles ()
 		return 2
 		;;
 	more*|building*)
-		rsync -v -lptHS --stats --files-from=$HOME/dotfiles.list $HOME ${CENTRAL_USER}@${CENTRAL_SERVER}:.
+		rsync -v -lptHS --progress --delete-after --stats --files-from=$HOME/dotfiles.list $HOME ${CENTRAL_USER}@${CENTRAL_SERVER}:.
 		;;
 	future*)
 		( cd && ${SCCS:-"sccs"} info )
 		( cd && git-sccsimport --move-date=2010/11/5T00:00:00 --move-offset=3 --expand-kw --maildomain=robohack.ca --git-dir="$HOME/work/home" --dirs SCCS && cd $HOME/work/home && git push --mirror )
-		rsync -v -lptHS --stats --files-from=$HOME/dotfiles.list $HOME ${CENTRAL_USER}@${CENTRAL_SERVER}:.
+		rsync -v -lptHS --progress --delete-after --stats --files-from=$HOME/dotfiles.list $HOME ${CENTRAL_USER}@${CENTRAL_SERVER}:.
 		;;
 	*)
 		echo "publishdotfiles: not useful when run on client host!" 1>&2
