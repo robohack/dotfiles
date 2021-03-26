@@ -12,7 +12,7 @@
 # especially any that are only used by functions here, e.g. as was
 # done with MAILLOG.
 #
-#ident	"@(#)HOME:.shrc	37.3	21/03/26 10:39:55 (woods)"
+#ident	"@(#)HOME:.shrc	37.4	21/03/26 12:37:53 (woods)"
 
 PATH=$PATH
 export PATH
@@ -333,8 +333,8 @@ pushdotfiles ()
 		return 2
 	fi
 	# XXX there should be a way to do this without rsync too...
-	rsync ${_e_opt} -v -lptHS --stats --files-from=${HOME}/dotfiles.list ${HOME} ${1}:.
-	unset _e_opt
+	rsync ${_e_opt} -v -lptHS --progress --delete-after --stats --files-from=${HOME}/dotfiles.list ${HOME} ${1}:.
+	unset _e_opt _USAGE OPTIND
 }
 
 syncdotfiles ()
@@ -353,7 +353,7 @@ syncdotfiles ()
 		return 2
 		;;
 	esac
-	rsync -v -lptHS --stats --files-from=:dotfiles.list ${CENTRAL_USER}@${CENTRAL_SERVER}:. $HOME
+	rsync -v -lptHS --progress --delete-after --stats --files-from=:dotfiles.list ${CENTRAL_USER}@${CENTRAL_SERVER}:. $HOME
 	if [ -r $HOME/.xinitrc -a ! -x $HOME/.xinitrc ] ; then
 		chmod +x $HOME/.xinitrc
 	fi
