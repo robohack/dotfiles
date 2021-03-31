@@ -2,7 +2,7 @@
 #
 #	.gitconfig - per-user Git setup
 #
-#ident	"@(#)HOME:.gitconfig	37.3	21/03/26 10:23:50 (woods)"
+#ident	"@(#)HOME:.gitconfig	37.4	21/03/31 12:09:38 (woods)"
 #
 # N.B.:  user.* could be set in GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL and those
 # should probably be set in ~/.localprofile, though Git is stupid and prefers
@@ -72,14 +72,15 @@
 	default = matching
 #
 # We set rebase=false by default, so remote tracking branches can be ff-only,
-# and then local tracking branches get rebase=true.
+# and then with autoSetupRebase the local tracking branches get rebase=true.
+# (XXX this does make it a bit fiddly to set up a clone sometimes.)
 #
 # The theory is if you're following a project and keeping local changes, or
 # making changes to be submitted upstream, then you want remote tracking
-# branches to fast-forward only on pull, but to be rebase your local branch when
-# you pull from, e.g., "master".  (And, i.e., you never want to commit to your
-# local (tracking) "master" branch!  Always make a "local" branch that tracks
-# the local remote-tracking "master" branch.)
+# branches to fast-forward only on pull, but to be rebased on your local branch
+# when you pull from, e.g., "master".  (And, i.e., you never want to commit to
+# your local (tracking) "master" branch!  Always make a "local" branch that
+# tracks the local remote-tracking "master" branch.)
 #
 # XXX Maybe "merge.ff=false" and "pull.ff=only" would be good defaults as the
 # latter overrides the former when pulling.
@@ -104,8 +105,10 @@
 # fast-forward the currently checked out branch (since v1.0.6 I think, and up to
 # v2.0.2 at least).  Too bad git-up doesn't yet have an override for
 # fast-fowarding the current branch (maybe IFF it is a remote-tracking branch
-# and it's tracking the ''upstream'' (i.e. "origin")).  Probably it should
-# honour pull.ff=only and branch.BR.mergeOptions=--ff-only.
+# and it's tracking the ''upstream'' (i.e. "origin")).  Possibly it should
+# honour pull.ff=only and branch.BR.mergeOptions=--ff-only; but probably it
+# should just use "git pull", which already honours all these flags and options
+# itself.
 #
 [git-up "rebase"]
 	auto = false
