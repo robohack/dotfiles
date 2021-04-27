@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	37.1	21/03/23 11:43:02 (woods)"
+#ident	"@(#)HOME:.kshrc	37.2	21/04/26 18:35:47 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -112,9 +112,20 @@ function append2path
 	fi
 	typeset varname=$1
 	shift
+	#
 	# the eval of 'test' below will trigger the ERR trap because the shell
-	# doesn't see it as a condition expression, so disable ERR...
-	trap - ERR
+	# doesn't see it as a condition expression, so we should save the ERR
+	# trap and disable it, then restore it afterwards...
+	#
+	# XXX however it doesn't work in at least NetBSD pdksh (nor mksh, as of
+	# 56c).  Apparently POSIX does say that it should work, though the
+	# problem is that command substitution, i.e. "$(cmd)", runs in a
+	# subshell, and traps are not supposed to be inherited by subshells, so
+	# "$(trap)" would have to be special.  Bash (at least 3.2 and newer) and
+	# ksh93 will save all traps, but neither can save just individual traps.
+	#
+	#traps=$(trap)
+	#trap - ERR
 	while [ $# -gt 0 ] ; do
 		if [ -d "$1" ]; then
 			# xxx hmmm... I can't remember why this uses inverted logic...
@@ -127,6 +138,8 @@ function append2path
 		fi
 		shift
 	done
+	# XXX
+	#eval ${traps}
 }
 
 # xxx hmmm....  this seems to exit with the wrong exit code
