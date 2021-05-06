@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.3	21/05/06 15:12:59 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.4	21/05/06 15:17:14 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -462,8 +462,7 @@ if [ "$argv0" = ".xinitrc" ] ; then
 		if [ ${SCREENDEPTH:-1} -ne 1 ] ; then
 			XEGAMMA="-gamma 1.6 -night 15"	# for Sun3 CG2
 		fi
-		# XXX for now we drop the pin at Avoncote Farm
-		xearth $XEGAMMA -bigstars 10 -pos fixed,50.14349201581629,-101.77988255896784 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
+		xearth $XEGAMMA -bigstars 10 -pos fixed,${LATITUDE:-0},${LONGITUDE:-0} -label -labelpos +1+1 -grid -wait 900 -nice 10 &
 		unset XEGAMMA
 	elif $HAVEXPLANET ; then
 		XPLANETCONFIG=""
@@ -601,7 +600,7 @@ macweird.*:*|*xquartz:*)
 	set_osx_fontpath
 
 	if $HAVEXEARTH ; then
-		xearth -gamma 1.3 -bigstars 10 -pos fixed,50.14349201581629,-101.77988255896784 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
+		xearth -gamma 1.3 -bigstars 10 -pos fixed,${LATITUDE:-0},${LONGITUDE:-0} -label -labelpos +1+1 -grid -wait 900 -nice 10 &
 	elif $HAVEXPLANET ; then
 		XPLANETCONFIG=""
 		if [ -r $HOME/xplanet.conf ]; then
@@ -646,7 +645,7 @@ xceptionally*:*)
 		xclock -update 1 -geometry 190x190-0+0 &
 	fi
 	if $HAVEXEARTH ; then
-		xearth -gamma 1.3 -bigstars 10 -pos fixed,50.14349201581629,-101.77988255896784 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
+		xearth -gamma 1.3 -bigstars 10 -pos fixed,${LATITUDE:-0},${LONGITUDE:-0} -label -labelpos +1+1 -grid -wait 900 -nice 10 &
 	elif $HAVEXPHOON ; then
 		xphoon -t 10 &
 	elif [ -r $X11PATH/include/X11/bitmaps/escherknot ] ; then
@@ -715,7 +714,7 @@ xtremely*:*)
 	# tiny screens....
 	#
 	if $HAVEXEARTH ; then
-		xearth -gamma 1.3 -bigstars 10 -pos fixed,50.14349201581629,-101.77988255896784 -label -labelpos +1+1 -grid -wait 900 -nice 10 &
+		xearth -gamma 1.3 -bigstars 10 -pos fixed,${LATITUDE:-0},${LONGITUDE:-0} -label -labelpos +1+1 -grid -wait 900 -nice 10 &
 	elif $HAVEXPHOON ; then
 		xphoon -t 10 &
 	elif [ -r $X11PATH/include/X11/bitmaps/escherknot ] ; then
