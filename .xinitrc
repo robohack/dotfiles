@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.4	21/05/06 15:17:14 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.5	21/05/06 15:29:40 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -152,8 +152,11 @@ fi
 
 if [ -z "$LONGITUDE" ]; then
 	# kelowna, bc
-	LATITUDE="49.87157"
-	LONGITUDE="-119.49038"
+	#LATITUDE="49.87157"
+	#LONGITUDE="-119.49038"
+	# Avoncote Farm (gives XEarth a nice(r) view of Canada too)
+	LATITUDE=50.14349201581629
+	LONGITUDE=-101.77988255896784
 	export LATITUDE LONGITUDE
 fi
 
