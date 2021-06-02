@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.1	21/03/23 11:43:01 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.2	21/06/01 23:49:22 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -351,7 +351,7 @@ define(OPT_LOGIN_XTERM, [-fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls])
 IconDirectory	"HOME/lib/bitmaps"
 
 ifdef([XPM], [
-PixmapDirectory	"HOME/lib/pixmaps:HOME/lib/icons:/usr/lib/X11/twm/images:/usr/X11/lib/X11/twm/images:/usr/X11R6/lib/X11/twm/images:/usr/pkg/lib/X11/twm/images:/sw/etc/X11/ctwm/images:/usr/local/lib/X11/twm/images:"
+PixmapDirectory	"HOME/lib/pixmaps:HOME/lib/icons:/usr/X11/include/X11/pixmaps:/usr/X11/include/X11/pixmaps/ctwm:/usr/X11R7/include/X11/pixmaps:/usr/X11R7/include/X11/pixmaps/ctwm:/usr/X11R6/include/X11/pixmaps:/usr/X11R6/include/X11/pixmaps/ctwm:/usr/pkg/share/ctwm/images:/opt/pkg/share/ctwm/images:/usr/local/share/ctwm/images:"
 ])
 
 IconManagerDontShow {
@@ -702,11 +702,15 @@ ifdef([ON_OSX], [
 #
 ifdef([XPM], [
 LeftTitleButton ":xpm:menu" = f.menu "winops"
-RightTitleButton ":xpm:bar" = f.menu "fills"
+LeftTitleButton	":xpm:cross" = f.delete
+#
+RightTitleButton ":xpm:vbar" = f.menu "fills"
 RightTitleButton ":xpm:box" = f.menu "zooms"
 ], [
 LeftTitleButton "menu16" = f.menu "winops"
-RightTitleButton "weird_size" = f.menu "fills"
+LeftTitleButton	"star" = f.delete
+#
+RightTitleButton "scales" = f.menu "fills"
 RightTitleButton "icon" = f.menu "zooms"
 ])
 
