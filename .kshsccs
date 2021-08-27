@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	37.2	21/03/23 12:40:53 (woods)"
+#ident	"@(#)HOME:.kshsccs	37.3	21/08/27 15:28:24 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -575,6 +575,10 @@ vreldotfiles ()
 		# update central:$HOME
 		#
 		rsync -v -lptHS --stats --files-from=$HOME/dotfiles.list $HOME ${CENTRAL_USER}@${CENTRAL_SERVER}:.
+
+		# update dotfiles.tar.gz and dotfiles.list
+		# (function is from .shrc)
+		#
 		archivedotfiles
 		;;
 	esac
