@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	37.1	21/03/23 11:43:04 (woods)"
+;;;;#ident	"@(#)HOME:.wl	37.2	21/08/27 15:23:27 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -491,6 +491,7 @@
 ;;
 ;;	Subject: =?utf-8?Q?We=e2=80=99re_updating_our_Privacy_Policy_and_tools?=
 ;;	From: "=?utf-8?Q?feedback=40slack=2ecom?=" <feedback@slack.com>
+;;	From: =?UTF-8?Q?Isma=c3=abl_Tanguy?= <ismael.tanguy@univ-brest.fr>
 ;;
 ;; N.B.:  `rfc2047-decode-string' handles all of the above just fine.
 ;;
@@ -709,6 +710,7 @@ If ARG is non-nil, forget everything about the message."
 	"^DomainKey[^:]*:"		; bogus junk
 	"^Errors-To:"
 	"^In-Reply-To:"			; just another message-id
+	"^IronPort-[^:]*:"		; some silly AV crapware
 	"^Lines:"
 	"^List-[^:]*:"			; rfc????
 	"^Message-I[dD]:"		; RFC 2036 too!
@@ -730,7 +732,9 @@ If ARG is non-nil, forget everything about the message."
 	"^X-CSC:"
 	"^X-CHA:"
 	"^X-CMAE-Envelope:"
+	"^X-CTCH-[^:]*:"
 	"^X-Exchange[^:]*:"		; M$-Exchange
+	"^X-Filter-ID:"
 	"^X-Forefront[^:]*:"
 	"^X-GMX[^:]*:"
 	"^X-Gm-Message-State:"
@@ -738,6 +742,7 @@ If ARG is non-nil, forget everything about the message."
 	"^X-Google-Smtp-Source:"
 	"^X-Greylist[^:]*:"
 	"^X-Hashcash[^:]*:"		; ???
+	"^X-IPAS-Result:"
 	"^X-IronPort[^:]*:"		; some silly AV crapware
 	"^X-Junkmail[^:]*:"		; mirapoint???
 	"^X-MAil-Count:"		; fml?
@@ -763,6 +768,8 @@ If ARG is non-nil, forget everything about the message."
 	"^X-Scanned[^:]*:"
 	"^X-Sieve:"			; cyrus
 	"^X-Spam[^:]*:"
+	"^X-UI-Out-Filterresults:"
+	"^X-VADE-[^:]*:"
 	"^X-VM-[^:]*:"
 	"^X-Virus[^:]*:"
 	"^X-YMail-OSG:"			; some Mozilla mailer?
@@ -1643,7 +1650,7 @@ ENCODING must be string."
 	 "^\\([Tt][Oo]\\|[Cc][Cc]\\|[fF]rom\\): .*@.*avoncote\\.ca"
 	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <Greg.A.Woods@avoncote.ca>")
-	 ("Reply-To" . "\"Greg A. Woods\" <Greg.A.woods@avoncote.ca>")
+	 ("Reply-To" . "\"Greg A. Woods\" <Greg.A.Woods@avoncote.ca>")
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Avoncote Farms"))
 	(reply
@@ -2406,6 +2413,53 @@ See `wl-summary-mark-action-list' for the details of each element.")
 	  (lambda ()
 	    (jit-lock-register 'wl-draft-highlight-region)))
 
+;; from https://idiomdrottning.org/svolternet
+;;
+;; Re: SV: Re: SV: Re: SV: Your misbehaved email
+;;
+;; This is something for Emacs’ message-mode that I made years and years ago but
+;; forgot to publish. It’s just been working so well that I forgot about it
+;; until now.
+;;
+;; When dealing with Scandinavian or Icelandic people they often have misbehaved
+;; email clients that add “SV:” to a subject even if there is already a
+;; “Re:”. And then if your own client is also misbehaved, it’ll add another Re
+;; back on there, resulting in a ridic subject with a long chain of alternating
+;; Re and SV.
+;;
+;; Obviously the fault is with the Scandinavian clients for not being aware of
+;; basics of RFC 5322, which specifies Re:.
+;;
+;; When used in a reply, the field body MAY start with the string “Re: “ (an
+;; abbreviation of the Latin “in re”, meaning “in the matter of”) followed by
+;; the contents of the “Subject:” field body of the original message. If this is
+;; done, only one instance of the literal string “Re:” ought to be used since
+;; use of other strings or more than one instance can lead to undesirable
+;; consequences.
+;;
+;; Them localizing is fine, localization is a good thing, but they should then
+;; be aware of “Re:” and be responsible for cleaning up the chains. But OK. We
+;; have Lisp so let’s be the adult in the room.
+;;
+;; Obvs for German, sub in AW instead of SV etc.
+;;
+(defun svolternet ()
+  (interactive)
+  (save-excursion
+   (goto-char (point-min))
+   (while (save-excursion (re-search-forward "^subject:\\\( re:\\\| sv:\\\)\\\{2,\\\}" nil t))
+          (save-excursion
+           (goto-char (point-min))
+           (while (re-search-forward "^subject:\\\( re:\\\| sv:\\\) re:" nil t)
+                  (replace-match "Subject: Re:" nil nil)))
+          (save-excursion
+           (goto-char (point-min))
+           (while (re-search-forward "^subject:\\\( re:\\\| sv:\\\) sv:" nil t)
+                  (replace-match "Subject: SV:" nil nil))))))
+
+;; not that I encounter this often, but I need equiv for WL
+;(add-hook 'message-mode-hook
+;          (lambda () (add-hook 'first-change-hook 'svolternet nil 'make-it-local)))
 
 ;;; Local Variables:
 ;;; emacs-lisp-docstring-fill-column: 77
