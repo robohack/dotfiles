@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.1	21/03/23 11:43:05 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.2	21/08/27 15:00:58 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -432,11 +432,15 @@ returning t if any of the three are found. Nil is returned otherwise."
 ;;	mozilla-rootcerts install
 ;;
 ;; XXX this should be eval-after-load 'gnutls
-(require 'gnutls)
-(add-to-list 'gnutls-trustfiles "/etc/openssl/certs/ca-certificates.crt")
+(eval-when-compile
+  (defvar gnutls-algorithm-priority))
+(if (elisp-file-in-loadpath-p "gnutls")
+    (progn
+      (require 'gnutls)
+      (add-to-list 'gnutls-trustfiles "/etc/openssl/certs/ca-certificates.crt")
 
-;; https://www.reddit.com/r/emacs/comments/cdei4p/failed_to_download_gnu_archive_bad_request/
-(setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3") ; xxx fixed in 26.3???
+      ;; https://www.reddit.com/r/emacs/comments/cdei4p/failed_to_download_gnu_archive_bad_request/
+      (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3"))) ; xxx fixed in 26.3???
 
 ;;(eval-when-compile
 ;;  (defvar starttls-use-gnutls))
@@ -445,6 +449,8 @@ returning t if any of the three are found. Nil is returned otherwise."
 ;; 
 ;; XXX including a redefinition of `open-tls-stream' is a bit of a hack to aid
 ;; in debugging....
+;;
+;; N.B.:  This is not used in 26.x or newer IFF emacs is built to use gnutls....
 ;; 
 (eval-when-compile
   (defvar tls-program)
@@ -806,7 +812,7 @@ match `%s'. Connect anyway? " host))))))
   (autoload 'smart-tabs-mode-enable "smart-tabs-mode")
   (autoload 'smart-tabs-advice "smart-tabs-mode")
   (autoload 'smart-tabs-insinuate "smart-tabs-mode")
-					;
+
   (eval-when-compile
     (if (elisp-file-in-loadpath-p "go-mode")
 	(require 'go-mode)))
@@ -816,9 +822,9 @@ match `%s'. Connect anyway? " host))))))
        ;; NOTE: All language support must be added before the call to
        ;; `smart-tabs-insinuate'.
        ;;
-       (smart-tabs-add-language-support go go-mode-hook
-	 ((go-mode-indent-line . tab-width)))
 ;;; XXX something doesn't define the symbol `go'
+;;;    (smart-tabs-add-language-support go go-mode-hook
+;;;	 ((go-mode-indent-line . tab-width)))
 ;;;    (smart-tabs-insinuate 'go 'c 'c++ 'java 'javascript 'cperl 'python 'ruby 'nxml)
        (smart-tabs-insinuate 'c 'c++ 'java 'javascript 'cperl 'python 'ruby 'nxml)
        ;; make it safe
