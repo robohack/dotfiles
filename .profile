@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some GNU bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	37.1	21/03/23 11:43:02 (woods)"
+#ident	"@(#)HOME:.profile	37.2	21/11/02 16:47:30 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -917,14 +917,21 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 	*)
 		case "${TERM}" in
 		""|network|dialup|unknown|none)
-			ttytype=${TERM}
-			# xxx a function may not work to set an env var, see
-			# note above .shrc:get_newterm()
+			# n.b.:  a function may not work to set an env var, see
+			# the note above the definition of ~/.shrc:get_newterm()
 			get_newterm
 			;;
 		*)
+			# xxx hmmm.... this could just use $TERMTESTCMD (also
+			# from ~/.shrc), but doing so would make showing the
+			# warning notice impossible...
+			#
 			if ${HAVETPUT} ; then
-				tput init || { echo "NOTICE:  preset TERM=$TERM is unknown."; ttytype=dumb; get_newterm; }
+				if ! tput init; then
+					echo "NOTICE:  the preset TERM=$TERM is unknown...";
+					TERM=unknown;
+					get_newterm
+				fi
 			else
 				if expr "`type tset 2>/dev/null`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
 					# n.b.:  this asks if TERM is unknown...
@@ -977,6 +984,16 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 				echo "NOTICE:  I don't know how to set up your terminal."
 			fi
 		fi
+
+		case "${TERM}" in
+		xterm*)
+			if expr "`type resize 2>/dev/null`" : '.* is .*/resize$' >/dev/null 2>&1 ; then
+				resize
+			else
+				echo "NOTICE:  you may have to manually run 'stty rows \$LINES columns \$COLUMNS'."
+			fi
+			;;
+		esac
 
 		# try setting up for X11 if possible....
 		case "${TERM}" in
