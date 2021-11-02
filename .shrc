@@ -12,7 +12,7 @@
 # especially any that are only used by functions here, e.g. as was
 # done with MAILLOG.
 #
-#ident	"@(#)HOME:.shrc	37.4	21/03/26 12:37:53 (woods)"
+#ident	"@(#)HOME:.shrc	37.5	21/11/02 16:50:45 (woods)"
 
 PATH=$PATH
 export PATH
@@ -92,7 +92,7 @@ fi
 #		do cd $pe &> /dev/null && tpath=${tpath+$tpath:}$pe ; done
 #	echo "$tpath" `
 #
-
+#
 dirappend ()
 {
 	if [ $# -le 1 -o -z "$1" ] ; then
@@ -673,11 +673,17 @@ if [ -f /usr/adm/lastlog.ut -a -x /usr/lib/acct/fwtmp ] ; then
 	}
 fi
 
+# these are mostly here (instead of in ~/.profile) for get_newterm()...
+#
+# N.B.:  note the use of $_ttytype, for $TERMTESTCMD, shared with get_newterm()
+# below!
+#
 HAVETPUT=false ; export HAVETPUT
 if expr "`type tput 2>/dev/null`" : '.* is .*/tput$' >/dev/null 2>&1 ; then
 	HAVETPUT=true
 	# WARNING: this may only work with a SysV compatible tput.
-	TERMTESTCMD='tput -T"$ttytype" init >/dev/null 2>&1'
+	# N.B.:  bit-bucket all output -- it is run in ~/.profile for real.
+	TERMTESTCMD='tput -T"$_ttytype" init >/dev/null 2>&1'
 elif expr "`type tset 2>/dev/null`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
 	# WARNING:  some tset(1)'s, esp. ULTRIX, fail if stderr is not
 	# a tty.  Worse, most will query for a new terminal type if it
@@ -685,44 +691,50 @@ elif expr "`type tset 2>/dev/null`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
 	# recent BSD versions, but '-' is still accepted by the
 	# ncurses variant.
 	#
-	TERMTESTCMD='tset - -I -Q "$ttytype" </dev/null >/dev/null'
+	TERMTESTCMD='tset - -I -Q "$_ttytype" </dev/null >/dev/null'
 else
 	TERMTESTCMD='true'
 fi
 
 # this is a function so it can be used interactively after login....
 #
-# NOTE:  this uses $echo et al, which are not exported, so won't be
-# available outside of the initial login shell.
+# NOTE:  this uses $echo et al, as well as $TERMTESTCMD, none which are
+# exported, but they are set by this file, so should be available for all
+# interactive shells....
 #
-# XXX but this may not work if functions cannot set global/environment
-# vars, though that is only true on ancient non-POSIX compatible shells
+# XXX N.B.:  This may not work if functions cannot set global/environment vars,
+# though that is only true on ancient non-POSIX compatible shells
 #
 get_newterm ()
 {
-	while [ "X$TERM" != "X$ttytype" ] ; do
-		$echo $n "Please enter your terminal type [$ttytype]: $c"
-		read newttytype
-		if [ -n "$newttytype" ] ; then
-			ttytype=$newttytype
+	_newttytype=
+	_ttytype=$TERM
+	TERM=
+
+	while [ "X$TERM" != "X$_ttytype" ] ; do
+		$echo $n "Please enter your terminal type [$_ttytype]: $c"
+		read _newttytype
+		if [ -n "$_newttytype" ] ; then
+			_ttytype=$_newttytype
 		fi
-		if [ "$ttytype" = "dumb" ] ; then
-			TERM="dumb"		# guarantee a way out of this!
+		if [ "$_ttytype" = "dumb" ] ; then
+			# n.b.:  we must guarantee a way out of this loop!
+			#
+			# (that's because tput(1) hates dumb terminals, i.e. it
+			# exits non-zero if the terminal doesn't support the
+			# "init" attribute)
+			TERM="dumb"
 			break
 		fi
 		if eval $TERMTESTCMD ; then
-			TERM=$ttytype
+			TERM=$_ttytype
 		else
 			echo "Sorry, I don't know that terminal type."
 			echo "Use 'dumb' if you are stuck."
 		fi
 	done
-	case "TERM" in
-	xterm*)
-		resize
-		;;
-	esac
-	unset newttytype ttytype
+	unset _newttytype _ttytype
+	export TERM
 }
 
 if [ -n "$DISPLAY" ]; then
