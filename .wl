@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	37.2	21/08/27 15:23:27 (woods)"
+;;;;#ident	"@(#)HOME:.wl	37.3	21/11/02 17:04:39 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -652,6 +652,11 @@ If ARG is non-nil, forget everything about the message."
 				"Sender"
 				"X-Priority"))
 
+;; xxx necessary for now to support "%@" in `wl-summary-line-format'
+;; (rebuild message db for all folders after adding this:  s all <RETURN>)
+;;
+(add-to-list 'elmo-msgdb-extra-fields "Content-Type")
+
 ;; XXX over-ride the search function to give a better prompt:
 ;;
 (defun wl-read-search-condition (default)
@@ -829,56 +834,59 @@ If ARG is non-nil, forget everything about the message."
       'wl-draft-kill
       'mail-send-hook))
 
-;; pull in all the MIME stuff (why does it seem we must do this?)
+;; pull in all the MIME stuff (why does it seem we must do this here?)
 (require 'elmo-mime)
 (require 'mel)
 (require 'mime-edit)
 (require 'mime-view)
 
-;; Make MIME understand HTML while preferring the text part, if one is
-;; provided.
-;;
-;; (note:  this does "(require 'w3)" and so needs w3m installed....
-;;
-;; one can use `mime-preview-toggle-content', normally C-c C-t C-c to show the
-;; content of a mime part.  See also `mime-preview-show-header'.
-;;
-(if (elisp-file-in-loadpath-p "mime-w3")
-    (progn
-      (require 'mime-w3)
-      (setq mime-view-type-subtype-score-alist
-	    '(((text . plain) . 6)
-	      ((text . enriched) . 5)		; RFC 1896
-	      ((text . richtext) . 4)		; RFC 1341/1521 (deprecated/obsolete)
-	      ((text . html) . 3)		; Gak!
-	      (t . 2))))			; everything else
-  (message "Please install `w3m'"))
-
 ;; Under Emacs 24.4 and later, you can force using `shr' (Emacs’ built-in HTML
-;; formatter) with:
+;; formatter) with the following:
 ;;
 (if (or (> emacs-major-version 24)
 	(and (= emacs-major-version 24)
 	     (>= emacs-minor-version 4)))
-    (setq mime-view-text/html-previewer 'shr)
-  (progn
-    ;; content of a mime part.  See also `mime-preview-show-header'.
-    ;;
-    (if (elisp-file-in-loadpath-p "mime-w3")
-	(progn
-	  (require 'mime-w3)
-	  (setq mime-view-type-subtype-score-alist
-		'(((text . plain) . 6)
-		  ((text . enriched) . 5)		; RFC 1896
-		  ((text . richtext) . 4)		; RFC 1341/1521 (deprecated/obsolete)
-		  ((text . html) . 3)		; Gak!
-		  (t . 2))))			; everything else
-      (message "Please install `w3m'"))))
+    (progn
+      (require 'shr)
+      (setq mime-view-text/html-previewer 'shr)
+      ;; add very useful bindings not there by default
+      (define-key shr-map "c" 'shr-copy-url)
+      ;; n.b.:  shr-next-link should also be on TAB, but that is apparently
+      ;; overridden by mime-preview-move-to-next...
+      (define-key shr-map "n" 'shr-next-link)
+      (define-key shr-map "p" 'shr-previous-link))
+  ;; otherwise try for w3m, iff we have mime-w3...
+  ;;
+  (if (elisp-file-in-loadpath-p "mime-w3")
+      (require 'mime-w3)		; not really necessary here?
+    (message "Please install `w3m' or `shr' for HTML formatting.")))
 
-;; Perhaps this might also help
+;; Make MIME understand HTML while preferring the text part, if one is
+;; provided.
 ;;
-(eval-after-load "semi-setup"
+;; (note:  `mime-view' "requires" `w3' or `shr'...)
+;;
+;; one can use `mime-preview-toggle-content', normally C-c C-t C-c to show the
+;; content of a mime part.  See also `mime-preview-show-header'.
+;;
+;; Sometimes one may even need to do this to show the text/plain part if
+;; desired, and presumably to hide the HTML crap....
+;;
+;; Ideally though I would like to always have the text/plain part previewed!
+;;
+;; Setting the text/plain score high enough usually seems to do this, but
+;; apparently it has to be done after mime-view is loaded.
+;;
+(eval-after-load "mime-view"
   '(progn
+     (setq mime-view-type-subtype-score-alist
+	   '(((text . plain) . 6)	; ALWAYS preferred!!!
+	     ((text . enriched) . 5)	; RFC 1896
+	     ((text . richtext) . 4)	; RFC 1341/1521 (deprecated/obsolete)
+	     ((text . html) . 3)	; Gak!
+	     (t . 2)))			; everything else
+     ;; Perhaps this might also help
+     ;;
      (set-modified-alist 'mime-view-type-subtype-score-alist
 			 '(((multipart . mixed) . 3)))
      (set-modified-alist 'mime-view-type-subtype-score-alist
@@ -893,42 +901,6 @@ If ARG is non-nil, forget everything about the message."
 ;;
 (setq mime-view-multipart/alternative-show-all-children t) ; XXX the default is nil!  WHY???
 (setq mime-view-multipart/related-show-all-children t) ; XXX the default is nil!  WHY???
-
-;; one can apparently use `mime-preview-toggle-content' with C-c C-t C-c to
-;; show the text/plain part if desired, and presumably to hide the HTML crap....
-;;
-;; Ideally though I would like to always have the text/plain part previewed!
-;;
-;; this apparently has to be done after mime-view is loaded, and so the
-;; following was also once mentioned on the mailing list:
-;;
-;;	To disable rendering text/html, please try the following configuration:
-;;
-;(eval-after-load "mime-view"
-;  '(progn
-;     (ctree-set-calist-strictly
-;      'mime-preview-condition
-;      '((type . text)
-;	(subtype . html)
-;	(body . visible)
-;	(body-presentation-method . mime-display-text/plain)))
-;     (set-alist 'mime-view-type-subtype-score-alist
-;		'(text . html) 0)
-;     ;;
-;     ))
-;;
-;; however for now the following seems to do the trick all by itself by just
-;; raising the score for text/plain (note this also raises text/plain above
-;; text/enriched and text/richtext):
-;;
-;(eval-after-load "mime-view"
-;  '(progn
-;     (set-alist 'mime-view-type-subtype-score-alist
-;		'(text . plain) 4)))
-
-
-;; XXX temporary(?) override of text/plain display helper(s)
-(require 'mime-view)
 
 ;; "content-type: plain/text; format=flowed" are automatically re-filled by
 ;; wanderlust (well, by SEMI) to the following width (with the default width
