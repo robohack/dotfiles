@@ -2,7 +2,7 @@
 #
 #	.gitconfig - per-user Git setup
 #
-#ident	"@(#)HOME:.gitconfig	37.4	21/03/31 12:09:38 (woods)"
+#ident	"@(#)HOME:.gitconfig	37.5	21/11/02 17:05:44 (woods)"
 #
 # N.B.:  user.* could be set in GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL and those
 # should probably be set in ~/.localprofile, though Git is stupid and prefers
@@ -17,6 +17,13 @@
 [user]
 	name = Greg A. Woods
 	email = woods@robohack.ca
+#
+# from:  https://utf9k.net/blog/conditional-gitconfig/
+#
+# Allow a conditionally included config file to change [user] (e.g.):
+#
+#[includeIf "gitdir:~/work/"]
+#	path = ~/.work.gitconfig
 #
 [core]
 	pager = "less -R"
