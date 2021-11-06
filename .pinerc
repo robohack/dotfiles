@@ -1,4 +1,4 @@
-#ident	"@(#)HOME:.pinerc	37.2	21/11/06 12:33:22 (woods)"
+#ident	"@(#)HOME:.pinerc	37.3	21/11/06 12:55:23 (woods)"
 #
 # Pine configuration file
 #
@@ -41,17 +41,17 @@ pruned-folders=
 # Over-rides default path for sent-mail folder, e.g. =old-mail (using first
 # folder collection dir) or ={host2}sent-mail or ="" (to suppress saving).
 # Default: sent-mail (Unix) or SENTMAIL.MTX (PC) in default folder collection.
-default-fcc={mail.weird.com/NoRsh/novalidate-cert}INBOX/Sent
+default-fcc={mailbox.weird.com/NoRsh/novalidate-cert}INBOX/Sent
 
 # Over-rides default path for saved-msg folder, e.g. =saved-messages (using 1st
 # folder collection dir) or ={host2}saved-mail or ="" (to suppress saving).
 # Default: saved-messages (Unix) or SAVEMAIL.MTX (PC) in default collection.
-default-saved-msg-folder={mail.weird.com/NoRsh/novalidate-cert}INBOX/Saved
+default-saved-msg-folder={mailbox.weird.com/NoRsh/novalidate-cert}INBOX/Saved
 
 # Over-rides default path for postponed messages folder, e.g. =pm (which uses
 # first folder collection dir) or ={host4}pm (using home dir on host4).
 # Default: postponed-msgs (Unix) or POSTPOND.MTX (PC) in default fldr coltn.
-postponed-folder={mail.weird.com/NoRsh/novalidate-cert}INBOX/Drafts
+postponed-folder={mailbox.weird.com/NoRsh/novalidate-cert}INBOX/Drafts
 
 # If set, specifies where already-read messages will be moved upon quitting.
 read-message-folder=
@@ -323,12 +323,7 @@ incoming-folders="Weird Mail (from remote)" {mailbox.weird.com/NoRsh/novalidate-
 	"Weird Mail (on LAN)" {mailbox.weird.com/notls/NoRsh/service=imap/novalidate-cert}INBOX,
 	"Weird GNATS Mail (on LAN)" {mailbox.weird.com/notls/NoRsh/service=imap/novalidate-cert}user/gnats,
 	"Weird SMAIL3 Mail (on LAN)" {mailbox.weird.com/notls/NoRsh/service=imap/novalidate-cert}user/smail3,
-	"Once Weird Mail (on LAN)" {once.weird.com/notls/NoRsh/service=imap/novalidate-cert}INBOX,
-	"Planix Mail" {mail.planix.com/NoRsh/novalidate-cert}INBOX,
-	"Wapanafa Mail" {mail.wapanafa.org/NoRsh/novalidate-cert}INBOX,
-	"ACI Mail" {mailbox.aci.on.ca/NoRsh/novalidate-cert}INBOX,
-	"ACI Mail(gwoods)" {mailbox.aci.on.ca/NoRsh/novalidate-cert}user/gwoods,
-	"ACI Mail(gwoods) POP3" {mailbox.aci.on.ca/service=POP3S/NoRsh/novalidate-cert}user/gwoods,
+	"Planix Mail" {mailbox.planix.com/NoRsh/novalidate-cert}INBOX,
 	"Cyrus Announcements archive" {cyrus.andrew.cmu.edu/NoRsh/anonymous/novalidate-cert}archive.cyrus-announce,
 	"Cyrus info-cyrus archive" {cyrus.andrew.cmu.edu/NoRsh/anonymous/novalidate-cert}archive.info-cyrus
 	"Cyrus cyrus-devel archive" {cyrus.andrew.cmu.edu/NoRsh/anonymous/novalidate-cert}archive.cyrus-devel
@@ -338,22 +333,17 @@ incoming-folders="Weird Mail (from remote)" {mailbox.weird.com/NoRsh/novalidate-
 # Syntax: optnl-label {optnl-imap-hostname}optnl-directory-path[]
 folder-collections="LocalHost IMAP Folders" {localhost/notls/NoRsh}[],
 	"Local filesystem folders" Mail/[],
-	"Weird IMAP Folders" {mailbox.weird.com/notls/NoRsh/novalidate-cert}[],
-	"Once Weird IMAP Folders" {once.weird.com/notls/NoRsh/novalidate-cert}[],
-	"Planix IMAP Folders" {mail.planix.com/NoRsh/novalidate-cert}[],
-	"Wapanafa IMAP Folders" {mail.wapanafa.org/NoRsh/novalidate-cert}[],
-	"ACI IMAP Folders" {mailbox.aci.on.ca/NoRsh/novalidate-cert}[],
+	"Weird IMAP Folders" {mailbox.weird.com/NoRsh/novalidate-cert}[],
+	"Weird IMAP Folders (on LAN)" {mailbox.weird.com/notls/NoRsh/novalidate-cert}[],
+	"Planix IMAP Folders" {mailbox.planix.com/NoRsh/novalidate-cert}[],
 	"Weird Anonymous IMAP" {mailbox.weird.com/notls/NoRsh/novalidate-cert/anonymous}[],
 	"Planix Anonymous IMAP" {mailbox.planix.com/NoRsh/anonymous/novalidate-cert}[],
-	"ACI Anonymous IMAP" {mailbox.aci.on.ca/NoRsh/anonymous}[],
-	"starting-out.weird anonymous IMAP" {starting-out.weird.com/NoRsh/anonymous}[],
 	"Cyrus Mailing Lists (in archive) via anonymous IMAP" {cyrus.andrew.cmu.edu/NoRsh/anonymous/novalidate-cert}[]
 
 # List, only needed if nntp-server not set, or news is on a different host
 # than used for NNTP posting. Examples: News *[] or News *{host3/nntp}[]
 # Syntax: optnl-label *{news-host/protocol}[]
-news-collections="Planix News" *{whome.planix.com/nntp}[],
-	"ACI News" *{news.aci.on.ca/nntp}[],
+news-collections="Planix News" *{news.planix.com/nntp}[],
 	"Weird News (is planix)" *{news.weird.com/nntp}[]
 
 # List of file or path names for personal addressbook(s).
