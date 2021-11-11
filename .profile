@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some GNU bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	37.2	21/11/02 16:47:30 (woods)"
+#ident	"@(#)HOME:.profile	37.3	21/11/11 12:01:29 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -927,20 +927,18 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 			# warning notice impossible...
 			#
 			if ${HAVETPUT} ; then
-				if ! tput init; then
-					echo "NOTICE:  the preset TERM=$TERM is unknown...";
+				if ! tput longname > /dev/null; then
+					echo "NOTICE:  the preset TERM=${TERM} is unknown...";
 					TERM=unknown;
 					get_newterm
 				fi
+			elif expr "`type tset 2>/dev/null`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
+				# n.b.:  this asks if TERM is unknown...
+				eval `tset -s`
+				# xxx if we want this, we get it later!
+				unset TERMCAP
 			else
-				if expr "`type tset 2>/dev/null`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
-					# n.b.:  this asks if TERM is unknown...
-					eval $(tset -s)
-					# xxx if we want this, we get it later!
-					unset TERMCAP
-				else
-					echo "NOTICE:  I don't know how to test your TERM ($TERM)."
-				fi
+				echo "NOTICE:  I don't know how to test your TERM (${TERM})."
 			fi
 			;;
 		esac
@@ -951,6 +949,7 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 		vt220)
 			if [ ! -r ${HOME}/.stty ] ; then
 				# real vt220 keyboards make this the best setup
+				# n.b.:  on *BSD this could be "stty dec"
 				stty intr '^C' erase '^?'
 			fi
 			;;
@@ -966,29 +965,34 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 		# now, one more time to really do the correct initialisation...
 		#
 		if ${HAVETPUT} ; then
-			# argh!  "init" does not reset tabs on some
-			# terminals, e.g. xterm, if they have been
-			# cleared, but "reset" will clear the screen!
+			# unfortunately "tput init" will clear an xterm
 			#
-			tput init
-		else
-			# Note: in other places we assume tset is avaliable....
-			if expr "`type tset 2>/dev/null`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
-				# On BSD, without the "-I" it uses /etc/termcap....
-				# (but maybe that is a good thing?)
-				tset -r
-			elif expr "`type tabs 2>/dev/null`" : '.* is .*/tabs$' >/dev/null 2>&1 ; then
-				# maybe the best we can do for now?
-				tabs -8
-			else
-				echo "NOTICE:  I don't know how to set up your terminal."
+			tput reset
+		fi
+		# Note: in other places we assume tset is avaliable....
+		if expr "`type tset 2>/dev/null`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
+			# On BSD, without the "-I" it uses /etc/termcap....
+			# (but maybe that is a good thing?)
+			tset -r
+			if ${HAVETPUT} ; then
+				echo ${TERM}: `tput longname`
 			fi
+		elif ! ${HAVETPUT}; then
+			echo "NOTICE:  I don't know how to set up your terminal."
+		fi
+
+		# "tput reset" and/or "tset -r" may not have reset tabstops...
+		#
+		# (note "tabs" is required by POSIX.1, but not in NetBSD until 6.0)
+		#
+		if expr "`type tabs 2>/dev/null`" : '.* is .*/tabs$' >/dev/null 2>&1 ; then
+			tabs -8
 		fi
 
 		case "${TERM}" in
 		xterm*)
 			if expr "`type resize 2>/dev/null`" : '.* is .*/resize$' >/dev/null 2>&1 ; then
-				resize
+				resize > /dev/null
 			else
 				echo "NOTICE:  you may have to manually run 'stty rows \$LINES columns \$COLUMNS'."
 			fi
@@ -996,6 +1000,7 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 		esac
 
 		# try setting up for X11 if possible....
+		# (XXX this may not be the right place for this)
 		case "${TERM}" in
 		xterm*|sun|pc3|ibmpc3)
 			# users will have to set their own $DISPLAY....
@@ -1013,11 +1018,6 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 		else
 			echo "Your terminal is port ${TTY}."
 		fi
-
-		# normally the message from "tset -s" on stderr will
-		# tell us what our current erase and interrupt chars are
-		#
-		tset -s > /dev/null
 
 		;;
 	esac
@@ -1115,7 +1115,6 @@ if ${ISATTY} && ${HAVEX} && [ "X$argv0" != "X.xinitrc" -a "X$argv0" != "X.xsessi
 				"" | [yY]*)
 				trap '' 2
 				xinit
-				tput clear
 				exec sleep 1
 				;;
 			*)
