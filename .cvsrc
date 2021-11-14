@@ -1,6 +1,6 @@
 # -*-conf-space-*-
 #
-#ident	"@(#)HOME:.cvsrc	37.2	21/11/14 10:27:27 (woods)"
+#ident	"@(#)HOME:.cvsrc	37.3	21/11/14 10:46:21 (woods)"
 #
 # N.B.:  DANGER WARNING!!!
 #
@@ -14,13 +14,13 @@
 # currently no way to specify per-repository options of any sort.
 #
 # To run against a remote server that doesn't support the global '-u' option,
-# e.g. OpenBSD's, comment out the "cvs" line, then do the following in emacs:
+# e.g. OpenBSD's, do the following in emacs:
 #
-#	(setq cvs-cvs-flags nil)
-#	(cvs-flags-define cvs-cvs-flags '(("-f")))
+#	(cvs-flags-set 'cvs-cvs-flags 0 '("-f"))
+#
+# N.B.:  Then don't forget to undo it afterwards:
+#
 #	(cvs-reread-cvsrc)
-#
-# N.B.:  Then don't forget to uncomment the "cvs" line again!!!  (C-x v u)
 #
 cvs	-u
 #
