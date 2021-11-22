@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some GNU bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	37.3	21/11/11 12:01:29 (woods)"
+#ident	"@(#)HOME:.profile	37.4	21/11/21 17:43:35 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -784,13 +784,16 @@ emacs | "" )
 		if [ -n "${DISPLAY}" ] ; then
 			case "${TERM}" in
 			xterm*)
-				# XXX this is ugly and not exactly right.
-				# (should use type to test "id" for one)
-				if [ -x /usr/bin/id ] ; then
+				# XXX this is ugly and not exactly right -- we
+				# should also try to test to see if an emacs
+				# server is listening, thus the '-a'...
+				#
+				if expr "`type emacsclient 2>/dev/null`" : '.* is .*/emacsclient$' >/dev/null 2>&1 ; then
 					eval `id | sed 's/[^a-z0-9=].*//'`
-					# TODO: maybe not?
-					if [ "${uid:=0}" -ne 0 -a -n "${DISPLAY}" ] ; then
-						VISUAL="emacsclient"
+					if [ "${uid:=0}" -ne 0 ] ; then
+						# XXX maybe we want $EDITOR to be 'vi'???
+						EDITOR="emacsclient -c -a 'emacs -nw'"
+						VISUAL="emacsclient -c -a 'emacs -nw'"
 					fi
 				fi
 			;;
@@ -981,9 +984,11 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 			echo "NOTICE:  I don't know how to set up your terminal."
 		fi
 
-		# "tput reset" and/or "tset -r" may not have reset tabstops...
+		# "tput" and/or "tset" do not support setting or clearing tabs.
 		#
-		# (note "tabs" is required by POSIX.1, but not in NetBSD until 6.0)
+		# (note "tabs" is required by POSIX (since at least SUSv2, i.e.
+		# 1997), but it was not in NetBSD until 6.0 -- "tset" though is
+		# not in POSIX at all.)
 		#
 		if expr "`type tabs 2>/dev/null`" : '.* is .*/tabs$' >/dev/null 2>&1 ; then
 			tabs -8
