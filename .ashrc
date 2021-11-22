@@ -1,7 +1,7 @@
 #
 #	.ashrc - per-shell startup stuff for ash via $ENV
 #
-#ident	"@(#)HOME:.ashrc	37.2	21/11/21 17:48:03 (woods)"
+#ident	"@(#)HOME:.ashrc	37.3	21/11/22 12:09:57 (woods)"
 
 # Assumptions:
 #	- chdir must be synonymous with cd, and cd can be reset to a function
@@ -50,50 +50,64 @@ if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	MYXCLR_C="$(myxban -c)"
 	MYXCLR_R="$(myxban -r)"
 	MYXCLR="${MYXCLR_L}${MYXCLR_C}${MYXCLR_R}"
-	MYXBAN_L='$(pwd)'
+	MYXBAN_L='${BANNER_PWD}'
 
 	# xxx this doesn't mean what it used to mean...
-	alias clearban='printf "${MYXCLR}"; WBANNER=""; setban'
+	clearban ()
+	{
+		printf '%s' "${MYXCLR}";
+		WBANNER="${OWBANNER}";
+		setban
+	}
 
 	# XXX this probably doesn't do what I expect it to do any more either...
 	# (because myxban is special in being able to set just one part)
 	setban ()
 	{
 		if [ $# -ge 1 ]; then
+			OWBANNER=${WBANNER}
 			WBANNER="$@"
 		fi
 		if [ -z "$BANNER_PWD" ]; then
-			BANNER_PWD=$(pwd)
+			# only if needed (it's expensive), usually done by 'cd'
+			BANNER_PWD=$(pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;')
 		fi
-		printf "${MYXCLR}"
+		printf '%s' "${MYXCLR}";
 		eval myxban -l "\"$MYXBAN_L\""
 		myxban -c "${WBANNER:-sh}"
 		eval myxban -r "\"$MYXBAN_R\""
+		unset BANNER_PWD
 	}
 
 	# basic form -- may be re-defined in ~/.ashpwd
 	cd ()
 	{
 		chdir "$*"
+		BANNER_PWD=$(pwd)
 		eval myxban -l "\"$MYXBAN_L\""
 	}
-
 fi
 # else
 case "$TERM" in
 "xterm")
 
-	alias clearban='WBANNER=""; setban'
+	clearban ()
+	{
+		WBANNER="${OWBANNER}";
+		setban
+	}
 
 	setban ()
 	{
 		if [ $# -ge 1 ]; then
+			OWBANNER=${WBANNER}
 			# no trailing space -- usually just used to
 			# set alternate shell name
 			WBANNER="$@"
 		fi
 		if [ -z "$BANNER_PWD" ]; then
-			BANNER_PWD=$(pwd)
+			# only if needed (it's expensive), usually done by 'cd'
+			BANNER_PWD=$(pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;')
 		fi
 		if [ "$user" = "$LOGNAME" ]; then
 			eval TBANNER='"${WBANNER:-sh}://$UUNAME/$BANNER_PWD | $user[$LEV]:$TTYN"'
@@ -101,6 +115,8 @@ case "$TERM" in
 			eval TBANNER='"${WBANNER:-sh}://$UUNAME/$BANNER_PWD | $user:$group($LOGNAME)[$LEV]:$TTYN"'
 		fi
 		printf "\033]0;${TBANNER}\007"
+
+		unset BANNER_PWD
 	}
 
 	# basic form -- may be re-defined in ~/.ashpwd
@@ -320,7 +336,8 @@ if [ "$uid" -eq 0 ] ; then
 		XAUTHORITY=$(eval echo ~${SU_FROM}/.Xauthority); export XAUTHORITY
 	fi
 	cd
-	WBANNER="SU $SHELL"
+	OWBANNER=${WBANNER}
+	WBANNER="SU $(basename ${SHELL})"
 	setban
 elif [ "$user" != "$LOGNAME" ] ; then
 	case "$TERM" in
@@ -353,6 +370,7 @@ if type setban > /dev/null ; then
 		_emacs ()
 		{
 			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			OWBANNER=${WBANNER}
 			WBANNER="GNU Emacs @ $UUNAME"
 			setban
 			mesg n
@@ -370,6 +388,7 @@ if type setban > /dev/null ; then
 		else
 			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
 		fi
+		OWBANNER=${WBANNER}
 		WBANNER="cu $*"
 		setban
 		mesg n
@@ -386,6 +405,7 @@ if type setban > /dev/null ; then
 		else
 			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
 		fi
+		OWBANNER=${WBANNER}
 		WBANNER="C-Kermit $*"
 		setban
 		mesg n
@@ -399,6 +419,7 @@ if type setban > /dev/null ; then
 		_slogin ()
 		{
 			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			OWBANNER=${WBANNER}
 			WBANNER="slogin $*"
 			setban
 			mesg n
@@ -413,6 +434,7 @@ if type setban > /dev/null ; then
 		_rlogin ()
 		{
 			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			OWBANNER=${WBANNER}
 			WBANNER="rlogin $*"
 			setban
 			mesg n
@@ -432,6 +454,7 @@ if type setban > /dev/null ; then
 			else
 				trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
 			fi
+			OWBANNER=${WBANNER}
 			WBANNER="telnet $*"
 			setban
 			mesg n
@@ -445,6 +468,7 @@ if type setban > /dev/null ; then
 		_mushC ()
 		{
 			trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
+			OWBANNER=${WBANNER}
 			WBANNER="MUSH $*"
 			setban
 			mush -C "$@"
@@ -462,6 +486,7 @@ if type setban > /dev/null ; then
 			PWD=/
 			showargs=""
 		fi
+		OWBANNER=${WBANNER}
 		WBANNER="SU $showargs"
 		setban
 		mesg n
@@ -483,6 +508,7 @@ if type setban > /dev/null ; then
 			else
 				trap "trap 0 1 2 3 15; setban" 0 1 2 3 15
 			fi
+			OWBANNER=${WBANNER}
 			WBANNER="NetHack"
 			setban
 			$LOCAL/games/nethack

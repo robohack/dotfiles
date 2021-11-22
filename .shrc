@@ -12,7 +12,7 @@
 # especially any that are only used by functions here, e.g. as was
 # done with MAILLOG.
 #
-#ident	"@(#)HOME:.shrc	37.6	21/11/21 18:02:10 (woods)"
+#ident	"@(#)HOME:.shrc	37.7	21/11/22 12:09:25 (woods)"
 
 PATH=$PATH
 export PATH
@@ -887,6 +887,7 @@ if [ "`ismpx`" = yes -o "$TERM" = "dmd-myx" ] ; then
 
 	clearban ()
 	{
+		$echo $n "${MYXCLR}$c"
 		WBANNER="${OWBANNER}";
 		setban
 	}
@@ -894,9 +895,9 @@ if [ "`ismpx`" = yes -o "$TERM" = "dmd-myx" ] ; then
 	setban ()
 	{
 		if [ $# -ge 1 ]; then
+			OWBANNER=${WBANNER}
 			# no trailing space -- usually just used to
 			# set alternate shell name
-			OWBANNER=${WBANNER}
 			WBANNER="$@"
 		fi
 		if [ -z "$BANNER_PWD" ]; then
@@ -906,35 +907,39 @@ if [ "`ismpx`" = yes -o "$TERM" = "dmd-myx" ] ; then
 		eval myxban -l "\"$MYXBAN_L\""
 		myxban -c "${WBANNER:-`basename ${SHELL}`}"
 		eval myxban -r "\"$MYXBAN_R\""
+		unset BANNER_PWD
 	}
 
-# most versions of SysV sh always run builtins before functions
+# XXX most versions of SysV sh always run builtins before functions
 #
 #	cd ()
 #	{
-#		chdir ${1+"$@"}
-#		setban
+#		chdir "$*"
+#		BANNER_PWD=$(pwd)
+#		eval myxban -l "\"$MYXBAN_L\""
 #	}
 
 	setban
 fi
-
+# else
 case "$TERM" in
 *xterm*)
 	clearban ()
 	{
-		WBANNER=""
+		WBANNER="${OWBANNER}";
 		setban
 	}
 
 	setban ()
 	{
 		if [ $# -ge 1 ]; then
+			OWBANNER=${WBANNER}
 			# no trailing space -- usually just used to
 			# set alternate shell name
 			WBANNER=${1+"${@}"}
 		fi
 		if [ -z "$BANNER_PWD" ]; then
+			# only if needed (it's expensive), would be done by 'cd' if possible
 			BANNER_PWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;'`
 		fi
 		if [ "$USER" = "$LOGNAME" ]; then
@@ -943,18 +948,20 @@ case "$TERM" in
 			eval TBANNER='"${WBANNER:-`basename ${SHELL}`}://$UUNAME/$BANNER_PWD | $user:$group($LOGNAME)[$LEV]:$TTYN"'
 		fi
 		$echo $n "\033]0;${TBANNER}\007$c"
+
+		unset BANNER_PWD
 	}
 
-# most versions of SysV sh always run builtins before functions
+	setban
+	;;
+# XXX most versions of SysV sh always run builtins before functions
 #
 #	cd ()
 #	{
 #		chdir ${1+"$@"}
+#		BANNER_PWD=`pwd`
 #		setban
 #	}
-
-	setban
-	;;
 esac
 
 if [ -f /usr/share/misc/na.phone ]; then

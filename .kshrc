@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	37.3	21/11/21 17:47:50 (woods)"
+#ident	"@(#)HOME:.kshrc	37.4	21/11/22 12:09:44 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -307,10 +307,12 @@ if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 	function setban
 	{
 		if [ $# -ge 1 ]; then
+			OWBANNER=${WBANNER}
 			WBANNER="$@"
 		fi
 		if [ -z "$BANNER_PWD" ]; then
-			BANNER_PWD=$(pwd)
+			# only if needed (it's expensive), usually done by 'cd'
+			BANNER_PWD=$(pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;')
 		fi
 		printf '%s' "${MYXCLR}"
 		eval myxban -l "\"$MYXBAN_L\""
@@ -349,14 +351,14 @@ xterm*)
 	function setban
 	{
 		if [ $# -ge 1 ]; then
+			OWBANNER=${WBANNER}
 			# no trailing space -- usually just used to
 			# set alternate shell name
-			OWBANNER=${WBANNER}
 			WBANNER="$@"
 		fi
 		if [ -z "$BANNER_PWD" ]; then
 			# only if needed (it's expensive), usually done by 'cd'
-			BANNER_PWD=$(pwd)
+			BANNER_PWD=$(pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;')
 		fi
 		if [ "$user" = "$LOGNAME" ]; then
 			eval TBANNER='"${WBANNER:-$(basename ${SHELL})}://$UUNAME/$BANNER_PWD | $user[$LEV]:$TTYN"'
@@ -364,6 +366,8 @@ xterm*)
 			eval TBANNER='"${WBANNER:-$(basename ${SHELL})}://$UUNAME/$BANNER_PWD | $user:$group($LOGNAME)[$LEV]:$TTYN"'
 		fi
 		printf "\033]0;${TBANNER}\007"
+
+		unset BANNER_PWD
 	}
 
 	# NOTE:  may be re-defined in ~/.kshpwd
