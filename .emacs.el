@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.2	21/08/27 15:00:58 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.3	21/11/22 12:13:11 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -2730,9 +2730,17 @@ argument.  As a consequence, you can always delete a whole line by typing
 ;;;; ----------
 ;;;; some special hooks.....
 
+;; XXX N.B.:  Currently this is not functional as we invoke emacs as "emacs -i".
+;;
+;; HOWEVER, this needs re-thinking anyway with use of multiple emacs-X11 processes
+;; on some systems (e.g. where we edit stuff and read e-mail).  We probably only
+;; want the edit session to edit stuff.
+;;
+;; 
+(defvar server-started nil "If defined we've called server-start.")
 (if (and (<= (safe-length command-line-args) 1)
-	 (or (string-equal (getenv "EDITOR") "emacsclient")
-	     (string-equal (getenv "VISUAL") "emacsclient")))
+	 (or (string-prefix-p (getenv "EDITOR") "emacsclient")
+	     (string-prefix-p (getenv "VISUAL") "emacsclient")))
     (progn
       ;; to quiet the v19 byte compiler
       (eval-when-compile
@@ -2763,7 +2771,7 @@ argument.  As a consequence, you can always delete a whole line by typing
 
       (if (not (boundp 'server-started))
 	  (progn
-	    (defvar server-started 1 "If defined we've called server-start.")
+	    (setq server-started t)
 	    (server-start)))))
 
 ;;;; ----------
