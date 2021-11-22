@@ -1,7 +1,7 @@
 #
 #	.profile - for either SysV sh, 4BSD sh, any ksh, some GNU bash, or even old ash.
 #
-#ident	"@(#)HOME:.profile	37.4	21/11/21 17:43:35 (woods)"
+#ident	"@(#)HOME:.profile	37.5	21/11/22 14:22:42 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -949,7 +949,7 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 		export TERM
 
 		case "${TERM}" in
-		vt220)
+		vt220*)
 			if [ ! -r ${HOME}/.stty ] ; then
 				# real vt220 keyboards make this the best setup
 				# n.b.:  on *BSD this could be "stty dec"
@@ -967,11 +967,19 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 
 		# now, one more time to really do the correct initialisation...
 		#
-		if ${HAVETPUT} ; then
-			# unfortunately "tput init" will clear an xterm
-			#
-			tput reset
-		fi
+		# unfortunately "tput reset" will almost always clear an
+		# xterm, and "tput init" may do so, depending on the vintage of
+		# terminfo definitions the host system has
+		#
+		case "${TERM}" in
+		xterm*)
+			;;
+		*)
+			if ${HAVETPUT} ; then
+				tput init
+			fi
+			;;
+		esac
 		# Note: in other places we assume tset is avaliable....
 		if expr "`type tset 2>/dev/null`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
 			# On BSD, without the "-I" it uses /etc/termcap....
