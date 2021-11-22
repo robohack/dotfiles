@@ -12,7 +12,7 @@
 # especially any that are only used by functions here, e.g. as was
 # done with MAILLOG.
 #
-#ident	"@(#)HOME:.shrc	37.5	21/11/02 16:50:45 (woods)"
+#ident	"@(#)HOME:.shrc	37.6	21/11/21 18:02:10 (woods)"
 
 PATH=$PATH
 export PATH
@@ -937,10 +937,10 @@ case "$TERM" in
 		if [ -z "$BANNER_PWD" ]; then
 			BANNER_PWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;'`
 		fi
-		if [ "$uid" = "$LOGNAME" ]; then
-			eval TBANNER='"${WBANNER:-`basename ${SHELL}`}://$UUNAME/$BANNER_PWD | $uid[$LEV]:$TTYN"'
+		if [ "$USER" = "$LOGNAME" ]; then
+			eval TBANNER='"${WBANNER:-`basename ${SHELL}`}://$UUNAME/$BANNER_PWD | $user[$LEV]:$TTYN"'
 		else
-			eval TBANNER='"${WBANNER:-`basename ${SHELL}`}://$UUNAME/$BANNER_PWD | $uid:$gid($LOGNAME)[$LEV]:$TTYN"'
+			eval TBANNER='"${WBANNER:-`basename ${SHELL}`}://$UUNAME/$BANNER_PWD | $user:$group($LOGNAME)[$LEV]:$TTYN"'
 		fi
 		$echo $n "\033]0;${TBANNER}\007$c"
 	}

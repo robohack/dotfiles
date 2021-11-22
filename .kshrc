@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	37.2	21/04/26 18:35:47 (woods)"
+#ident	"@(#)HOME:.kshrc	37.3	21/11/21 17:47:50 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -358,10 +358,10 @@ xterm*)
 			# only if needed (it's expensive), usually done by 'cd'
 			BANNER_PWD=$(pwd)
 		fi
-		if [ "$uid" = "$LOGNAME" ]; then
-			eval TBANNER='"${WBANNER:-$(basename ${SHELL})}://$UUNAME/$BANNER_PWD | $uid[$LEV]:$TTYN"'
+		if [ "$user" = "$LOGNAME" ]; then
+			eval TBANNER='"${WBANNER:-$(basename ${SHELL})}://$UUNAME/$BANNER_PWD | $user[$LEV]:$TTYN"'
 		else
-			eval TBANNER='"${WBANNER:-$(basename ${SHELL})}://$UUNAME/$BANNER_PWD | $uid:$gid($LOGNAME)[$LEV]:$TTYN"'
+			eval TBANNER='"${WBANNER:-$(basename ${SHELL})}://$UUNAME/$BANNER_PWD | $user:$group($LOGNAME)[$LEV]:$TTYN"'
 		fi
 		printf "\033]0;${TBANNER}\007"
 	}
@@ -378,30 +378,31 @@ xterm*)
 	setban
 	;;
 *)
-	if [ "$uid" != "$LOGNAME" ] ; then
-		PS1="${PS1}"'$TTYN:$uid($LOGNAME)@$UUNAME)[${LEV:+${LEV}.}'"$_"'] ${BANNER_PWD#$HOME}'
+	if [ "$user" != "$LOGNAME" ] ; then
+		PS1="${PS1}"'$TTYN:$user($LOGNAME)@$UUNAME)[${LEV:+${LEV}.}'"$_"'] ${BANNER_PWD#$HOME}'
 	else
 		PS1="${PS1}"'$TTYN:$LOGNAME@$UUNAME[${LEV:+${LEV}.}'"$_"'] ${BANNER_PWD#$HOME}'
 	fi
 	;;
 esac
 
+# Transform id(1)'s output into useful shell variable assignments
+#
 # UGLY, but it works
 #
-# NOTE:  there's a trick in here -- if there's no group-ID for your
-# GID then the final expression parameter won't do anything.  However
-# since we've already pre-trimmed the extra "groups=..." stuff off the
-# end the only thing that'll be left is the original "gid=20" string,
-# and that'll have the same effect we want anyway.
-#
-# That's why we call the variable which holds the primary group name
-# "gid" and not gname or group or whatever...
+# NOTE:  there's a trick in here -- if there's no group name for your GID then
+# the final expression parameter won't do anything.  However since the extra
+# "groups=..." stuff (which may have had more word-surrounded parens) has
+# already been trimmed off the end the only thing that'll be left is the
+# original "gid=20" string, so $group simply won't be set, so afterward it is
+# set to $gid instead.
 #
 eval "$(id | sed -e 's/ groups=.*$//' \
-		 -e 's/uid=\([0-9]*\)(\(..*\)) /id=\1 uid=\2 /' \
-		 -e 's/gid=[0-9]*(\([^) ]*\)).*$/gid=\1/')"
+		 -e 's/(\([^) ]*\)) / user=\1 /' \
+		 -e 's/(\([^) ]*\))/ group=\1/')"
+: ${group:=${gid}}
 
-if [ "$id" -eq 0 ] ; then
+if [ "$uid" -eq 0 ] ; then
 	#
 	# we always want persistent (and shared) history for 'su'
 	#
@@ -638,7 +639,7 @@ if [ "$id" -eq 0 ] ; then
 
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		# xxx should do this in setban...
-		MYXBAN_R='$uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN'
+		MYXBAN_R='$user:$group($LOGNAME)@$UUNAME[$LEV]:$TTYN'
 		append2path PATH $DMD/bin $DMDSGS/bin/3b5 $DMD/local/bin
 	fi
 
@@ -696,16 +697,16 @@ if [ "$id" -eq 0 ] ; then
 	OWBANNER=${WBANNER}
 	WBANNER="SU $(basename ${SHELL})"
 	setban
-elif [ "$uid" != "$LOGNAME" ] ; then
+elif [ "$user" != "$LOGNAME" ] ; then
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		# xxx should do this in setban...
-		MYXBAN_R='$uid{$gid}($LOGNAME)@$UUNAME[$LEV]:$TTYN'
+		MYXBAN_R='$user:$group($LOGNAME)@$UUNAME[$LEV]:$TTYN'
 	fi
 	PS1="${PS1}"' $ '
 else
 	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
 		# xxx should do this in setban...
-		MYXBAN_R='$LOGNAME{$gid}@$UUNAME[$LEV]:$TTYN'
+		MYXBAN_R='$LOGNAME{$group}@$UUNAME[$LEV]:$TTYN'
 	fi
 	PS1="${PS1}"' $ '
 fi
@@ -960,7 +961,7 @@ if type setban > /dev/null ; then
 	fi
 fi
 
-if [ "$uid" = usenet -o "$uid" = news ] ; then
+if [ "$user" = usenet -o "$group" = news ] ; then
 	dirprepend PATH $LOCAL/lib/newsbin $LOCAL/lib/newsbin/maint $LOCAL/lib/newsbin/input
 fi
 
