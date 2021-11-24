@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.2	21/06/01 23:49:22 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.3	21/11/24 12:15:44 (woods)"
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -325,26 +325,33 @@ ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [IconRegion	"1000x450-0+245" No
 #	8x13 == Medium
 #	9x15 == Large
 #
-ifelse(eval(WIDTH >= 2560 && HEIGHT >= 1440), 1, [define(OPT_BIG_XTERM, [-geometry 132x+100+0 -font 7x14])],
- [ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1280), 1, [define(OPT_BIG_XTERM, [-geometry 117x83+0+0 -font 9x15])],
-  [ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [define(OPT_BIG_XTERM, [-geometry 117x77+0+0 -font 9x15])],
-   [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [define(OPT_BIG_XTERM, [-geometry 100x50+0+0 -font 9x15])],
-    [define(OPT_BIG_XTERM, [-geometry 80x40+0+0])]
+# Notes:
+#
+# - setting -fs (faceSize) to 7.5 makes the TrueType font size most closely
+#   match the size of the default "fixed" bitmap font's size.
+#
+# - Unfortunately on the iMac 27" with 2560x1440 there is not quite room enough
+#   horizontally for the three standard xterms with a point size of 10 for the
+#   big ones.
+#
+ifelse(eval(WIDTH >= 2560 && HEIGHT >= 1440), 1, [define(OPT_BIG_XTERM, [-geometry 132x93+0+0 -fs 9 -font 7x14])],
+ [ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1280), 1, [define(OPT_BIG_XTERM, [-geometry 117x83+0+0 -fs 9 -font 9x15])],
+  [ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [define(OPT_BIG_XTERM, [-geometry 117x77+0+0 -fs 9 -font 9x15])],
+   [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [define(OPT_BIG_XTERM, [-geometry 100x50+0+0 -fs 7.5 -font 9x15])],
+    [define(OPT_BIG_XTERM, [-fs 7.5 -geometry 80x40+0+0])]
    )]
   )]
  )]
 )
 # note the -155 is the height of the normal xconsole window, at 120, plus its decorations (I think)
-define(OPT_LITTLE_XTERM, [-geometry 80x45-0-155])
+define(OPT_LITTLE_XTERM, [-fs 7.5 -geometry 80x45-0-155])
+
+# For all xterms
 #
-# Notes:
-#
-# - setting -fs (faceSize) to 7.0 makes the TrueType font size most
-#   closely match the size of the default "fixed" bitmap font's size.
-#   (this may need to be another option in the way of OPT_ZICONBEEP if
-#   we encounter any systems providing xterms without it)
-#
-define(OPT_LOGIN_XTERM, [-fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls])
+define(OPT_LOGIN_XTERM, [-fbx -cn -rw -sb -si -sk -sl 2048 -ls])
+
+define(OPT_XTERM_FA, [-fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso8859-1'])
+define(OPT_UXTERM_FA, [-fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1'])
 
 # Can only be one directory!  Uses resource bitmapFilePath first...
 #
@@ -733,7 +740,7 @@ menu "quickies"
 	""			f.separator
  ifdef([ON_OSX], [
 	""			f.separator
-	"Pasteboard Copy"	!"uxterm OPT_XTERM_TN OPT_LITTLE_XTERM -T 'Paste text to PasteBoard here' -e pbcopy &"
+	"Pasteboard Copy"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM -T 'Paste text to PasteBoard here' -e pbcopy &"
 	""			f.separator
  ])
 	"Toggle workspace"	f.togglestate
@@ -776,14 +783,14 @@ menu "quickies"
 	"Xclipboard"		!"xclipboard &"
  ])
 	""			f.separator
-	"UXterm [@CLIENTHOST]"	!"uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP &"
-	"UXterm-big [@CLIENTHOST]"	!"uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP &"
+	"UXterm [@CLIENTHOST]"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP &"
+	"UXterm-big [@CLIENTHOST]"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP &"
 	#
  ifdef([USE_X11SERVER], [
-	"Xterm @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER 'xterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"Xterm-big @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER 'xterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"Xterm @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER 'xterm OPT_XTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"Xterm-big @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER 'xterm OPT_XTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
  ])
 	"Xterm's Everywhere..."	f.menu "xterms"
 	""			f.separator
@@ -804,7 +811,7 @@ menu "consoles"
 {
 	"Console Server"	f.title
   define(CONSOLE_REP, [
-	"$1 []"			!"uxterm OPT_XTERM_TN -geometry 132x66 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n $1 -T '\"$1 Virtual Console\"' -e console $1 &"
+	"$1 []"			!"uxterm OPT_UXTERM_FA OPT_XTERM_TN -geometry 132x66 -fn 5x7 -fbx -cn -rw -sb -si -sk -sl 2048 OPT_ZICONBEEP -n $1 -T '\"$1 Virtual Console\"' -e console $1 &"
   ])
 	CONSOLE_REP(xenful)
 	CONSOLE_REP(xentastic)
@@ -826,10 +833,10 @@ menu "consoles"
 menu "termservers"
 {
 	"Term Srvr Telnets"	f.title
-	"telnet controlling"	!"uxterm OPT_XTERM_TN OPT_LOGIN_XTERM OPT_ZICONBEEP -n controlling -T 'controlling Virtual Console' -e telnet controlling.local 2000 &"
+	"telnet controlling"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LOGIN_XTERM OPT_ZICONBEEP -n controlling -T 'controlling Virtual Console' -e telnet controlling.local 2000 &"
 	""			f.separator
   define(CONTROLLING_REP, [
-	"Controlling-20$1"	!"uxterm -geometry 132x66 -fn 5x7 OPT_XTERM_TN OPT_LOGIN_XTERM OPT_ZICONBEEP -n Ctrl20$1 -T 'Controlling-20$1' -e telnet controlling.local 20$1 &"
+	"Controlling-20$1"	!"uxterm OPT_UXTERM_FA -geometry 132x66 -fn 5x7 OPT_XTERM_TN OPT_LOGIN_XTERM OPT_ZICONBEEP -n Ctrl20$1 -T 'Controlling-20$1' -e telnet controlling.local 20$1 &"
   ])
 ###	CONTROLLING_REP(01)	# this is the physical console
 	CONTROLLING_REP(02)
@@ -1335,80 +1342,81 @@ menu "samplegames"
 menu "xterms"
 {
 	"Xterms Everywhere"	f.title
-	"Xterm @localhost"	!"$X11BIN/xterm OPT_XTERM_TN OPT_LOGIN_XTERM OPT_ZICONBEEP &"
+	"Xterm @localhost"	!"$X11BIN/xterm OPT_XTERM_FA OPT_XTERM_TN OPT_LOGIN_XTERM OPT_ZICONBEEP &"
+	"UXterm @localhost"	!"$X11BIN/uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LOGIN_XTERM OPT_ZICONBEEP &"
  ifdef([AT_WEIRD], [
-	"UXterm @xenful"	!". ./.shrc; onx11server -n xenful.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @xenful"	!". ./.shrc; onx11server -n xenful.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @xentastic"	!". ./.shrc; onx11server -n xentastic.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @xentastic"	!". ./.shrc; onx11server -n xentastic.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @xenful"	!". ./.shrc; onx11server -n xenful.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @xenful"	!". ./.shrc; onx11server -n xenful.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @xentastic"	!". ./.shrc; onx11server -n xentastic.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @xentastic"	!". ./.shrc; onx11server -n xentastic.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
 	#
-	"UXterm @building"	!". ./.shrc; onx11server -n building.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @building"	!". ./.shrc; onx11server -n building.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @more"		!". ./.shrc; onx11server -n more.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @more"	!". ./.shrc; onx11server -n more.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @future"	!". ./.shrc; onx11server -n future.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @future"	!". ./.shrc; onx11server -n future.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @isit"		!". ./.shrc; onx11server -n isit.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @isit"	!". ./.shrc; onx11server -n isit.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @lilbit"	!". ./.shrc; onx11server -n lilbit.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @lilbit"	!". ./.shrc; onx11server -n lilbit.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @rpi"		!". ./.shrc; onx11server -n rpi.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @rpi"	!". ./.shrc; onx11server -n rpi.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @historically"	!". ./.shrc; onx11server -n historically.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @historically" !". ./.shrc; onx11server -n historically.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @once"		!". ./.shrc; onx11server -n once.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @once"	!". ./.shrc; onx11server -n once.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @freebsd"	!". ./.shrc; RSH=ssh onx11server -n freebsd.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @freebsd"	!". ./.shrc; RSH=ssh onx11server -n freebsd.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @nbt"		!". ./.shrc; onx11server -n nbt.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @nbt"	!". ./.shrc; onx11server -n nbt.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @nbtest"	!". ./.shrc; onx11server -n nbtest.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @nbtest"	!". ./.shrc; onx11server -n nbtest.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local 'uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local 'uxterm OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @building"	!". ./.shrc; onx11server -n building.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @building"	!". ./.shrc; onx11server -n building.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @more"		!". ./.shrc; onx11server -n more.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @more"	!". ./.shrc; onx11server -n more.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @future"	!". ./.shrc; onx11server -n future.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @future"	!". ./.shrc; onx11server -n future.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @isit"		!". ./.shrc; onx11server -n isit.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @isit"	!". ./.shrc; onx11server -n isit.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @lilbit"	!". ./.shrc; onx11server -n lilbit.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @lilbit"	!". ./.shrc; onx11server -n lilbit.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @rpi"		!". ./.shrc; onx11server -n rpi.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @rpi"	!". ./.shrc; onx11server -n rpi.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @historically"	!". ./.shrc; onx11server -n historically.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @historically" !". ./.shrc; onx11server -n historically.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @once"		!". ./.shrc; onx11server -n once.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @once"	!". ./.shrc; onx11server -n once.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @freebsd"	!". ./.shrc; RSH=ssh onx11server -n freebsd.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @freebsd"	!". ./.shrc; RSH=ssh onx11server -n freebsd.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @nbt"		!". ./.shrc; onx11server -n nbt.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @nbt"	!". ./.shrc; onx11server -n nbt.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @nbtest"	!". ./.shrc; onx11server -n nbtest.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @nbtest"	!". ./.shrc; onx11server -n nbtest.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm-big @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
 	#
 	# xxx these are not so useful as if the SSH connection drops then the
 	# window simply disappears with no hint as to when or why!  See further
 	# discussion in ~/.xinitrc regarding running X11 via tunnels, etc.
 	#
-	"Slogin @xentral"	!"uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C xentral.avoncote.ca' &"
-	"Slogin @central"	!"uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C central.weird.com' &"
-	"Slogin @central"	!"uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C bw.avoncote.ca' &"
+	"Slogin @xentral"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C xentral.avoncote.ca' &"
+	"Slogin @central"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C central.weird.com' &"
+	"Slogin @central"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C bw.avoncote.ca' &"
   ifdef([AT_VERY_WEIRD], [], [
-	"Xterm @very"		!". ./.profile; onx11server -n very.local 'xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM' &"
-	"Slogin @very"		!"uxterm OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C very.local' &"
+	"Xterm @very"		!". ./.profile; onx11server -n very.local 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM' &"
+	"Slogin @very"		!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C very.local' &"
   ])
  ])
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
-	"Xterm @most"		!". ./.profile; onx11server -n most.weird.com 'xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"Xterm @most"		!". ./.profile; onx11server -n most.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
   ])
   ifelse(HOSTNAME, historically.weird.com, [], [
-	"Xterm @historically"	!". ./.profile; onx11server -n historically.weird.com 'xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"Xterm @historically"	!". ./.profile; onx11server -n historically.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
   ])
   ifelse(HOSTNAME, building.weird.com, [], [
-	"Xterm @building" 	!". ./.profile; onx11server -n building.weird.com 'xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"Xterm @building" 	!". ./.profile; onx11server -n building.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
   ])
   ifelse(HOSTNAME, once.weird.com, [], [
-	"Xterm @once"		!". ./.profile; onx11server -n once.weird.com 'xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM' &"
+	"Xterm @once"		!". ./.profile; onx11server -n once.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM' &"
   ])
   ifelse(HOSTNAME, very.weird.com, [], [
-	"Xterm @very"		!". ./.profile; onx11server -n very.weird.com 'xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM' &"
+	"Xterm @very"		!". ./.profile; onx11server -n very.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM' &"
   ])
   ifelse(HOSTNAME, almost.weird.com, [], [
-	"Xterm @almost"		!". ./.profile; onx11server -n almost.weird.com 'xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM' &"
+	"Xterm @almost"		!". ./.profile; onx11server -n almost.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM' &"
   ])
   ifelse(HOSTNAME, whats.weird.com, [], [
-	"Xterm @whats"		!". ./.profile; onx11server -n whats.weird.com 'xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM' &"
+	"Xterm @whats"		!". ./.profile; onx11server -n whats.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM' &"
   ])
   ifelse(HOSTNAME, sometimes.weird.com, [], [
-	"Xterm @sometimes" 	!". ./.profile; onx11server -n sometimes.weird.com 'xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"Xterm @sometimes" 	!". ./.profile; onx11server -n sometimes.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
   ])
   ifelse(HOSTNAME, always.weird.com, [], [
-	"Xterm @always" 	!". ./.profile; onx11server -n always.weird.com 'xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"Xterm @always" 	!". ./.profile; onx11server -n always.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
   ])
   ifelse(HOSTNAME, freely.weird.com, [], [
-	"Xterm @freely" 	!". ./.profile; onx11server -n freely.weird.com 'xterm OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"Xterm @freely" 	!". ./.profile; onx11server -n freely.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
   ])
  ])
 }
@@ -1447,7 +1455,7 @@ ifdef([ON_OSX], [
 menu "osx-apps"
 {
 	"Mac OS X Applications"	f.title
-	"pasteboard copy"	!"uxterm OPT_XTERM_TN OPT_LITTLE_XTERM -T 'Paste text to PasteBoard here' -e pbcopy"
+	"pasteboard copy"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM -T 'Paste text to PasteBoard here' -e pbcopy"
 	""			f.separator
 	"Activity Monitor"	!"open '/Applications/Utilities/Activity Monitor.app' &"
 	"Adium"			!"open /Applications/Adium.app &"
