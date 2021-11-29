@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.4	21/11/28 17:59:39 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.5	21/11/28 22:17:32 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -5501,25 +5501,43 @@ but it's seriously brain damaged so we re-define it as nothing."
 ;;(setq gnus-read-active-file t)		; default of 'some sometimes causes it to hang
 (setq gnus-read-active-file 'some)
 
-(defun regexp-complement (string)
-  "Produce a regular expression which is the complement of STRING."
-  (string-join (mapcar (lambda (c) (concat "[^" (char-to-string c) "]")) string)))
+;(defun regexp-complement (string)
+;  "Produce a regular expression which is the complement of STRING."
+;  (string-join (mapcar (lambda (c) (concat "[^" (char-to-string c) "]")) string)))
 
 ;; I always forget to do this....
 ;;
-(if (directory-files (file-name-directory auto-save-list-file-prefix)
-		     nil
-		     (concat
-		      "\\`"		; include any filenames with newlines
-		      (file-name-nondirectory
-		       auto-save-list-file-prefix)
-		      (regexp-complement (number-to-string (emacs-pid)))
-		      "-"
-		      (system-name)
-		      "~"
-		      )
-		     t)
-    (recover-session))
+;; note this code creates the filename portion of `auto-save-list-file-name'
+;; because that is not initialized until after all the `after-init-hook' hooks
+;; are called, and in doing so we assume that nothing else here sets it
+;; (i.e. that it remains nil until after this init-file is loaded)
+;;
+(require 'seq)
+(defun my-do-recover-session ()
+  "Call `recover-session' if there are any auto-save file lists for this system
+but which do not match any for this process."
+  (interactive)
+  (if (seq-remove
+       (lambda (x) (string-equal (concat (file-name-nondirectory
+					  auto-save-list-file-prefix)
+					 (number-to-string (emacs-pid))
+					 "-"
+					 (system-name)
+					 "~")
+				 x))
+       (directory-files (file-name-directory auto-save-list-file-prefix)
+			nil
+			(concat
+			 "\\`"		; include any filenames with newlines?
+			 (file-name-nondirectory auto-save-list-file-prefix)
+			 ".*"
+			 "-"
+			 (system-name)
+			 "~")
+			t))
+      (call-interactively
+       'recover-session)))
+(add-hook 'after-init-hook 'my-do-recover-session)
 
 ;;;;-------
 ;;;; the closing comments.....
