@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.3	21/11/22 12:13:11 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.4	21/11/28 17:59:39 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v19.34 or newer
 ;;;;
@@ -179,12 +179,13 @@
 					; (LC_ALL, LC_CTYPE, or LANG) (the
 					; parameter is optional in version 22,
 					; but not in version 21.4)
-      (set-language-environment "UTF-8")) ; xxx assume all window systems are
+      (set-language-environment "UTF-8") ; xxx assume all window systems are
 					; full UTF-8, since all of the ones I
 					; use are, and I do this here because
 					; emacs may have been started from a
 					; non-UTF-8 capable command environment
 					; (i.e. not a uxterm/xterm -u8)
+      (setq manual-program "LC_CTYPE=en_US.UTF-8 man")) ; also tell 'man'...
   (standard-display-european 1))
 
 ;; xxx we don't seem to need this -- it should "Do The Right Thing(tm)" based
@@ -999,7 +1000,7 @@ match `%s'. Connect anyway? " host))))))
   (if (< init-emacs-type 21)
       (defvar indicate-empty-lines)))
 (setq-default indicate-empty-lines t)	; show which lines are past the EOF
-(setq-default indicate-unused-lines t)	; hmmm...  alias?
+(setq-default indicate-unused-lines t)	; hmmm...  now an alias...
 (setq-default indicate-buffer-boundaries 'left)
 
 ;;;; ----------
@@ -1594,13 +1595,21 @@ with possible additional arguments `browse-url-xterm-args'."
 (setq frame-title-format
       '("" mode-line-process " %b [%f] %F@" system-name))
 
+;; Curiously this doesn't take effect until emacs is "ready", which is good, as
+;; we then will know it is ready when the first window jumps into this position!
+;;
+(setq initial-frame-alist
+      '((top . 0)
+	(left . 0)))
+
 (setq icon-title-format frame-title-format)
 
 ;; this was changed to default to t in Emacs 23.
 ;;
 ;; It's not ideal to leave it nil, but so far that's the best way to preserve
 ;; location and size of windows like *Help*, etc. if they've been changed from
-;; the pre-set values.
+;; the pre-set values.  Also it's handy to have the icon there to click on if
+;; one wants to redisplay the window using mouse controls.
 ;;
 (setq view-remove-frame-by-deleting nil)
 
@@ -1612,77 +1621,80 @@ with possible additional arguments `browse-url-xterm-args'."
 	"*ielm*"
 	"*scheme*")) ; *info* nixed
 
+;; N.B.:  `special-display-regexps', for entries in the "(REGEXP
+;; FRAME-PARAMETERS)" form thse override the corresponding frame parameters
+;; given in ‘special-display-frame-alist’
+;;
 ;; Warning: `special-display-regexps' is an obsolete variable (as of 24.3); use
 ;; `display-buffer-alist' instead.
 ;;
+;; N.B.:  XXX these have to be one larger when fringes are displayed????
+;;
+;; 	(if (> (car (window-fringes)) 0)
+;;	    ...
+;;
 (setq special-display-regexps		; xxx obsolete as of 24.3
       '((".*\\*Apropos\\*.*"
-	 '((top . 0)
-	   (left . -1)
-	   (height . 50)
-	   (width . 80)
-	   (tool-bar-lines . 0)
-	   (menu-bar-lines . 0)))
+	 (height . 53)			; 52 leaves a couple of xterm lines
+	 (width . 81))
+	("*Compile-Log*"
+	 (height . 19)			; 18 just fits above the right-hand xterm
+	 (width . 101))
+	("*grep*"
+	 (height . 19)
+	 (width . 101))
 	(".*\\*Help\\*.*"
-	 '((top . 0)
-	   (left . -1)
-	   (height . 50)
-	   (width . 80)
-	   (tool-bar-lines . 0)
-	   (menu-bar-lines . 0)))
+	 (height . 53)
+	 (width . 81))
+	(".*\\*Man.*"			; xxx there is also `Man-frame-parameters'
+	 (height . 53)
+	 (width . 81))
 	(".*\\*info\\*.*"
-	 '((top . 0)
-	   (left . -1)
-	   (height . 50)
-	   (width . 80)
-	   (tool-bar-lines . 0)
-	   (menu-bar-lines . 0)))
-	(".*\\*scratch\\*.*"
-	 '((top . 300)
-	   (left . -0)
-	   (height . 44)
-	   (width . 90)
-	   (tool-bar-lines . 0)
-	   (menu-bar-lines . 0)))
-;	(".*"
-;	 '((top . 0)
-;	   (left . -1)
-;	   (height . 42)
-;	   (width . 80)
-;	   (unsplittable . t)		; ?????  Should they all be?
-;	   (tool-bar-lines . 0)
-;	   (menu-bar-lines . 0)))
+	 (height . 53)
+	 (width . 81))
+	(".*\\*compilation\\*.*"
+	 (width . 101))
+	(".*\\*scratch\\*.*"		; xxx this is of course rarely used
+	 (height . 49)			; (but see `my-test-mode-setup', and of
+	 (width . 101))			; course one can call `display-buffer')
 	))
 
-;; frame parameters for plain buffer names are supplied by
+;; frame parameters for these plain buffer names are supplied by
 ;; special-display-frame-alist, set below
 ;;
 ;; Warning: `special-display-buffer-names' is an obsolete variable (as of
 ;; 24.3); use `display-buffer-alist' instead.
 ;;
 (setq special-display-buffer-names	; xxx obsolete as of 24.3
-      '("*compilation*"
-	"*Compile-Log*"
-	"*grep*"
+      '("*ielm*"
+	"*inferior-lisp*"
+	"*mail*"
+	"*scheme*"
+	"*shell*"
 	"*tex-shell*"))
 
-;; special buffers also shouldn't have a menu-bar either....
+;; see also `same-window-regexps'
+;(setq same-window-buffer-names
+;      '(
+;	"*special-buffer-name*"
+;	))
+
+;; special buffers common default frame parameters
 ;;
 ;; These apply to `special-display-buffer-names' and `special-display-regexps'
 ;;
-;; Hmmm....
-;;
-;; Actually these seem to completely override the frame parameters that are
-;; explicitly set in special-display-regexps above.  That must be a bug!
+;; N.B.:  These not suppose to override the frame parameters "for buffers whose
+;; names match one of the regular expressions in `special-display-regexps'", but
+;; apparently they do!
 ;;
 ;; Warning: `special-display-frame-alist' is an obsolete variable (as of 24.3);
 ;; use `display-buffer-alist' instead.
 ;;
 (setq special-display-frame-alist	; xxx obsolete as of 24.3
-      '((top . 0)
-	(left . -1)
-	(height . 16)			; 20 is OK on big displays
-	(width . 80)
+      '((top . 300)			; normally below the lower xloads
+	(left . -25)			; at some point -1 went off the right!
+	(height . 49)			; 48 is OK on big displays
+	(width . 81)			; plus 1, with fringes on
 	(unsplittable . t)
 	(tool-bar-lines . 0)
 	(menu-bar-lines . 0)))
@@ -3641,6 +3653,8 @@ to get rid of that horrid `z' key binding!"
 (define-key help-map "\e?" 'help-for-help)	; press it twice for help help
 (define-key help-map "c" 'describe-char)	; orig is weird
 (define-key help-map "?" 'describe-key-briefly)
+(define-key help-map "M" 'man)
+
 
 ;;; Now for function key mappings...
 ;;;
@@ -5485,22 +5499,26 @@ but it's seriously brain damaged so we re-define it as nothing."
     (setq message-user-organization-file "~/.organization"))
 
 ;;(setq gnus-read-active-file t)		; default of 'some sometimes causes it to hang
-(setq gnus-read-active-file 'some)		; try with shaw
+(setq gnus-read-active-file 'some)
+
+(defun regexp-complement (string)
+  "Produce a regular expression which is the complement of STRING."
+  (string-join (mapcar (lambda (c) (concat "[^" (char-to-string c) "]")) string)))
 
 ;; I always forget to do this....
 ;;
-;; ToDo:  should only activate if current hostname has an auto-save-file, AND
-;; IFF the process for that file is not still running!
-;;
-;; XXX also, this seems to be evaluated sometimes at odd times....  (perhaps the
-;; whole startup file is reloaded occasionally for some reason?)
-;;
 (if (directory-files (file-name-directory auto-save-list-file-prefix)
-		 nil
-		 (concat "\\`" (regexp-quote
-				(file-name-nondirectory
-				 auto-save-list-file-prefix)))
-		 t)
+		     nil
+		     (concat
+		      "\\`"		; include any filenames with newlines
+		      (file-name-nondirectory
+		       auto-save-list-file-prefix)
+		      (regexp-complement (number-to-string (emacs-pid)))
+		      "-"
+		      (system-name)
+		      "~"
+		      )
+		     t)
     (recover-session))
 
 ;;;;-------
