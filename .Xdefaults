@@ -1,9 +1,12 @@
 !
-!#ident	"@(#)HOME:.Xdefaults	37.1	21/03/23 11:43:03 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.2	21/12/07 15:12:03 (woods)"
 !
 ! reload with:
 !
 !	xrdb -override .Xdefaults
+!
+! Note that most programs, e.g. xterm, must be restarted to notice changes in
+! their resources.
 !
 ! WARNING:  Do not use single quote contractions in comments!
 !
@@ -35,54 +38,62 @@ xpdf.toolTipEnable:		false
 ! other program.
 !
 ! Unfortunately metaSendsEscape is not the correct default either as there seems
-! to be a bug whereby it cannot be disabled when set to 'true' here, so you have
+! to be a bug whereby it cannot be disabled when set to "true" here, so you have
 ! to manually enable it for Emacs, and disable it again if you want to type
 ! accented characters with "Meta" to any other program.
 !
 !UXTerm*metaSendsEscape:	true
 !XTerm*metaSendsEscape:		true
 !
+! set up shifted and meta arrow and page keys to scroll xterms
+!
+! Having the same operations on both shifted and meta keys might be stupid.
+!
+! XXX probably do not need the ~Shift entries -- they effectively force "normal
+! mode" cursor keys -- especially if terminfo has not been fixed to remove
+! "application" key switching from smkx and rmkx.
+!
+! xxx perhaps the leading "UXTerm" and "Xterm" parts can be removed to allow
+! having just one entry, but then it would apply to any app with a VT100 class
+! name.
+!
 UXTerm*VT100.Translations:       #override \n\
-	~Shift <Key> Up:    string(\033[A) \n\
-	~Shift <Key> Down:  string(\033[B) \n\
-	~Shift <Key> Home:  string(\033[H) \n\
-	~Shift <Key> End:   string(\033[F) \n\
-	~Shift <Key> Prior: string(\033[5~) \n\
-	~Shift <Key> Next:  string(\033[6~) \n\
 	Shift  <Key> Up:    scroll-back(1,line) \n\
 	Shift  <Key> Down:  scroll-forw(1,line) \n\
 	Shift  <Key> Prior: scroll-back(1,page) \n\
 	Shift  <Key> Next:  scroll-forw(1,page) \n\
-	Shift  <Key> Home:  scroll-back(1000,page) \n\
-	Shift  <Key> End:   scroll-forw(1000,page) \n
+	Shift  <Key> Home:  scroll-to(begin) \n\
+	Shift  <Key> End:   scroll-to(end) \n\
+	Meta   <Key> Up:    scroll-back(1,line) \n\
+	Meta   <Key> Down:  scroll-forw(1,line) \n\
+	Meta   <Key> Prior: scroll-back(1,page) \n\
+	Meta   <Key> Next:  scroll-forw(1,page) \n\
+	Meta   <Key> Home:  scroll-to(begin) \n\
+	Meta   <Key> End:   scroll-to(end) \n
 XTerm*VT100.Translations:       #override \n\
-	~Shift <Key> Up:    string(\033[A) \n\
-	~Shift <Key> Down:  string(\033[B) \n\
-	~Shift <Key> Home:  string(\033[H) \n\
-	~Shift <Key> End:   string(\033[F) \n\
-	~Shift <Key> Prior: string(\033[5~) \n\
-	~Shift <Key> Next:  string(\033[6~) \n\
 	Shift  <Key> Up:    scroll-back(1,line) \n\
 	Shift  <Key> Down:  scroll-forw(1,line) \n\
 	Shift  <Key> Prior: scroll-back(1,page) \n\
 	Shift  <Key> Next:  scroll-forw(1,page) \n\
-	Shift  <Key> Home:  scroll-back(1000,page) \n\
-	Shift  <Key> End:   scroll-forw(1000,page) \n
+	Shift  <Key> Home:  scroll-to(begin) \n\
+	Shift  <Key> End:   scroll-to(end) \n\
+	Meta   <Key> Up:    scroll-back(1,line) \n\
+	Meta   <Key> Down:  scroll-forw(1,line) \n\
+	Meta   <Key> Prior: scroll-back(1,page) \n\
+	Meta   <Key> Next:  scroll-forw(1,page) \n\
+	Meta   <Key> Home:  scroll-to(begin) \n\
+	Meta   <Key> End:   scroll-to(end) \n
 !
-! XXX for some reason the following have no effect
+! XXX these would force "normal mode" cursor keys all the time:
 !
-!	~Meta  <Key> Up:    string(\033[A) \n\
-!	~Meta  <Key> Down:  string(\033[B) \n\
-!	~Meta  <Key> Home:  string(\033[H) \n\
-!	~Meta  <Key> End:   string(\033[F) \n\
-!	~Meta  <Key> Prior: string(\033[5~) \n\
-!	~Meta  <Key> Next:  string(\033[6~) \n\
-!	Meta   <Key> Up:    scroll-back(1,line) \n\
-!	Meta   <Key> Down:  scroll-forw(1,line) \n\
-!	Meta   <Key> Prior: scroll-back(1,page) \n\
-!	Meta   <Key> Next:  scroll-forw(1,page) \n\
-!	Meta   <Key> Home:  scroll-back(1000,page) \n\
-!	Meta   <Key> End:   scroll-forw(1000,page) \n
+!	~Shift <Key> Up:    string(\033[A) \n\
+!	~Shift <Key> Down:  string(\033[B) \n\
+!	~Shift <Key> Right: string(\033[C) \n\
+!	~Shift <Key> Left:  string(\033[D) \n\
+!	~Shift <Key> Home:  string(\033[H) \n\
+!	~Shift <Key> End:   string(\033[F) \n\
+!	~Shift <Key> Prior: string(\033[5~) \n\
+!	~Shift <Key> Next:  string(\033[6~) \n\
 !
 XFontSel*sampleText:		"abcdefghijklmnopqrstuvwxyz\n\
 				ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
