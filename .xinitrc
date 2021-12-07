@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.5	21/05/06 15:29:40 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.6	21/12/07 15:08:14 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -261,8 +261,8 @@ if [ -n "$XDMHOST" -a "$XDMHOST" = "`echo $DISPLAY | sed 's/:.*$//'`" ] ; then
 		xauth extract - $DISPLAY | onx11server historically.weird.com 'xauth merge -' &
 		# now start server programs we like for this scenario
 		onx11server -n $X11SERVER 'xload -display $DISPLAY -geometry 120x40-200+48 -hl red' &
-		onx11server -n $X11SERVER 'uxterm -tn xterm-256color -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
-		onx11server -n $X11SERVER 'uxterm -tn xterm-256color -display $DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+		onx11server -n $X11SERVER 'uxterm -tn xterm -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+		onx11server -n $X11SERVER 'uxterm -tn xterm -display $DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
 		;;
 	*)
 		# not setting X11SERVER hopefully just makes the WM run all X11SERVER clients on
@@ -340,7 +340,7 @@ HAVEXV=false ; export HAVEXV
 if expr "`type xv 2>/dev/null`" : '.* is .*/xv$' >/dev/null ; then
 	HAVEXV=true
 fi
-HAVEIMAGEMAGICK=false ; export HAVEXV
+HAVEIMAGEMAGICK=false ; export HAVEIMAGEMAGICK
 if expr "`type display 2>/dev/null`" : '.* is .*/display$' >/dev/null ; then
 	HAVEIMAGEMAGICK=true
 fi
@@ -360,6 +360,9 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			# probably available hosts...
 			#
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server more.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server xenful.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server xentastic.local 'xauth nmerge -'
+#			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbtest.local 'xauth nmerge -'
 #			xauth nextract - ${REMOTE_DISPLAY} | onx11server historically.local 'xauth nmerge -'
 #			xauth nextract - ${REMOTE_DISPLAY} | onx11server once.local 'xauth nmerge -'
 #			xauth nextract - ${REMOTE_DISPLAY} | RSH=ssh onx11server freebsd.local 'xauth nmerge -'
@@ -373,21 +376,23 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			#
 			# local server performance levels we want to be aware of
 			# (NOTE: in stacked order, 48 pixels apart)
-			onx11server -n building.local 'xload -geometry 120x40-200+48 -hl red' &
+#			onx11server -n building.local 'xload -geometry 120x40-200+48 -hl red' &
 			onx11server -n more.local 'xload -geometry 120x40-200+96 -hl red' &
 # slot for central	onx11server -n central.weird.com 'xload -geometry 120x40-200+144 -hl red' &
-			onx11server -n future.local 'xload -geometry 120x40-200+192 -hl red' &
+#			onx11server -n future.local 'xload -geometry 120x40-200+192 -hl red' &
 			onx11server -n xenful.local 'xload -geometry 80x40-418+192 -hl red' &
 			onx11server -n xentastic.local 'xload -geometry 80x40-332+192 -hl red' &
-			onx11server -n once.local 'xload -geometry 80x40-332+240 -hl red' &
+# slot for xentral	onx11server -n xentral 'xload -geometry 80x40-418+240 -hl red
+#			onx11server -n once.local 'xload -geometry 80x40-332+240 -hl red' &
 #			onx11server -n historically.local 'xload -geometry 120x40-200+240 -hl red' &
+# slot for b2		onx11server -n b2.local 'xload -geometry 120x40-70+240 -hl red' &
 			#
-			onx11server -n building.local 'uxterm -tn xterm-256color -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
-			onx11server -n more.local 'uxterm -tn xterm-256color -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
-			onx11server -n future.local 'uxterm -tn xterm-256color -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
-#			onx11server -n historically.local 'uxterm -tn xterm-256color -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
-			onx11server -n xenful.local 'uxterm -tn xterm-256color -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
-			onx11server -n xentastic.local 'uxterm -tn xterm-256color -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+			onx11server -n building.local 'uxterm -tn xterm -geometry 80x45-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+			onx11server -n more.local 'uxterm -tn xterm-256color -geometry 80x45-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+			onx11server -n future.local 'uxterm -tn xterm -geometry 80x45-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+#			onx11server -n historically.local 'uxterm -tn xterm -geometry 80x45-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+			onx11server -n xenful.local 'uxterm -tn xterm -geometry 80x45-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+			onx11server -n xentastic.local 'uxterm -tn xterm -geometry 80x45-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
 			#
 			# SSH-only hosts... (hopefully with auto-auth,
 			# but note the use of both '-f' and '&')
@@ -430,7 +435,7 @@ if [ "$argv0" = ".xinitrc" ] ; then
 ###
 ### The trick is to figure out if/which $SHELL supports $ENV properly.
 ###
-### Another trick is how to remove the temporarly file at the right time.
+### Another trick is how to remove the temporary file at the right time.
 			;;
 		esac
 		;;
@@ -574,12 +579,20 @@ very.local:*|very.weird.com:*|very.robohack.planix.com:*)
 
 	# All the small lower-right command terminals (starting with our own first one)
 	# note the -155 is the height of the normal xconsole window, at 120, plus its ctwm decorations (I think)
-	uxterm -tn xterm-256color -display $DISPLAY -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-#	onx11server -n once.weird.com 'uxterm -tn xterm-256color -display $DISPLAY -geometry 80x45-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+	uxterm -tn xterm-256color -display $DISPLAY -geometry 80x45-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+#	onx11server -n once.weird.com 'uxterm -tn xterm -display $DISPLAY -geometry 80x45-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
 
 	# All the big main area terminals (starting with our own first one)
-	uxterm -tn xterm-256color -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
-#	onx11server -n once.weird.com 'uxterm -tn xterm-256color -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
+	uxterm -tn xterm-256color -display $DISPLAY -geometry 132x100+0+0 -fs 9 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
+#	onx11server -n once.weird.com 'uxterm -tn xterm -display $DISPLAY -geometry 132x100+0+0 -fs 9 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
+
+	if expr "`type xmahjongg 2>/dev/null`" : '.* is .*/xmahjongg$' >/dev/null ; then
+		# xxx the offset never seems to apply properly
+		#xmahjongg --geometry +1000-0 &
+		xmahjongg &
+	fi
+
+	uxterm -tn xterm-256color -display $DISPLAY -geometry 80x25+1400-0 -fs 9 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor
 
 	# All the normal emacs windows...
 	# oddly using 130x64 turns into 163x55 with the font change!
@@ -627,13 +640,13 @@ macweird.*:*|*xquartz:*)
 	fi
 	# All the small lower-right command terminals (starting with our own first one)
 	# note the -155 is the height of the normal xconsole window, at 120, plus its twm decorations (I think)
-	uxterm -tn xterm-256color -geometry 80x30-0-155 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	uxterm -tn xterm-256color -geometry 80x30-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 
 	# All the big main area terminals (starting with our own first one)
 	# XXX damn, the default "-font 7x14" is just a wee bit too wide at 132 chars!
 	# (but oddly not on the old macbook, only on the new macbook air!)
 	# the old 13" macbook can only handle 59 rows, but the 13" macbook air does 66
-	uxterm -tn xterm-256color -geometry 132x50+0+0 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
+	uxterm -tn xterm-256color -geometry 132x50+0+0 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
 	;;
 
 xceptionally*:*)
@@ -708,7 +721,7 @@ xtremely*:*)
 		xclock -norender -geometry 190x190-0+0 &
 	fi
 	# All the small lower-right command terminals (starting with our own first one)
-	uxterm -tn xterm-256color -display $DISPLAY -geometry 80x42-0-0 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	uxterm -tn xterm -display $DISPLAY -geometry 80x42-0-0 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 
 	;;
 
@@ -736,8 +749,8 @@ xtremely*:*)
 #	else
 #		xclock -geometry 100x100-0+0 &
 	fi
-	uxterm -tn xterm-256color -display $DISPLAY -geometry 100x50+0+0 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
-	uxterm -tn xterm-256color -display $DISPLAY -geometry 80x24+0-0 -fn 5x7 -fs 7.5 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	uxterm -tn xterm -display $DISPLAY -geometry 100x50+0+0 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
+	uxterm -tn xterm -display $DISPLAY -geometry 80x24+0-0 -fn 5x7 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
 	;;
 esac
 
