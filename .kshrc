@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	37.4	21/11/22 12:09:44 (woods)"
+#ident	"@(#)HOME:.kshrc	37.5	21/12/15 13:20:38 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -731,8 +731,9 @@ if type setban > /dev/null ; then
 			OWBANNER=${WBANNER}
 			WBANNER="GNU Emacs "
 			setban
-			mesg n
+			mesg n && false
 			\emacs "$@"
+			mesg y || false
 			clearban
 		}
 	fi
@@ -752,8 +753,9 @@ if type setban > /dev/null ; then
 		OWBANNER=${WBANNER}
 		WBANNER="CU $* "
 		setban
-		mesg n
+		mesg n && false
 		\cu "$@"
+		mesg y || false
 		clearban
 	}
 
@@ -772,8 +774,9 @@ if type setban > /dev/null ; then
 		OWBANNER=${WBANNER}
 		WBANNER="C-Kermit $* "
 		setban
-		mesg n
+		mesg n && false
 		\ckermit "$@"
+		mesg y || false
 		clearban
 	}
 
@@ -789,8 +792,9 @@ if type setban > /dev/null ; then
 			OWBANNER=${WBANNER}
 			WBANNER="RLOGIN $* "
 			setban
-			mesg n
+			mesg n && false
 			\rlogin "$@"
+			mesg y || false
 			clearban
 		}
 	fi
@@ -807,8 +811,9 @@ if type setban > /dev/null ; then
 			OWBANNER=${WBANNER}
 			WBANNER="SLOGIN $* "
 			setban
-			mesg n
+			mesg n && false
 			\slogin "$@"
+			mesg y || false
 			clearban
 		}
 	fi
@@ -825,8 +830,9 @@ if type setban > /dev/null ; then
 			OWBANNER=${WBANNER}
 			WBANNER="CONSOLE $* "
 			setban
-			mesg n
+			mesg n && false
 			\console "$@"
+			mesg y || false
 			clearban
 		}
 	fi
@@ -848,8 +854,9 @@ if type setban > /dev/null ; then
 			OWBANNER=${WBANNER}
 			WBANNER="TELNET $* "
 			setban
-			mesg n
+			mesg n && false
 			\telnet "$@"
+			mesg y || false
 			clearban
 		}
 	fi
@@ -865,8 +872,9 @@ if type setban > /dev/null ; then
 			OWBANNER=${WBANNER}
 			WBANNER="MUSH $* "
 			setban
-			mesg n
+			mesg n && false
 			mush -C "$@"
+			mesg y || false
 			clearban
 		}
 	fi
@@ -883,8 +891,9 @@ if type setban > /dev/null ; then
 			OWBANNER=${WBANNER}
 			WBANNER="IRC $* "
 			setban
-			mesg n
+			mesg n && false
 			\irc "$@"
+			mesg y || false
 			clearban
 		}
 	fi
@@ -901,8 +910,9 @@ if type setban > /dev/null ; then
 			OWBANNER=${WBANNER}
 			WBANNER="TRN $* "
 			setban
-			mesg n
+			mesg n && false
 			\trn "$@"
+			mesg y || false
 			clearban
 		}
 	fi
@@ -932,12 +942,13 @@ if type setban > /dev/null ; then
 		OWBANNER=${WBANNER}
 		WBANNER="SU ${showargs:+${showargs} }sh"
 		setban
-		mesg n
+		mesg n && false
 		if [ -x /usr/5bin/su ] ; then
 			/usr/5bin/su "$@"
 		else
 			\su "$@"
 		fi
+		mesg y || false
 		PWD=$(pwd)
 		clearban
 	}
@@ -958,8 +969,9 @@ if type setban > /dev/null ; then
 			OWBANNER=${WBANNER}
 			WBANNER="NetHack"
 			setban
-			mesg n
+			mesg n && false
 			\nethack
+			mesg y || false
 			clearban
 		}
 	fi
