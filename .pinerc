@@ -1,4 +1,4 @@
-#ident	"@(#)HOME:.pinerc	37.3	21/11/06 12:55:23 (woods)"
+#ident	"@(#)HOME:.pinerc	37.4	21/12/15 16:27:05 (woods)"
 #
 # Pine configuration file
 #
@@ -27,7 +27,7 @@ nntp-server=news.weird.com
 
 # Path of (local or remote) INBOX, e.g. ={mail.somewhere.edu}inbox
 # Normal Unix default is the local INBOX (usually /usr/spool/mail/$USER).
-inbox-path={localhost/notls/service=imap/norsh}INBOX
+inbox-path={localhost./ssl/NoRsh/novalidate-cert}INBOX
 
 # List of folder pairs; the first indicates a folder to archive, and the
 # second indicates the folder read messages in the first should
@@ -319,24 +319,25 @@ url-viewers=links,
 
 # List of incoming msg folders besides INBOX, e.g. ={host2}inbox, {host3}inbox
 # Syntax: optnl-label {optnl-imap-host-name}folder-path
-incoming-folders="Weird Mail (from remote)" {mailbox.weird.com/NoRsh/novalidate-cert}INBOX,
-	"Weird Mail (on LAN)" {mailbox.weird.com/notls/NoRsh/service=imap/novalidate-cert}INBOX,
-	"Weird GNATS Mail (on LAN)" {mailbox.weird.com/notls/NoRsh/service=imap/novalidate-cert}user/gnats,
-	"Weird SMAIL3 Mail (on LAN)" {mailbox.weird.com/notls/NoRsh/service=imap/novalidate-cert}user/smail3,
+incoming-folders="LocalHost Mail" {localhost./ssl/NoRsh/novalidate-cert}INBOX,
+	"More.local Mail" {more.local/ssl/NoRsh/NoValidate-Cert}INBOX,
+	"Weird Mail" {mailbox.weird.com/NoRsh/novalidate-cert}INBOX,
+	"Weird GNATS Mail" {mailbox.weird.com/NoRsh/novalidate-cert}user/gnats,
+	"Weird SMAIL3 Mail" {mailbox.weird.com/NoRsh/novalidate-cert}user/smail3,
 	"Planix Mail" {mailbox.planix.com/NoRsh/novalidate-cert}INBOX,
 	"Cyrus Announcements archive" {cyrus.andrew.cmu.edu/NoRsh/anonymous/novalidate-cert}archive.cyrus-announce,
-	"Cyrus info-cyrus archive" {cyrus.andrew.cmu.edu/NoRsh/anonymous/novalidate-cert}archive.info-cyrus
+	"Cyrus info-cyrus archive" {cyrus.andrew.cmu.edu/NoRsh/anonymous/novalidate-cert}archive.info-cyrus,
 	"Cyrus cyrus-devel archive" {cyrus.andrew.cmu.edu/NoRsh/anonymous/novalidate-cert}archive.cyrus-devel
 
 # List of directories where saved-message folders may be. First one is
 # the default for Saves. Example: Main {host1}mail/[], Desktop mail\[]
 # Syntax: optnl-label {optnl-imap-hostname}optnl-directory-path[]
-folder-collections="LocalHost IMAP Folders" {localhost/notls/NoRsh}[],
+folder-collections="LocalHost IMAP Folders" {localhost./ssl/NoRsh/novalidate-cert}[],
+	"More.local IMAP Folders" {more.local/ssl/NoRsh/NoValidate-Cert}[],
 	"Local filesystem folders" Mail/[],
 	"Weird IMAP Folders" {mailbox.weird.com/NoRsh/novalidate-cert}[],
-	"Weird IMAP Folders (on LAN)" {mailbox.weird.com/notls/NoRsh/novalidate-cert}[],
 	"Planix IMAP Folders" {mailbox.planix.com/NoRsh/novalidate-cert}[],
-	"Weird Anonymous IMAP" {mailbox.weird.com/notls/NoRsh/novalidate-cert/anonymous}[],
+	"Weird Anonymous IMAP" {mailbox.weird.com/NoRsh/novalidate-cert/anonymous}[],
 	"Planix Anonymous IMAP" {mailbox.planix.com/NoRsh/anonymous/novalidate-cert}[],
 	"Cyrus Mailing Lists (in archive) via anonymous IMAP" {cyrus.andrew.cmu.edu/NoRsh/anonymous/novalidate-cert}[]
 
@@ -357,7 +358,7 @@ address-book=
 global-address-book=
 
 # Set by Pine; controls beginning-of-month sent-mail pruning.
-last-time-prune-questioned=108.9
+last-time-prune-questioned=121.12
 
 # Set by Pine; controls display of "new version" message.
 last-version-used=4.64
