@@ -1,0 +1,2 @@
+define-macro parse-errors-macro ^Xbmake^M^[xparse-errors^M
+define-macro fix-newsrc-macro ^[r![ ]*.*[,\\-]\\([0-9]*\\)$^M! 1-\\1^M^X^X
