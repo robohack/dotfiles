@@ -17,6 +17,8 @@
 .gitconfig
 .indent.pro
 .ircrc
+.joveabbrev
+.jovemacs
 .joverc
 .kermrc
 .kshdir
