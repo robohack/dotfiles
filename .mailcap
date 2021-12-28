@@ -1,0 +1,48 @@
+#
+# ~/.mailcap -- MIME content type handlers
+#
+
+audio/wav;wavplay '%s'
+audio/x-wav;wavplay '%s'
+audio/x-pn-wav;wavplay '%s'
+audio/x-pn-windows-acm;auplay '%s'
+audio/au;auplay '%s'
+audio/x-au;auplay '%s'
+audio/basic;auplay '%s'
+audio/x-pn-au;auplay '%s'
+audio/aiff;auplay '%s'
+audio/x-aiff;auplay '%s'
+audio/au;auplay '%s'
+audio/snd;auplay '%s'
+audio/voc;auplay '%s'
+# note that 50000 is the max sample rate of the NCD HMX
+# but mpg123 only supports 48000 within that limit
+audio/x-mpeg;xterm -e sh -c 'mpg123 -v -r 48000 --stereo -s "%s" | sox -r 48000 -c 2 -t sw - -t au - | auplay'
+audio/mpeg;xterm -e sh -c 'mpg123 -v -r 48000 --stereo -s "%s" | sox -r 48000 -c 2 -t sw - -t au - | auplay'
+
+text/tab-separated-values; tail +2 '%s' | graph | /usr/bin/X11/xplot -display $DISPLAY
+
+video/mpeg;/usr/pkg/bin/mpeg_play -dither fs4 -owncm '%s'
+video/x-mpeg2;/usr/pkg/bin/mpeg_play -dither fs4 -owncm '%s'
+
+application/postscript;/usr/pkg/bin/gv --spartan '%s'
+# application/pdf;/usr/pkg/bin/gv --spartan '%s'
+application/pdf;/usr/pkg/bin/xpdf -z 150 "%s"
+application/x-dvi;/usr/pkg/bin/xdvi '%s'
+
+application/msword;xterm -e sh -c '/usr/pkg/bin/antiword "%s" | less'
+
+application/ogg;/usr/pkg/bin/ogg123 '%s'
+
+image/jpeg;/usr/pkg/bin/xv '%s'
+image/tiff;/usr/pkg/bin/xv '%s'
+image/gif;/usr/pkg/bin/xv '%s'
+image/x-xpixmap;/usr/pkg/bin/xv '%s'
+image/x-xwindowdump;xwud '%s'
+image/png;/usr/pkg/bin/xv '%s'
+image/x-rgb;/usr/pkg/bin/xv '%s'
+image/x-portable-pixmap;/usr/pkg/bin/xv '%s'
+image/x-portable-graymap;/usr/pkg/bin/xv '%s'
+image/x-portable-bitmap;/usr/pkg/bin/xv '%s'
+image/x-portable-anymap;/usr/pkg/bin/xv '%s'
+
