@@ -1,6 +1,7 @@
 #
 # ~/.mailcap -- MIME content type handlers
 #
+#ident	"@(#)HOME:.mailcap	37.2	22/02/04 17:48:42 (woods)"
 
 audio/wav;wavplay '%s'
 audio/x-wav;wavplay '%s'
@@ -25,9 +26,9 @@ text/tab-separated-values; tail +2 '%s' | graph | /usr/bin/X11/xplot -display $D
 video/mpeg;/usr/pkg/bin/mpeg_play -dither fs4 -owncm '%s'
 video/x-mpeg2;/usr/pkg/bin/mpeg_play -dither fs4 -owncm '%s'
 
-application/postscript;/usr/pkg/bin/gv --spartan '%s'
-# application/pdf;/usr/pkg/bin/gv --spartan '%s'
-application/pdf;/usr/pkg/bin/xpdf -z 150 "%s"
+application/postscript;/usr/pkg/bin/gv --scale=0.7 '%s'
+application/pdf;/usr/pkg/bin/gv --scale=0.7 '%s'
+# application/pdf;/usr/pkg/bin/xpdf -z 150 "%s"
 application/x-dvi;/usr/pkg/bin/xdvi '%s'
 
 application/msword;xterm -e sh -c '/usr/pkg/bin/antiword "%s" | less'
