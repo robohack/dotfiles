@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	37.3	21/11/02 17:04:39 (woods)"
+;;;;#ident	"@(#)HOME:.wl	37.4	22/02/13 16:39:15 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -145,10 +145,26 @@
 ;;
 (setq filename-filters '(filename-special-filter))
 
+(defun string-matched (search strings)
+  (while (and strings (not (string-match search (car strings))))
+    (setq strings (cdr strings)))
+  (car strings))
+
 ;; Directory where icons are placed (XXX should be set by configuration!)
 ;;
+(eval-and-compile
+  (defvar wl-icon-directory-ORIGINAL wl-icon-directory
+    "original value at startup")
+  )
 (setq wl-icon-directory
       (cond ((let ((icons
+		    (expand-file-name "icons/"
+				      (string-matched "/wanderlust" load-path))))
+	       (if (file-directory-p icons)
+		   icons)))
+	    ;; n.b.:  the first will almost certainly always win, but keep these
+	    ;; for posterity:
+	    ((let ((icons
 		    (expand-file-name "../../wl/icons/"
 				      (cond ((boundp 'local-site-lisp-dir)
 					     local-site-lisp-dir)
@@ -156,7 +172,6 @@
 					     pkg-site-lisp-dir)))))
 	       (if (file-directory-p icons)
 		   icons)))
-	    ;; xxx maybe this should be first?
 	    ((let ((icons
 		    (expand-file-name "icons/"
 				      (cond ((and (boundp 'package-alist)
@@ -175,7 +190,6 @@
 		   icons))
 	     (t
 	      nil))))
-
 
 ;; prefetch everything that's uncached, not just unread-uncached (U) and
 ;; new-uncached (N)
@@ -234,7 +248,7 @@
 ;; after changing `wl-summary-line-format' you need to exit and re-enter the
 ;; Summary buffer to update the displayed format.
 (setq wl-summary-line-format (concat "%n %T"
-				     "%P %E %[%20(%c %f%) %] %Y/%M/%D(%W)%h:%m %-8S%@ %t%~\"%s\" \t"))
+				     "%P %E %[%20(%c %f%) %] %Y/%M/%D(%W)%h:%m %-8S%-2@ %t%~\"%s\" \t"))
 (setq wl-summary-default-view 'sequence)
 
 ;; never search for thread parent messages by subject!
@@ -471,6 +485,12 @@
 (setq wl-summary-move-direction-downward t) ; just always go DOWN
 
 (setq wl-summary-exit-next-move nil)	; don't move the Folder pointer on quit
+
+;; don't automatically try to sync all "marks", as this causes enormous delays
+;; when loading large infrequently visited folders.  Use "s mark <return>" to do
+;; it intentionally.
+;;
+(setq wl-summary-auto-sync-marks nil)
 
 ;; to decode encoded words within quoted strings in headers....
 ;;
@@ -764,6 +784,7 @@ If ARG is non-nil, forget everything about the message."
 	"^X-PMAS-[^:]*:"
 	"^X-PMX[^:]*:"
 	"^X-Provags-[^:]*:"
+	"^X-OQ-[^:]*:"
 	"^X-Received-Authentication-Results:"
 	"^X-RPI[^:]*:"
 	"^X-SG-EID:"
@@ -1031,13 +1052,17 @@ These should match the 'from' header value."
 (if (fboundp 'visual-line-mode)
     (add-hook 'mime-view-mode-hook '(lambda () (visual-line-mode t))))
 
-;; XXX this doesn't quite work right to turn on automatic signing globally...
+;; XXX setting this is a bit annoying -- it then requires the key (and if
+;; necessary the key passphrase) be given before beginning to edit the draft
+;; buffer, *AND* every time the draft buffer is saved!
 ;;
-;(setq mime-edit-pgp-processing '(sign))
+;(setq-default mime-edit-pgp-processing '(sign))
+(setq-default mime-edit-pgp-processing nil) ; it is the default
 
 (setq mime-edit-pgp-verbose t)
 ;; XXX this was necessary to see any keys in the *Keys* buffer when signing
 ;; (it should not be necessary -- just list secret keys if this is nil!!!)
+;; xxx ideally of course the desired key would be chosen from the From line!
 (setq mime-edit-pgp-signers '("woods@planix.com" "woods@robohack.ca"))
 
 (setq mime-edit-pgp-encrypt-to-self t)	; hmmm....
@@ -1619,6 +1644,13 @@ ENCODING must be string."
 	 ("Precedence" . "first-class")
 	 ("Organization" . "Planix, Inc."))
 	(reply
+	 "^\\([Tt][Oo]\\|[Cc][Cc]\\|[fF]rom\\): .*@.*robohack\\.ca"
+	 (pgp-sign . t)
+	 ("From" . "\"Greg A. Woods\" <woods@robohack.ca>")
+	 ("Reply-To" . "\"Greg A. Woods\" <woods@robohack.ca>")
+	 ("Precedence" . "first-class")
+	 ("Organization" . "Robo-Hacker"))
+	(reply
 	 "^\\([Tt][Oo]\\|[Cc][Cc]\\|[fF]rom\\): .*@.*avoncote\\.ca"
 	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <Greg.A.Woods@avoncote.ca>")
@@ -1863,7 +1895,7 @@ ENCODING must be string."
 	 ("From" . "\"Greg A. Woods\" <woods@planix.com>")
 	 ("Reply-To" . "")
 	 ("Organization" . "Planix, Inc."))
-	((string-match "^%INBOX/Lists-IN/netbsd-lists/"
+	((string-match "^%INBOX/Lists-IN/netbsd-lists"
 		       wl-draft-parent-folder)
 	 (pgp-sign . t)
 	 ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
