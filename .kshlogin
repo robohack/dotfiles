@@ -1,7 +1,7 @@
 #
 #	.kshlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.kshlogin	37.1	21/03/23 11:43:02 (woods)"
+#ident	"@(#)HOME:.kshlogin	37.2	22/02/19 17:32:57 (woods)"
 
 case "$-" in
 *i*)
@@ -50,8 +50,9 @@ if [ -n "$ENVFILE" -a -r "$ENVFILE" ] ; then
 	# reasonably certain I read a post by Korn suggesting this
 	# expression as well, but I may simply have read Jon's post.
 	#
-	# It does work with all the versions of Ksh I've run across,
-	# including ksh-85 and the one AIX-3.2, as well as pdksh.
+	# It does work with almost all of the versions of Ksh I've run across,
+	# including ksh-85 and the one AIX-3.2, as well as pdksh, but not
+	# MKsh since mksh-R56c (main.c:1.344:2017-10-13).
 	#
 	export ENV='${ENVFILE[(_$-=1)+(_=0)-(_$-!=_${-%%*i*})]}'
 
