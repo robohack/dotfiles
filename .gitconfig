@@ -2,7 +2,7 @@
 #
 #	.gitconfig - per-user Git setup
 #
-#ident	"@(#)HOME:.gitconfig	37.7	22/02/19 17:30:22 (woods)"
+#ident	"@(#)HOME:.gitconfig	37.8	22/02/19 17:31:54 (woods)"
 #
 # N.B.:  user.* could be set in GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL and those
 # should probably be set in ~/.localprofile, though Git is stupid and prefers
@@ -23,12 +23,14 @@
 [gpg]
 	program = gpg2
 #
-# for Emacs Ghub
+# for Emacs Magit/forge
 #
 [github]
 	user = robohack
 [gitlab]
 	user = robo-hack
+[gitlab "gitlab.freedesktop.org/api/v4"]
+	user = robohack
 [bitbucket]
 	user = woods-bitbucket.org@planix.ca
 #
