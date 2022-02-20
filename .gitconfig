@@ -2,7 +2,7 @@
 #
 #	.gitconfig - per-user Git setup
 #
-#ident	"@(#)HOME:.gitconfig	37.6	21/11/22 12:11:41 (woods)"
+#ident	"@(#)HOME:.gitconfig	37.7	22/02/19 17:30:22 (woods)"
 #
 # N.B.:  user.* could be set in GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL and those
 # should probably be set in ~/.localprofile, though Git is stupid and prefers
@@ -14,9 +14,14 @@
 #
 # This could be in an include file, but it's not secret!
 #
+# n.b.:  see also the Emacs (melpa) git-identity package
+#
 [user]
 	name = Greg A. Woods
 	email = woods@robohack.ca
+	signingkey = 627B5F14C259C785
+[gpg]
+	program = gpg2
 #
 # for Emacs Ghub
 #
