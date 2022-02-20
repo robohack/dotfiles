@@ -1,1 +1,8 @@
+#
+#	$HOME/.gitignore -- this is used IFF managing dotfiles with Git in $HOME
+#
+# (See ~/README.md)
+#
+#ident	"@(#)HOME:.gitignore	37.2	22/02/19 17:19:02 (woods)"	
+#
 *
