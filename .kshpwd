@@ -1,9 +1,9 @@
 #
 #	.kshpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.kshpwd	37.1	21/03/23 11:43:02 (woods)"
+#ident	"@(#)HOME:.kshpwd	37.2	22/02/19 17:33:45 (woods)"
 
-unalias cd
+unalias cd 2>/dev/null
 alias cd='_cd'
 function _cd
 {
@@ -47,7 +47,7 @@ function _cd
 		BANNER_PWD="${PWD#/}"
 		;;
 	esac
-	if type setban > /dev/null ; then
+	if type setban > /dev/null 2>&1 ; then
 		setban
 	fi
 }
