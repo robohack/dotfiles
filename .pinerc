@@ -1,4 +1,4 @@
-#ident	"@(#)HOME:.pinerc	37.4	21/12/15 16:27:05 (woods)"
+#ident	"@(#)HOME:.pinerc	37.5	22/02/19 17:39:12 (woods)"
 #
 # Pine configuration file
 #
@@ -27,7 +27,7 @@ nntp-server=news.weird.com
 
 # Path of (local or remote) INBOX, e.g. ={mail.somewhere.edu}inbox
 # Normal Unix default is the local INBOX (usually /usr/spool/mail/$USER).
-inbox-path={localhost./ssl/NoRsh/novalidate-cert}INBOX
+inbox-path={localhost./notls/NoRsh/novalidate-cert}INBOX
 
 # List of folder pairs; the first indicates a folder to archive, and the
 # second indicates the folder read messages in the first should
@@ -41,17 +41,20 @@ pruned-folders=
 # Over-rides default path for sent-mail folder, e.g. =old-mail (using first
 # folder collection dir) or ={host2}sent-mail or ="" (to suppress saving).
 # Default: sent-mail (Unix) or SENTMAIL.MTX (PC) in default folder collection.
-default-fcc={mailbox.weird.com/NoRsh/novalidate-cert}INBOX/Sent
+#default-fcc={mailbox.weird.com/NoRsh/novalidate-cert}INBOX/Sent
+default-fcc={mailbox.weird.com/NoRsh}INBOX/Sent
 
 # Over-rides default path for saved-msg folder, e.g. =saved-messages (using 1st
 # folder collection dir) or ={host2}saved-mail or ="" (to suppress saving).
 # Default: saved-messages (Unix) or SAVEMAIL.MTX (PC) in default collection.
-default-saved-msg-folder={mailbox.weird.com/NoRsh/novalidate-cert}INBOX/Saved
+#default-saved-msg-folder={mailbox.weird.com/NoRsh/novalidate-cert}INBOX/Saved
+default-saved-msg-folder={mailbox.weird.com/NoRsh}INBOX/Saved
 
 # Over-rides default path for postponed messages folder, e.g. =pm (which uses
 # first folder collection dir) or ={host4}pm (using home dir on host4).
 # Default: postponed-msgs (Unix) or POSTPOND.MTX (PC) in default fldr coltn.
-postponed-folder={mailbox.weird.com/NoRsh/novalidate-cert}INBOX/Drafts
+#postponed-folder={mailbox.weird.com/NoRsh/novalidate-cert}INBOX/Drafts
+postponed-folder={mailbox.weird.com/NoRsh}INBOX/Drafts
 
 # If set, specifies where already-read messages will be moved upon quitting.
 read-message-folder=
@@ -319,11 +322,11 @@ url-viewers=links,
 
 # List of incoming msg folders besides INBOX, e.g. ={host2}inbox, {host3}inbox
 # Syntax: optnl-label {optnl-imap-host-name}folder-path
-incoming-folders="LocalHost Mail" {localhost./ssl/NoRsh/novalidate-cert}INBOX,
-	"More.local Mail" {more.local/ssl/NoRsh/NoValidate-Cert}INBOX,
-	"Weird Mail" {mailbox.weird.com/NoRsh/novalidate-cert}INBOX,
-	"Weird GNATS Mail" {mailbox.weird.com/NoRsh/novalidate-cert}user/gnats,
-	"Weird SMAIL3 Mail" {mailbox.weird.com/NoRsh/novalidate-cert}user/smail3,
+incoming-folders="LocalHost Mail" {localhost./notls/NoRsh/novalidate-cert}INBOX,
+	"More.local Mail Mirror" {more.local/ssl/NoRsh/NoValidate-Cert}INBOX,
+	"Weird Mail" {mailbox.weird.com/NoRsh}INBOX,
+	"Weird GNATS Mail" {mailbox.weird.com/NoRsh}user/gnats,
+	"Weird SMAIL3 Mail" {mailbox.weird.com/NoRsh}user/smail3,
 	"Planix Mail" {mailbox.planix.com/NoRsh/novalidate-cert}INBOX,
 	"Cyrus Announcements archive" {cyrus.andrew.cmu.edu/NoRsh/anonymous/novalidate-cert}archive.cyrus-announce,
 	"Cyrus info-cyrus archive" {cyrus.andrew.cmu.edu/NoRsh/anonymous/novalidate-cert}archive.info-cyrus,
@@ -332,12 +335,12 @@ incoming-folders="LocalHost Mail" {localhost./ssl/NoRsh/novalidate-cert}INBOX,
 # List of directories where saved-message folders may be. First one is
 # the default for Saves. Example: Main {host1}mail/[], Desktop mail\[]
 # Syntax: optnl-label {optnl-imap-hostname}optnl-directory-path[]
-folder-collections="LocalHost IMAP Folders" {localhost./ssl/NoRsh/novalidate-cert}[],
-	"More.local IMAP Folders" {more.local/ssl/NoRsh/NoValidate-Cert}[],
+folder-collections="LocalHost IMAP Folders" {localhost./notls/NoRsh/novalidate-cert}[],
+	"More.local Mail Mirror IMAP Folders" {more.local/ssl/NoRsh/NoValidate-Cert}[],
 	"Local filesystem folders" Mail/[],
-	"Weird IMAP Folders" {mailbox.weird.com/NoRsh/novalidate-cert}[],
+	"Weird IMAP Folders" {mailbox.weird.com/NoRsh}[],
 	"Planix IMAP Folders" {mailbox.planix.com/NoRsh/novalidate-cert}[],
-	"Weird Anonymous IMAP" {mailbox.weird.com/NoRsh/novalidate-cert/anonymous}[],
+	"Weird Anonymous IMAP" {mailbox.weird.com/NoRsh}[],
 	"Planix Anonymous IMAP" {mailbox.planix.com/NoRsh/anonymous/novalidate-cert}[],
 	"Cyrus Mailing Lists (in archive) via anonymous IMAP" {cyrus.andrew.cmu.edu/NoRsh/anonymous/novalidate-cert}[]
 
