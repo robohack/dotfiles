@@ -10,11 +10,13 @@
 .bashrc
 .ctwmrc
 .cvsrc
-.emacs
 .emacs.el
 .exrc
+.fonts.alias.m4
 .gdbinit
 .gitconfig
+.gitignore
+.gv
 .indent.pro
 .ircrc
 .joveabbrev
@@ -31,7 +33,9 @@
 .kshsccsrm
 .lesskey
 .lldbinit-lldb
+.mailcap
 .mailrc
+.mkshrc
 .mushrc
 .organization
 .pinerc
