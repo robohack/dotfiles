@@ -41,8 +41,10 @@
 .pinerc
 .plan
 .profile
+.shaliases
 .shlogin
 .shlogout
+.shpwd
 .shrc
 .trninit
 .trninitdmd
