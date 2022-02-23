@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	37.3	21/08/27 15:28:24 (woods)"
+#ident	"@(#)HOME:.kshsccs	37.4	22/02/22 22:27:23 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -261,7 +261,7 @@ function mksccs
 			;;
 		q)
 			# user-defined keyword (e.g. owner id) (:Q:)
-			QFLAG="-fq${OPTARG}"
+			QFLAG="${OPTARG}"
 			;;
 		r)
 			# REL defaults to current release level
@@ -269,7 +269,7 @@ function mksccs
 			;;
 		t)
 			# module type (:Y:)
-			TFLAG="-ft${OPTARG}"
+			TFLAG="${OPTARG}"
 			;;
 		*)
 			echo $USAGE >&2
@@ -296,24 +296,28 @@ function mksccs
 		return 1
 	fi
 
-	# safer than $LOGNAME or $USER, so long as you have id(1)...
+	# safer, more secure, than $LOGNAME or $USER, so long as you have id(1)
 	typeset mksccsuid=$(id | sed -e 's/^uid=[0-9]*(\(.*\)) gid=.*/\1/')
 
 	# XXX this should be PROJECTDIR iff is a username
 	if [ -z "$QFLAG" -a -z "$PROJOWNER" ] ; then
-		QFLAG="$mksccsuid"
-	else
-		QFLAG="$PROJOWNER"
+		QFLAG="${mksccsuid}"
+	elif [ -z "$QFLAG" ]; then
+		QFLAG="${PROJOWNER}"
 	fi
 
 	if [ -z "$TFLAG" -a "$PROJECT" = "SCCS" ] ; then
-		TFLAG=$(basename $(pwd))
-	else
-		TFLAG=$PROJECT
+		if [ "$(pwd)" = "$HOME" ]; then
+			TFLAG="HOME"
+		else
+			TFLAG="$(basename $(pwd))"
+		fi
+	elif [ -z "$TFLAG" ]; then
+		TFLAG="$PROJECT"
 	fi
 	${SCCS} -p $PROJECT enter $OFLAG $REL $*
 	if [ $? -eq 0 ] ; then
-		${SCCS} -p $PROJECT admin $DEFBR -fb -fq"$QFLAG" -ft"$TFLAG" $*
+		${SCCS} -p $PROJECT admin $DEFBR -fb -fq"${QFLAG}" -ft"${TFLAG}" $*
 	else
 		return 1
 	fi
