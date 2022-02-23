@@ -1,0 +1,60 @@
+#
+#	.shpwd - local stuff to abbreviate PWD...
+#
+#ident	"@(#)HOME:.shpwd	37.1	22/02/22 22:03:31 (woods)"
+
+# this version is for ancient shells without ${variable%pattern} et al
+#
+# it works entirely with global variables -- handling parameters is just more
+# unnecessary overhead for this purpose
+#
+pwd_to_banner()
+{
+	case "${PWD}" in
+	${HOME})
+		# avoid the trailing slash, e.g.: sh://host/~/
+		BANNER_PWD='~'
+		;;
+	${HOME}/*)
+		BANNER_PWD='~'"`echo \"${PWD}\" | sed \"s|${HOME}||\"`"
+		;;
+	*)
+		# trim just the leading slash to avoid "sh://host//dir"
+		BANNER_PWD="`echo \"${PWD}\" | sed 's|^/||'`"
+		;;
+	esac
+}
+
+unset -f cd
+cd ()
+{
+	# note this has to support various ksh without chdir and/or weird
+	# "builtin" as $ENV won't be sourced until after .profile is finished,
+	# and we try "cd" at the end of this file...
+	#
+	if type chdir >/dev/null 2>&1; then
+		chdir ${1+"$@"}
+	elif type command >/dev/null 2>&1; then
+		command cd ${1+"$@"}
+	else
+		builtin cd ${1+"$@"}
+	fi
+	# assume $PWD is not maintained by the shell....
+	PWD=`pwd`
+	pwd_to_banner
+	if [ "`ismpx`" = yes ] ; then
+		eval myxban -l "\"$MYXBAN_L\""
+	# there would be no point without setban, but we must test it anyway
+	elif type setban > /dev/null ; then
+		setban
+	fi
+}
+
+# make sure BANNER_PWD is now set as we want it,
+# but _ONLY_ for login shells!
+#
+case "$0" in
+-*)
+	cd .
+	;;
+esac
