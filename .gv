@@ -1,22 +1,41 @@
-GV.antialias:		True
-GV.autoResize:		False
-!GV.beNiceToColormap:	True
-GV.fallbackOrientation:	Portrait
+! -*- conf-xdefaults -*-
+!
+!	~/.gv -- config file in X11 resource file format
+!
+!#ident	"@(#)HOME:.gv	37.2	22/02/23 09:13:53 (woods)"
+!
+! N.B.:  gv can/will attempt to save settings changed interactively!  See also
+! gv-update-userconfig(1).
+!
+! hmmm....  how to add any system specific ones????
+GV*dirs:		Home\n\
+			~/Downloads\n\
+			~/downloads.d\n\
+			~/tmp
+!
 GV.fallbackPageMedia:	Letter
-GV.ignoreEOF:		True
-GV.orientation:		Automatic
-GV.pageMedia:		Automatic
-GV.respectDSC:		True
-GV.scale:		1
-GV.scaleBase:		1
 GV.scratchDir:		~/tmp/
-GV.swapLandscape:	False
-GV.watchFile:		False
-
-GV.gsQuiet:		True
-GV.gsSafer:		True
-GV.gsArguments:		
-! add -dBATCH and quote file names!!!
-! quote file names!!!
+GV.watchFile:		True
+!
+! these quote the various name and filename parameters:
+!
+! default: 		gs -dNODISPLAY -dQUIET -sPDFname=%s -sDSCname=%s %s pdf2dsc.ps -c quit
+! XXX N.B.:  note removal of apparently spurious "%s"!
 GV.gsCmdScanPDF:	gs -dNODISPLAY -dQUIET -sPDFname='%s' -sDSCname='%s' pdf2dsc.ps -c quit
-GV.gsInterpreter:	gs
+!
+! default:		gs -dNOPAUSE -dQUIET -dBATCH -sDEVICE=pswrite -sOutputFile=%s -f %s -c save pop quit
+GV.gsCmdConvPDF:	gs -dNOPAUSE -dQUIET -dBATCH -sDEVICE=pswrite -sOutputFile='%s' -f '%s' -c save pop quit
+!
+! XXX: these have to be in ~/.Xdefaults because gv does not use CPP to process
+! this file...
+!
+!#ifndef COLOR
+!GV.gsX11Device:		-sDEVICE=x11mono
+!GV.gsX11AlphaDevice:	-sDEVICE=x11mono -dTextAlphaBits=4 -dGraphicsAlphaBits=2 -dMaxBitmap=10000000 -dNOPLATFONTS
+!#endif
+!
+! xxx This is extremely annoying, but it seems it must be here.
+!
+! To update it, see gv-update-userconfig(1).
+!
+GV.version:		gv 3.6.7.90
