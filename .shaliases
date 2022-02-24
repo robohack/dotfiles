@@ -1,7 +1,7 @@
 #
 #	.shaliases - common aliases for Ksh and clones, Ash, etc.
 #
-#ident	"@(#)HOME:.shaliases	37.1	22/02/22 22:03:31 (woods)"
+#ident	"@(#)HOME:.shaliases	37.2	22/02/23 17:37:24 (woods)"
 
 if $ISSUN; then
 	alias df="/usr/bin/df"

@@ -1,7 +1,7 @@
 #
 #	.shpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.shpwd	37.1	22/02/22 22:03:31 (woods)"
+#ident	"@(#)HOME:.shpwd	37.2	22/02/23 17:37:12 (woods)"
 
 # this version is for ancient shells without ${variable%pattern} et al
 #

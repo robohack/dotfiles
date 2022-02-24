@@ -1,21 +1,116 @@
 #
 #	.shrc - per-shell startup stuff for all shells
 #
-# Note:  This should be compatible with some pre-POSIX shells.  Notably:
+# Note:  Most of this should be compatible with some pre-POSIX shells.  Notably:
 #
-#	- don't use $() for command expansion
-#	- no arithmetic expressions
+#	- mostly don't use $() for command expansion
+#	- don't use '!' in test expressions for flow-control statements
+#	- mostly no arithmetic expressions
+#	- mostly no suffix or prefix patterns
+#	- don't use ~ for pathname expansion (use $HOME)
+#	- don't use "export VAR=value"
 #
-# It may also assume .profile has already set some things, though it should not
+# It may also assume .profile has already set some things, though it should not.
+# For the most part variables that are used herein should be set herein.
 #
-# Maybe more envirionment variable settings should move here,
-# especially any that are only used by functions here, e.g. as was
-# done with MAILLOG.
+# Maybe even more environment variable settings should move here, especially any
+# that are only used by functions here, e.g. as was done with MAILLOG
+# (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.9	21/12/07 15:09:30 (woods)"
+#ident	"@(#)HOME:.shrc	37.10	22/02/23 17:37:55 (woods)"
 
 PATH=$PATH
 export PATH
+
+if [ -z "${SHELL}" ]; then
+	# likely plain old Bourne (heirloom) shell
+	# XXX too bad we can't get the true full pathname
+	SHELL=`expr "$0" : '-*\(.*\)'`
+fi
+
+# N.B.:  this will be possibly reset, then appended to....
+PS1=""
+
+# PS2="> "
+# PS3="#? "
+# PS4="+ "
+
+#
+# N.B.:  These next is_* functions are copied early in ~/.profile too!
+#
+
+is_bash ()
+{
+	[ ${RANDOM:-0} -ne ${RANDOM:-0} -a -n "${BASH}" ]
+}
+
+is_ksh ()
+{
+	if [ ${RANDOM:-0} -ne ${RANDOM:-0} -a -z "${BASH}" ]; then
+		case "${KSH_VERSION}" in
+		"Version"*)
+			return 0 # likely att ksh
+			;;
+		"@(#)MIRBSD"*)
+			return 0 # mksh
+			;;
+		"@(#)"*)
+			return 0 # likely pdksh or some other derivative
+			;;
+		*)
+			return 1
+			;;
+		esac
+	else
+		return 1
+	fi
+}
+
+is_attksh ()
+{
+	is_bash && return 1
+
+	# ksh93 and [p]bosh
+	_sh_version=`eval 'echo "${.sh.version}"' 2>/dev/null`
+	# [p]bosh only
+	_sh_shell=`eval 'echo "${.sh.shell}"' 2>/dev/null`
+
+	test -n "${_sh_version}" -a -z "${_sh_shell}"
+	_rc=$?
+	unset _sh_shell _sh_version
+
+	return ${_rc}
+}
+
+is_ash ()
+{
+	is_ksh && return 1
+	is_bash && return 1
+	# older Ash didn't have $RANDOM?
+	[ "`echo ~`" = "${HOME}" ]
+}
+
+is_bourne_sh ()
+{
+	is_ash && return 1
+	[ "`echo ~`" != "${HOME}" -a -z "${RANDOM}" ]
+}
+
+is_posixish_sh ()
+{
+	[ "`echo ~`" = "${HOME}" -a ${RANDOM:-0} -eq ${RANDOM:-0} ]
+}
+
+is_schily_sh ()
+{
+	_sh_shell=`eval 'echo "${.sh.shell}"' 2>/dev/null`
+
+	test -n "${_sh_shell}"
+	_rc=$?
+	unset _sh_shell
+
+	return ${_rc}
+}
 
 if [ -r /var/log/smail/logfile ] ; then
 	MAILLOG="/var/log/smail/logfile"
@@ -26,19 +121,21 @@ else
 fi
 export MAILLOG
 
+# Don't pretend to have print or printf if they are not builtin
+#
 HAVEPRINT=false ; export HAVEPRINT
-if expr "`type print 2>/dev/null`" : 'print is a shell builtin$' > /dev/null 2>&1 ; then
+if expr "`type print 2>/dev/null`" : '^print is a shell ' > /dev/null 2>&1 ; then
 	HAVEPRINT=true
 fi
 HAVEPRINTF=false ; export HAVEPRINTF
-if expr "`type printf 2>/dev/null`" : 'printf is a shell builtin$' > /dev/null 2>&1 ; then
+if expr "`type printf 2>/dev/null`" : '^printf is a shell ' > /dev/null 2>&1 ; then
 	HAVEPRINTF=true
 fi
 ###
 ### NOTE: we assume "echo" is builtin and we do not want to prefer an
 ### external $echo even if it is more capable
 ###
-###elif expr "`type printf 2>/dev/null`" : '.* is .*/printf$' >/dev/null 2>&1 ; then
+###elif type printf >/dev/null 2>&1 ; then
 ###	HAVEPRINTF=true
 ###fi
 #
@@ -52,13 +149,25 @@ fi
 #	$echo "message$nl"
 #
 if ${HAVEPRINT} ; then
+	#
+	# XXX Ksh "print" is a horrible mess of unusability!
+	#
+	# XXX in theory "print -R" is a better emulation of BSD echo?
 	echo=print
 	nl='\n'
 	n='-n'
-	# XXX in theory '\c' is equivalent of '-n' in most shells
+	# XXX in theory '\c' is equivalent of '-n' in all Ksh-compatible shells
 	c=''
 elif ${HAVEPRINTF} ; then
 	echo=printf
+	if type alias >/dev/null 2>&1; then
+		alias print=echo
+	else
+		print ()
+		{
+			echo ${1+"${@}"}
+		}
+	fi
 	nl='\n'
 	n=''
 	c=''
@@ -70,20 +179,37 @@ elif ${HAVEPRINTF} ; then
 	}
 else
 	echo=echo
-	alias print=echo
+	if type alias >/dev/null 2>&1; then
+		alias print=echo
+	else
+		print ()
+		{
+			echo ${1+"${@}"}
+		}
+	fi
 	c=`echo "xyzzy\c" | sed 's/[^c]//g'`
 	if test -n "${c}" ; then
+		# BSD echo
 		nl=''
 		n='-n'
 		c=''
 	else
+		# (Heirloom?) Bourne Shell (SYSV3 also has -n)
 		nl='\n'
 		n=''
 		c='\c'
 	fi
 fi
-
+#
 # NOTE: we don't export $echo et al -- they're just in the current shell
+
+in_pathvar_p() {
+	if [ $# -le 1 -o -z "${1}" ] ; then
+		echo "Usage: in_pathvar_p pathvar directory [...]" >&2
+		return 2
+	fi
+	eval "case :\$${1}: in *:${2}:*) return 0;; *) return 1;; esac"
+}
 
 # another way to do this without "test -d":
 #
@@ -95,19 +221,24 @@ fi
 #
 dirappend ()
 {
-	if [ $# -le 1 -o -z "$1" ] ; then
-		echo "Usage: dirappend variable directory [...]" >&2
+	if [ $# -le 1 -o -z "${1}" ] ; then
+		echo "Usage: dirappend pathvar directory [...]" >&2
 		return 2
 	fi
-	varname=$1
+	varname=${1}
 	shift
-	eval varvalue='${'${varname}'}'
 	while [ $# -gt 0 ] ; do
-		if [ -d "$1" -a `expr ":${varvalue}:" : ".*:$1:.*"` -eq 0 ] ; then
-###			echo "dirappend: adding $1 to the end of ${varname}"
-			eval ${varname}='$'"${varname}"'":$1"'
-###		else
-###			echo "dirappend: ignoring $1 (for ${varname})"
+		if [ -d "${1}" ]; then
+			eval varvalue='${'${varname}'}'
+			if in_pathvar_p ${varname} "${1}" ; then
+				:
+			else
+				if [ -z "${varvalue}" ]; then
+					eval ${varname}='"${1}"'
+				else
+					eval ${varname}='$'"${varname}"'":${1}"'
+				fi
+			fi
 		fi
 		shift
 	done
@@ -116,58 +247,184 @@ dirappend ()
 
 dirprepend ()
 {
-	if [ $# -le 1 -o -z "$1" ] ; then
-		echo "Usage: dirprepend variable directory [...]" >&2
+	if [ $# -le 1 -o -z "${1}" ] ; then
+		echo "Usage: dirprepend pathvar directory [...]" >&2
 		return 2
 	fi
-	varname=$1
+	varname=${1}
 	shift
-	eval varvalue='${'${varname}'}'
 	while [ $# -gt 0 ] ; do
-		if [ -d "$1" -a `expr ":${varvalue}:" : ".*:$1:.*"` -eq 0 ] ; then
-###			echo "dirprepend: adding $1 to the beginning of ${varname}"
-			eval ${varname}='"$1:"$'"${varname}"
-###		else
-###			echo "dirprepend: ignoring $1 (for ${varname})"
+		if [ -d "${1}" ]; then
+			eval varvalue='${'${varname}'}'
+			if in_pathvar_p $varname "${1}" ; then
+				:
+			else
+				if [ -z "${varvalue}" ]; then
+					eval ${varname}='"${1}"'
+				else
+					eval ${varname}='"${1}:"$'"${varname}"
+				fi
+			fi
 		fi
 		shift
 	done
 	unset varname varvalue
 }
 
+# XXX there's a slight flaw in this implementation -- it can't remove a
+# double-empty trailing element (e.g. p=/path::; dirremove p '').  However two
+# consecutive invocations will work to do this, or first do "removedups p".
+#
+# ToDo:  this should probably treat '' as '[.]*' and vice-versa so as to remove
+# both implied and implicit current-directory entries at the same time, but
+# that's tricky while still preserving the non-forking test using
+# in_pathvar_p....
+#
 dirremove ()
 {
-	if [ $# -le 1 -o -z "$1" ] ; then
-		echo "Usage: dirremove variable directory [...]" >&2
+	if [ $# -le 1 -o -z "${1}" ] ; then
+		echo "Usage: dirremove pathvar directory [...]" >&2
 		return 2
 	fi
-	varname=$1
+	varname=${1}
 	shift
 	while [ $# -gt 0 ] ; do
-		if [ "$1" = ":" -o -z "$1" ] ; then
-			eval ${varname}=`eval echo '$'${varname} | sed -e 's|::||g' -e 's|:$||'`
-		else
-			eval ${varname}=`eval echo '$'${varname} | sed 's|\(:*\)'$1':*|\1|'`
+		if in_pathvar_p ${varname} "${1}" ; then
+			eval ${varname}=`eval echo :'$'${varname}: | sed -e "s|:${1}:|:|g" -e "s|^:||" -e "s|:\$||"`
 		fi
 		shift
 	done
 	unset varname
 }
 
+# Another way...
+#
+pathvarrm ()
+{
+	if [ $# -le 1 -o -z "${1}" ] ; then
+		echo "Usage: dirremove pathvar directory [...]" >&2
+		return 2
+	fi
+	IFS=':'
+	pathvar=${1}
+	rmpath=${2}
+	#
+	# N.B.:  Instead of "set", ast-ksh/ksh93 and bash can use:
+	#
+	#	IFS=:
+	#	for dir in ${!pathvar}; do
+	#
+	set -- `IFS=":"; eval echo '$'${pathvar}`
+	for dir in "$@"; do
+		if [ "${dir}" != "${opath}" ] ; then
+			newpath=${newpath:+${newpath}:}${dir}
+		fi
+	done
+	eval ${pathvar}="${newpath}"
+}
+
 removedups ()
 {
-	echo "$1" | awk '
-	BEGIN {
-		RS=":";
-	}
-	{
-		sub(sprintf("%c$", 10), "");
-		if (A[$0]) {
-		} else {
-			A[$0]=1;
-			printf("%s%s", ((NR == 1) ? "" : ":" ), $0);
-		}
-	}'
+	if [ $# -lt 1 -o -z "${1}" ] ; then
+		echo "Usage: removedups pathvar" >&2
+		return 2
+	fi
+	varname=${1}
+	eval varvalue='${'${varname}'}'
+	nvalue=`echo "${varvalue}" | awk -v RS=: -v ORS=: '
+		{
+			# removing the newline is necessary in case the last
+			# element is a duplicate
+			#
+			sub(/\n$/, "");
+			if (! A[$0]) {
+				A[$0]=1;
+				printf("%s%s", ((NR == 1) ? "" : ORS ), $0);
+			}
+		}'
+	`
+	eval ${varname}="${nvalue}"
+	unset varname varvalue nvalue
+}
+
+# ToDo:  consider rewriting the above so they accept '-F sepchar' and then the
+# following can be eliminated?  (but what about the check for .../fonts.dir?)
+
+in_fppathvar_p() {
+	if [ $# -le 1 -o -z "${1}" ] ; then
+		echo "Usage: in_fppathvar_p fppathvar directory [...]" >&2
+		return 2
+	fi
+	eval "case ,\$${1}, in *,${2},*) return 0;; *) return 1;; esac"
+}
+
+fpappend ()
+{
+	if [ $# -le 1 -o -z "${1}" ] ; then
+		echo "Usage: fpappend fppathvar directory [...]" >&2
+		return 2
+	fi
+	varname=${1}
+	shift
+	while [ $# -gt 0 ] ; do
+		if [ -d "${1}" -a -r "${1}"/fonts.dir ]; then
+			eval varvalue='${'${varname}'}'
+			if in_fppathvar_p ${varname} "${1}" ; then
+				:
+			else
+				if [ -z "${varvalue}" ]; then
+					eval ${varname}='"${1}"'
+				else
+					eval ${varname}='$'"${varname}"'",${1}"'
+				fi
+			fi
+		fi
+		shift
+	done
+	unset varname varvalue
+}
+
+fpprepend ()
+{
+	if [ $# -le 1 -o -z "${1}" ] ; then
+		echo "Usage: fpprepend fppathvar directory [...]" >&2
+		return 2
+	fi
+	varname=${1}
+	shift
+	while [ $# -gt 0 ] ; do
+		if [ -d "${1}" -a -r "${1}"/fonts.dir ]; then
+			eval varvalue='${'${varname}'}'
+			if in_fppathvar_p ${varname} "${1}" ; then
+				:
+			else
+				if [ -z "${varvalue}" ]; then
+					eval ${varname}='"${1}"'
+				else
+					eval ${varname}='"${1},"$'"${varname}"
+				fi
+			fi
+		fi
+		shift
+	done
+	unset varname varvalue
+}
+
+fpremove ()
+{
+	if [ $# -le 1 -o -z "${1}" ] ; then
+		echo "Usage: fpremove fppathvar directory [...]" >&2
+		return 2
+	fi
+	varname=${1}
+	shift
+	while [ $# -gt 0 ] ; do
+		if in_fppathvar_p ${varname} "${1}" ; then
+			eval ${varname}=`eval echo ,'$'${varname}, | sed -e "s|,${1},|,|g" -e "s|^,||" -e "s|,\$||"`
+		fi
+		shift
+	done
+	unset varname
 }
 
 pkgfirst ()
@@ -230,7 +487,103 @@ gnulast ()
 	dirappend PATH "$GNU/bin"
 }
 
-if expr "`type mktable 2>/dev/null`" : 'mktable is .*$' >/dev/null 2>&1 ; then
+# every truly POSIX-compliant shell implements the built-in
+# command 'local', but then there's ksh (even #93!)
+#
+# AT&T Ksh is (still, as of ksh93u+) the only shell I know of which has
+# functions, and which has a 'typset' command, but which does not have a 'local'
+# command to declare function-scope variables, nor a "built-in" alias for it
+# either.  Sigh.
+#
+# xxx strictly speaking this should probably always be a function that would
+# treat any use of options as a usage error
+
+defun_local="local () { :; }"
+
+if is_attksh; then		# if type local >/dev/null 2>&1; then
+	# Ksh93:
+	#
+	#	typeset vname[=value]
+	#
+	#	When invoked inside a function defined with the
+	#	function name syntax, a new instance of the variable
+	#	'vname' is created, and the variable's value and type
+	#	are restored when the function completes.
+	#
+	# XXX Sadly this does not actually work for functions defined using the
+	# "func() {body}", and that's the only portable way to define a
+	# function!
+	#
+	# XXX so don't shadow globals in "fname(){}" functions!!!
+	#
+	# Note that in AT&T Ksh (and others?) aliases are resolved when a
+	# function definition is first read in, so set this early!
+	#
+	# I used to like AT&T Ksh -- now I'm glad it's only an inspiration...
+	#
+	alias local='typeset'
+else
+	# for Bourne (heirloom) sh.
+	if type local >/dev/null 2>&1; then
+		:
+	else
+		# for Bourne (heirloom) sh, pbosh, etc.(?)
+		#
+		# This definition of "local" won't actually do anything useful,
+		# but it also won't cause a syntax error either.
+		#
+		# xxx even though this is in an 'if' that souldn't be executed
+		# by it, some versions of 'dash', aka "Debian Almquist shell"
+		# (which started life as NetBSD sh) will barf and abort just
+		# seeing this function definition for 'local' here!!!
+		# (dash-0.5.5.1 is OK, dash-0.5.9.1 through 0.5.10.2 are STUPID)
+		#
+		# even worse it is almost impossible to programatically detect
+		# dash programatically.  However luckily we can hide it in a
+		# variable value....
+		#
+		eval ${defun_local}
+	fi
+fi
+
+unset defun_local
+
+#
+# Setup for ls(1) shortcuts.
+#
+LS=`type ls`
+LS=`expr "$LS" : '^[^/]*\(/[^ )]*\)'`
+LS_O=
+HAVECOLORLS=false
+if type colorls >/dev/null 2>&1; then
+	LS=`type colorls`
+	LS=`expr "$LS" : '^[^/]*\(/[^ )]*\)'`
+	HAVECOLORLS=true
+fi
+if type chflags >/dev/null 2>&1; then
+	case `uname -s` in
+	Darwin*)
+		LS_O="O"
+		HAVECOLORLS=true	# by coincidence....
+		;;
+	FreeBSD)
+		LS_O="o"
+		HAVECOLORLS=true	# by coincidence....
+		;;
+	*)
+		LS_O="o"
+		;;
+	esac
+fi
+if [ -n "$TERM" -a "X$TERM" != "Xdumb" ] && $HAVETPUT && $HAVECOLORLS; then
+	# xxx colorls(1) is quite "dumb" -- it apparently just uses ANSI color
+	# escape sequences directly without consulting $TERM
+	if [ "`tput colors`" -gt 0 ]; then
+		LS="${LS} -G"
+	fi
+fi
+
+if type mktable >/dev/null 2>&1; then
 	MKTABLE="mktable"
 else
 	# a little ditty to throw away comment lines....
@@ -246,7 +599,7 @@ fi
 
 # all machines without 'head' had a shell with functions...
 #
-if expr "`type head 2>/dev/null`" : '.* is .*/head$' >/dev/null 2>&1 ; then
+if type head >/dev/null 2>&1; then
 	: # have the real thing....
 else
 	head ()
@@ -284,14 +637,11 @@ publishdotfiles ()
 		return 2
 	fi
 	case ${HOSTNAME} in
-	${CENTRAL_SERVER})
+	${CENTRAL_SERVER%%.*}*)	# assume there is only one by this name!
 		echo "publishdotfiles: not useful when run on server host!" 1>&2
 		return 2
 		;;
-	more*|building*)
-		rsync -v -lptHS --progress --delete-after --stats --files-from=$HOME/dotfiles.list $HOME ${CENTRAL_USER}@${CENTRAL_SERVER}:.
-		;;
-	future*)
+	${HOME_SERVER}*)
 		( cd && ${SCCS:-"sccs"} info )
 		( cd && git-sccsimport --move-date=2010/11/5T00:00:00 --move-offset=3 --expand-kw --maildomain=robohack.ca --git-dir="$HOME/work/home" --dirs SCCS && cd $HOME/work/home && git push --mirror )
 		rsync -v -lptHS --progress --delete-after --stats --files-from=$HOME/dotfiles.list $HOME ${CENTRAL_USER}@${CENTRAL_SERVER}:.
@@ -305,6 +655,12 @@ publishdotfiles ()
 
 archivedotfiles ()
 {
+	# XXX somehow this should be combined with vnewrel?
+	#
+	# XXX also put them on the FTP server?
+	#
+	# (note I never put these in /work/release.d, so no need to now)
+	#
 	pax -wzf ${HOME}/dotffiles.tar.gz < ${HOME}/dotfiles.list
 	scp dotfiles.list dotfiles.tar.gz ${CENTRAL_USER}@${CENTRAL_SERVER}:.
 }
@@ -318,7 +674,7 @@ pushdotfiles ()
 	OPTIND="1"
 	while getopts "ce:" OPTCH
 	do
-		case $OPTCH in
+		case ${OPTCH} in
 		c)
 			_copy=true
 			;;
@@ -358,21 +714,24 @@ pushdotfiles ()
 	else
 		rsync ${_e_opt} -v -lptHS --progress --delete-after --stats --files-from=${HOME}/dotfiles.list ${HOME} ${1}:.
 	fi
-	unset _copy _e_opt _USAGE OPTIND
+	unset _copy _e_opt _USAGE OPTCH
 }
 
 syncdotfiles ()
 {
+	# In theory this could have command-line options to set/override
+	# $CENTRAL_*, but that can also be done simply as variable assignments
 	if [ -z "${HOME}" ]; then
 		echo "syncdotfiles: HOME is unset or empty!" 1>&2
 		return 2
 	fi
 	case ${HOSTNAME} in
-	central*)		# xxx should match $(unqualify ${CENTRAL_SERVER})
+	${CENTRAL_SERVER%%.*}*)	# assume there is only one by this name!
 		echo "syncdotfiles: not useful when run on server host!" 1>&2
 		return 2
 		;;
-	more*)			# xxx should check if $HOME is /home/more/$USER
+	${HOME_SERVER}*)
+		# xxx should check if $HOME is /home/more/$USER?
 		echo "syncdotfiles: not useful when run on edit host!" 1>&2
 		return 2
 		;;
@@ -381,11 +740,85 @@ syncdotfiles ()
 	if [ -r $HOME/.xinitrc -a ! -x $HOME/.xinitrc ] ; then
 		chmod +x $HOME/.xinitrc
 	fi
-	if expr "`type emacs 2>/dev/null`" : '.* is .*/emacs$' >/dev/null 2>&1 ; then
+	if ${HAVEEMACS}; then
 		if [ $HOME/.emacs.el -nt $HOME/.emacs.elc ]; then
-			( cd $HOME && emacs -batch -q -no-site-file -f batch-byte-compile .emacs.el )
+			( cd $HOME && ${MY_EMACS} -batch -q -no-site-file -f batch-byte-compile .emacs.el )
 		fi
 	fi
+}
+
+set_LOCAL_et_al ()
+{
+	if [ -z "${LOCAL}" ] ; then
+		# NOTE:  ${LOCAL} must not contain multiple words!
+		if [ -d /local -a ! -L /local ] ; then
+			LOCAL="/local"
+		elif [ -d /usr/local -a ! -L /usr/local ] ; then
+			LOCAL="/usr/local"
+		else
+			LOCAL="/NO-local-FOUND"
+		fi
+	fi
+	export LOCAL
+
+	if [ -z "${CONTRIB}" ] ; then
+		# NOTE:  ${CONTRIB} must not contain multiple words!
+		if [ -d /contrib -a ! -L /contrib ] ; then
+			CONTRIB="/contrib"
+		elif [ -d /usr/contrib -a ! -L /usr/contrib ] ; then
+			CONTRIB="/usr/contrib"
+		else
+			CONTRIB="/NO-contrib-FOUND"
+		fi
+	fi
+	export CONTRIB
+
+	if [ -z "${PKG}" ] ; then
+		# NOTE:  ${PKG} must not contain multiple words!
+		# XXX some OSX has an un-related /pkg so test /{usr,opt}/pkg first!
+		if [ -d /usr/pkg -a ! -L /usr/pkg ] ; then
+			PKG="/usr/pkg"
+		elif [ -d /opt/pkg -a ! -L /opt/pkg ] ; then
+			PKG="/opt/pkg"
+		elif [ -d /pkg -a ! -L /pkg ] ; then
+			PKG="/pkg"
+		else
+			PKG="/NO-pkg-FOUND"
+		fi
+	fi
+	export PKG
+
+	if [ -z "${SLASHOPT}" ] ; then
+		# NOTE:  ${SLASHOPT} must not contain multiple words!
+		if [ -d /opt ] ; then
+			SLASHOPT="/opt"
+		elif [ -d /usr/opt -a ! -L /usr/opt ] ; then
+			SLASHOPT="/usr/opt"
+		else
+			SLASHOPT="/NO-opt-FOUND"
+		fi
+	fi
+	export SLASHOPT
+
+	if [ -z "${GNU}" ] ; then
+		# NOTE:  ${GNU} must not contain multiple words!
+		if [ -d /local/gnu -a ! -L /local/gnu -a -d /local/gnu/bin ] ; then
+			GNU="/local/gnu"
+		elif [ -d /usr/gnu -a -d /usr/gnu/bin ] ; then
+			GNU="/usr/gnu"
+		elif [ -d /usr/local/gnu -a -d /usr/local/gnu/bin ] ; then
+			GNU="/usr/local/gnu"
+		elif [ -d /usr/pkg/gnu -a -d /usr/pkg/gnu/bin ] ; then
+			GNU="/usr/pkg/gnu"
+		elif [ -d /opt/pkg/gnu -a -d /opt/pkg/gnu/bin ] ; then
+			GNU="/opt/pkg/gnu"
+		elif [ -d /opt/gnu -a -d /opt/gnu/bin ] ; then
+			GNU="/opt/gnu"
+		else
+			GNU="/NO-gnu-FOUND"
+		fi
+	fi
+	export GNU
 }
 
 # n.b.:  see also the corresponding elisp functions
@@ -435,7 +868,7 @@ lnotes ()
 		cd $HOME/notes
 		if [ `ls|wc -w` != 0 ] ; then
 			echo 'You have notes on: '
-			ls -dC *[!~]
+			${LS} -dC *[!~]
 		fi
 	)
 	fi
@@ -456,7 +889,7 @@ adjlinks ()
 	OPTIND="1"
 	while getopts "f:t:" OPTCH
 	do
-		case $OPTCH in
+		case ${OPTCH} in
 		f)
 			_from=${OPTARG}
 			;;
@@ -469,7 +902,7 @@ adjlinks ()
 			;;
 		esac
 	done
-	shift $(expr $OPTIND - 1)
+	shift `expr $OPTIND - 1`
 
 	if [ -z "${_from}" -o -z "${_to}" -o $# -lt 1 -o -z "$1" ]; then
 		echo "$_USAGE" >&2
@@ -478,15 +911,15 @@ adjlinks ()
 
 	for _lnk
 	do
-		_otarg=$(readlink "${_lnk}")
+		_otarg=`readlink "${_lnk}"`
 		if [ $? -eq 0 ]; then
-			_ntarg=$(echo "${_otarg}" | sed "s|${_from}|${_to}|")
+			_ntarg=`echo "${_otarg}" | sed "s|${_from}|${_to}|"`
 			if [ "${_otarg}" != "${_ntarg}" ]; then
 				ln -fhs "${_ntarg}" "${_lnk}" && echo adjusted: "${_lnk}" '->' "${_otarg}" to: '->' "${_ntarg}"
 			fi
 		fi
 	done
-	unset _USAGE _from _to _lnk _otarg _ntarg
+	unset _USAGE _from _to _lnk _otarg _ntarg OPTCH
 }
 
 # this is a bit like the GNU (err, vim) "xxd -p", but far more portable
@@ -506,7 +939,7 @@ hexdecode ()
 cdpkgwrksrc ()
 {
 	# XXX don't do anything if not directly in a pacakge dir
-	cd $(make show-var VARNAME=WRKSRC)
+	cd `make show-var VARNAME=WRKSRC`
 }
 
 # this name is chosen so as to complement cdpkgwrksrc to facilitate easier
@@ -515,7 +948,7 @@ cdpkgwrksrc ()
 cdwrkpkg ()
 {
 	# XXX don't do anything if not directly in a pacakge dir
-	cd $(make show-var VARNAME=WRKDIR)
+	cd `make show-var VARNAME=WRKDIR`
 }
 
 cvsupdateroot ()
@@ -550,12 +983,13 @@ difforig ()
 # Display the opening doc comment in a script file.
 #
 shelp () {
-        _binfile=$(which "$0")
+        _binfile=`which "$0"`
 
-        _hdr=$(dd if="$_binfile" count=2 bs=1)
+        _hdr=`dd if="$_binfile" count=2 bs=1`
         if [ "$_hdr" = "#!" ]; then
 	        sed -rn 's/^### ?//;T;p' "$_binfile"
         fi
+	unset _binfile _hdr
 }
 
 # xxx this needs an option to specify which column or position the address is in
@@ -591,7 +1025,7 @@ kall ()
 	unset _SIGOPT
 }
 
-if type killall 2>/dev/null >/dev/null ; then
+if type killall >/dev/null 2>&1; then
 	: already have a good killall?
 else
 	killall ()
@@ -634,6 +1068,26 @@ mailsizes ()
 		}
 		print size;
 	}' ${1+"$@"}
+}
+
+repfirst ()
+{
+	# replace only the first occurance of $1 found in the input with $2
+	#
+	# from https://stackoverflow.com/a/33416489
+
+	sed -e "1 s/${1}/${2}/; t" -e "1,// s//${2}/"
+
+	# GNU Sed supports "0,/RE/" as an address range (such that if /RE/
+	# matches at the very first line of input then it will already be at the
+	# end of its range, whereas "1,/RE/" would still be at the beginning of
+	# its range) so GNU Sed can do this with just one expression:
+	#
+	#	gsed -d "0,/$1/s//$2/"
+	#
+	# AWK equivalent:
+	#
+	#	awk "/$1/ && !done { sub(/$1/, \"$2\"); done=1; }; 1;"
 }
 
 sedjoinnext ()
@@ -694,6 +1148,7 @@ if [ -f /usr/adm/lastlog.ut -a -x /usr/lib/acct/fwtmp ] ; then
 		fi
 		/usr/lib/acct/fwtmp < /usr/adm/lastlog.ut | $YearGrep |
 			awk '{printf("%-8s %-12s %s\n", $1, $3, substr($0, 56))}'
+		unset YearGrep
 	}
 fi
 
@@ -703,12 +1158,12 @@ fi
 # below!
 #
 HAVETPUT=false ; export HAVETPUT
-if expr "`type tput 2>/dev/null`" : '.* is .*/tput$' >/dev/null 2>&1 ; then
+if type tput >/dev/null 2>&1; then
 	HAVETPUT=true
 	# WARNING: this may only work with a SysV compatible tput.
 	# N.B.:  bit-bucket all output -- it is run in ~/.profile for real.
 	TERMTESTCMD='tput -T"$_ttytype" init >/dev/null 2>&1'
-elif expr "`type tset 2>/dev/null`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
+elif type tset >/dev/null 2>&1; then
 	# WARNING:  some tset(1)'s, esp. ULTRIX, fail if stderr is not
 	# a tty.  Worse, most will query for a new terminal type if it
 	# is unknown!  Note also that '-q' isn't accepted by even
@@ -774,7 +1229,7 @@ if [ -n "$DISPLAY" ]; then
 		OPTIND="1"
 		while getopts "fnD:S" OPTCH
 		do
-			case $OPTCH in
+			case ${OPTCH} in
 			n|f)
 				# for ssh '-f' puts itself into the
 				# background and implies '-n'
@@ -801,22 +1256,24 @@ if [ -n "$DISPLAY" ]; then
 
 		_X11server=$1
 
-		echo "onx11server: starting $_REMSHELL $_nullopt $_X11server '. ./.profile; export DISPLAY=${_RDISPLAY}; exec $2'"
+		echo "onx11server: starting $_REMSHELL $_nullopt $_X11server '. ./.profile; DISPLAY=${_RDISPLAY}; export DISPLAY; exec $2'"
 		# note:  do not run this in the background -- let the
 		# caller do that (unfortunately we must have a shell
 		# waiting for the rsh/ssh to keep the connection open
 		# so that the remote process will continue running.
-		$_REMSHELL $_nullopt $_X11server ". ./.profile; export DISPLAY=${_RDISPLAY}; exec $2"
+		$_REMSHELL $_nullopt $_X11server ". ./.profile; DISPLAY=${_RDISPLAY}; export DISPLAY; exec $2"
 
-		unset _RDISPLAY _REMSHELL _USAGE _nullopt _X11server
+		unset _RDISPLAY _REMSHELL _USAGE _nullopt _X11server OPTCH
 	}
 	lxterm ()
 	{
+		# XXX for a true "login" window we should use "-e login -pf ${USER:-${LOGNAME}}"
 		# alternatively:  unset LC_ALL; eval export `locale` ; unset LC_ALL
 		LANG=C LC_ALL=C xterm -ziconbeep 1 -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' -fs 9 -fbx -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME ${1+"$@"} &
 	}
 	luxterm ()
 	{
+		# XXX for a true "login" window we should use "-e login -pf ${USER:-${LOGNAME}}"
 		uxterm -ziconbeep 1 -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' -fs 9 -fbx -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME ${1+"$@"} &
 	}
 	rxauth ()
@@ -837,7 +1294,8 @@ if [ -n "$DISPLAY" ]; then
 	{
 		_rhost=$1
 		shift
-		onx11server -n "$_rhost" "xterm -ziconbeep 1 -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' -fs 9 -cn -rw -sb -si -sk -sl 2048 -ls -T rsh:$_rhost $*" &
+		# alternatively:  unset LC_ALL; eval export `locale` ; unset LC_ALL
+		onx11server -n "$_rhost" "LANG=C LC_ALL=C xterm -ziconbeep 1 -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' -fs 9 -cn -rw -sb -si -sk -sl 2048 -ls -T rsh:$_rhost $*" &
 		unset _rhost
 	}
 	ruxterm ()
@@ -851,7 +1309,8 @@ if [ -n "$DISPLAY" ]; then
 	{
 		_rhost=$1
 		shift
-		onx11server -S -f "$_rhost" "xterm -ziconbeep 1 -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' -fs 9 -cn -rw -sb -si -sk -sl 2048 -ls -T ssh:$_rhost $*"
+		# alternatively:  unset LC_ALL; eval export `locale` ; unset LC_ALL
+		onx11server -S -f "$_rhost" "LANG=C LC_ALL=C xterm -ziconbeep 1 -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' -fs 9 -cn -rw -sb -si -sk -sl 2048 -ls -T ssh:$_rhost $*"
 		unset _rhost
 	}
 	suxterm ()
@@ -863,31 +1322,41 @@ if [ -n "$DISPLAY" ]; then
 	}
 fi
 
-# for window systems which don't emulate login sessions in each window
-#
 do_first_time ()
 {
+	# TODO:  should use $HAVEFORTUNE and $FORTUNE
 	if [ -x /usr/games/fortune ] ; then
+		echo ""
 		/usr/games/fortune
-	elif [ -x "$FORTUNE" ] ; then
-		$FORTUNE
+	elif [ -x ${LOCAL}/games/fortune ] ; then
+		echo ""
+		${LOCAL}/games/fortune
 	fi
-	if [ -r calendar -o -r .month ] ; then
-		echo "\nToday's Events:"
-		if [ -r .month ] ; then
+	if [ -r calendar -o -r diary -o -r .month ] ; then
+		echo ""
+		echo "Today's Events:"
+		if ${HAVEMONTH} && [ -r .month ] ; then
 			month -B
+			#		monthd -i5
 		fi
-		if [ -r calendar ] ; then
-			calendar
+		if ${HAVECALENDAR} ; then
+			if [ -r calendar ] ; then
+				calendar -l 2 -w 4
+			elif [ -r diary ] ; then
+				#
+				# uses cpp, which gets confused with some
+				# comments....  and unfortunately won't accept
+				# '-f -', nor will it read from /dev/stdin or
+				# /fdesc/stdin...  grrr....
+				#
+				calendar -l 2 -w 4 -f diary 2>/dev/null
+			fi
 		fi
 	fi
 	lnotes
-	if [ -r ${HOME}/.trninit${TERM} ] ; then
-		TRNINIT=${HOME}/.trninit${TERM} ; export TRNINIT
-	fi
 }
 
-if type ismpx 2>/dev/null >/dev/null ; then # hmmm.... ksh93 and bash vs type?
+if type ismpx >/dev/null 2>&1; then
 	: might just be running layers
 else
 	# otherwise it's just not possible....
@@ -897,12 +1366,13 @@ else
 	}
 fi
 
-if [ "`ismpx`" = yes -o "$TERM" = "dmd-myx" ] ; then
+if ismpx || [ "$TERM" = "dmd-myx" ] ; then
 	if [ "${LEV:-0}" -eq 0 ] ; then
 		# in xterms, we are (normally, supposed to be) a login
 		# shell, but not in layers
 		do_first_time
 	fi
+	PS1="${PS1}${UUNAME}"
 	MYXCLR_L="`myxban -l`"
 	MYXCLR_C="`myxban -c`"
 	MYXCLR_R="`myxban -r`"
@@ -912,7 +1382,7 @@ if [ "`ismpx`" = yes -o "$TERM" = "dmd-myx" ] ; then
 	clearban ()
 	{
 		$echo $n "${MYXCLR}$c"
-		WBANNER="${OWBANNER}";
+		WBANNER="${OWBANNER}"
 		setban
 	}
 
@@ -934,25 +1404,25 @@ if [ "`ismpx`" = yes -o "$TERM" = "dmd-myx" ] ; then
 		unset BANNER_PWD
 	}
 
-# XXX most versions of SysV sh always run builtins before functions
-#
-#	cd ()
-#	{
-#		chdir "$*"
-#		BANNER_PWD=$(pwd)
-#		eval myxban -l "\"$MYXBAN_L\""
-#	}
+	psm ()
+	{
+		ps -ft `tty | sed 's|/dev/xt|xt/|'`
+	}
 
-	setban
 fi
 # else
 case "$TERM" in
 *xterm*)
+	PS1="${PS1}${UUNAME}"
+
 	clearban ()
 	{
-		WBANNER="${OWBANNER}";
+		WBANNER="${OWBANNER}"
 		setban
 	}
+	if type typeset >/dev/null 2>&1; then
+		typeset -ft clearban
+	fi
 
 	setban ()
 	{
@@ -963,30 +1433,538 @@ case "$TERM" in
 			WBANNER=${1+"${@}"}
 		fi
 		if [ -z "$BANNER_PWD" ]; then
-			# only if needed (it's expensive), would be done by 'cd' if possible
+			# only if needed (it's expensive), would be done by 'cd'
+			# if possible
+			#
+			# XXX ToDo:  should extract the version in .shpwd as a
+			# separate function
 			BANNER_PWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;'`
 		fi
-		if [ "$USER" = "$LOGNAME" ]; then
-			eval TBANNER='"${WBANNER:-`basename ${SHELL}`}://$UUNAME/$BANNER_PWD | $user[$LEV]:$TTYN"'
+		if is_attksh; then
+			# XXX ksh93 massively messes up parsing backticks in a
+			# variable expansion -- it never finds the second one!!!
+			if [ "$user" = "$LOGNAME" ]; then
+				TBANNER="${WBANNER:-$(basename ${SHELL})}://$UUNAME/$BANNER_PWD | $user[$LEV]:$TTYN"
+			else
+				TBANNER="${WBANNER:-$(basename ${SHELL})}://$UUNAME/$BANNER_PWD | $user:$group($LOGNAME)[$LEV]:$TTYN"
+			fi
 		else
-			eval TBANNER='"${WBANNER:-`basename ${SHELL}`}://$UUNAME/$BANNER_PWD | $user:$group($LOGNAME)[$LEV]:$TTYN"'
+			if [ "$user" = "$LOGNAME" ]; then
+				TBANNER="${WBANNER:-`basename ${SHELL}`}://$UUNAME/$BANNER_PWD | $user[$LEV]:$TTYN"
+			else
+				TBANNER="${WBANNER:-`basename ${SHELL}`}://$UUNAME/$BANNER_PWD | $user:$group($LOGNAME)[$LEV]:$TTYN"
+			fi
 		fi
-		$echo $n "\033]0;${TBANNER}\007$c"
+		if type printf >/dev/null 2>&1; then
+			printf "\033]0;%s\007" "${TBANNER}"
+		else
+			$echo $n "\033]0;${TBANNER}\007$c"
+		fi
 
 		unset BANNER_PWD
 	}
+	;;
+*)
+	# assume there's only a plain terminal with no banner line...
+	#
+	if [ "$user" != "$LOGNAME" ] ; then
+		PS1="${PS1}$TTYN:$user($LOGNAME)@$UUNAME)"
+	else
+		PS1="${PS1}$TTYN:$LOGNAME@$UUNAME"
+	fi
+	;;
+esac
+
+if type setban >/dev/null 2>&1; then
 
 	setban
-	;;
-# XXX most versions of SysV sh always run builtins before functions
+
+	# XXX most versions of SysV sh always run builtins before functions
+	# though Heirloom Sh does not.
+	#
+	# xxx this may be redefined immediately if ~/.shpwd is readable, or
+	# later for certain shells if their custom ~/.${SHELL}pwd is readable
+	#
+	cd ()
+	{
+		# note this has to support various ksh without chdir and/or
+		# weird "builtin" as $ENV won't be sourced until after .profile
+		# is finished, and we try "cd" at the end of this file...
+		#
+		if type chdir >/dev/null 2>&1; then
+			chdir ${1+"$@"}
+		elif type command >/dev/null 2>&1; then
+			command cd ${1+"$@"}
+		else
+			builtin cd ${1+"$@"}
+		fi
+		PWD=`pwd`
+		BANNER_PWD=${PWD}
+		setban
+	}
+
+	if [ -r $HOME/.shpwd ] ; then
+		. $HOME/.shpwd
+	fi
+
+	#
+	# XXX ToDo:  re-factor into a function which defines functions....
+	#
+	# I.e. write the function definition into a variable value, then eval
+	# the variable to define the function.  (See experiments/tfunc.sh)
+	#
+
+	# xxx we don't try to preserve any original traps for 1 2 3 15....
+
+	if [ "$VISUAL" = "emacsclient" -a -z "$DISPLAY" ] ; then
+		EMACS=`type emacs`
+		EMACS=`expr "${EMACS}" : '^[^/]*\(/[^ )]*\)'`
+		# this sort of assumes TERM=dmd or similar
+		emacs ()
+		{
+			msg=n
+			if mesg >/dev/null 2>&1 ; then msg=y; fi
+			trap "trap 1 2 3 15; clearban; mesg $msg || true" 1 2 3 15
+			OWBANNER=${WBANNER}
+			WBANNER="GNU Emacs @ $UUNAME"
+			setban
+			mesg n || true
+			$EMACS "$@"
+			clearban
+			mesg $msg || true
+			trap 1 2 3 15
+		}
+	fi
+
+	if expr "`type cu 2>/dev/null`" : '.* is .*/cu)*$' >/dev/null 2>&1 ; then
+		CU=`type cu`
+		CU=`expr "$CU" : '^[^/]*\(/[^ )]*\)'`
+		cu ()
+		{
+			msg=n
+			if mesg >/dev/null 2>&1 ; then msg=y; fi
+			if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
+				trap "trap 1 2 3 15; mkmenu -; clearban; mesg $msg || true" 1 2 3 15
+				myxsize -s
+			else
+				trap "trap 1 2 3 15; clearban; mesg $msg || true" 1 2 3 15
+			fi
+			OWBANNER=${WBANNER}
+			WBANNER="cu $*"
+			setban
+			mesg n || true
+			$CU "$@"
+			clearban
+			mesg $msg || true
+			trap 1 2 3 15
+		}
+	fi
+
+	if expr "`type ckermit 2>/dev/null`" : '.* is .*/ckermit)*$' >/dev/null 2>&1 ; then
+		CKERMIT=`type ckermit`
+		CKERMIT=`expr "$CKERMIT" : '^[^/]*\(/[^ )]*\)'`
+		ckermit ()
+		{
+			msg=n
+			if mesg >/dev/null 2>&1 ; then msg=y; fi
+			if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
+				trap "trap 1 2 3 15; mkmenu -; clearban; mesg $msg || true" 1 2 3 15
+				myxsize -s
+			else
+				trap "trap 1 2 3 15; clearban; mesg $msg || true" 1 2 3 15
+			fi
+			OWBANNER=${WBANNER}
+			WBANNER="C-Kermit $*"
+			setban
+			mesg n || true
+			$CKERMIT "$@"
+			clearban
+			mesg $msg || true
+			trap 1 2 3 15
+		}
+	fi
+
+	if expr "`type slogin 2>/dev/null`" : '.* is .*/slogin)*$' >/dev/null 2>&1 ; then
+		SLOGIN=`type slogin`
+		SLOGIN=`expr "$SLOGIN" : '^[^/]*\(/[^ )]*\)'`
+		slogin ()
+		{
+			msg=n
+			if mesg >/dev/null 2>&1 ; then msg=y; fi
+			trap "trap 1 2 3 15; clearban; mesg $msg || true" 1 2 3 15
+			OWBANNER=${WBANNER}
+			WBANNER="slogin $*"
+			setban
+			mesg n || true
+			$SLOGIN "$@"
+			clearban
+			mesg $msg || true
+			trap 1 2 3 15
+		}
+	fi
+
+	if expr "`type rlogin 2>/dev/null`" : '.* is .*/rlogin)*$' >/dev/null 2>&1 ; then
+		RLOGIN=`type rlogin`
+		RLOGIN=`expr "$RLOGIN" : '^[^/]*\(/[^ )]*\)'`
+		rlogin ()
+		{
+			msg=n
+			if mesg >/dev/null 2>&1 ; then msg=y; fi
+			trap "trap 1 2 3 15; clearban; mesg $msg || true" 1 2 3 15
+			OWBANNER=${WBANNER}
+			WBANNER="rlogin $*"
+			setban
+			mesg n || true
+			$RLOGIN "$@"
+			clearban
+			mesg $msg || true
+			trap 1 2 3 15
+		}
+	fi
+
+	if expr "`type telnet 2>/dev/null`" : '.* is .*/telnet)*$' >/dev/null 2>&1 ; then
+		TELNET=`type telnet`
+		TELNET=`expr "$TELNET" : '^[^/]*\(/[^ )]*\)'`
+		telnet ()
+		{
+			msg=n
+			if mesg >/dev/null 2>&1 ; then msg=y; fi
+			if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
+				trap "trap 1 2 3 15; mkmenu -; clearban; mesg $msg || true" 1 2 3 15
+				myxsize -s
+			else
+				trap "trap 1 2 3 15; clearban; mesg $msg || true" 1 2 3 15
+			fi
+			OWBANNER=${WBANNER}
+			WBANNER="telnet $*"
+			setban
+			mesg n || true
+			$TELNET "$@"
+			clearban
+			mesg $msg || true
+			trap 1 2 3 15
+		}
+	fi
+
+	if expr "`type mush 2>/dev/null`" : '.* is .*/mush)*$' >/dev/null 2>&1 ; then
+		TELNET=`type mush`
+		TELNET=`expr "$MUSH" : '^[^/]*\(/[^ )]*\)'`
+		mushC ()
+		{
+			msg=n
+			if mesg >/dev/null 2>&1 ; then msg=y; fi
+			trap "trap 1 2 3 15; clearban; mesg $msg || true" 1 2 3 15
+			OWBANNER=${WBANNER}
+			WBANNER="MUSH $*"
+			setban
+			mesg n || true
+			$MUSH -C "$@"
+			clearban
+			mesg $msg || true
+			trap 1 2 3 15
+		}
+	fi
+
+	if expr "`type nethack 2>/dev/null`" : '.* is .*/nethack)*$' >/dev/null 2>&1 ; then
+		NETHACK=`type nethack`
+		NETHACK=`expr "$NETHACK" : '^[^/]*\(/[^ )]*\))'`
+		nethack ()
+		{
+			msg=n
+			if mesg >/dev/null 2>&1 ; then msg=y; fi
+			if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
+				trap "trap 1 2 3 15; loadfont thin.9x14; clearban; mesg $msg || true" 1 2 3 15
+				loadfont rogue.9x18
+			else
+				trap "trap 1 2 3 15; clearban; mesg $msg || true" 1 2 3 15
+			fi
+			OWBANNER=${WBANNER}
+			WBANNER="NetHack"
+			setban
+			mesg n || true
+			$NETHACK "$@"
+			clearban
+			mesg $msg || true
+			trap 1 2 3 15
+		}
+	fi
+
+	if [ -x /usr/5bin/su ] ; then
+		SU=/usr/5bin/su
+	elif [ -x /usr/bin/su ] ; then
+		SU=/usr/bin/su
+	elif [ -x /bin/su ] ; then
+		SU=/bin/su
+	else
+		SU=`type su`
+		SU=`expr "$SU" : '^[^/]*\(/[^ )]*\)'`
+	fi
+	su ()
+	{
+		msg=n
+		if mesg >/dev/null 2>&1 ; then msg=y; fi
+		trap "trap 1 2 3 15; clearban; mesg $msg || true" 1 2 3 15
+		OWBANNER=${WBANNER}
+		WBANNER="SU ${*-root}"
+		setban
+		mesg n || true
+		$SU "$@"
+		clearban
+		mesg $msg || true
+		trap 1 2 3 15
+	}
+
+fi
+
+# Transform id(1)'s output into useful shell variable assignments
 #
-#	cd ()
-#	{
-#		chdir ${1+"$@"}
-#		BANNER_PWD=`pwd`
-#		setban
-#	}
-esac
+# UGLY, but it works
+#
+# NOTE:  there's a trick in here -- if there's no group name for your GID then
+# the final expression parameter won't do anything.  However since the extra
+# "groups=..." stuff (which may have had more word-surrounded parens) has
+# already been trimmed off the end the only thing that'll be left is the
+# original "gid=20" string, so $group simply won't be set, so afterward it is
+# set to $gid instead.
+#
+eval "`id | sed -e 's/ groups=.*$//' \
+		 -e 's/(\([^) ]*\)) / user=\1 /' \
+		 -e 's/(\([^) ]*\))/ group=\1/'`"
+: ${group:=${gid}}
+
+if [ "$uid" -eq 0 ] ; then
+	#
+	# we always want persistent (and shared) history for 'su'
+	#
+	# Note only some shells append a slash when expanding "~user"...
+	#
+	: ${ROOT_HOME:=~root}
+	if [ -n "$HISTFILE" ]; then
+		HISTFILE="${ROOT_HOME%/}/`basename $HISTFILE`"
+	else
+		HISTFILE="${ROOT_HOME%/}/.sh_history"
+	fi
+	if [ ! -f $HISTFILE ]; then
+		touch $HISTFILE
+	fi
+	# see also ~/.kshlogin
+	HISTSIZE=2000
+	export HISTSIZE
+
+	PRE_SU_PATH=$PATH
+
+	removedups PATH
+
+	# got to get rid of lone ":" or any "." in PATH
+	PATH=`echo $PATH | sed -e 's/::/:/g'	\
+				-e 's/^://'	\
+				-e 's/:$//'	\
+				-e 's/^\.://'	\
+				-e 's/:\.://g'	\
+				-e 's/:\.$//'`
+	if [ -n "$SU_FROM" ]; then
+		# xxx this is a trick, and only necessary on machines
+		# without my fixed "su" -- we reset LOGNAME in case
+		# this was a proper and secure 'su' (i.e. one that
+		# reset the environment, especially and including
+		# $HOME, etc., including of course $LOGNAME).  This
+		# does two things.  First, and most important, though
+		# most dangerous, it tricks emacs, for now, into
+		# finding ~$LOGNAME/.emacs[.elc].  Second it
+		# simplifies the next PATH cleanup step....
+		#
+		# we set USER to "root" explicitly even if the user
+		# did not use "su -l" as they should have...
+		#
+		LOGNAME=$SU_FROM
+		export LOGNAME
+		USER="root"
+		export USER
+	fi
+	if [ -n "$SUDO_USER" ]; then
+		# xxx this is a similar trick for OSX and Linux braindamage
+		LOGNAME=$SUDO_USER
+		export LOGNAME
+		USER="root"
+		export USER
+	fi
+	# also get rid of the login user's ~/{usr/bin,bin} because
+	# it's usually first, and it usually contains personal hacks
+	# that are probably not safe to use as root, and (if this is
+	# not ~$SU_FROM/.kshrc then ~$SU_FROM/bin may also contain
+	# trojans or worse)
+	#
+	LOGNAMEPATH=`eval echo ~$LOGNAME/usr/bin`
+	dirremove PATH ${LOGNAMEPATH}
+	LOGNAMEPATH=`eval echo ~$LOGNAME/bin`
+	dirremove PATH ${LOGNAMEPATH}
+	LOGNAMEPATH=`eval echo ~$LOGNAME/go/bin`
+	dirremove PATH ${LOGNAMEPATH}
+
+	unset LOGNAMEPATH
+
+	SU_POST_CLEAN_PATH=$PATH
+
+	if type alias >/dev/null 2>&1; then
+		#
+		# for those that do trust ~$LOGNAME dotfiles
+		#
+		alias setaliases='HOME=$(eval echo ~$LOGNAME); LEV=$((LEV-1)); . $HOME/.$(basename $SHELL)rc'
+	fi
+
+	# must have X11BIN before openwin if newer X on system....
+	dirappend PATH /usr/lbin /usr/ucb ${X11BIN}
+
+	if [ -z "$UUNAME" ]; then
+		# xxx don't bother with trying the real uuname -l
+		UUNAME=`hostname`
+		export UUNAME
+	fi
+	if [ -z "$HOSTNAME" ]; then
+		HOSTNAME=`hostname`
+		export HOSTNAME
+	fi
+	if [ -z "$DOMAINNAME" ]; then
+		DOMAINNAME=`domainname`
+		export DOMAINNAME
+	fi
+
+	ISSUN=false
+	export ISSUN
+	if [ -x /usr/bin/sun ] ; then
+		if sun ; then
+			ISSUN=true
+			PATH=`echo $PATH | sed 's/^\/bin://'`
+			if [ `uname -r | sed 's/^\([0-9]*\).*$/\1/'` -lt 5 ] ; then
+				if [ "X$LOGNAME" != "Xroot" ] ; then
+					dirprepend PATH /usr/5bin
+				else
+					dirappend PATH /usr/5bin
+				fi
+			else
+				dirprepend PATH /opt/SUNWspro/bin
+			fi
+			# XXX FIXME: should use OPENWINHOME ???
+			# XXX FIXME: should only do this if DISPLAY set???
+			dirappend PATH /usr/openwin/bin /usr/openwin/demo
+			dirappend MANPATH /usr/openwin/share/man
+		fi
+	fi
+	if [ ! -d /usr/sbin ] ; then
+		dirprepend PATH /usr/etc	# only old BSDs
+	fi
+	if [ ! -d /sbin -a ! -d /usr/etc ] ; then
+		dirprepend PATH /etc		# only really old systems...
+		dirappend PATH /usr/lib	# ditto
+	fi
+	dirprepend PATH /sbin /usr/sbin
+	if [ -n "${UUCPSPOOLDIR}" ]; then
+		dirappend PATH /usr/libexec/uucp /usr/lib/uucp
+	fi
+	dirappend PATH $HOME/bin
+
+	if [ -z "$UUNAME" ]; then
+		if type uuname >/dev/null 2>&1 ; then
+			UUNAME=`uuname -l`
+		else
+			UUNAME=`hostname`
+		fi
+		export UUNAME
+	fi
+
+	set_LOCAL_et_al
+
+	if ismpx || [ "$TERM" = "dmd-myx" ] ; then
+		# xxx should do this in setban...
+		MYXBAN_R='$user:$group($LOGNAME)@$UUNAME[$LEV]:$TTYN'
+		dirappend PATH $DMD/bin $DMDSGS/bin/3b5 $DMD/local/bin
+	fi
+
+	: ${PSc:="#"}
+	MAILPATH=${MAILDIR}/${LOGNAME}:${MAILDOR}/root:${MAILDIR}/uucp:${MAILDIR}/usenet
+	# XXX assume any emacsclient will try to use the user's server process
+	case "$VISUAL" in
+	*emacsclient*)
+		VISUAL="${MY_EMACS} -nw"
+		export VISUAL
+		;;
+	esac
+	case "$EDITOR" in
+	*emacsclient*)
+		EDITOR="${MY_EMACS} -nw"
+		export EDITOR
+		;;
+	esac
+	# just make damn sure PAGER is set...
+	if type less >/dev/null 2>&1; then
+		PAGER="less"
+		LESS="-M"
+		export LESS
+	elif [ -x /usr/xpg4/bin/more ] ; then
+		# SunOS-5's, at least, has the 'G' command!
+		PAGER="/usr/xpg4/bin/more"
+		# use '-s' as it can't be turned on later during runtime
+		MORE="-s"
+		export MORE
+	elif [ "${PAGER##*/}" = "more" ] ; then
+		PAGER="more"
+		# use '-s' as it can't be turned on later during runtime
+		MORE="-sw"
+		export MORE
+	else
+		# meow
+		PAGER="cat"
+	fi
+	export PAGER
+	if [ "$PAGER" = "less" ]; then
+		MANPAGER="$PAGER -Rsi"
+		export MANPAGER
+	fi
+
+	if [ -n "$DISPLAY" -a -z "$XAUTHORITY" ]; then
+		#
+		# XXX if root is using this .kshrc then perhaps we
+		# should try copying the "xauth" information for the
+		# current display to $HOME/.Xauthority instead of just
+		# pointing at it...  but why bother???
+		#
+		XAUTHORITY=`eval echo ~${SU_FROM}/.Xauthority`
+		export XAUTHORITY
+	fi
+
+	unset -f krcmd
+	function krcmd
+	{
+		# WARNING: this version kills everyone's rcmd procs!
+		kill -9 `ps -axlc | awk '$3 == 1 && $13 == "rcmd" {print $2}'`
+	}
+	# I don't know if this is right, or not, but let's try for now...
+	cd
+	OWBANNER=${WBANNER}
+	WBANNER="SU `basename ${SHELL}`"
+	setban
+elif [ "$user" != "$LOGNAME" ] ; then
+	if ismpx || [ "$TERM" = "dmd-myx" ] ; then
+		# xxx should do this in setban...
+		MYXBAN_R='$user:$group($LOGNAME)@$UUNAME[$LEV]:$TTYN'
+	fi
+	: ${PSc:="$"}
+else
+	if ismpx || [ "$TERM" = "dmd-myx" ] ; then
+		# xxx should do this in setban...
+		MYXBAN_R='$LOGNAME{$group}@$UUNAME[$LEV]:$TTYN'
+	fi
+	: ${PSc:="$"}
+fi
+PS1="${PS1} ${PSc} "
+
+if [ "$user" = usenet -o "$group" = news ] ; then
+	dirprepend PATH $LOCAL/lib/newsbin $LOCAL/lib/newsbin/maint $LOCAL/lib/newsbin/input
+fi
+
+#
+# now some helpful functions
+#
 
 if [ -f /usr/share/misc/na.phone ]; then
 	areacode ()
@@ -998,6 +1976,30 @@ fi
 errno ()
 {
 	grep "^#define[ 	]*[A-Z][A-Z]*[ 	]*$1[ 	]" /usr/include/sys/errno.h
+}
+
+hex2d ()
+{
+	# N.B.:  this is only usable if the shell supports arithmetic expansions
+	#
+	# xxx NetBSD ksh (and most/all other pdksh derivatives) don't seem to
+	# understand octal.  NetBSD sh does understand strict octal (with a
+	# leading 0), but ksh93 does a (not-so-)"smart" conversion and if any
+	# digits are >7 it will treat numbers with a leading zero as if they are
+	# decimal!  (All require a leading "0x" to recognize hex -- should we
+	# prepend it if missing?  Probably not.)
+	#
+	echo "$(($@))"
+}
+
+maillog ()
+{
+	# Warning:  less (at least up to v. 394) has a limitation of about 95
+	# chars (or perhaps UNGOT_SIZE, 100) to the length of the '-p'
+	# parameter.  (xxx otherwise I would also include words like "core",
+	# "signal", and "trace")
+	#
+	$PAGER -enM -p ": \[[0-9]+\] (\[.+\] )?((remote[A-Z ]*:)|remote ..LO: (rejected: inv[^:]*:|refusing) )|^.*kill.*" +G $MAILLOG ${!+"$@"}
 }
 
 malias ()
@@ -1047,6 +2049,62 @@ srcfgrep ()
 	find . \( -type d \( -name CVS -or -name .git -or -name .svn -or -name build -or -name 'build-*' -or -name autom4te.cache \) -prune \) -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -exec fgrep ${1+"${@}"} {} +
 }
 
+trim ()
+{
+	# AWK trickery to "canonicalize" whitespace in text.
+	#
+	# In AWK a pattern is an expression, and so just giving a non-zero value
+	# says this expression matched, and if there's no action part to the
+	# statement then the default action (if the pattern expression is true)
+	# is to print the input line (i.e. $0), thus AWK can be cat:
+	#
+	#	awk 1
+	#
+	# The trick here is to re-assign the first field to itself -- this
+	# causes AWK to rebuild the whole input line by first splitting it into
+	# fields (with FS, space by default), then rebuilding $0 by putting the
+	# fields back together using OFS (space by default).
+	#
+	# We put this together with two statements, the first with a missing
+	# pattern (which always matches), and the second with a missing action
+	# and a non-zero (i.e. "true") value as the pattern expression:
+	#
+	_USAGE="Usage: trim [-F fs] [-v var=value] [file ...]"
+	_HELP="${_USAGE}\n
+		\t-F fs\t\tSet the input field separator FS to the regular expression fs.\n
+		\t-v var=value\tAssign the value to the variable. (e.g. OFS=:)\n
+		Trim is a wrapper on a small AWK program that splits and recombines all fields\n
+		in each input line thus removing all leading and trailing whitespace (or the\n
+		specified field separator value) and collapsing all whitespace (or FS) between\n
+		each field."
+	_awk_opts=
+	OPTIND="1"
+	while getopts "F:hv:" OPTCH
+	do
+		case ${OPTCH} in
+		F|v)
+			_awk_opts="${_awk_opts} -${OPTCH} '${OPTARG}'"
+			;;
+		h)
+			echo ${_HELP}
+			return 0
+			;;
+		*)
+			echo ${_USAGE} >&2
+			return 2
+			;;
+		esac
+	done
+	shift `expr ${OPTIND} - 1`
+
+	eval awk ${_awk_opts} "'{\$1 = \$1};1'" ${1+"$@"}
+	_rc=$?
+
+	unset _USAGE _HELP _awk_opts OPTCH
+
+	return ${_rc}
+}
+
 typeof ()
 {
 	if [ -z "$LLIBDIR" ]; then
@@ -1073,17 +2131,31 @@ zhead ()
 #
 # (which can be removed by "rm_alias_funcs")
 #
-# functions are (maybe?) more overhead than aliases[???]
+# functions are (maybe?) more overhead than aliases in shells with aliases[???]
 #
 
 rm_alias_funcs ()
 {
-	# note: '-f' is only in ksh and bash, but that's where this is used
-	unset -f uufollow rsh blsqueeze blstrip ds e elc l la ll lla llr llra lr lra lsa nstty rstty wcvs
+	# note: '-f' is only in modern sh as well as ksh and bash, but that's
+	# where this is used
+	#
+	unset -f blsqueeze blstrip ds e elc l la ll lli lla llia llr llir llra llira lr lra lsa nstty rstty wcvs
+	if [ -x /usr/ucb/rsh -a -x /bin/rsh ] ; then
+		unset -f rsh
+	fi
+	if [ -n "$UUCPSPOOLDIR" ]; then
+		unset -f uufollow
+	fi
 }
 rm_func_aliases ()
 {
-	unalias uufollow rsh blsqueeze blstrip ds e elc l la ll lla llr llra lr lra lsa nstty rstty wcvs 2>/dev/null
+	type alias >/dev/null 2>&1 || return 0
+	for _a in uufollow rsh blsqueeze blstrip ds e elc l la ll lli lla llia llr llir llra llira lr lra lsa nstty rstty wcvs; do
+		if alias ${_a} >/dev/null 2>&1; then
+			unalias ${_a}
+		fi
+	done
+	unset _a
 }
 
 # .... and in case we are sourcing this file for a second time....
@@ -1123,67 +2195,69 @@ e ()
 }
 elc ()
 {
-	emacs -batch -q -no-site-file -f batch-byte-compile
-}
-hex2d ()
-{
-	# xxx NetBSD sh and pdksh don't seem to understand octal
-	echo "$(($@))"
+	${MY_EMACS} -batch -q -no-site-file -f batch-byte-compile
 }
 l ()
 {
-	/bin/ls -CF ${1+"$@"}
+	${LS} -CF ${1+"$@"}
 }
 la ()
 {
-	/bin/ls -CFa ${1+"$@"}
+	${LS} -CFa ${1+"$@"}
 }
 ll ()
 {
-	/bin/ls -ls ${1+"$@"}
+	${LS} -l${LS_O}s ${1+"$@"}
+}
+lli ()
+{
+	${LS} -li${LS_O}s ${1+"$@"}
 }
 lla ()
 {
-	/bin/ls -lsa ${1+"$@"}
+	${LS} -l${LS_O}sa ${1+"$@"}
+}
+llia ()
+{
+	${LS} -li${LS_O}sa ${1+"$@"}
 }
 llr ()
 {
-	/bin/ls -lsR ${1+"$@"}
+	${LS} -l${LS_O}sR ${1+"$@"}
+}
+llir ()
+{
+	${LS} -li${LS_O}sR ${1+"$@"}
 }
 llra ()
 {
-	/bin/ls -lsaR ${1+"$@"}
+	${LS} -l${LS_O}saR ${1+"$@"}
+}
+llira ()
+{
+	${LS} -li${LS_O}saR ${1+"$@"}
 }
 lr ()
 {
-	/bin/ls -CFR ${1+"$@"}
+	${LS} -CFR ${1+"$@"}
 }
 lra ()
 {
-	/bin/ls -CFRa ${1+"$@"}
+	${LS} -CFRa ${1+"$@"}
 }
 lsa ()
 {
-	/bin/ls -a ${1+"$@"}
+	${LS} -a ${1+"$@"}
 }
 nstty ()
 {
 	stty sane intr "^?" erase "^h" kill "^u" echoe echok
 	echo "(use 'tput reset', or 'tabs -8' to reset tabs, etc.)"
 }
-maillog ()
-{
-	# Warning:  less (at least up to v. 394) has a limitation of about 95
-	# chars (or perhaps UNGOT_SIZE, 100) to the length of the '-p'
-	# parameter.  (xxx otherwise I would also include words like "core",
-	# "signal", and "trace")
-	#
-	$PAGER -enM -p ": \[[0-9]+\] (\[.+\] )?((remote[A-Z ]*:)|remote ..LO: (rejected: inv[^:]*:|refusing) )|^.*kill.*" +G $MAILLOG ${!+"$@"}
-}
 rstty ()
 {
 	stty $SANE
-	echo "(use 'tput reset', or 'tabs -8' to reset tabs, etc.)"
+	echo "(use 'tput reset', and/or 'tabs -8' to reset tabs, etc.)"
 }
 sshsendkey ()
 {

@@ -1,7 +1,12 @@
 #
-#	.profile - for either SysV sh, 4BSD sh, any ksh, some GNU bash, or even old ash.
+#	.profile - Bourne Sh, most Ash, almost any ksh-like, some GNU Bash, etc.
 #
-#ident	"@(#)HOME:.profile	37.5	21/11/22 14:22:42 (woods)"
+# N.B.:  GNU Bash is a big ugly slow incompatible behemoth.  Do not use it if at
+# all possible!  Recent releases of AT&T Ksh are faster, but also big and ugly.
+#
+# My preference for years has been PDKsh, now as Ksh in NetBSD.
+#
+#ident	"@(#)HOME:.profile	37.6	22/02/23 17:37:49 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -9,23 +14,34 @@
 #		- but we don't use $() for command expansion
 #		- we don't use arithmetic expressions either
 #		- we don't use parameter expansion substring processing
+#		- we don't use ~ for pathname expansion (use $HOME)
+#		- we don't use "export VAR=value"
 #	- the shell supports functions (but not necessarily "typeset")
-#	- the shell supports "getopts"
+#	- the shell supports "getopts" (used by some functions)
 #	- standard environment has been set by login(1)
-#	- $argv0 is `basename $0` from .xinitrc or .xsession
+#	- $argv0 (if set) is `basename $0` from .xinitrc or .xsession
 #	- test(1), aka "[", supports '-L' for testing symlinks
 #	  (note that "test -L" is POSIX, but old systems had "-h")
+#
+# For now this all works well enough, but minimally, with Heirloom Shell; most
+# modern versions of Ash, including NetBSD sh and it's bass-ackwards stunted
+# clone dash; and has been tested with two of the most recent variants of Schily
+# Bourne Shell (bosh and pbosh).  It hasn't been tested with old SysV shells,
+# old Ash, etc., in a very long time.  DMD/mpx/layers support has not been
+# tested in a similarly long time.
 
 # Files referenced [all optional, some specific to the type of shell]:
 #
 #	$HOME/.ashtype	- sourced once, if 'type' command fails
 #	$HOME/.ashlogin	- sourced once, if running ash(1) or similar (expands ~)
 #	$HOME/.ashrc	- set as $ENV if running ash(1) or similar
+#	$HOME/.ashlocal	- source from .ashrc, if readable
 #	$HOME/.bashrc	- set as $ENVFILE in ~/.bashlogin
 #	$HOME/.bashlogin - sourced once, if running GNU bash(1)
 #	$HOME/.bashlogout - sourced  on trap 0, if running GNU bash(1)
 #	$HOME/.editor	- mktable'd & assigned to $EDPREF, preferred editor type
 #	$HOME/.kshrc	- set as $ENVFILE in ~/.kshlogin
+#	$HOME/.kshlocal	- source from .kshrc, if readable
 #	$HOME/.kshlogin	- sourced once, if running any ksh(1)
 #	$HOME/.kshlogout - sourced on trap 0, if running any ksh(1)
 #	$HOME/.localprofile - sourced once early to set system-local prefs.
@@ -39,7 +55,8 @@
 
 # Notes:
 #
-#	.editor, .localprofile, .stty, and .shell are not distributed.
+#	.ashlocal, .editor, .kshlocal, .localprofile, .stty, and .shell are not
+#	distributed.
 #
 #	.localprofile may set $PATH_IS_OKAY to "true" if it is so (and
 #	of course may also (re)set $PATH to make it so first.
@@ -53,8 +70,111 @@
 #	$ENV really shouldn't ever do anything for non-interactive
 #	shells, as anything it does can make nightmares for portable
 #	shell scripts (both the writing of, and the running of them).
+#
+#	Login shells can be tested with:
+#
+#	    cd $HOME && env -i SHELL=/path/to/sh HOME=$HOME DISPLAY=$DISPLAY PATH=$PATH xterm $XTERM_OPTS -ls &
+#
+#	Note the "cd $HOME" in the above test command.  Most shell manuals say
+#	something like "read the .profile file in the user's home directory
+#	($HOME)", or even more explicitly "read from $HOME/.profile", but in
+#	fact some expect to be started with their current working directory
+#	already in $HOME, e.g. NetBSD sh (and maybe older shells, but not dash).
+
+# ToDo:
+#
+#	Don't force HAVE* variables if they are already set!
 
 umask 022
+
+echo "$0: startup PATH=$PATH"
+OPATH=$PATH
+
+if [ -n "${DISPLAY}" ]; then
+	echo "$0: startup DISPLAY=$DISPLAY"
+	ODISPLAY=${DISPLAY}
+fi
+
+#
+# N.B.:  These next is_* functions are copied early in ~/.shrc too!
+#
+
+is_bash ()
+{
+	[ ${RANDOM:-0} -ne ${RANDOM:-0} -a -n "${BASH}" ]
+}
+
+is_ksh ()
+{
+	if [ ${RANDOM:-0} -ne ${RANDOM:-0} -a -z "${BASH}" ]; then
+		case "${KSH_VERSION}" in
+		"Version"*)
+			return 0 # likely att ksh
+			;;
+		"@(#)MIRBSD"*)
+			return 0 # mksh
+			;;
+		"@(#)"*)
+			return 0 # likely pdksh or some other derivative
+			;;
+		*)
+			return 1
+			;;
+		esac
+	else
+		return 1
+	fi
+}
+
+is_attksh ()
+{
+	is_bash && return 1
+
+	# Note the use of eval to avoid any non-Ksh, non-bosh shell from kicking
+	# out an error about "bad substitution" and stopping execution as a
+	# result.
+
+	# ksh93 and [p]bosh
+	_sh_version=`eval 'echo "${.sh.version}"' 2>/dev/null`
+	# [p]bosh only
+	_sh_shell=`eval 'echo "${.sh.shell}"' 2>/dev/null`
+
+	test -n "${_sh_version}" -a -z "${_sh_shell}"
+	_rc=$?
+	unset _sh_shell _sh_version
+
+	return ${_rc}
+}
+
+is_ash ()
+{
+	is_ksh && return 1
+	is_bash && return 1
+	# older Ash didn't have $RANDOM?
+	[ "`echo ~`" = "${HOME}" ]
+}
+
+is_bourne_sh ()
+{
+	is_ash && return 1
+	[ "`echo ~`" != "${HOME}" -a -z "${RANDOM}" ]
+}
+
+is_posixish_sh ()
+{
+	[ "`echo ~`" = "${HOME}" -a ${RANDOM:-0} -eq ${RANDOM:-0} ]
+}
+
+is_schily_sh ()
+{
+	_sh_shell=`eval 'echo "${.sh.shell}"' 2>/dev/null`
+
+	test -n "${_sh_shell}"
+	_rc=$?
+	unset _sh_shell
+
+	return ${_rc}
+}
 
 ISATTY=false
 if tty >/dev/null; then
@@ -62,16 +182,16 @@ if tty >/dev/null; then
 fi
 
 if ${ISATTY}; then
-	if [ -r ${HOME}/.bashlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} -a -n "${BASH}" ] ; then
+	if is_bash && [ -r ${HOME}/.bashlogout ]; then
 		trap '. ${HOME}/.bashlogout ; exit $?' EXIT
-	elif [ -r ${HOME}/.kshlogout -a ${RANDOM:-0} -ne ${RANDOM:-0} -a -z "${BASH}" ] ; then
+	elif is_ksh && [ -r ${HOME}/.kshlogout ]; then
 		trap '. ${HOME}/.kshlogout ; exit $?' EXIT
 	elif [ -r ${HOME}/.shlogout ] ; then
 		trap '. ${HOME}/.shlogout ; exit $?' 0
 	fi
 fi
 
-# every shell gets all the basic functions....
+# every shell gets all the basic functions and variable settings....
 #
 # we assume ~/.profile is sourced only by login shells, and by
 # ~/.xinitrc or by a window manager
@@ -80,7 +200,6 @@ fi
 
 # Note:  early ash reads SHINIT at start (except if a login shell or called with
 # "sh file")
-
 
 # the I/O re-direction doesn't actually get rid of the "type: not found" message
 # from the old Ash implementation...  Perhaps it parses the whole line first?
@@ -103,13 +222,14 @@ if [ "`echo ~`" = "${HOME}" -a ${RANDOM:-0} -eq ${RANDOM:-0} ] ; then
 	: OK POSIX is good -- that is all for now...
 	if [ -n "${KSH_VERSION}" ]; then
 		: ksh93t or newer, or PDKSH.
-	## xxx it seems impossible to use this without tripping up pdksh....  but... see SO?
+	## xxx it seems impossible to use the following without tripping up
+	## pdksh (which complains "ksh: : bad substitution")....  but...
 	##elif [ -n "${.sh.version}" ]; then
 	##	: ksh93 or newer
 	fi
 fi
 
-if expr "`type ulimit 2>/dev/null`" : 'ulimit is a shell builtin$' > /dev/null 2>&1 ; then
+if expr "`type ulimit 2>/dev/null`" : '^ulimit is a shell ' > /dev/null 2>&1 ; then
 	#
 	# force core, data, nofile, stack, and nproc limits to be equal to
 	# their maximum hard limit.
@@ -138,20 +258,17 @@ if expr "`type ulimit 2>/dev/null`" : 'ulimit is a shell builtin$' > /dev/null 2
 	# read-only), and use '-u' for number of processes
 	# (RLIMIT_NPROC).
 	#
-	case "${KSH_VERSION}" in
-	"@(#)"*)
-		RLIMIT_PROC=`ulimit -H -p`
-		if [ "${RLIMIT_PROC}" != "`ulimit -S -p`" ]; then
-			ulimit -S -p ${RLIMIT_PROC}
-		fi
-		;;
-	*)
+	if is_attksh || is_bash || is_bourne_sh || is_schily_sh; then
 		RLIMIT_PROC=`ulimit -H -u`
 		if [ "${RLIMIT_PROC}" != "`ulimit -S -u`" ]; then
 			ulimit -S -u ${RLIMIT_PROC}
 		fi
-		;;
-	esac
+	else
+		RLIMIT_PROC=`ulimit -H -p`
+		if [ "${RLIMIT_PROC}" != "`ulimit -S -p`" ]; then
+			ulimit -S -p ${RLIMIT_PROC}
+		fi
+	fi
 	RLIMIT_NOFILE=`ulimit -H -n`
 	if [ "${RLIMIT_NOFILE}" != "`ulimit -S -n`" ]; then
 		ulimit -S -n ${RLIMIT_NOFILE}	# nofile
@@ -179,7 +296,7 @@ if [ -z "${LOGNAME}" ] ; then
 fi
 
 if [ -z "${UUNAME}" ] ; then
-	if expr "`type uuname 2>/dev/null`" : '.* is .*/uuname$' >/dev/null 2>&1 ; then
+	if type uuname >/dev/null 2>&1; then
 		UUNAME=`uuname -l`
 	else
 		UUNAME=`hostname`
@@ -188,7 +305,7 @@ if [ -z "${UUNAME}" ] ; then
 fi
 
 if [ -z "${HOSTNAME}" ] ; then
-	if expr "`type hostname 2>/dev/null`" : '.* is .*/hostname$' >/dev/null 2>&1 ; then
+	if type hostname >/dev/null 2>&1; then
 		HOSTNAME=`hostname`
 	else
 		HOSTNAME=${UUNAME}
@@ -214,7 +331,7 @@ if [ -z "${DOMAINNAME}" ] ; then
 		# xxx except on MacOS X, sigh... (but see above....)
 		#
 		eval `sed -n '/^[;#]/d;s/domain[ 	]*/DOMAINNAME=./p' /etc/resolv.conf`
-	elif expr "`type domainname 2>/dev/null`" : '.* is .*/domainname$' >/dev/null 2>&1 ; then
+	elif type domainname >/dev/null 2>&1; then
 		DOMAINNAME=`domainname`
 	elif expr "${HOSTNAME}" : '[^\.]*\.' >/dev/null 2>&1 ; then
 		DOMAINNAME="."`expr "${HOSTNAME}" : '[^\.]*\.\(.*\)$'`
@@ -236,18 +353,6 @@ fi
 
 TTY=`tty` ; export TTY
 TTYN=`tty | sed 's|/dev/||'`; export TTYN
-
-###echo "$0: startup PATH=$PATH"
-
-# this is a bit ugly, but we have to do this before .localprofile so
-# that Fink's brain-dead insistance on being first can be corrected.
-# (otherwise it's impossible to put ${HOME}/bin first!)
-#
-if [ -r ${FINK}/bin/init.sh ] ; then
-	# this sets up other handy things for Fink
-	. ${FINK}/bin/init.sh
-	dirremove PATH ${FINK}/sbin
-fi
 
 # system-local user preferences go in here
 #
@@ -289,83 +394,7 @@ else
 fi
 export PATH
 
-
-
-if [ -z "${LOCAL}" ] ; then
-	# NOTE:  ${LOCAL} must not contain multiple words!
-	if [ -d /local -a ! -L /local ] ; then
-		LOCAL="/local"
-	elif [ -d /usr/local -a ! -L /usr/local ] ; then
-		LOCAL="/usr/local"
-	else
-		LOCAL="/NO-local-FOUND"
-	fi
-fi
-export LOCAL
-
-if [ -z "${CONTRIB}" ] ; then
-	# NOTE:  ${CONTRIB} must not contain multiple words!
-	if [ -d /contrib -a ! -L /contrib ] ; then
-		CONTRIB="/contrib"
-	elif [ -d /usr/contrib -a ! -L /usr/contrib ] ; then
-		CONTRIB="/usr/contrib"
-	else
-		CONTRIB="/NO-contrib-FOUND"
-	fi
-fi
-export CONTRIB
-
-if [ -z "${PKG}" ] ; then
-	# NOTE:  ${PKG} must not contain multiple words!
-	if [ -d /pkg -a ! -L /pkg ] ; then
-		PKG="/pkg"
-	elif [ -d /usr/pkg -a ! -L /usr/pkg ] ; then
-		PKG="/usr/pkg"
-	elif [ -d /opt/pkg -a ! -L /opt/pkg ] ; then
-		PKG="/opt/pkg"
-	else
-		PKG="/NO-pkg-FOUND"
-	fi
-fi
-export PKG
-
-if [ -z "${SLASHOPT}" ] ; then
-	# NOTE:  ${SLASHOPT} must not contain multiple words!
-	if [ -d /opt -a ! -L /opt ] ; then
-		SLASHOPT="/opt"
-	elif [ -d /usr/opt -a ! -L /usr/opt ] ; then
-		SLASHOPT="/usr/opt"
-	else
-		SLASHOPT="/NO-opt-FOUND"
-	fi
-fi
-export SLASHOPT
-
-if [ -z "${FINK}" ] ; then
-	# NOTE:  ${FINK} must not contain multiple words!
-	if [ -d /sw -a ! -L /sw ] ; then
-		FINK="/sw"
-	else
-		FINK="/NO-fink-FOUND"
-	fi
-fi
-export FINK
-
-if [ -z "${GNU}" ] ; then
-	# NOTE:  ${GNU} must not contain multiple words!
-	if [ -d /local/gnu -a ! -L /local/gnu -a -d /local/gnu/bin ] ; then
-		GNU="/local/gnu"
-	elif [ -d /usr/gnu -a -d /usr/gnu/bin ] ; then
-		GNU="/usr/gnu"
-	elif [ -d /usr/local/gnu -a -d /usr/local/gnu/bin ] ; then
-		GNU="/usr/local/gnu"
-	elif [ -d /opt/pkg/gnu -a -d /opt/pkg/gnu/bin ] ; then
-		GNU="/opt/pkg/gnu"
-	else
-		GNU="/NO-gnu-FOUND"
-	fi
-fi
-export GNU
+set_LOCAL_et_al
 
 if [ -z "${PROJECT}" ] ; then
 	PROJECT="SCCS"
@@ -385,7 +414,9 @@ export WORKPATH
 # don't worry about openwin -- it's handled in the ISSUN case below
 #
 if [ -z "${X11PATH}" ] ; then
-	for x11pc in /opt/X11 /local/X11R? /local/X11 /usr/X11R? /usr/X11 /usr/X??? /usr/local/X11R? /usr/local/X11; do
+	# for X11R? try to get the newest (highest numeric value) one first...
+	x11paths=`eval echo /opt/X11 /local/X11R? /local/X11 /usr/X11R? /usr/X11 /usr/X??? /usr/local/X11R? /usr/local/X11 | sort -rn`
+	for x11pc in ${x11paths}; do
 		if [ -d ${x11pc} -a ! -L ${x11pc} -a -d ${x11pc}/bin -a -x ${x11pc}/bin/xterm ] ; then
 			X11PATH=${x11pc}
 			break;
@@ -395,6 +426,7 @@ if [ -z "${X11PATH}" ] ; then
 		X11PATH="/NO-X11-FOUND"
 	fi
 	export X11PATH
+	unset x11paths x11pc
 fi
 if [ -z "${X11BIN}" ] ; then
 	if [ -d /usr/bin/X11 -a ! -L /usr/bin/X11 ] ; then
@@ -405,6 +437,16 @@ if [ -z "${X11BIN}" ] ; then
 		X11BIN=${X11PATH}/bin
 	fi
 	export X11BIN
+fi
+# deal with startx madness of $oldbindir
+if [ -L /usr/X11 -a $X11BIN != /usr/X11/bin ]; then
+	dirremove PATH /usr/X11/bin
+fi
+if [ -L /usr/X11R6 -a $X11BIN != /usr/X11R6/bin ]; then
+	dirremove PATH /usr/X11R6/bin
+fi
+if [ -L /usr/X11R7 -a $X11BIN != /usr/X11R7/bin ]; then
+	dirremove PATH /usr/X11R7/bin
 fi
 
 # TODO: some of these we may want fixed in even if they don't exist at
@@ -515,7 +557,7 @@ if [ "X${HOME}" != "X/" ] ; then
 		echo ""
 		sleep 5
 	fi
-	dirprepend PATH ${HOME}/bin ${HOME}/go/bin ${HOME}/usr/bin
+	dirprepend PATH ${HOME}/bin ${HOME}/go/bin ${HOME}/usr/bin ${HOME}/pkg/bin
 	case "${PATH}" in
 	*:)
 		echo 'NOTICE: PATH already ends in a colon.' ;;
@@ -529,7 +571,7 @@ fi
 # PATH should finally be set properly!  Just Mh and X11 set below
 #
 
-if expr "`type mktable 2>/dev/null`" : '.* is .*/mktable$' >/dev/null 2>&1 ; then
+if type mktable >/dev/null 2>&1; then
 	MKTABLE="mktable"
 else
 	# a little ditty to throw away comment lines....
@@ -591,16 +633,23 @@ else
 	# XXX XXX but this hard-coded choice may not be available everywhere,
 	# never mind appropriate for anyone but me...
 	#
-	export LC_NUMERIC="en_CA.UTF-8"
+	LC_NUMERIC="en_CA.UTF-8"
+	export LC_NUMERIC
 
 	# XXX BTW, why is $(LANG= LC_ALL= LC_CTYPE= locale charmap)=="646" on NetBSD???
 	# (it should be "US-ASCII"!)
 fi
+# I am unlikely to ever want command to display times and dates in locale form!
+LC_TIME="C"
+export LC_TIME
+# Similarly we don't need any surprises from sorting order changes!
+LC_COLLATE="C"
+export LC_COLLATE
 
 # XXX can these ($RSH and $SSH) cause problems with other tools?
 # (will be OK with at least cvs and rsync which use ${ARGV0}_RSH)
 #
-if expr "`type rsh 2>/dev/null`" : '.* is .*/rsh$' >/dev/null ; then
+if type rsh >/dev/null 2>&1 ; then
 	RSH="rsh"
 elif [ -x /usr/ucb/rsh ] ; then	# maybe /usr/ucb not in $PATH?
 	RSH="/usr/ucb/rsh"
@@ -610,9 +659,9 @@ else
 fi
 export RSH			# used by .twmrc, .ctwmrc, as well as .xinitrc
 
-if expr "`type ssh 2>/dev/null`" : '.* is .*/ssh$' >/dev/null ; then
+if type ssh >/dev/null 2>&1; then
 	SSH="ssh"
-elif expr "`type ssh2 2>/dev/null`" : '.* is .*/ssh2$' >/dev/null ; then
+elif type ssh2 >/dev/null 2>&1; then
 	SSH="ssh2"
 else
 	# assuming 'ssh' really is available...
@@ -621,14 +670,14 @@ fi
 export SSH			# used by .twmrc, .ctwmrc, as well as .xinitrc
 
 HAVEMONTH=false ; export HAVEMONTH
-if expr "`type month 2>/dev/null`" : '.* is .*/month$' >/dev/null 2>&1 ; then
+if type month >/dev/null 2>&1; then
 	HAVEMONTH=true
 fi
 
 MONTH="AIKO" ; export MONTH
 
 HAVELAYERS=false ; export HAVELAYERS
-if expr "`type layers 2>/dev/null`" : '.* is .*/layers$' >/dev/null 2>&1 ; then
+if type layers >/dev/null 2>&1; then
 	HAVELAYERS=true
 fi
 
@@ -637,12 +686,12 @@ MAILER=mail ; export MAILER
 if [ -s ${HOME}/.mailer ] ; then
 	# mktable just throws away comments....
 	MAILER=`mktable ${HOME}/.mailer`
-elif expr "`type mush 2>/dev/null`" : '.* is .*/mush$' >/dev/null 2>&1 ; then
+elif type mush >/dev/null 2>&1; then
 	HAVEMUSH=true
 	MAILER="mush"
-elif expr "`type Mail 2>/dev/null`" : '.* is .*/mailx$' >/dev/null 2>&1 ; then
+elif type Mail >/dev/null 2>&1; then
 	MAILER="Mail"
-elif expr "`type mailx 2>/dev/null`" : '.* is .*/mailx$' >/dev/null 2>&1 ; then
+elif type mailx >/dev/null 2>&1; then
 	MAILER="mailx"
 fi
 case "${MAILER}" in
@@ -720,23 +769,23 @@ fi
 export MAIL
 
 HAVECALENDAR=false ; export HAVECALENDAR
-if expr "`type calendar 2>/dev/null`" : '.* is .*/calendar$' >/dev/null 2>&1 ; then
+if type calendar >/dev/null 2>&1; then
 	HAVECALENDAR=true
 fi
 
 HAVEFORTUNE=false ; export HAVEFORTUNE
-if expr "`type fortune 2>/dev/null`" : '.* is .*/fortune$' >/dev/null 2>&1 ; then
+if type fortune >/dev/null 2>&1; then
 	HAVEFORTUNE=true
 	FORTUNE=fortune ; export FORTUNE
 fi
 
-if expr "`type less 2>/dev/null`" : '.* is .*/less$' >/dev/null 2>&1 ; then
+if type less >/dev/null 2>&1; then
 	PAGER="less"
 	LESS="-M" ; export LESS
 	if [ ! -f ${HOME}/.less ] ; then
 		# xxx lesskey(1) seems to have gone missing on OSX 10.8 and 10.9
 		# (maybe even on 10.7 too?)
-		if expr "`type lesskey 2>/dev/null`" : '.* is .*/lesskey$' >/dev/null 2>&1 ; then
+		if type lesskey >/dev/null 2>&1; then
 			if [ ! -f ${HOME}/.lesskey ] ; then
 				echo "N	next-file" > ${HOME}/.lesskey
 				echo "P	prev-file" >> ${HOME}/.lesskey
@@ -749,7 +798,7 @@ elif [ -x /usr/xpg4/bin/more ] ; then
 	PAGER="/usr/xpg4/bin/more"
 	# use '-s' as it can't be turned on later during runtime
 	MORE="-s" ; export MORE
-elif expr "`type more 2>/dev/null`" : '.* is .*/more$' >/dev/null 2>&1 ; then
+elif type more >/dev/null 2>&1; then
 	PAGER="more"
 	# use '-s' as it can't be turned on later during runtime
 	MORE="-sw" ; export MORE
@@ -758,7 +807,7 @@ else
 fi
 export PAGER
 if [ "${PAGER}" = "less" ] ; then
-	MANPAGER="${PAGER} -si"; export MANPAGER
+	MANPAGER="${PAGER} -Rsi"; export MANPAGER # n.b. more and less both suppport "-Rsi"
 fi
 
 if [ -s "${HOME}/.editor" ] ; then
@@ -766,39 +815,43 @@ if [ -s "${HOME}/.editor" ] ; then
 	EDPREF=`mktable ${HOME}/.editor` ; export EDPREF
 fi
 
+if [ -z "${MY_EMACS}" ]; then
+	if type emacs >/dev/null 2>&1; then
+		MY_EMACS=`type emacs`
+		MY_EMACS=`expr "${EMACS}" : '^[^/]*\(/[^ )]*\)'`
+		case `uname -s` in
+		Darwin*)
+			# native emacs is usually very old!
+			if [ -x /opt/pkg/bin/emacs ]; then
+				MY_EMACS=/opt/pkg/bin/emacs
+			elif [ -x /usr/pkg/bin/emacs ]; then
+				MY_EMACS=/usr/pkg/bin/emacs
+			elif [ -x /usr/local/bin/emacs ]; then
+				MY_EMACS=/usr/local/bin/emacs
+			fi
+			;;
+		esac
+		export MY_EMACS
+		HAVEEMACS=true
+	fi
+else
+	HAVEEMACS=true
+fi
+
 case "${EDPREF}" in
 emacs | "" )
-	HAVEEMACS=false
-	HAVEJOVE=false
-	if expr "`type emacs 2>/dev/null`" : '.* is .*/emacs$' >/dev/null 2>&1 ; then
-		EDITOR="emacs"
-		HAVEEMACS=true
-	elif expr "`type jove 2>/dev/null`" : '.* is .*/jove$' >/dev/null 2>&1 ; then
+	HAVEEMACS=false; export HAVEEMACS
+	HAVEJOVE=false; export HAVEJOVE
+	if ${HAVEEMACS}; then
+		EDITOR="${MY_EMACS}"
+	elif type jove >/dev/null 2>&1; then
 		EDITOR="jove"
 		HAVEJOVE=true
 	else
 		EDITOR="ed"
 	fi
 	if ${HAVEEMACS} ; then
-		VISUAL="emacs"
-		if [ -n "${DISPLAY}" ] ; then
-			case "${TERM}" in
-			xterm*)
-				# XXX this is ugly and not exactly right -- we
-				# should also try to test to see if an emacs
-				# server is listening, thus the '-a'...
-				#
-				if expr "`type emacsclient 2>/dev/null`" : '.* is .*/emacsclient$' >/dev/null 2>&1 ; then
-					eval `id | sed 's/[^a-z0-9=].*//'`
-					if [ "${uid:=0}" -ne 0 ] ; then
-						# XXX maybe we want $EDITOR to be 'vi'???
-						EDITOR="emacsclient -c -a 'emacs -nw'"
-						VISUAL="emacsclient -c -a 'emacs -nw'"
-					fi
-				fi
-			;;
-			esac
-		fi
+		VISUAL="${MY_EMACS}"
 	elif ${HAVEJOVE} ; then
 		VISUAL="jove"
 	else
@@ -806,33 +859,33 @@ emacs | "" )
 	fi
 	;;
 vi )
-	if expr "`type nvi 2>/dev/null`" : '.* is .*/nvi$' >/dev/null 2>&1 ; then
+	if type nvi >/dev/null 2>&1; then
 		EDITOR="nvi"
-	elif expr "`type vi 2>/dev/null`" : '.* is .*/vi$' >/dev/null 2>&1 ; then
+	elif type vi >/dev/null 2>&1; then
 		EDITOR="vi"
 	else
 		EDITOR="ed"
 	fi
-	if expr "`type nvi 2>/dev/null`" : '.* is .*/nvi$' >/dev/null 2>&1 ; then
+	if type nvi >/dev/null 2>&1; then
 		VISUAL="nvi"
-	elif expr "`type vi 2>/dev/null`" : '.* is .*/vi$' >/dev/null 2>&1 ; then
+	elif type vi >/dev/null 2>&1; then
 		VISUAL="vi"
 	else
 		VISUAL="no-visual-editor"
 	fi
 	;;
 * )
-	if expr "`type nvi 2>/dev/null`" : '.* is .*/nvi$' >/dev/null 2>&1 ; then
+	if type nvi >/dev/null 2>&1; then
 		EDITOR="nvi"
-	elif expr "`type vi 2>/dev/null`" : '.* is .*/vi$' >/dev/null 2>&1 ; then
+	elif type vi >/dev/null 2>&1; then
 		EDITOR="vi"
 	else
 		EDITOR="ed"
 	fi
-	if expr "type ${EDPREF} 2>/dev/null" : '.*/.*$' > /dev/null 2>&1 ; then
+	if type ${EDPREF} >/dev/null 2>&1; then
 		VISUAL=${EDPREF}
 	else
-		VISUAL=${EDPREF}
+		VISUAL=${EDITOR}
 	fi
 esac
 export EDITOR
@@ -849,21 +902,21 @@ fi
 #
 if [ -x ${LOCAL}/bin/diff ] ; then
 	DIFF=${LOCAL}/bin/diff ; export DIFF
-elif expr "`type gdiff 2>/dev/null`" : '.* is .*/gdiff$' >/dev/null 2>&1 ; then
+elif type gdiff >/dev/null 2>&1; then
 	# XXX this isn't always best any more!
 	DIFF="gdiff" ; export DIFF
 fi
 
 HAVEAUPLAY=false ; export HAVEAUPLAY
-if expr "`type auplay 2>/dev/null`" : '.* is .*/auplay$' >/dev/null 2>&1 ; then
+if type auplay >/dev/null 2>&1; then
 	HAVEAUPLAY=true
 fi
 HAVEAUDIOPLAY=false ; export HAVEAUDIOPLAY
-if expr "`type audioplay 2>/dev/null`" : '.* is .*/audioplay$' >/dev/null 2>&1 ; then
+if type audioplay >/dev/null 2>&1; then
 	HAVEAUDIOPLAY=true
 fi
 HAVEESDPLAY=false ; export HAVEESDPLAY
-if expr "`type esdplay 2>/dev/null`" : '.* is .*/esdplay$' >/dev/null 2>&1 ; then
+if type esdplay >/dev/null 2>&1; then
 	HAVEESDPLAY=true
 fi
 
@@ -872,13 +925,15 @@ if [ -z "${AUDIOPLAYER}" ] ; then
 		if ${HAVEAUPLAY} ; then
 			AUDIOPLAYER="auplay -v 20"
 		fi
+	elif ${HAVEESDPLAY} ; then
+		AUDIOPLAYER="esdplay"
+		if [ -z "$ESPEAKER" ]; then
+			# n.b.:  a hostname alias....
+			ESPEAKER="audiosrvr"; export ESPEAKER
+		fi
 	elif [ -w /dev/audio ] ; then
 		if ${HAVEAUDIOPLAY} ; then
 			AUDIOPLAYER="audioplay"
-		fi
-	else
-		if ${HAVEESDPLAY} ; then
-			AUDIOPLAYER="esdplay"
 		fi
 	fi
 fi
@@ -891,12 +946,19 @@ export AUDIOPLAYER
 RNINIT="-v -M -S -T -i=8 -g2" ; export RNINIT
 TRNINIT=${HOME}/.trninit; export TRNINIT
 
+# This is supposedly mostly for pine....
+#
+if [ -x ${PKG}/bin/ispell ]; then
+	SPELL=${PKG}"/bin/ispell -l"
+	export SPELL
+fi
+
 # set terminal type and tty settings, etc....
 #
-if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
+if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] || [ "X${TERM}" = "Xdmd" -a "`ismpx`" != "yes" ] ; then
 	echo "Re-setting terminal preferences...."
 
-	# turn this off by default, turn it on by hand?
+	# turn this off by default, turn it on by hand in one main window?
 	mesg n
 
 	if [ -r "${HOME}/.stty" ] ; then
@@ -904,9 +966,9 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 	else
 		stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
 		# a separate command as it is a non-standard parameter
-		stty status '^t' 2>/dev/null || echo "Sorry, probably no SIGNIFO support on your system."
+		stty status '^t' 2>/dev/null || echo "Sorry, probably no SIGNIFO support on this system."
 	fi
-	if [ "${EMACS}" = t -o "${TERM}" = emacs ]; then
+	if [ "${EMACS}" = t -o "${TERM}" = emacs ]; then # there is also ${INSIDE_EMACS}
 		echo "Turning off echo for an emacs shell...."
 		stty -echo
 	fi
@@ -930,12 +992,14 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 			# warning notice impossible...
 			#
 			if ${HAVETPUT} ; then
-				if ! tput longname > /dev/null; then
+				if tput longname > /dev/null; then
+					:
+				else
 					echo "NOTICE:  the preset TERM=${TERM} is unknown...";
 					TERM=unknown;
 					get_newterm
 				fi
-			elif expr "`type tset 2>/dev/null`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
+			elif type tset >/dev/null 2>&1; then
 				# n.b.:  this asks if TERM is unknown...
 				eval `tset -s`
 				# xxx if we want this, we get it later!
@@ -981,14 +1045,16 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 			;;
 		esac
 		# Note: in other places we assume tset is avaliable....
-		if expr "`type tset 2>/dev/null`" : '.* is .*/tset$' >/dev/null 2>&1 ; then
+		if type tset >/dev/null 2>&1; then
 			# On BSD, without the "-I" it uses /etc/termcap....
 			# (but maybe that is a good thing?)
 			tset -r
 			if ${HAVETPUT} ; then
 				echo ${TERM}: `tput longname`
 			fi
-		elif ! ${HAVETPUT}; then
+		elif ${HAVETPUT}; then
+			:
+		else
 			echo "NOTICE:  I don't know how to set up your terminal."
 		fi
 
@@ -998,13 +1064,13 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 		# 1997), but it was not in NetBSD until 6.0 -- "tset" though is
 		# not in POSIX at all.)
 		#
-		if expr "`type tabs 2>/dev/null`" : '.* is .*/tabs$' >/dev/null 2>&1 ; then
+		if type tabs >/dev/null 2>&1; then
 			tabs -8
 		fi
 
 		case "${TERM}" in
 		xterm*)
-			if expr "`type resize 2>/dev/null`" : '.* is .*/resize$' >/dev/null 2>&1 ; then
+			if type resize >/dev/null 2>&1; then
 				resize > /dev/null
 			else
 				echo "NOTICE:  you may have to manually run 'stty rows \$LINES columns \$COLUMNS'."
@@ -1019,6 +1085,15 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
 			# users will have to set their own $DISPLAY....
 			dirappend PATH ${X11PATH}/bin
 			dirappend MANPATH ${X11PATH}/man
+			#
+			# In case this is onx11server running an xterm via rsh/ssh
+			#
+			# N.B.:  once upon a time -ziconbeep was not universally available
+			#
+			if [ -z "$XTERM_OPTS" ]; then
+				XTERM_OPTS="-fbx -bc -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1"
+			fi
+			export XTERM_OPTS
 			;;
 		esac
 
@@ -1038,9 +1113,10 @@ fi
 
 # TODO: find some way to see if login(1) ran, or xterm(n) started us
 # TODO: since login(1) checks for mail too, but xterm(n) doesn't.
+# XXX or maybe we just always make xterm run "login -pf ${USER}" ???
 #
 # check your mail...
-if expr "`type messages 2>/dev/null`" : '.* is .*/messages$' >/dev/null 2>&1 ; then
+if type messages >/dev/null 2>&1; then
 	messages
 else
 	[ -x /bin/mail ] && /bin/mail -e
@@ -1057,7 +1133,7 @@ else
 fi
 
 
-# TODO: this needs to be a lot smarter....
+# once upon a time this needed to be a lot smarter....
 #
 if [ -d ${HOME}/lib/terminfo ] ; then
 	case "${TERM}" in
@@ -1081,25 +1157,25 @@ fi
 # sh(1), then we will set $PS1 here, since anything sourcing
 # ~/.profile must, by definition, be an interactive shell.
 #
-if [ ${RANDOM:-0} -ne ${RANDOM:-0} -a -z "${BASH}" ] ; then
+if is_ksh ; then
 	if [ -r ${HOME}/.kshlogin ] ; then
 		. ${HOME}/.kshlogin
 	fi
-elif [ ${RANDOM:-0} -ne ${RANDOM:-0} -a -n "${BASH}" ] ; then
+elif is_bash ; then
 	if [ -r ${HOME}/.bashlogin ] ; then
 		. ${HOME}/.bashlogin
 	fi
-elif [ "`echo ~`" = "${HOME}" ] ; then
+elif is_ash ; then
 	# this will only be modern ash(1) or a derivative of it
-	# (eg. from 4.4BSD or newer)
+	# (eg. from 4.4BSD or newer), or Schily Shell
 	#
 	if [ -r ${HOME}/.ashlogin ] ; then
 		. ${HOME}/.ashlogin
 	fi
 elif [ -r ${HOME}/.shlogin ] ; then
-	if [ -r ${HOME}/.shlogin ] ; then
-		. ${HOME}/.shlogin
-	fi
+	# plain old Bourne shell, e.g. Heirloom Sh
+	#
+	. ${HOME}/.shlogin
 else
 	if [ "X${LOGNAME}" = "Xroot" ] ; then
 		PS1="login [${TTYN}]<${LOGNAME}@${UUNAME}> # "
@@ -1108,9 +1184,8 @@ else
 	fi
 fi
 
-
 HAVEX=false ; export HAVEX
-if expr "`type xinit 2>/dev/null`" : '.* is .*/xinit$' >/dev/null 2>&1 ; then
+if type xinit >/dev/null 2>&1; then
 	HAVEX=true
 fi
 
@@ -1182,41 +1257,7 @@ fi
 #
 
 if ${ISATTY}; then
-	# TODO:  should use $HAVEFORTUNE and $FORTUNE
-	if [ -x /usr/games/fortune ] ; then
-		/usr/games/fortune
-	elif [ -x ${LOCAL}/games/fortune ] ; then
-		${LOCAL}/games/fortune
-	fi
-	if [ -r calendar -o -r diary -o -r .month ] ; then
-		echo ""
-		echo "Today's Events:"
-		if ${HAVEMONTH} && [ -r .month ] ; then
-			month -B
-			#		monthd -i5
-		fi
-		if ${HAVECALENDAR} ; then
-			if [ -r calendar ] ; then
-				calendar -l 2 -w 4
-			elif [ -r diary ] ; then
-				#
-				# uses cpp, which gets confused with some
-				# comments....  and unfortunately won't accept
-				# '-f -', nor will it read from /dev/stdin or
-				# /fdesc/stdin...  grrr....
-				#
-				calendar -l 2 -w 4 -f diary 2>/dev/null
-			fi
-		fi
-	fi
-	if [ -d ${HOME}/notes ] ; then
-		(
-			cd ${HOME}/notes
-			echo ""
-			echo "You have notes on:"
-			ls -dC *[!~]
-		)
-	fi
+	do_first_time
 fi
 
 if [ -r ${HOME}/.trninit${TERM} ] ; then
@@ -1226,12 +1267,16 @@ fi
 # There is a trick here -- if your shell is like ksh(1) or modern GNU Bash, and
 # it has arrays, then you can use the ${ENVFILE[]} array expansion magic in
 # ~/.kshlogin to have the shell only source the $ENV file for interactive
-# shells.
+# shells.  Other shells that auto-source $ENV (e.g. ash, [p]bosh) will of course
+# require it to be a plain filename, and they will also need the "case $- in
+# *i*)" wrapper on the contents of $ENV and they will still suffer the cost of
+# reading and parsing the whole file every time.
 #
-# Otherwise $ENV will just be a filename and it may have to be sourced directly
-# (or manually), so if $ENV is set, and if it is readable, do that now.
+# Otherwise $ENV may have to be sourced directly (or manually), so if $ENV is
+# set, and if it is readable, do that now.  In this case sub-shells will not
+# have automatic sourcing of $ENV.  (and of course ~/.shrc was sourced above)
 #
-if [ -n "${ENV}" -a -r "${ENV}" ] ; then
+if [ -n "${ENV}" -a "${ENV}" != "${HOME}/.shrc" -a -r "${ENV}" ] ; then
 	. ${ENV}
 fi
 

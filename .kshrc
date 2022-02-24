@@ -3,34 +3,33 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	37.5	21/12/15 13:20:38 (woods)"
+#ident	"@(#)HOME:.kshrc	37.6	22/02/23 17:37:41 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
 
 # Files referenced:
 #
-#	$(dirname ${ENVFILE})/.shrc - sourced for common funcs if needed & avail.
+#	$(dirname ${ENVFILE})/.shrc - sourced for common funcs, if needed & avail.
+#	$(dirname ${ENVFILE})/.localprofile - may be sourced if using above .shrc
 #	~${LOGNAME}/.shrc       - sourced for common functs, if still needed
 #	~${LOGNAME}/.localprofile - sourced for $MAILDOMAIN, if needed & avail.
+#	$HOME/.shaliases	- sourced, if it is readable
 #	$HOME/.kshsccs		- sourced, if it is readable
 #	$HOME/.kshpwd		- sourced, if it is readable
+#	$HOME/.bashedit		- sourced, if BASH and it is readable else emacs editing set
 #	$HOME/.kshedit		- sourced, if it is readable else gmacs editing set
 #	$HOME/.kshdir		- dir autoload aliases set, if it is readable
-#	$HOME/.kshlocal		- local-only hacks
+#	$HOME/.kshlocal		- per $HOME local-only hacks
 
-case $SHELL in
-*bash*)
+if [ -n "${BASH}" ]; then
 	# note this is the "history number", matching the numbers as shown by
 	# 'fc -l' vs. the so-called "command number" ('\#')
 	_c='\!'
-	alias print=echo
-	;;
-*)
+else
 	set -o nolog		# no functions in $HISTFILE
 	_c='!'
-	;;
-esac
+fi
 
 export PATH
 
@@ -100,112 +99,6 @@ if ! typeset -f zhead >/dev/null ; then
 	fi
 fi
 
-# these functions using ${..##..} and ${..%%..} instead of $(expr ...)
-# should be more efficient than their original dirappend() and
-# dirprepend() counterparts (because of the fork&exec of expr)
-
-function append2path
-{
-	if [ $# -le 1 -o -z "$1" ] ; then
-		echo "Usage: $0 variable directory [...]" >&2
-		return 2
-	fi
-	typeset varname=$1
-	shift
-	#
-	# the eval of 'test' below will trigger the ERR trap because the shell
-	# doesn't see it as a condition expression, so we should save the ERR
-	# trap and disable it, then restore it afterwards...
-	#
-	# XXX however it doesn't work in at least NetBSD pdksh (nor mksh, as of
-	# 56c).  Apparently POSIX does say that it should work, though the
-	# problem is that command substitution, i.e. "$(cmd)", runs in a
-	# subshell, and traps are not supposed to be inherited by subshells, so
-	# "$(trap)" would have to be special.  Bash (at least 3.2 and newer) and
-	# ksh93 will save all traps, but neither can save just individual traps.
-	#
-	#traps=$(trap)
-	#trap - ERR
-	while [ $# -gt 0 ] ; do
-		if [ -d "$1" ]; then
-			# xxx hmmm... I can't remember why this uses inverted logic...
-			if ! eval test -z "\"\${${varname}##*:$1:*}\"" -o -z "\"\${${varname}%%*:$1}\"" -o -z "\"\${${varname}##$1:*}\"" -o -z "\"\${${varname}##$1}\"" ; then
-###				echo "append2path: adding $1 to the end of ${varname}"
-				eval "${varname}=\$${varname}:$1"
-###			else
-###				echo "append2path: ignoring $1 (for ${varname})"
-			fi
-		fi
-		shift
-	done
-	# XXX
-	#eval ${traps}
-}
-
-# xxx hmmm....  this seems to exit with the wrong exit code
-# (1 if a dir is found, but 0 if a dir is not found)
-#
-#	$ dirprepend INFOPATH ${PKG}/share/info
-#	prepend2path: exit code: 1
-#
-#	$ dirprepend INFOPATH /junk/share/info
-#	$
-#
-function prepend2path
-{
-	if [ $# -le 1 -o -z "$1" ] ; then
-		echo "Usage: $0 variable directory [...]" >&2
-		return 2
-	fi
-	typeset varname=$1
-	shift
-	while [ $# -gt 0 ] ; do
-		if [ -d "$1" ]; then
-			if ! eval test -z "\"\${${varname}##*:$1:*}\"" -o -z "\"\${${varname}%%*:$1}\"" -o -z "\"\${${varname}##$1:*}\"" -o -z "\"\${${varname}##$1}\"" ; then
-###				echo "prepend2path: adding $1 to the beginning of ${varname}"
-				eval "${varname}=$1:\$${varname}"
-###			else
-###				echo "prepend2path: ignoring $1 (for ${varname})"
-			fi
-		fi
-		shift
-	done
-}
-
-
-function removefrompath
-{
-	if [ $# -le 1 ] ; then
-		echo "Usage: $0 variable directory [...]" >&2
-		exit 2
-	fi
-	typeset varname=$1
-	shift
-	while [ $# -gt 0 ] ; do
-		# xxx perhaps these can be done in-shell, i.e. without sed
-		if [ "$1" = ":" -o -z "$1" ] ; then
-			eval $varname=$(eval echo '$'$varname | sed -e 's|::||g' -e 's|:$||')
-		else
-			eval $varname=$(eval echo '$'$varname | sed 's|\(:*\)'$1':*|\1|')
-		fi
-		shift
-	done
-}
-
-unset -f dirappend dirprepend
-
-alias dirappend=append2path
-alias dirprepend=prepend2path
-alias dirremove=removefrompath
-
-unset -f ismpx
-if type ismpx >/dev/null 2>&1 ; then # hmmm.... ksh93 and bash vs type?
-	: might just be running layers
-else
-	# otherwise it's just not possible....
-	alias ismpx=false
-fi
-
 # initialize SECONDS to the number of seconds since the last
 # local wall-clock midnight hour
 #
@@ -261,127 +154,65 @@ _ss="(SECONDS)%60"
 # variables.  Sadly Bash cannot do this, so shows ugly times for ten minutes of
 # every hour.
 #
-case $SHELL in
-*bash*)
-	;;
-*)
+# N.B.:  Some ksh clones always interpret leading zeros as octal, and so some
+# times (i.e. the hours of 8 and 9, or the minutes of 8 and 9) cannot be parsed
+# as numbers, so be careful using $_h and $_m in strange places -- eval $_hh or
+# $_mm instead.
+#
+if [ -z "${BASH}" ]; then
 	typeset -Z2 _h _m
-	;;
-esac
+fi
 
 # a magic expression that evaluates the above expressions to set the two
 # variables we've configured specially above, and then expands those two
 # variables in a standard "HH:MM" 24-hr format to show the current time.
 #
-_time='${_x[(_m=_mm)==(_h=_hh)]}$_h:$_m'
+if [ -z "${BASH}" ]; then
+	_time='${_x[(_m=_mm)==(_h=_hh)]}$_h:$_m'
+else
+	# n.b.: bash (and pdksh and its derivatives) interprete numbers with a
+	# leading zero as octal, thus we preventatively strip them to avoid
+	# conversion errors
+	#
+	_time='${_x[(_m=_mm)==(_h=_hh)]}$(printf "%02d:%02d" ${_h##0} ${_m##0})'
+fi
 
-# note this will be appended to.... (and must be set with double quotes)
+# note this will be appended to.... (and _time must be used with double quotes)
 PS1="${_time} "
 
-PS2=">>> "
-PS3="??? "
-
-
 if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
-
-	if [ "${LEV:-0}" -eq 0 ] ; then
-		# in xterms, we are (normally, supposed to be) a login
-		# shell, but not in layers
-		do_first_time
-	fi
-	MYXCLR_L="$(myxban -l)"
-	MYXCLR_C="$(myxban -c)"
-	MYXCLR_R="$(myxban -r)"
-	MYXCLR="${MYXCLR_L}${MYXCLR_C}${MYXCLR_R}"
-	MYXBAN_L='$BANNER_PWD'
-
-	# xxx this doesn't mean what it used to mean...
-	function clearban
-	{
-		printf '%s' "${MYXCLR}";
-		WBANNER="${OWBANNER}";
-		setban
-	}
-	# XXX this probably doesn't do what I expect it to do any more either...
-	# (because myxban is special in being able to set just one part)
-	function setban
-	{
-		if [ $# -ge 1 ]; then
-			OWBANNER=${WBANNER}
-			WBANNER="$@"
-		fi
-		if [ -z "$BANNER_PWD" ]; then
-			# only if needed (it's expensive), usually done by 'cd'
-			BANNER_PWD=$(pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;')
-		fi
-		printf '%s' "${MYXCLR}"
-		eval myxban -l "\"$MYXBAN_L\""
-		myxban -c "${WBANNER:-$(basename ${SHELL})}"
-		eval myxban -r "\"$MYXBAN_R\""
-	}
-
-	# NOTE:  may be re-defined in ~/.kshpwd
+	unset -f cd
 	alias cd='_cd'
+	# NOTE:  may be re-defined in ~/.kshpwd
 	function _cd
 	{
-		\cd "$@"
-		BANNER_PWD=$(pwd)
+		# Ksh doesn't have "chdir"
+		\cd "${@}"
+		# dumber than setban
+		BANNER_PWD=${PWD}
+		# faster than setban
 		eval myxban -l "\"$MYXBAN_L\""
 	}
-
-	function psm
-	{
-		ps -ft $(tty | sed 's|/dev/xt|xt/|')
-	}
-
-	setban
-
 fi
 # else
 case "$TERM" in
 xterm*)
 	PS1="${PS1}"'[${LEV:+${LEV}.}'"${_c}"']'
 
-	function clearban
-	{
-		WBANNER="${OWBANNER}";
-		setban
-	}
-
-	function setban
-	{
-		if [ $# -ge 1 ]; then
-			OWBANNER=${WBANNER}
-			# no trailing space -- usually just used to
-			# set alternate shell name
-			WBANNER="$@"
-		fi
-		if [ -z "$BANNER_PWD" ]; then
-			# only if needed (it's expensive), usually done by 'cd'
-			BANNER_PWD=$(pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;')
-		fi
-		if [ "$user" = "$LOGNAME" ]; then
-			eval TBANNER='"${WBANNER:-$(basename ${SHELL})}://$UUNAME/$BANNER_PWD | $user[$LEV]:$TTYN"'
-		else
-			eval TBANNER='"${WBANNER:-$(basename ${SHELL})}://$UUNAME/$BANNER_PWD | $user:$group($LOGNAME)[$LEV]:$TTYN"'
-		fi
-		printf "\033]0;${TBANNER}\007"
-
-		unset BANNER_PWD
-	}
-
-	# NOTE:  may be re-defined in ~/.kshpwd
+	unset -f cd
 	alias cd='_cd'
+	# NOTE:  may be re-defined in ~/.kshpwd
 	function _cd
 	{
+		# Ksh doesn't have "chdir"
 		\cd "$@"
 		BANNER_PWD=${PWD}
 		setban
 	}
-
-	setban
 	;;
 *)
+	# XXX these probably are not right to use ${BANNER_PWD} any more?
+	#
 	if [ "$user" != "$LOGNAME" ] ; then
 		PS1="${PS1}"'$TTYN:$user($LOGNAME)@$UUNAME)[${LEV:+${LEV}.}'"$_"'] ${BANNER_PWD#$HOME}'
 	else
@@ -389,786 +220,20 @@ xterm*)
 	fi
 	;;
 esac
+PS1="${PS1} ${PSc} "
 
-# Transform id(1)'s output into useful shell variable assignments
-#
-# UGLY, but it works
-#
-# NOTE:  there's a trick in here -- if there's no group name for your GID then
-# the final expression parameter won't do anything.  However since the extra
-# "groups=..." stuff (which may have had more word-surrounded parens) has
-# already been trimmed off the end the only thing that'll be left is the
-# original "gid=20" string, so $group simply won't be set, so afterward it is
-# set to $gid instead.
-#
-eval "$(id | sed -e 's/ groups=.*$//' \
-		 -e 's/(\([^) ]*\)) / user=\1 /' \
-		 -e 's/(\([^) ]*\))/ group=\1/')"
-: ${group:=${gid}}
-
-if [ "$uid" -eq 0 ] ; then
-	#
-	# we always want persistent (and shared) history for 'su'
-	#
-	# Note only some shells append a slash when expanding "~user"...
-	#
-	: ${ROOT_HOME:=~root}
-	if [ -n "$HISTFILE" ]; then
-		HISTFILE="${ROOT_HOME%/}/$(basename $HISTFILE)"
-	else
-		HISTFILE="${ROOT_HOME%/}/.sh_history"
-	fi
-	if [ ! -f $HISTFILE ]; then
-		touch $HISTFILE
-	fi
-	# see also ~/.kshlogin
-	export HISTSIZE=2000
-
-	export PRE_SU_PATH=$PATH
-
-	# got to get rid of lone ":" or any "." in PATH
-	PATH=$(echo $PATH | sed -e 's/::/:/g'	\
-				-e 's/^://'	\
-				-e 's/:$//'	\
-				-e 's/^\.://'	\
-				-e 's/:\.://'	\
-				-e 's/:\.$//')
-	if [ -n "$SU_FROM" ]; then
-		# xxx this is a trick, and only necessary on machines
-		# without my fixed "su" -- we reset LOGNAME in case
-		# this was a proper and secure 'su' (i.e. one that
-		# reset the environment, especially and including
-		# $HOME, etc., including of course $LOGNAME).  This
-		# does two things.  First, and most important, though
-		# most dangerous, it tricks emacs, for now, into
-		# finding ~$LOGNAME/.emacs[.elc].  Second it
-		# simplifies the next PATH cleanup step....
-		#
-		# we set USER to "root" explicitly even if the user
-		# did not use "su -l" as they should have...
-		#
-		export LOGNAME=$SU_FROM
-		export USER="root"
-	fi
-	if [ -n "$SUDO_USER" ]; then
-		# xxx this is a similar trick for OSX and Linux braindamage
-		export LOGNAME=$SUDO_USER
-		export USER="root"
-	fi
-	# also get rid of the login user's ~/{usr/bin,bin} because
-	# it's usually first, and it usually contains personal hacks
-	# that are probably not safe to use as root, and (if this is
-	# not ~$SU_FROM/.kshrc then ~$SU_FROM/bin may also contain
-	# trojans or worse)
-	#
-	LOGNAMEPATH=$(eval echo ~$LOGNAME/usr/bin)
-	# XXX hmmm... "dirremove"???
-	PATH=$(echo $PATH | sed -e "s|${LOGNAMEPATH}[:]*||")
-	LOGNAMEPATH=$(eval echo ~$LOGNAME/bin)
-	# XXX hmmm... "dirremove"???
-	PATH=$(echo $PATH | sed -e "s|${LOGNAMEPATH}[:]*||")
-
-###	# XXX for some reason Ksh "Version AJM 93u+ 2012-08-01" on macOS will
-###	# not allow dirappend to be used while sourcing
-###
-###	echo $PATH
-###
-###	alias dirappend
-###	alias dirprepend
-###
-###	type dirappend
-###	type dirprepend
-###
-###	type append2path
-###	type prepend2path
-
-	# must have X11BIN before openwin if newer X on system....
-	append2path PATH /usr/lbin /usr/ucb $X11BIN
-
-	if [ -z "$UUNAME" ]; then
-		# xxx don't bother with trying the real uuname -l
-		export UUNAME=$(hostname)
-	fi
-	if [ -z "$HOSTNAME" ]; then
-		export HOSTNAME=$(hostname)
-	fi
-	if [ -z "$DOMAINNAME" ]; then
-		export DOMAINNAME=$(domainname)
-	fi
-
-	export ISSUN=false
-	if [ -x /usr/bin/sun ] ; then
-		if sun ; then
-			ISSUN=true
-			PATH=$(echo $PATH | sed 's/^\/bin://')
-			if [ $(uname -r | sed 's/^\([0-9]*\).*$/\1/') -lt 5 ] ; then
-				if [ "X$LOGNAME" != "Xroot" ] ; then
-					prepend2path PATH /usr/5bin
-				else
-					append2path PATH /usr/5bin
-				fi
-			else
-				prepend2path PATH /opt/SUNWspro/bin
-			fi
-			# XXX FIXME: should use OPENWINHOME ???
-			# XXX FIXME: should only do this if DISPLAY set???
-			append2path PATH /usr/openwin/bin /usr/openwin/demo
-			append2path MANPATH /usr/openwin/share/man
-		fi
-	fi
-	if [ ! -d /usr/sbin ] ; then
-		prepend2path PATH /usr/etc	# only old BSDs
-	fi
-	if [ ! -d /sbin -a ! -d /usr/etc ] ; then
-		prepend2path PATH /etc		# only really old systems...
-	fi
-	prepend2path PATH /sbin /usr/sbin
-	append2path PATH /usr/libexec/uucp /usr/lib/uucp /usr/lib
-
-	if [ -z "$UUNAME" ]; then
-		TYPE_UUNAME=$(type clang 2>/dev/null)
-		if [ "${TYPE_UUNAME##*/}" = "uuname" ] ; then
-			UUNAME=`uuname -l`
-		else
-			UUNAME=`hostname`
-		fi
-		export UUNAME
-	fi
-
-	# this next section duplicates ~/.profile since these
-	# environment variables are not, and should not, be passed
-	# through su (or sudo)
-
-	if [ -z "$LOCAL" ] ; then
-		if [ -d /local -a ! -L /local ] ; then
-			LOCAL="/local"
-		elif [ -d /usr/local -a ! -L /usr/local ] ; then
-			LOCAL="/usr/local"
-		else
-			LOCAL="/NO-local-FOUND"
-		fi
-	fi
-	export LOCAL
-
-	if [ -z "$CONTRIB" ] ; then
-		if [ -d /contrib -a ! -L /contrib ] ; then
-			CONTRIB="/contrib"
-		elif [ -d /usr/contrib -a ! -L /usr/contrib ] ; then
-			CONTRIB="/usr/contrib"
-		else
-			CONTRIB="/NO-contrib-FOUND"
-		fi
-	fi
-	export CONTRIB
-
-	if [ -z "$PKG" ] ; then
-		# XXX some OSX has an un-related /pkg so test /usr/pkg first!
-		if [ -d /usr/pkg -a ! -L /usr/pkg ] ; then
-			PKG="/usr/pkg"
-		elif [ -d /opt/pkg -a ! -L /opt/pkg ] ; then
-			PKG="/opt/pkg"
-		elif [ -d /pkg -a ! -L /pkg ] ; then
-			PKG="/pkg"
-		else
-			PKG="/NO-pkg-FOUND"
-		fi
-	fi
-	export PKG
-
-	if [ -z "$SLASHOPT" ] ; then
-		if [ -d /opt -a ! -L /opt ] ; then
-			SLASHOPT="/opt"
-		elif [ -d /usr/opt -a ! -L /usr/opt ] ; then
-			SLASHOPT="/usr/opt"
-		else
-			SLASHOPT="/NO-opt-FOUND"
-		fi
-	fi
-	export SLASHOPT
-
-	if [ -z "${GNU}" ] ; then
-		# NOTE:  ${GNU} must not contain multiple words!
-		if [ -d /local/gnu -a ! -L /local/gnu -a -d /local/gnu/bin ] ; then
-			GNU="/local/gnu"
-		elif [ -d /usr/gnu -a -d /usr/gnu/bin ] ; then
-			GNU="/usr/gnu"
-		elif [ -d /usr/local/gnu -a -d /usr/local/gnu/bin ] ; then
-			GNU="/usr/local/gnu"
-		elif [ -d /opt/pkg/gnu -a -d /opt/pkg/gnu/bin ] ; then
-			GNU="/opt/pkg/gnu"
-		else
-			GNU="/NO-gnu-FOUND"
-		fi
-	fi
-	export GNU
-
-	# we need to re-order the next paths so first we bulk remove them
-	#
-	PATH=$(echo $PATH | sed -e "s|${CONTRIB:-/NONE}/bin:||"	\
-				-e "s|${CONTRIB:-/NONE}/sbin:||"\
-				-e "s|${PKG:-/NONE}/bin:||"	\
-				-e "s|${PKG:-/NONE}/sbin:||"	\
-				-e "s|${SLASHOPT:-/NONE}/bin:||"	\
-				-e "s|${SLASHOPT:-/NONE}/sbin:||"	\
-				-e "s|${LOCAL:-/NONE}/bin:||"	\
-				-e "s|${LOCAL:-/NONE}/sbin:||"	\
-				-e "s|${GNU:-/NONE}/bin:||"	\
-				-e "s|${GNU:-/NONE}/sbin:||" )
-	if [ -d "$CONTRIB" ] ; then
-		append2path PATH $CONTRIB/sbin $CONTRIB/bin
-		if [ ! -d $CONTRIB/sbin ] ; then
-			append2path PATH $CONTRIB/etc
-		fi
-	fi
-	if [ -d "$PKG" ] ; then
-		append2path PATH $PKG/sbin $PKG/bin
-	fi
-	if [ -d "$SLASHOPT" ] ; then
-		append2path PATH $SLASHOPT/sbin $SLASHOPT/bin
-	fi
-	if [ -d "$LOCAL" ] ; then
-		append2path PATH $LOCAL/sbin $LOCAL/bin
-		if [ ! -d $LOCAL/sbin ] ; then
-			append2path PATH $LOCAL/etc
-		fi
-	fi
-	if [ -d "$GNU" ] ; then
-		append2path PATH $GNU/sbin $GNU/bin
-		if [ ! -d $GNU/sbin ] ; then
-			append2path PATH $GNU/etc
-		fi
-	fi
-
-	append2path PATH $HOME/bin
-
-	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
-		# xxx should do this in setban...
-		MYXBAN_R='$user:$group($LOGNAME)@$UUNAME[$LEV]:$TTYN'
-		append2path PATH $DMD/bin $DMDSGS/bin/3b5 $DMD/local/bin
-	fi
-
-	PS1="${PS1}"' # '
-	MAILPATH=${MAILDIR}/${LOGNAME}:${MAILDOR}/root:${MAILDIR}/uucp:${MAILDIR}/usenet
-	if [ "$VISUAL" = "emacsclient" ] ; then
-		export VISUAL="emacs -nw"
-	fi
-	if [ "$EDITOR" = "emacsclient" ] ; then
-		export EDITOR="emacs -nw"
-	fi
-	# just make damn sure PAGER is set...
-	PAGER=$(type less 2>/dev/null)
-	if [ "${PAGER##*/}" = "less" ] ; then
-		PAGER="less"
-		LESS="-M" ; export LESS
-	elif [ -x /usr/xpg4/bin/more ] ; then
-		# SunOS-5's, at least, has the 'G' command!
-		PAGER="/usr/xpg4/bin/more"
-		# use '-s' as it can't be turned on later during runtime
-		MORE="-s" ; export MORE
-	elif [ "${PAGER##*/}" = "more" ] ; then
-		PAGER="more"
-		# use '-s' as it can't be turned on later during runtime
-		MORE="-sw" ; export MORE
-	else
-		# meow
-		PAGER="cat"
-	fi
-	export PAGER
-	if [ "$PAGER" = "less" ]; then
-		MANPAGER="$PAGER -si"; export MANPAGER
-	fi
-
-	if [ -n "$DISPLAY" -a -z "$XAUTHORITY" ]; then
-		#
-		# XXX if root is using this .kshrc then perhaps we
-		# should try copying the "xauth" information for the
-		# current display to $HOME/.Xauthority instead of just
-		# pointing at it...  but why bother???
-		#
-		export XAUTHORITY=$(eval echo ~${SU_FROM}/.Xauthority)
-	fi
-
-	if typeset -f krcmd >/dev/null ; then
-		unset -f krcmd
-	fi
-	function krcmd
-	{
-		# WARNING: this version kills everyone's rcmd procs!
-		kill -9 $(ps -axlc | awk '$3 == 1 && $13 == "rcmd" {print $2}')
-	}
-	# I don't know if this is right, or not, but let's try for now...
-	cd
-	OWBANNER=${WBANNER}
-	WBANNER="SU $(basename ${SHELL})"
-	setban
-elif [ "$user" != "$LOGNAME" ] ; then
-	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
-		# xxx should do this in setban...
-		MYXBAN_R='$user:$group($LOGNAME)@$UUNAME[$LEV]:$TTYN'
-	fi
-	PS1="${PS1}"' $ '
-else
-	if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
-		# xxx should do this in setban...
-		MYXBAN_R='$LOGNAME{$group}@$UUNAME[$LEV]:$TTYN'
-	fi
-	PS1="${PS1}"' $ '
+if [ -r $HOME/.shaliases ] ; then
+	. $HOME/.shaliases
 fi
-
-if type setban > /dev/null ; then
-
-	#
-	# XXX re-factor into a function which defines functions....
-	#
-	if [ "$VISUAL" = "emacsclient" -a -z "$DISPLAY" ] ; then
-		alias emacs=_emacs
-		function _emacs
-		{
-			trap "trap 1; clearban; kill -1 $$" 1
-			trap "trap 2; clearban; kill -2 $$" 2
-			trap "trap 3; clearban; kill -3 $$" 3
-			trap "trap 15; clearban; kill -15 $$" 15
-			OWBANNER=${WBANNER}
-			WBANNER="GNU Emacs "
-			setban
-			mesg n && false
-			\emacs "$@"
-			mesg y || false
-			clearban
-		}
-	fi
-
-	alias cu=_cu
-	function _cu
-	{
-		if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
-			trap "trap 1 2 3 15; mkmenu -; setban" 1 2 3 15
-			myxsize -s
-		else
-			trap "trap 1; clearban; kill -1 $$" 1
-			trap "trap 2; clearban; kill -2 $$" 2
-			trap "trap 3; clearban; kill -3 $$" 3
-			trap "trap 15; clearban; kill -15 $$" 15
-		fi
-		OWBANNER=${WBANNER}
-		WBANNER="CU $* "
-		setban
-		mesg n && false
-		\cu "$@"
-		mesg y || false
-		clearban
-	}
-
-	alias ckermit=_ckermit
-	function _ckermit
-	{
-		if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
-			trap "trap 1 2 3 15; mkmenu -; setban" 1 2 3 15
-			myxsize -s
-		else
-			trap "trap 1; clearban; kill -1 $$" 1
-			trap "trap 2; clearban; kill -2 $$" 2
-			trap "trap 3; clearban; kill -3 $$" 3
-			trap "trap 15; clearban; kill -15 $$" 15
-		fi
-		OWBANNER=${WBANNER}
-		WBANNER="C-Kermit $* "
-		setban
-		mesg n && false
-		\ckermit "$@"
-		mesg y || false
-		clearban
-	}
-
-	_cmd=$(type rlogin 2>/dev/null)
-	if [ "${_cmd##*/}" = "rlogin" ] ; then
-		alias rlogin=_rlogin
-		function _rlogin
-		{
-			trap "trap 1; clearban; kill -1 $$" 1
-			trap "trap 2; clearban; kill -2 $$" 2
-			trap "trap 3; clearban; kill -3 $$" 3
-			trap "trap 15; clearban; kill -15 $$" 15
-			OWBANNER=${WBANNER}
-			WBANNER="RLOGIN $* "
-			setban
-			mesg n && false
-			\rlogin "$@"
-			mesg y || false
-			clearban
-		}
-	fi
-
-	_cmd=$(type slogin 2>/dev/null)
-	if [ "${_cmd##*/}" = "slogin" ] ; then
-		alias slogin=_slogin
-		function _slogin
-		{
-			trap "trap 1; clearban; kill -1 $$" 1
-			trap "trap 2; clearban; kill -2 $$" 2
-			trap "trap 3; clearban; kill -3 $$" 3
-			trap "trap 15; clearban; kill -15 $$" 15
-			OWBANNER=${WBANNER}
-			WBANNER="SLOGIN $* "
-			setban
-			mesg n && false
-			\slogin "$@"
-			mesg y || false
-			clearban
-		}
-	fi
-
-	_cmd=$(type console 2>/dev/null)
-	if [ "${_cmd##*/}" = "console" ] ; then
-		alias console=_console
-		function _console
-		{
-			trap "trap 1; clearban; kill -1 $$" 1
-			trap "trap 2; clearban; kill -2 $$" 2
-			trap "trap 3; clearban; kill -3 $$" 3
-			trap "trap 15; clearban; kill -15 $$" 15
-			OWBANNER=${WBANNER}
-			WBANNER="CONSOLE $* "
-			setban
-			mesg n && false
-			\console "$@"
-			mesg y || false
-			clearban
-		}
-	fi
-
-	_cmd=$(type telnet 2>/dev/null)
-	if [ "${_cmd##*/}" = "telnet" ] ; then
-		alias telnet=_telnet
-		function _telnet
-		{
-			if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
-				trap "trap 1 2 3 15; mkmenu -; setban" 1 2 3 15
-				myxsize -s
-			else
-				trap "trap 1; clearban; kill -1 $$" 1
-				trap "trap 2; clearban; kill -2 $$" 2
-				trap "trap 3; clearban; kill -3 $$" 3
-				trap "trap 15; clearban; kill -15 $$" 15
-			fi
-			OWBANNER=${WBANNER}
-			WBANNER="TELNET $* "
-			setban
-			mesg n && false
-			\telnet "$@"
-			mesg y || false
-			clearban
-		}
-	fi
-
-	if $HAVEMUSH ; then
-		alias mushC=_mushC
-		function _mushC
-		{
-			trap "trap 1; clearban; kill -1 $$" 1
-			trap "trap 2; clearban; kill -2 $$" 2
-			trap "trap 3; clearban; kill -3 $$" 3
-			trap "trap 15; clearban; kill -15 $$" 15
-			OWBANNER=${WBANNER}
-			WBANNER="MUSH $* "
-			setban
-			mesg n && false
-			mush -C "$@"
-			mesg y || false
-			clearban
-		}
-	fi
-
-	_cmd=$(type irc 2>/dev/null)
-	if [ "${_cmd##*/}" = "irc" ] ; then
-		alias irc=_irc
-		function _irc
-		{
-			trap "trap 1; clearban; kill -1 $$" 1
-			trap "trap 2; clearban; kill -2 $$" 2
-			trap "trap 3; clearban; kill -3 $$" 3
-			trap "trap 15; clearban; kill -15 $$" 15
-			OWBANNER=${WBANNER}
-			WBANNER="IRC $* "
-			setban
-			mesg n && false
-			\irc "$@"
-			mesg y || false
-			clearban
-		}
-	fi
-
-	_cmd=$(type trn 2>/dev/null)
-	if [ "${_cmd##*/}" = "trn" ] ; then
-		alias trn=_trn
-		function _trn
-		{
-			trap "trap 1; clearban; kill -1 $$" 1
-			trap "trap 2; clearban; kill -2 $$" 2
-			trap "trap 3; clearban; kill -3 $$" 3
-			trap "trap 15; clearban; kill -15 $$" 15
-			OWBANNER=${WBANNER}
-			WBANNER="TRN $* "
-			setban
-			mesg n && false
-			\trn "$@"
-			mesg y || false
-			clearban
-		}
-	fi
-
-	alias su=_su
-	function _su
-	{
-		trap "trap 1; clearban; kill -1 $$" 1
-		trap "trap 2; clearban; kill -2 $$" 2
-		trap "trap 3; clearban; kill -3 $$" 3
-		trap "trap 15; clearban; kill -15 $$" 15
-		showargs="root"
-		if [ $# -ge 1 ]; then
-			case "$@" in
-			"-")
-				showargs="root"
-				;;
-			*)
-				showargs="$@"
-				;;
-			esac
-		fi
-		if [ "$showargs" = "root" ]; then
-			# we know who root is...
-			showargs=""
-		fi
-		OWBANNER=${WBANNER}
-		WBANNER="SU ${showargs:+${showargs} }sh"
-		setban
-		mesg n && false
-		if [ -x /usr/5bin/su ] ; then
-			/usr/5bin/su "$@"
-		else
-			\su "$@"
-		fi
-		mesg y || false
-		PWD=$(pwd)
-		clearban
-	}
-
-	_cmd=$(type nethack 2>/dev/null)
-	if [ "${_cmd##*/}" = "nethack" ] ; then
-		function nethack
-		{
-			if [ "$TERM" = "dmd" -o "$TERM" = "dmd-myx" ] ; then
-				trap "trap 1 2 3 15; loadfont thin.9x14; setban" 1 2 3 15
-				loadfont rogue.9x18
-			else
-				trap "trap 1; clearban; kill -1 $$" 1
-				trap "trap 2; clearban; kill -2 $$" 2
-				trap "trap 3; clearban; kill -3 $$" 3
-				trap "trap 15; clearban; kill -15 $$" 15
-			fi
-			OWBANNER=${WBANNER}
-			WBANNER="NetHack"
-			setban
-			mesg n && false
-			\nethack
-			mesg y || false
-			clearban
-		}
-	fi
-fi
-
-if [ "$user" = usenet -o "$group" = news ] ; then
-	dirprepend PATH $LOCAL/lib/newsbin $LOCAL/lib/newsbin/maint $LOCAL/lib/newsbin/input
-fi
-
-if $ISSUN; then
-	alias df="/usr/bin/df"
-fi
-
-if [ $(uname -s) = "Darwin" ]; then
-        # N.B.  The OS product version can be found with /usr/bin/sw_vers
-        
-	# it's not the same, but it has similar uses...
-	alias ldd="otool"
-
-	# macOS 'df' has a nasty bug in parsing its options and cannot
-        # see any past the first '-t' (which is apparently
-        # deprecated), so be sure to use '-T'
-	#
-	alias df="/bin/df -P -T nonullfs"
-fi
-
-if [ "$(whence man)" = "/usr/bin/man" -a -x $LOCAL/bin/man ] ; then
-	alias man=$LOCAL/bin/man
-	alias osman='MANPATH=$OMANPATH /usr/bin/man'
-else
-	alias osman='MANPATH=$OMANPATH man'
-fi
-alias gman='MANPATH=$GNU/man man'
-alias lman='MANPATH=$LOCAL/share/man man'
-alias pkgman='MANPATH=$PKG/share/man man'
-alias optman='MANPATH=$SLASHOPT/share/man man'
-alias tkman='MANPATH=$LOCAL/share/man.tcltk man'
-alias x11man='MANPATH=$X11PATH/man man'
-
-if $HAVETPUT; then
-	alias c='tput clear'
-	alias clear='tput clear'
-else
-	alias c='clear'
-fi
-
-if $HAVEMUSH; then
-	alias mfrom='mush -H:n'
-	alias mhdrs='mush -H -f'
-fi
-
-# (note: sh "read" command also reads backslash continued lines)
-# XXX need an option to strip leading whitespace on continued lines
-alias backslashjoin='sed -e :a -e "/\\\\$/N; s/\\\\\\n//; ta"'
-
-# delete all CONSECUTIVE blank lines from file except the first; also
-# deletes all blank lines from top and end of file (emulates "cat -s")
-# method 1, allows 0 blanks at top, 1 at EOF
-# NOTE: never forget this -- it's the most incredible little sed script!!!!
-alias blsqueeze='sed "/./,/^$/!d"'
-# method 2, allows 1 blank at top, 0 at EOF
-alias blsqueezebot="sed '/^$/N;/\n$/D'"
-# delete all CONSECUTIVE blank lines from file except the first 2:
-alias blsqueezenot2="sed '/^$/N;/\n$/N;//D'"
-# delete ALL blank lines from a file (same as "grep '.' ")
-alias blstrip='sed "/./!d"'
-alias blstrip2="sed '/^$/d'"
-
-# delete all leading blank lines at top of file
-alias blstriptop="sed '/./,$!d'"
-# delete all trailing blank lines at end of file
-alias blstripbot="sed -e :a -e '/^\n*$/N;/\n$/ba'"
-
-# reverse order of lines (emulates "tac")
-alias sed-tac="sed '1!G;h;$!d'"
-# reverse each character on the line (emulates "rev")
-alias sed-rev="sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//'"
-# join pairs of lines side-by-side (like "paste")
-alias sed-paste="sed 'N;s/\n/ /'"
-
-# delete duplicate lines from a sorted file (emulates "uniq"). First
-# line in a set of duplicate lines is kept, the rest are deleted
-alias sed-uniq="sed '$!N; /^\(.*\)\n\1$/!P; D'"
-
-# NOTE: replacing the last '-print' with '-exec CMD {} +' lets one use 'CMD' directly on the files
-alias pkgfind="find . -type d -name CVS -prune -or -type f \( -name 'Make*' -or -name '*.mk' \) ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name .cvsignore -print"
-alias cvsfind="find . -type d -name CVS -prune -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name .cvsignore ! -name '[Tt][Aa][Gg][Ss]' -print"
-alias cvsfind0="find . -type d -name CVS -prune -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name .cvsignore ! -name '[Tt][Aa][Gg][Ss]' -print0"
-alias srcfind="find . -type d \( -name CVS -or -name .git -or -name .svn -or -name build -or -name 'build-*' -or -name autom4te.cache \) -prune -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -print"
-alias srcfind0="find . -type d \( -name CVS -or -name .git -or -name .svn -or -name build -or -name 'build-*' -or -name autom4te.cache \) -prune -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -print0"
-alias deadlinks='find . -type l -a ! \( -follow -type f \) -print'
-alias ds='$PAGER'
-alias e='${VISUAL:-$EDITOR}'
-alias ealias='e $ENV'
-alias elc='emacs -batch -q -no-site-file -f batch-byte-compile'
-alias f='finger'
-# Note: use "findls" as the prefix where globbing will exceed ARG_MAX
-# "find" never lists the '..' entry, so if you also exclude the '.'
-# entry and then apply "-prune" to all the remaining entries, find
-# certainly won't descend into any sub-directory.  This is an
-# alternative to using "-maxdepth 1" (which is not in POSIX.2)
-# Don't list directories and links by appending "! -type d ! -type l"
-alias findls='find . ! -name . -prune'
-alias funclist='typeset +f'
-alias gitfind='git ls-tree -r --name-only HEAD'
-alias h='fc -l'
-alias history='fc -l 1'
-alias hmeme='fc -l 1 | awk "\$1 > 0 {print \$2}" | sort  | uniq -c | sort -rn | sed 20q'
-alias j='jobs -l'
-alias l='/bin/ls -CF'
-alias la='/bin/ls -CFa'
-alias lD='/bin/ls -CFd'
-alias lL='/bin/ls -CFL'
-alias ll='/bin/ls -ls'
-alias lli='/bin/ls -lis'
-alias llD='/bin/ls -lsd'
-alias llL='/bin/ls -lsL'
-alias lla='/bin/ls -lsa'
-alias llia='/bin/ls -lisa'
-alias llai='/bin/ls -lisa'
-alias lld='/bin/ls -lsd'
-alias llr='/bin/ls -lsR'
-alias llir='/bin/ls -lisR'
-alias llra='/bin/ls -lsaR'
-alias llira='/bin/ls -lisaR'
-alias lr='/bin/ls -CFR'
-alias lra='/bin/ls -CFRa'
-alias lsa='/bin/ls -as'
-alias lss='/bin/ls -s'
-alias local='typeset'		# always in pdksh, but not ast-ksh, used by git
-alias logout='exit 0'
-alias maildate='LANG=c date "+%a, %d %b %Y %T %z"'
-alias nosgr='echo '
-alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok'
-alias pkg_sizes="/usr/sbin/pkg_info -s \* | sed -e '/^$/d' -e 's/Information for //' -e 's/:$/:\\\\/' | sed -e :a -e '$!N;s/Size of this package in bytes://;ta' -e 'P;D' | backslashjoin"
-alias realias='let LEV=$LEV-1;exec ${SHELL}'		# useless?
-alias rehash='_SV_PATH=$PATH; PATH=$_SV_PATH; unset _SV_PATH'
-alias rinfo='rlog -L -h -l $(find RCS -type f -print)'
-alias rstty='stty $SANE'
-alias rsyncbackup='rsync -a -H -E --numeric-ids'
-alias scvs='export CVSROOT="$(< CVS/Root)"; print "CVSROOT=$CVSROOT"'
-alias snmpoidinfo='snmptranslate -T d -O f'
-alias wcvs="printf '%s' \$CVSROOT"
-alias zds="z$PAGER"
-
-alias xload-1="xload -geometry 120x40-200+48 -hl red &"
-alias xload-2="xload -geometry 120x40-200+96 -hl red &"
-alias xload-3="xload -geometry 120x40-200+144 -hl red &"
-alias xload-4="xload -geometry 120x40-200+192 -hl red &"
-alias xload-5="xload -geometry 120x40-200+240 -hl red &"
-
-alias dlog='$PAGER -en +G /var/log/debug'
-alias ilog='$PAGER -en +G /var/log/important'
-alias klog='$PAGER -en +G /var/log/kern'
-alias mlog='$PAGER -en +G /var/log/messages'
-
-# Smail related tools...
-#
-alias badsenders='fgrep RHSBL: $MAILLOG | sed "s/[<>]/ /g" | awk "{print \$8}" | sort -u'
-alias rblcount='fgrep " matched " $MAILLOG | cut -d " " -f 13 | cut -d . -f 5- | sort | uniq -c'
-alias rblstats='fgrep " matched " $MAILLOG | cut -d " " -f 10- | sort | uniq -c | sort -n | ds'
-
-# This is only useful on SysV and NetBSD-5 and newer
-alias fw='who -HurTbA'
-
-# these are only useful on SysV
-#alias lpq='lpstat -o'
-
-# TODO: find a test so these are usable.
-#alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok rows $LINES cols $COLUMNS'
-#alias rstty='stty $SANE; stty rows ${LINES:-$(tput lines)} cols ${COLUMNS:-$(tput cols)}'
-
-# TODO: find a way to test if HoneyDanBer UUCP or not....
-# (other than [ -d /etc/uucp ])
-alias uuq='uustat -a'
-
-# TODO: should only set this if "xtail" and UUCP are both available?
-if [ -d /var/spool/uucp ] ; then
-	alias uufollow='xtail /var/spool/uucp/.[AL]*/*'
-elif [ -d /usr/spool/uucp ]; then
-	alias uufollow='xtail /usr/spool/uucp/.[AL]*/*'
-fi
-
-# This is silly, but it usually works....
-if [ -x /usr/ucb/rsh -a -x /bin/rsh ] ; then
-	alias rsh=/usr/ucb/rsh
-fi
-
 if [ -r $HOME/.kshsccs ] ; then
 	. $HOME/.kshsccs
 fi
-if [ -r $HOME/.kshpwd ] ; then
+if type setban >/dev/null 2>&1 && [ -r $HOME/.kshpwd ] ; then
 	. $HOME/.kshpwd
 fi
 if [ -n "$KSH_VERSION" ] ; then
 	#
-	# this is probably pdksh
+	# this (now?) also works for pdksh and ksh93
 	#
 	set -o braceexpand
 fi
@@ -1178,8 +243,6 @@ if [ -r $HOME/.kshdir ] ; then
 	alias popd='unalias pushd popd showd sd;. $HOME/.kshdir; popd'
 	alias showd='unalias pushd popd showd sd;. $HOME/.kshdir; showd'
 fi
-
-#unset -f do_first_time
 
 trap '
 	rc=$?;
@@ -1193,32 +256,27 @@ trap '
 
 # NOTE: some versions of some shells complain here if not connected to a tty
 #
-case "$0" in
--*)
-	set -o monitor
-	;;
-esac
-case $SHELL in
-*bash*)
+set -o monitor
+
+if [ -n "${BASH}" ]; then
 	if [ -r $HOME/.bashedit ] ; then
 		. $HOME/.bashedit
 	else
 		set -o emacs
 	fi
-	;;
-*)
+else
 	if [ -r $HOME/.kshedit ] ; then
 		. $HOME/.kshedit
 	else
-		set -o gmacs || set -o emacs
+		set -o gmacs 2>/dev/null || set -o emacs
+		alias __A="$(printf '\020')"		# ^P: up arrow
+		alias __B="$(printf '\016')"		# ^N: down arrow
+		alias __C="$(printf '\006')"		# ^F: right arrow
+		alias __D="$(printf '\002')"		# ^B: left arrow
+		alias __F="$(printf '\005')"		# ^E: end of line, END key
+		alias __H="$(printf '\001')"		# ^A: beginning of line, HOME key
 	fi
-	alias __A=''		# up arrow
-	alias __B=''		# down arrow
-	alias __C=''		# right arrow
-	alias __D=''		# left arrow
-	alias __H=''		# beginning of line, HOME key
-	;;
-esac
+fi
 
 # Do this at very nearly the very end...
 #
