@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.11	22/02/24 14:50:23 (woods)"
+#ident	"@(#)HOME:.shrc	37.12	22/02/24 15:01:06 (woods)"
 
 PATH=$PATH
 export PATH
@@ -688,11 +688,12 @@ archivedotfiles ()
 pushdotfiles ()
 {
 	_e_opt=""
+	_user=${LOGNAME}
 	_copy=false
 	_transport=${RSYNC_RSH:-"scp"}
-	_USAGE="pushdotfiles: Usage: pushdotfiles [-c] [-e TRANSPORT] hostname"
+	_USAGE="pushdotfiles: Usage: pushdotfiles [-c] [-e TRANSPORT] [-u RUSER] hostname"
 	OPTIND="1"
-	while getopts "ce:" OPTCH
+	while getopts "ce:u:" OPTCH
 	do
 		case ${OPTCH} in
 		c)
@@ -711,6 +712,9 @@ pushdotfiles ()
 				echo "pushdotfiles: ${OPTARG}: unknown transport" >&2
 				return 2
 			esac
+			;;
+		u)
+			_user="${OPTARG}"
 			;;
 		*)
 			echo "$_USAGE" >&2
@@ -732,9 +736,9 @@ pushdotfiles ()
 		cd $HOME && \
 		$_transport -r `cat ${HOME}/dotfiles.list` ${1}:
 	else
-		rsync ${_e_opt} -v -lptHS --progress --delete-after --stats --files-from=${HOME}/dotfiles.list ${HOME} ${1}:.
+		rsync ${_e_opt} -v -lptHS --progress --delete-after --stats --files-from=${HOME}/dotfiles.list ${HOME} ${_user}@${1}:.
 	fi
-	unset _copy _e_opt _USAGE OPTCH
+	unset _copy _e_opt _user _USAGE OPTCH
 }
 
 syncdotfiles ()
