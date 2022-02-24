@@ -1,7 +1,7 @@
 #
 #	.kshedit - ksh editing function customisation
 #
-#ident	"@(#)HOME:.kshedit	37.1	21/03/23 11:43:07 (woods)"
+#ident	"@(#)HOME:.kshedit	37.2	22/02/23 17:21:21 (woods)"
 
 # XXX this can't be checked in with a "diff" that treats it as binary!
 
@@ -10,10 +10,10 @@ set -o gmacs
 if [ -n "$KSH_VERSION" ] ; then
 	#
 	# this is probably pdksh (or it could be ksh93t or later), but
-	# does it also have the emacs-usemeta option?
+	# it probably doesn't have the emacs-usemeta option
 	#
 	case "$(set -o)" in
-	*emacs-usemeta* )
+	*emacs-usemeta*)
 		set -o emacs-usemeta
 		;;
 	esac
@@ -29,7 +29,7 @@ if ( type bind ) > /dev/null 2>&1 ; then
 	#
 	bind '^I'=complete-list
 
-	# some of these might also be useful for pdKSH & mksh:
+	# some of these might also be useful for pdksh:
 	#
 	#bind '^X1~'=beginning-of-line
 	#bind '^X7~'=beginning-of-line
@@ -40,10 +40,23 @@ if ( type bind ) > /dev/null 2>&1 ; then
 else
 	# these aliases only work in emacs/gmacs mode
 	#
-alias __A=''		# up arrow
-alias __B=''		# down arrow
-alias __C=''		# right arrow
-alias __D=''		# left arrow
-alias __H=''		# beginning of line, HOME key
-alias __F=''		# end of line, END key
+	# they use the magic of the "M-[X" binding, meaning when the editor
+	# reads "M-[" followed by a letter, it searches the alias list for an
+	# alias maatching "__X" and if found it inserts the alias value into the
+	# input stream
+	#
+	# In ksh93 all but the last one ("M-[F") are aslo the default bindings.
+	#
+	# xxx Eventually instead of direct control characters it may be possible
+	# to porably use dollar-single-quote character literals (e.g. $'\xFF'),
+	# but currently only ksh93 and newer, plus newer Bash (as well as some
+	# recent Ash descendents) support these, and they're still an open
+	# proposal for POSIX.
+	#
+	alias __A="$(printf '\020')"		# ^P: up arrow
+	alias __B="$(printf '\016')"		# ^N: down arrow
+	alias __C="$(printf '\006')"		# ^F: right arrow
+	alias __D="$(printf '\002')"		# ^B: left arrow
+	alias __F="$(printf '\005')"		# ^E: end of line, END key
+	alias __H="$(printf '\001')"		# ^A: beginning of line, HOME key
 fi
