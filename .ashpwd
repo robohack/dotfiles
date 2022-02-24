@@ -1,25 +1,16 @@
 #
 #	.ashpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.ashpwd	37.1	21/03/23 11:43:02 (woods)"
+#ident	"@(#)HOME:.ashpwd	37.2	22/02/23 17:23:12 (woods)"
 
-# NOTE: the only real difference between this and .kshpwd is that this
-# version only defines a function which hides the builtin (no alias)
-# and it then uses the alternate builtin of "chdir".  The content of
-# the inner "case" statement should be identical.
-
-cd ()
+# This works entirely with global variables -- handling parameters is just more
+# unnecessary overhead for this purpose
+#
+# This version still uses ${name#pattern} substitution, but of course cannot use
+# the extra Ksh filename globbing patterns.
+#
+pwd_to_banner()
 {
-	# XXX could supposedly also use: command cd "$*"
-	# XXX but it ("command") may not be in all versions....
-	# XXX and it seems to be broken in at least FreeBSD-8
-	if [ -n "$*" ]; then
-		chdir "$*"
-	else
-		# XXX "chdir ''" goes nowhere
-		chdir
-	fi
-	chdir "$*"
 	#
 	# NOTE:  some derivatives of ash(1) will always set $PWD to be
 	# the directory returned by getcwd(3), and not the symlink(s)
@@ -42,11 +33,17 @@ cd ()
 	/home/*)
 		BANNER_PWD='~'"${PWD#/home/}"
 		;;
-	"*/work?(.d)/${LOGNAME}/*")
-		BANNER_PWD='mywork:'"${PWD#*/work?(.d)/${LOGNAME}/}"
+	*/work/${LOGNAME}/*)
+		BANNER_PWD='mywork:'"${PWD#*/work/${LOGNAME}/}"
 		;;
-	"*/work?(.d)/*")
-		BANNER_PWD='work:'"${PWD#*/work?(.d)/}"
+	*/work.d/${LOGNAME}/*)
+		BANNER_PWD='mywork:'"${PWD#*/work.d/${LOGNAME}/}"
+		;;
+	*/work/*)
+		BANNER_PWD='work:'"${PWD#*/work/}"
+		;;
+	*/work.d/*)
+		BANNER_PWD='work:'"${PWD#*/work.d/}"
 		;;
 	/usr/src/*)
 		BANNER_PWD='src:'"${PWD#/usr/src/}"
@@ -58,15 +55,38 @@ cd ()
 		BANNER_PWD='xsrc:'"${PWD#/usr/xsrc/}"
 		;;
 	*)
-		# trim just the leading slahs to avoid "sh://host//dir"
+		# trim just the leading slash to avoid "sh://host//dir"
 		BANNER_PWD="${PWD#/}"
 		;;
 	esac
+}
+
+# NOTE: the only real difference between this and .kshpwd is that this
+# version only defines a function which hides the builtin (no alias)
+# and it then uses the alternate builtin of "chdir".  The content of
+# the inner "case" statement should be identical.
+#
+unset -f cd
+cd ()
+{
+	# XXX could supposedly also use: command cd "$*"
+	# XXX but it ("command") may not be in all versions....
+	# XXX and it seems to be broken in at least FreeBSD-8
+	chdir ${1+"$@"}
+	pwd_to_banner
 	if [ "$(ismpx)" = yes ] ; then
 		eval myxban -l "\"$MYXBAN_L\""
-	fi
 	# there would be no point without setban, but we must test it anyway
-	if type setban > /dev/null ; then
+	elif type setban > /dev/null ; then
 		setban
 	fi
 }
+
+# make sure BANNER_PWD is now set as we want it,
+# but _ONLY_ for interactive shells!
+#
+case "$0" in
+-*)
+	cd .
+	;;
+esac

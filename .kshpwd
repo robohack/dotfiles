@@ -1,18 +1,13 @@
 #
 #	.kshpwd - local stuff to abbreviate PWD...
 #
-#ident	"@(#)HOME:.kshpwd	37.2	22/02/19 17:33:45 (woods)"
+#ident	"@(#)HOME:.kshpwd	37.3	22/02/23 17:23:53 (woods)"
 
-unalias cd 2>/dev/null
-alias cd='_cd'
-function _cd
+# This works entirely with global variables -- handling parameters is just more
+# unnecessary overhead for this purpose
+#
+function pwd_to_banner
 {
-	if [ -n "$*" ]; then
-		\cd "$*"
-	else
-		# XXX "\cd ''" goes nowhere
-		\cd
-	fi
 	case "$PWD" in
 	${HOME})
 		# avoid the trailing slash, e.g.: sh://host/~/
@@ -47,7 +42,23 @@ function _cd
 		BANNER_PWD="${PWD#/}"
 		;;
 	esac
-	if type setban > /dev/null 2>&1 ; then
+}
+
+unalias cd 2>/dev/null
+alias cd='_cd'
+function _cd
+{
+	if [ -n "$*" ]; then
+		\cd "$*"
+	else
+		# XXX "\cd ''" goes nowhere
+		\cd
+	fi
+	pwd_to_banner
+	if [ "$(ismpx)" = yes ] ; then
+		eval myxban -l "\"$MYXBAN_L\""
+	# there would be no point without setban, but we must test it anyway
+	elif type setban > /dev/null 2>&1 ; then
 		setban
 	fi
 }
@@ -57,6 +68,6 @@ function _cd
 #
 case "$0" in
 -*)
-	cd; cd - >/dev/null
+	cd .
 	;;
 esac
