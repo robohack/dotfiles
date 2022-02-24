@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.10	22/02/23 17:37:55 (woods)"
+#ident	"@(#)HOME:.shrc	37.11	22/02/24 14:50:23 (woods)"
 
 PATH=$PATH
 export PATH
@@ -644,6 +644,26 @@ publishdotfiles ()
 	${HOME_SERVER}*)
 		( cd && ${SCCS:-"sccs"} info )
 		( cd && git-sccsimport --move-date=2010/11/5T00:00:00 --move-offset=3 --expand-kw --maildomain=robohack.ca --git-dir="$HOME/work/home" --dirs SCCS && cd $HOME/work/home && git push --mirror )
+		if [ $? -ne 0 ]; then
+			echo "publishdotfiles:  check for errors above!"
+			#
+			# Quite possibly some aspect of some change that had
+			# already been imported was accidentally changed causing
+			# a fork in the change history.  One likely possibility
+			# is some aspect of an SCCS file, e.g. a metadata value
+			# which appears in the expanded "@(#)" header, was
+			# modified, e.g. the module type.
+			#
+			# In this case there are two choices -- (1) undo the
+			# change; or (2) rewrite the git history.
+			#
+			# For this particular repository the second option is
+			# probably OK.  Do the following:
+			#
+			#   git reset --hard $(git log HEAD^..HEAD | awk '$1 == "commit" {print $2}')
+			#   git push --force --mirror
+			#
+		fi
 		rsync -v -lptHS --progress --delete-after --stats --files-from=$HOME/dotfiles.list $HOME ${CENTRAL_USER}@${CENTRAL_SERVER}:.
 		;;
 	*)
