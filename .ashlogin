@@ -1,7 +1,12 @@
 #
 #	.ashlogin - login shell startup for ash
 #
-#ident	"@(#)HOME:.ashlogin	37.1	21/03/23 11:43:04 (woods)"
+#ident	"@(#)HOME:.ashlogin	37.2	22/02/23 17:30:59 (woods)"
+
+# Schily Bourne Shell doesn't seem to fully set $- until late...
+if is_schily_sh; then
+	set -o ignoreeof
+fi
 
 case "$-" in
 *i*)
@@ -21,16 +26,15 @@ case "$-" in
 	fi
 	;;
 *)
-	echo "$0: WARNING: .shlogin being sourced by a non-interactive shell!"
+	echo "$0: WARNING: ~/.ashlogin being sourced by a non-interactive shell! (\$-=$-)"
 	;;
 esac
 
-# xxx NetBSD /bin/sh does not support FPATH
+# xxx NetBSD /bin/sh (and dash) does not support FPATH
 export FPATH=$HOME/lib/sh
 
 export ENVFILE=$HOME/.ashrc
-
-if [ -n "$ENVFILE" -a -r "$ENVFILE" ] ; then
+if [ -r "$ENVFILE" ] ; then
 	export ENV=$ENVFILE
 fi
 
