@@ -1,10 +1,21 @@
 #
 #	.shlogin - login shell startup for plain Bourne Shell
 #
-#ident	"@(#)HOME:.shlogin	37.1	21/03/23 11:43:02 (woods)"
+#ident	"@(#)HOME:.shlogin	37.2	22/02/23 17:28:06 (woods)"
 
+_interactive=false
 case "$-" in
 *i*)
+	_interactive=true
+	;;
+esac
+case "$0" in
+-*)
+	_interactive=true
+	;;
+esac
+
+if ${_interactive}; then
 	#
 	# Commands for interactive shells.
 	#
@@ -14,8 +25,8 @@ case "$-" in
 
 	# for emacs timeclock.el
 	#
-	if [ ! -f ~/.timelog ] ; then
-		touch ~/.timelog
+	if [ ! -f ${HOME}/.timelog ] ; then
+		touch ${HOME}/.timelog
 	fi
 
         # this may not do anything for sub-shells but let you type '. $ENV'
@@ -26,13 +37,12 @@ case "$-" in
         # older shells ignore $ENV entirely)
         #
         ENV=$HOME/.shrc ; export ENV
-	;;
-*)
+else
 	echo "$0: WARNING: .shlogin being sourced by a non-interactive shell!"
-	;;
-esac
+fi
+unset _interactive
 
-# NOTE: ~/.profile will source $ENV if the file it names exists
+# NOTE: ${HOME}/.profile will source $ENV if the file it names exists
 
 if [ -z "$LOGNAME" ] ; then
 	# some systems won't allow this...
