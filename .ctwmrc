@@ -8,13 +8,18 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.4	21/12/07 15:07:02 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.5	22/02/23 18:04:18 (woods)"
+#
+# N.B.:  To test find the temp file output from the most recent run with '-k'
+# and then do:
+#
+#	cat /var/tmp/ctwmrc.XXXXXX ~/.ctwmrc | m4 | less
 #
 # Things that affect the operation of various menus, etc.:
 #
-# Private xbm icon collection goes in HOME/lib/bitmaps
-# Private xpm icon collection goes in HOME/lib/pixmaps
-# Sounds to play go in HOME/lib/sounds (eg "newmail").
+# Private xbm icon collection goes in ~/lib/bitmaps
+# Private xpm icon collection goes in ~/lib/pixmaps
+# Sounds to play go in ~/lib/sounds (eg "newmail").
 #
 # Environment variables used (set by .profile et al):
 #
@@ -34,6 +39,9 @@
 #
 # ./.shrc should provide a function "onx11server"
 
+# Note that we could "comment" these macros out in .ctwmrc syntax, but they
+# would still be visible to m4.
+
 changequote([, ])
 
 ifelse(eval(index(HOSTNAME, weird.com) >= 0), 1, [define(AT_WEIRD, [@weird.com])], [])
@@ -41,7 +49,10 @@ ifelse(eval(index(HOSTNAME, local) >= 0), 1, [define(AT_WEIRD, [@local])], [])
 ifelse(eval(index(HOSTNAME, robohack.planix.com) >= 0), 1, [define(AT_WEIRD, [@robohack.planix.com])], [])
 
 ifelse(eval(index(HOSTNAME, very.local) >= 0), 1, [define(AT_VERY_WEIRD, [@very.local])], [])
+ifelse(eval(index(HOSTNAME, very-old.local) >= 0), 1, [define(AT_VERY_WEIRD, [@very-old.local])], [])
 
+# XXX it is very unfortunate that nothing is provided to identify the host environment!
+#
 ifdef([AT_VERY_WEIRD], [define(ON_OSX, [yes])])
 ifelse(eval(index(HOSTNAME, macbook.local) >= 0), 1, [define(ON_OSX, [yes])], [])
 ifelse(eval(index(HOSTNAME, macweird.local) >= 0), 1, [define(ON_OSX, [yes])], [])
@@ -49,18 +60,48 @@ ifelse(eval(index(HOSTNAME, fezzik.local) >= 0), 1, [define(ON_OSX, [yes])], [])
 
 ifelse([SERVERHOST], [CLIENTHOST], [define(USE_X11SERVER, [yes])], [])
 
-# This will be used for "local" xterms.
+# n.b.:  integer math is used, so these will only be approximate:
 #
-# There should be a better way to try things at M4 runtime...
+# XXX Too bad envrionment variables weren't also imported as macro definitions!
+# SOOOooo many of these values are also computed and used in ~/.xinitrc!
 #
-# XXX ToDo: use an environment variable instead!!!  And for other OPT_*s
+define(HorizDPI, eval(((X_RESOLUTION * 100) / 3937) + ((((X_RESOLUTION * 1000) / 3937) % 10) >= 5)))
+define(VertDPI, eval(((Y_RESOLUTION * 100) / 3937) + ((((X_RESOLUTION * 1000) / 3937) % 10) >= 5)))
+define(ScreenDimX, eval(WIDTH / HorizDPI))
+define(ScreenDimY, eval(HEIGHT / VertDPI))
+
+# N.B.:  If true screen resolution is within 10% of 100DPI it could sense to
+# claim 100DPI to avoid font-scaling artifacts for bitmap fonts, but since we
+# already alias most font names that did refer to bitmap fonts into scalable
+# fonts anyway, there is not much to gain
 #
-# (N.B.:  This is kept as an example of (poor) handling of command
-# options I want but which may not be universally available.)
-#
-ifelse(HOSTNAME, anciently.weird.com, [define(OPT_ZICONBEEP, [])],
- [define(OPT_ZICONBEEP, [-ziconbeep 1])]
+ifelse(eval((HorizDPI / 100 == 1) && (HorizDPI % 100 <= 10)), 1,
+ [define(FontXDPI, [100])],
+ [define(FontXDPI, [HorizDPI])]
 )
+ifelse(eval((VertDPI / 100 == 1) && (VertDPI % 100 <= 10)), 1,
+ [define(FontYDPI, [100])],
+ [define(FontYDPI, [VertDPI])]
+)
+
+ifelse(eval(X_RESOLUTION >= 8000 && Y_RESOLUTION >= 8000), 1,
+ [define(BORDERWIDTH, [6]) define(TDBORDERWIDTH, [10])],
+ [ifelse(eval(X_RESOLUTION >= 4500 && Y_RESOLUTION >= 4500), 1,
+  [define(BORDERWIDTH, [4]) define(TDBORDERWIDTH, [8])],
+  [define(BORDERWIDTH, [2]) define(TDBORDERWIDTH, [6])]
+ )]
+)
+
+ifelse(eval(ScreenDimX > 12), 1,
+ [define(ClockSize, [2])],
+ [define(ClockSize, [1])]
+)
+define(ClockWidth, eval(HorizDPI * ClockSize))
+define(ClockHeight, eval(VertDPI * ClockSize))
+define(ClockOff, eval(ClockWidth + (2 * TDBORDERWIDTH)))
+
+define(XloadWidth, eval(HorizDPI * 1))
+define(XloadHeight, eval(VertDPI / 2))
 
 # Boolean flags
 #
@@ -72,13 +113,15 @@ AutoRelativeResize
 AutoRaiseIcons
 ifelse(eval(PLANES <= 8), 1, [BeNiceToColormap], [])
 BorderResizeCursors
+#NoCaseSensitive	# only affects iconmanager?
 CenterFeedbackWindow
+#NoClickToFocus		# OBVIOUSLY! (xxx but with the "No" it is unrecognized by 4.0.3)
 ClientBorderWidth
 DecorateTransients
 DontMoveOff		# unfortunately also forces clients to resize
 DontPaintRootWindow
-#NoCaseSensitive	# only affects iconmanager?
 NoGrabServer
+NoIconManagerFocus	# also, obviously!
 NoMenuShadows
 NoRaiseOnMove
 NoRaiseOnResize
@@ -89,7 +132,7 @@ ReallyMoveInWorkspaceManager
 #ReverseCurrentWorkspace
 SaveWorkspaceFocus	# new in 3.8.1
 ShowWorkSpaceManager
-SchrinkIconTitles	# a spello?
+SchrinkIconTitles	# a spello, fixed in 4.?.? (????)
 ShortAllWindowsMenus
 SortIconManager
 #StayUpMenus
@@ -105,50 +148,82 @@ ifelse(eval(PLANES > 8), 1, [UseThreeDWMap], [])	# this is way too wasteful of c
 
 # variables with simple values
 #
+# n.b.:  resolutions are in pixels per metre, for some stupid reason....
+# so 4500 dpM is just over 110 dpi
+#
+BorderWidth			BORDERWIDTH	# has no effect when UseThreeDBorders is on
+ifelse(eval(X_RESOLUTION >= 4500 && Y_RESOLUTION >= 4500), 1,
+[
+BorderShadowDepth		4	# should allow more on >8-bit displays
+TitleButtonShadowDepth		5
+TitleShadowDepth		5
+WMgrButtonShadowDepth		5
+IconBorderWidth			5
+IconManagerShadowDepth		5
+MoveDelta			12
+MoveOffResistance		100
+MovePackResistance		100
+Zoom				16	# just for creation and destruction?
+], [
 BorderShadowDepth		2	# should allow more on >8-bit displays
-BorderWidth			2	# has no effect when UseThreeDBorders is on
-ConstrainedMoveTime		600	# 400 seems a tad too quick for a double-click
-FramePadding			0
+TitleButtonShadowDepth		3
+TitleShadowDepth		3
+WMgrButtonShadowDepth		3
 IconBorderWidth			3
 IconManagerShadowDepth		3
-MaxIconTitleWidth		500
-MaxWindowSize			"WIDTH[x]HEIGHT"	# not everyone plays fair..., default is "30000x30000"
 MoveDelta			4
 MoveOffResistance		50
 MovePackResistance		50
+Zoom				12
+])
+ThreeDBorderWidth		TDBORDERWIDTH	# has no effect unless UseThreeDBorders is on])
+
+ConstrainedMoveTime		600	# 400 seems a tad too quick for a double-click
+FramePadding			0
+IconifyStyle			"normal"
+MaxIconTitleWidth		500
+MaxWindowSize			"eval(WIDTH * 2)[x]eval(HEIGHT * 2)"	# not everyone plays fair..., default is "30000x30000"
 OpaqueMoveThreshold		100	# window % of screen size
 OpaqueResizeThreshold		100	# window % of screen size
 OpenWindowTimeout		15
 RandomPlacement			"on"	# I'm tired of dragging so many windows around!
-ThreeDBorderWidth		6	# has no effect unless UseThreeDBorders is on
-TitleButtonShadowDepth		3
-TitleShadowDepth		3
 UsePPosition			"non-zero"
-WMgrButtonShadowDepth		3
 XMoveGrid			1
 YMoveGrid			1
-Zoom				12
 
-# resolutions are in pixels per metre, for some stupid reason....
 #
-ifelse(eval(X_RESOLUTION >= 3000 && Y_RESOLUTION >= 3000), 1,
-  [define(FT_RES, [100])],
- [define(FT_RES, [75])]
-)
+# Best is to arrange one's font-path to get the desired one first....
+#
 
-TitleFont	"-*-helvetica-bold-r-*-*-*-100-FT_RES-FT_RES-*-*-iso8859-1"
-IconFont	"-*-helvetica-bold-r-*-*-*-80-FT_RES-FT_RES-*-*-iso8859-1"
-IconManagerFont	"-*-helvetica-medium-r-*-*-*-80-FT_RES-FT_RES-*-*-iso8859-1"
-MenuFont	"-*-helvetica-medium-r-*-*-*-80-FT_RES-FT_RES-*-*-iso8859-1"
-ResizeFont	"-*-courier-bold-r-*-*-*-240-FT_RES-FT_RES-*-*-iso8859-1"
+#TitleFont	"-*-helvetica-bold-r-*-*-*-100-HorizDPI-VertDPI-*-*-iso10646-1"
+TitleFont	"-*-liberation sans-bold-r-normal--*-100-FontXDPI-FontYDPI-p-0-iso10646-1"
+
+#IconFont	"-*-helvetica-bold-r-*-*-*-80-HorizDPI-VertDPI-*-*-iso10646-1"
+IconFont	"-*-liberation sans-medium-r-normal--*-80-FontXDPI-FontYDPI-p-0-iso10646-1"
+
+#IconManagerFont "-*-helvetica-medium-r-*-*-*-80-HorizDPI-VertDPI-*-*-iso10646-1"
+IconManagerFont "-*-liberation sans-medium-r-normal--*-80-FontXDPI-FontYDPI-p-0-iso10646-1"
+
+#MenuFont	"-*-helvetica-medium-r-*-*-*-80-HorizDPI-VertDPI-*-*-iso10646-1"
+MenuFont	"-*-liberation sans-medium-r-normal--*-80-FontXDPI-FontYDPI-p-0-iso10646-1"
+
+#ResizeFont	"-*-courier-bold-r-*-*-*-240-HorizDPI-VertDPI-*-*-iso10646-1"
+ResizeFont	"-*-liberation mono-bold-r-normal--*-240-FontXDPI-FontYDPI-m-0-iso10646-1"
+
+#WorkSpaceFont	"-*-helvetica-*-r-*--10-*-*-*-*-*-*-*"
+WorkSpaceFont	"-*-liberation sans-medium-r-normal--*-70-FontXDPI-FontYDPI-p-0-iso10646-1"
+
+# XXX DefaultFont is not yet configurable (it should first use this, or else the "*font" resource, or lastly the compiled in font)
+#DefaultFont	"-*-courier-bold-r-*-*-*-100-HorizDPI-VertDPI-*-*-iso10646-1"
+#DefaultFont	"-*-liberation mono-medium-r-normal--*-100-FontXDPI-FontYDPI-m-0-iso10646-1"
 
 # Define some useful functions for motion-based actions.
 # These must come after fonts....
 #
-ChangeWorkspaceFunction		!"$AUDIOPLAYER HOME/lib/sounds/wm-wschange &"
-IconifyFunction			!"$AUDIOPLAYER HOME/lib/sounds/wm-iconify &"
-DeIconifyFunction		!"$AUDIOPLAYER HOME/lib/sounds/wm-deiconify &"
-DefaultFunction			!"$AUDIOPLAYER HOME/lib/sounds/wm-default &"
+ChangeWorkspaceFunction		!"$AUDIOPLAYER $HOME/lib/sounds/wm-wschange &"
+IconifyFunction			!"$AUDIOPLAYER $HOME/lib/sounds/wm-iconify &"
+DeIconifyFunction		!"$AUDIOPLAYER $HOME/lib/sounds/wm-deiconify &"
+DefaultFunction			!"$AUDIOPLAYER $HOME/lib/sounds/wm-default &"
 # this is the default...
 #WindowFunction			{ f.deiconify f.raise }
 
@@ -271,51 +346,17 @@ MapWindowDefaultWorkSpace {
 # end not COLOR
 ])
 
+# Give focus to windows whether they asked or not.  The window list is optional.
+#
+# First appeared in 4.0.0
+#
+#ForceFocus { win-list }
+
 # put the icon to the right-edge of its title -- this seems to work
 # best for icon titles which expand when hovered over, and when the
 # IconRegion gravity is to the East
 #
 IconJustification		"right"
-
-IconRegionAlignement		"border"
-IconRegionJustification		"border"
-
-# Note it seems the IconRegion must include the expanded icon title,
-# which can be a bit long when we have pathnames in xterm titles.
-#
-# This isn't such a problem though if the "gravity" is North East and
-# when the IconJustification is to the right -- the IconRegion can
-# then be expanded to the left over other windows and normally, so
-# long as there aren't too many icons to fit in the actual desired
-# area, then expanding titles will have the needed room to expand to
-# the left.
-#
-# A 10-pixel X 10-pixel grid keeps icons packed about as tight as
-# you'd ever want them to be.  This is of course way too small a grid
-# to keep arbitrary sized icons centred in a box.  It also means
-# little icons can mess up the arrangement of normal-sized icons.  Too
-# bad we can't force them on the grid such that they overlap if
-# they're too big.  Alternately if the arrangement was always shuffled
-# on every change such that all similar sized icons were kept
-# together....  And how about shrinking them to always fit and using a
-# magnifier like the Aqua dock?
-#
-# On the big screen we keep a little xterm open above xconsole in the
-# bottom right so we keep the icon region above that.  On the
-# mid-sized screens we keep icons just above the xconsole (even though
-# it's rarely kept open).
-#
-# (use "xlogo -geometry fooxbar" to see where this will be!)
-#
-# N.B.:  We could increase the height of the region for large screens
-# to 380 _and_ get a 50x80 xterm under it if all systems had Apple's
-# nice "fixed" TrueType font.  Note it has to be on the XTerm system.
-#
-ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [IconRegion	"1000x450-0+245" North East 10 10],
- [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [IconRegion	"800x580-0+310" North East 10 10],
-  [IconRegion	"500x250-0+300" North East 10 10]
- )]
-)
 
 # for Xterms we use two different macros to set the geometry of small
 # and large windows.  These macros are set based on the estimated size
@@ -335,31 +376,33 @@ ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [IconRegion	"1000x450-0+245" No
 #   horizontally for the three standard xterms with a point size of 10 for the
 #   big ones.
 #
-ifelse(eval(WIDTH >= 2560 && HEIGHT >= 1440), 1, [define(OPT_BIG_XTERM, [-geometry 132x93+0+0 -fs 9 -font 7x14])],
- [ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1280), 1, [define(OPT_BIG_XTERM, [-geometry 117x83+0+0 -fs 9 -font 9x15])],
-  [ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [define(OPT_BIG_XTERM, [-geometry 117x77+0+0 -fs 9 -font 9x15])],
-   [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [define(OPT_BIG_XTERM, [-geometry 100x50+0+0 -fs 7.5 -font 9x15])],
-    [define(OPT_BIG_XTERM, [-fs 7.5 -geometry 80x40+0+0])]
+ifelse(eval(WIDTH >= 6016 && HEIGHT >= 3384), 1, [define(OPT_BIG_XTERM, [-geometry 132x100+0+0 -fs 9])],
+ ifelse(eval(WIDTH >= 2560 && HEIGHT >= 1440), 1, [define(OPT_BIG_XTERM, [-geometry 132x82+0+0 -fs 9])],
+  [ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1280), 1, [define(OPT_BIG_XTERM, [-geometry 117x82+0+0 -fs 9])],
+   [ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [define(OPT_BIG_XTERM, [-geometry 117x77+0+0 -fs 9])],
+    [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [define(OPT_BIG_XTERM, [-geometry 100x50+0+0 -fs 7.5])],
+     [define(OPT_BIG_XTERM, [-fs 7.5 -geometry 80x40+0+0])]
+    )]
    )]
   )]
  )]
 )
-# note the -155 is the height of the normal xconsole window, at 120, plus its decorations (I think)
-define(OPT_LITTLE_XTERM, [-fs 7.5 -geometry 80x45-0-155])
+define(OPT_LITTLE_XTERM, [-fs 7.5 -geometry 80x45-0-${XconsoleVoff}])
 
-# For all xterms
+# XXX should we specify "liberation mono" or just "*mono*"???
+define(OPT_XTERM_FA, [-fa '-*-*-medium-r-*-*-*-*-0-0-m-0-iso8859-1'])
+define(OPT_UXTERM_FA, [-fa '-*-*-medium-r-*-*-*-*-0-0-m-0-iso10646-1'])
+
+# on OSX Xterm isn't configured to record logins properly with "-ls"
 #
-define(OPT_LOGIN_XTERM, [-fbx -cn -rw -sb -si -sk -sl 2048 -ls])
-
-define(OPT_XTERM_FA, [-fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso8859-1'])
-define(OPT_UXTERM_FA, [-fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1'])
+ifdef([ON_OSX], [define(OPT_XTERM_LOGIN, [-e login -pf ${USER:-$LOGNAME}])])
 
 # Can only be one directory!  Uses resource bitmapFilePath first...
 #
-IconDirectory	"HOME/lib/bitmaps"
+IconDirectory	"~/lib/bitmaps"
 
 ifdef([XPM], [
-PixmapDirectory	"HOME/lib/pixmaps:HOME/lib/icons:/usr/X11/include/X11/pixmaps:/usr/X11/include/X11/pixmaps/ctwm:/usr/X11R7/include/X11/pixmaps:/usr/X11R7/include/X11/pixmaps/ctwm:/usr/X11R6/include/X11/pixmaps:/usr/X11R6/include/X11/pixmaps/ctwm:/usr/pkg/share/ctwm/images:/opt/pkg/share/ctwm/images:/usr/local/share/ctwm/images:"
+PixmapDirectory	"~/lib/pixmaps:~/lib/icons:/usr/X11/include/X11/pixmaps:/usr/X11/include/X11/pixmaps/ctwm:/usr/X11R7/include/X11/pixmaps:/usr/X11R7/include/X11/pixmaps/ctwm:/usr/X11R6/include/X11/pixmaps:/usr/X11R6/include/X11/pixmaps/ctwm:/usr/pkg/share/ctwm/images:/opt/pkg/share/ctwm/images:/usr/local/share/ctwm/images:"
 ])
 
 IconManagerDontShow {
@@ -383,6 +426,10 @@ IconManagerDontShow {
 
 ifdef([XPM], [UnknownIcon "xpm:unknown1.xpm"], [UnknownIcon "unknown.xbm"])
 
+# N.B.:  it may be useful to enable ForceFocus on "hi-res" displays where any
+# default icons may be too small, but of course this son't be useful
+# until/unless larger icons are known to be available!
+
 Icons {
 	"Untitled"	"Excl"
 	"xcmap"		"plaid"
@@ -390,7 +437,7 @@ Icons {
   ifdef([XPM], [
 	"auedit"	"xpm:audio_editor.xpm"
 	"Control"	"xpm:mixer.xpm"
-	"emacs"		"xpm:emacs.xpm"	# only when no '-i' given
+#	"emacs"		"xpm:emacs.xpm"
 	"ghostview"	"xpm:ghostview.xpm"
 	"log0"		"xpm:document-simple.xpm"
 	"log1"		"xpm:document-simple.xpm"
@@ -411,7 +458,7 @@ Icons {
 	"XSm"		"xpm:xgrab.xpm"
 	"xterm"		"xpm:term.xpm"
    ], [
-	"emacs"		"gnu.xbm"	# only when no '-i' given
+	"emacs"		"gnu.xbm"
 	"pine"		"letters"
 	"xterm"		"Term"
 	"lmclock"	"clock.xbm"
@@ -419,6 +466,9 @@ Icons {
    ])
 }
 
+# XXX for hi-res monitors we need new, bigger, cursors, but what about
+# app-specific ones, such as Xterm's?
+#
 Cursors {
 	Frame		"top_left_arrow"
 	Title		"top_left_arrow"
@@ -458,22 +508,33 @@ Cursors {
 # for the downstairs machine this can move 90 to the left (leaving room for
 # a 132-column window at the default font)
 #
-ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [WorkSpaceManagerGeometry	"170x180-330+0" 3],
- [ifelse(eval(WIDTH >= 1440 && HEIGHT >= 900), 1, [WorkSpaceManagerGeometry	"170x230-330+0" 3],
-  [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [WorkSpaceManagerGeometry	"127x230-192+0" 3],
-   [WorkSpaceManagerGeometry	"115x235-112+0" 3]
-  )]
- )]
-)
+ifelse(SERVERHOST, xtremely.weird.com, [
+ define(WS_COLS, [2])
+ define(WS_ROWS, [4])
+], [
+ define(WS_COLS, [3])
+ define(WS_ROWS, [4])
+])
+define(WS_HEIGHT, eval(HEIGHT / 30 * WS_ROWS))
+define(WS_WIDTH, eval(WIDTH / 30 * WS_COLS))
+define(WS_GEOM, WS_WIDTH[x]WS_HEIGHT)
+define(WS_OFF, eval(ClockOff + XloadWidth + (2 * TDBORDERWIDTH)))
+#
+WorkSpaceManagerGeometry	"WS_GEOM-WS_OFF+0" WS_COLS
 
+# Note WS_ROWS x WS_COLS should be fulfilled by WorkSpaces names to match above
+#
 ifelse(SERVERHOST, xtremely.weird.com, [
 WorkSpaces {
 	"Consoles"
 	"TkIned"
+
 	"Testing"
 	"Browsing"
+
 	"Coding"
 	"Work 1"
+
 	"Work 2"
 	"Play"
 }
@@ -535,6 +596,50 @@ OccupyAll {
 	"XMMS Playlist"
 	"Dual Spectogram 1.2"
 }
+
+IconRegionAlignement		"border"
+IconRegionJustification		"border"
+
+# Note it seems the IconRegion must include the expanded icon title,
+# which can be a bit long when we have pathnames in xterm titles.
+#
+# This isn't such a problem though if the "gravity" is North East and
+# when the IconJustification is to the right -- the IconRegion can
+# then be expanded to the left over other windows and normally, so
+# long as there aren't too many icons to fit in the actual desired
+# area, then expanding titles will have the needed room to expand to
+# the left.
+#
+# A 10-pixel X 10-pixel grid keeps icons packed about as tight as
+# you'd ever want them to be.  This is of course way too small a grid
+# to keep arbitrary sized icons centred in a box.  It also means
+# little icons can mess up the arrangement of normal-sized icons.  Too
+# bad we can't force them on the grid such that they overlap if
+# they're too big.  Alternately if the arrangement was always shuffled
+# on every change such that all similar sized icons were kept
+# together....  And how about shrinking them to always fit and using a
+# magnifier like the Aqua dock?
+#
+# On the big screen we keep a little xterm open above xconsole in the
+# bottom right so we keep the icon region above that.  On the
+# mid-sized screens we keep icons just above the xconsole (even though
+# it's rarely kept open on such smaller screens).
+#
+# (run through M4 as described above then use "xlogo -geometry XXXxYYY" to see
+# where this will be!)
+#
+# xxx this may not be wide enough on smaller screens, but on a big hi-res screen
+# it should be OK
+#
+define(IR_GEOM, eval(WS_WIDTH + WS_OFF + TDBORDERWIDTH)[x]eval(HEIGHT / 4)[-0+]eval(WS_HEIGHT + (2 * XloadHeight) + (2 * TDBORDERWIDTH)))
+ifelse(eval(X_RESOLUTION >= 8000 && Y_RESOLUTION >= 8000), 1,
+ [define(IR_GRID, [100])],
+ [ifelse(eval(X_RESOLUTION >= 4500 && Y_RESOLUTION >= 4500), 1,
+  [define(IR_GRID, [50])],
+  [define(IR_GRID, [10])]
+ )]
+)
+IconRegion	"IR_GEOM" North East IR_GRID IR_GRID
 
 NoTitle {
 	"asclock"
@@ -650,32 +755,6 @@ Button1 =		: iconmgr	: f.iconify
 Button2 =		: iconmgr	: f.raise
 Button3 =		: iconmgr	: f.lower
 
-ifdef([ON_OSX], [
-# for OS X Mavericks 10.9:  This is a compromise because a plain F3 press (on an
-# Apple keyboard), which is the normal Mission Control activator, neither
-# invokes Mission Control, nor does it generate an X11 event.  This is also true
-# for all of the "media" function buttons.  On an A1243 "big" keyboard I
-# normally have F5 set in "System Preferences -> Keyboard -> Short Cuts ->
-# Mission Control" as "Application Windows" and F6 set "System Preferences ->
-# Keyboard -> Short Cuts -> Launchpad & Dock" as "Show Launchpad".  On smaller
-# laptop keyboards all these function keys are media controls, so FN has to be
-# used there regardless.
-#
-"F5" = 			: root		: !"open '/Applications/Mission Control.app' &"
-"F6" =			: root		: !"open '/Applications/Launchpad.app' &"
-#
-# xxx Opening Dock is not exactly what <Command-TAB> does in macOS Quartz but it
-# gets you half way there...
-#
-# XXX this seems to do something similar to invoking Dock, but it seems less
-# correct:
-# open '/System/Library/CoreServices/Menu Extras/TextInput.menu/Contents/SharedSupport/TISwitcher.app'
-#
-"Tab" = mod2		: root		: !"open /System/Library/CoreServices/Dock.app &"
-# hmmm....  "workspace" is an invalid context for ctwm-3.6
-"Tab" = mod2		: workspace	: !"open /System/Library/CoreServices/Dock.app &"
-])
-
 "Help"	=		: root		: f.version
 
 "F11"	=		: root		: f.prevworkspace
@@ -757,12 +836,12 @@ menu "quickies"
 	"Xauth to Weird.com..."	f.menu "xauth-to-weird"
  ])
 	""			f.separator
-	"emacs [@CLIENTHOST]"	!"emacs -i &"
+	"emacs [@CLIENTHOST]"	!"${MY_EMACS} -fh &"
  ifdef([AT_WEIRD], [
   ifdef([USE_X11SERVER], [
-	"emacs @X11SERVER"	!". ./.shrc; onx11server $X11SERVER 'emacs -i' &"
+	"emacs @X11SERVER"	!". ./.shrc; onx11server $X11SERVER '${MY_EMACS} -fh' &"
   ])
-	"emacs @more"		!". ./.shrc; onx11server more.local 'emacs -i' &"
+	"emacs @more"		!". ./.shrc; onx11server more.local 'emacs -fh' &"
 	"Emacs Everywhere..."	f.menu "emacs"
 	#
 	""			f.separator
@@ -772,7 +851,8 @@ menu "quickies"
   ])
 	"links -g @more"	!". ./.shrc; onx11server -n more.local 'links -g' &"
 	# xxx unfortunately duckduckgo.com isn't very usable with links
-	"Google something"	!". ./.shrc; onx11server -n xentastic.local 'links -g https://google.ca/' &"
+	"DDG something"		!"links -g https://html.duckduckgo.com/html/ &"
+	"Google something"	!"links -g https://google.ca/ &"
 	""			f.separator
 	"Xauth..."		f.menu "xauth"
  ])
@@ -784,15 +864,17 @@ menu "quickies"
 	"Xclipboard"		!"xclipboard &"
  ])
 	""			f.separator
-	"UXterm [@CLIENTHOST]"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP &"
-	"UXterm-big [@CLIENTHOST]"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP &"
+	"UXterm [@CLIENTHOST]"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} OPT_XTERM_LOGIN &"
+	"UXterm-big [@CLIENTHOST]"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS} OPT_XTERM_LOGIN &"
 	#
  ifdef([USE_X11SERVER], [
-	"Xterm @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER 'xterm OPT_XTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"Xterm-big @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER 'xterm OPT_XTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"Xterm @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER \"xterm OPT_XTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"Xterm-big @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER \"xterm OPT_XTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
  ])
+	"UXterm @more"		!". ./.shrc; onx11server -n more.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @more"	!". ./.shrc; onx11server -n more.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"Xterm's Everywhere..."	f.menu "xterms"
 	""			f.separator
 	"Console Server"	f.menu "consoles"
@@ -834,10 +916,10 @@ menu "consoles"
 menu "termservers"
 {
 	"Term Srvr Telnets"	f.title
-	"telnet controlling"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LOGIN_XTERM OPT_ZICONBEEP -n controlling -T 'controlling Virtual Console' -e telnet controlling.local 2000 &"
+	"telnet controlling"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN ${XTERM_OPTS} -n controlling -T 'controlling Virtual Console' -e telnet controlling.local 2000 &"
 	""			f.separator
   define(CONTROLLING_REP, [
-	"Controlling-20$1"	!"uxterm OPT_UXTERM_FA -geometry 132x66 -fn 5x7 OPT_XTERM_TN OPT_LOGIN_XTERM OPT_ZICONBEEP -n Ctrl20$1 -T 'Controlling-20$1' -e telnet controlling.local 20$1 &"
+	"Controlling-20$1"	!"uxterm OPT_UXTERM_FA -geometry 132x66 -fn 5x7 OPT_XTERM_TN ${XTERM_OPTS} -n Ctrl20$1 -T 'Controlling-20$1' -e telnet controlling.local 20$1 &"
   ])
 ###	CONTROLLING_REP(01)	# this is the physical console
 	CONTROLLING_REP(02)
@@ -1124,7 +1206,7 @@ menu "audios"
 	"Audio Tools"			f.title
 	"xmms"				!"xmms -m &"
 	""				f.separator
-	"audemo"			!"cd HOME/lib/sounds; audemo &"
+	"audemo"			!"cd $HOME/lib/sounds; audemo &"
 	"auedit"			!"auedit &"
 	"aupanel"			!"aupanel &"
 	"auphone"			!"auphone &"
@@ -1169,7 +1251,11 @@ menu "miscapps"
 {
 	"Miscellaneous Applications"	f.title
 	"xalarm"			!"xalarm &"
-	"xcalc"				!"xcalc &"
+ ifelse(eval(FontYDPI > 110), 1, [
+	"xcalc"				!"xcalc -stipple -geometry 800x500 &"
+ ], [
+	"xcalc"				!"xcalc -stipple &"
+ ])
 	"xcalendar"			!"xcalendar &"
 	"xedit"				!"xedit &"
 	"xfd"				!"xfd &"
@@ -1196,23 +1282,23 @@ menu "emacs"
 {
 	"Emacsen"		f.title
 				# XXX should this start a shell that sources .profile first?
-	"@localhost"		!"emacs -i &"
+	"@localhost"		!"${MY_EMACS} -fh &"
  ifdef([USE_X11SERVER], [
-	"@X11SERVER"		!"$RSH -n $X11SERVER 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
+	"@X11SERVER"		!"$RSH -n $X11SERVER 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec ${MY_EMACS} -display '$REMOTE_DISPLAY' -fh &"
  ])
  ifdef([AT_WEIRD], [
-	"@more"			!"$RSH -n more.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
-	"@building"		!"$RSH -n building.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
-	"@future"		!"$RSH -n future.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
-	"@xenful"		!"$RSH -n xenful.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
-	"@xentastic"		!"$RSH -n xentastic.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
-	"@once"			!"$RSH -n once.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
-	"@whats"		!"$RSH -n whats.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
-	"@almost"		!"$RSH -n almost.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
-	"@always"		!"$RSH -n always.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
-	"@historically"		!"$RSH -n historically.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
-	"@starting-out"		!"$RSH -n starting-out.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
-	"@sometimes"		!"$RSH -n sometimes.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY' -i' &"
+	"@more"			!"$RSH -n more.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
+#	"@building"		!"$RSH -n building.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
+#	"@future"		!"$RSH -n future.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
+	"@xenful"		!"$RSH -n xenful.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
+	"@xentastic"		!"$RSH -n xentastic.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
+#	"@once"			!"$RSH -n once.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
+#	"@whats"		!"$RSH -n whats.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
+#	"@almost"		!"$RSH -n almost.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
+#	"@always"		!"$RSH -n always.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
+#	"@historically"		!"$RSH -n historically.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
+#	"@starting-out"		!"$RSH -n starting-out.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
+#	"@sometimes"		!"$RSH -n sometimes.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
 ])
 }
 
@@ -1220,8 +1306,8 @@ menu "monitors"
 {
 	"Monitors"		f.title
 	"xconsole"		!"xconsole -geometry 500x120-0-0 -notify -verbose &"
-	"xconsole x-errors"	!"xconsole -geometry 500x120-0-0 -notify -verbose -file HOME/.xsession-errors &"
-	"xconsole x-errors-DISPLAY" !"xconsole -geometry 500x120-0-0 -notify -verbose -file HOME/.xsession-errors-`echo $DISPLAY | sed 's/\.[[0-9]]*$//'` &"
+	"xconsole x-errors"	!"xconsole -geometry 500x120-0-0 -notify -verbose -file $HOME/.xsession-errors &"
+	"xconsole x-errors-DISPLAY" !"xconsole -geometry 500x120-0-0 -notify -verbose -file $HOME/.xsession-errors-`echo $DISPLAY | sed 's/\.[[0-9]]*$//'` &"
 	""			f.separator
 	"xclock"		!"xclock -geometry 190x190-0+0 &"
 	"xclock -digital"	!"xclock -geometry 190x30-0+192 -digital &"
@@ -1232,33 +1318,33 @@ menu "monitors"
 	"xbiff"			!"xbiff -rv -bw 0 &"
 	"xlbiff"		!"xlbiff &"
 	"xbuffy"		!"xbuffy -geometry 80x25-0+235 -shortnames -header 0 &"
-	"xbuffy w/-acmd"	!"xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd \"$AUDIOPLAYER HOME/lib/sounds/newmail &\" &"
+	"xbuffy w/-acmd"	!"xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd \"$AUDIOPLAYER $HOME/lib/sounds/newmail &\" &"
 
 	""			f.separator
-	"xload"			!"xload -geometry 120x40-200+0 -hl XLOAD_HL &"
+	"xload"			!"xload -geometry ${XloadGeom} -hl XLOAD_HL &"
  ifdef([USE_X11SERVER], [
-	"xload @X11SERVER"	!". ./.profile; onx11server -n $X11SERVER 'xload -display $REMOTE_DISPLAY -geometry 120x40-200+48 -hl XLOAD_HL' &"
+	"xload @X11SERVER"	!". ./.profile; onx11server -n $X11SERVER \"xload -display $REMOTE_DISPLAY -geometry 120x40-200+48 -hl XLOAD_HL\" &"
  ])
  ifdef([AT_WEIRD], [
-	"xload @building"	!"$RSH -n building.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 120x40-200+48 -hl red\" &"
-	"xload @more"		!"$RSH -n more.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 120x40-200+96 -hl red\" &"
-	"xload @central"	!"ssh -CY -n woods@central.avoncote.ca '. ./.profile; exec xload -geometry 120x40-200+144 -hl red' &"
-	"xload @future"		!"$RSH -n future.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 120x40-200+192 -hl red\" &"
-	"xload @xenful"		!"$RSH -n xenful.local \". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry 80x40-418+192 -hl red\" &"
-	"xload @xentastic"	!"$RSH -n xentastic.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 80x40-332+192 -hl red\" &"
-	"xload @xentral"	!"ssh -CY -n woods@xentral.avoncote.ca '. ./.profile; exec xload -geometry 80x40-418+240 -hl red' &"
-	"xload @once"		!"$RSH -n once.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 80x40-332+240 -hl red\" &"
+#	"xload @building"	!"$RSH -n building.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry ${XloadGeomBuilding} -hl red\" &"
+	"xload @more"		!"$RSH -n more.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry ${XloadGeomMore} -hl red\" &"
+	"xload @central"	!"ssh -CY -n woods@central.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomCentral} -hl red\" &"
+#	"xload @future"		!"$RSH -n future.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry ${XloadGeomFuture} -hl red\" &"
+	"xload @xenful"		!"$RSH -n xenful.local \". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomXenful} -hl red\" &"
+	"xload @xentastic"	!"$RSH -n xentastic.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry ${XloadGeomXentastic} -hl red\" &"
+	"xload @xentral"	!"ssh -CY -n woods@xentral.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomXentral} -hl red\" &"
+#	"xload @once"		!"$RSH -n once.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry ${XloadGeomOnce} -hl red\" &"
 	#
-	"xload @historically"	!"$RSH -n historically.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry 120x40-70+240 -hl red\" &"
-	"xload @b2"		!"ssh -CY -n woods@b2.avoncote.ca '. ./.profile; exec xload -geometry 120x40-200+240 -hl red' &"
+	"xload @historically"	!"$RSH -n historically.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry ${XloadGeomHistorically} -hl red\" &"
+	"xload @b2"		!"ssh -CY -n woods@b2.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomB2} -hl red\" &"
  ])
 	"xosview"		!"xosview -geometry 120x137-200+0 &"
  ifdef([USE_X11SERVER], [
-	"xosview @X11SERVER"	!". ./.profile; onx11server -n $X11SERVER 'xosview -display $REMOTE_DISPLAY' &"
+	"xosview @X11SERVER"	!". ./.profile; onx11server -n $X11SERVER \"xosview -display $REMOTE_DISPLAY\" &"
  ])
 	"xcpustate"		!"xcpustate -geometry 190x20-0+270 -shorten 1 -wait -cpu -disk &"
  ifdef([USE_X11SERVER], [
-	"xcpustate @X11SERVER"	!". ./.profile; onx11server -n $X11SERVER 'xcpustate -display $REMOTE_DISPLAY -geometry 190x20-0+300 -shorten 1 -wait -cpu -disk' &"
+	"xcpustate @X11SERVER"	!". ./.profile; onx11server -n $X11SERVER \"xcpustate -display $REMOTE_DISPLAY -geometry 190x20-0+300 -shorten 1 -wait -cpu -disk\" &"
  ])
 	"xuvmstat"		!"xuvmstat &"
 	""			f.separator
@@ -1343,81 +1429,81 @@ menu "samplegames"
 menu "xterms"
 {
 	"Xterms Everywhere"	f.title
-	"Xterm @localhost"	!"$X11BIN/xterm OPT_XTERM_FA OPT_XTERM_TN OPT_LOGIN_XTERM OPT_ZICONBEEP &"
-	"UXterm @localhost"	!"$X11BIN/uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LOGIN_XTERM OPT_ZICONBEEP &"
+	"Xterm @localhost"	!"$X11BIN/xterm OPT_XTERM_FA OPT_XTERM_TN ${XTERM_OPTS} OPT_XTERM_LOGIN &"
+	"UXterm @localhost"	!"$X11BIN/uxterm OPT_UXTERM_FA OPT_XTERM_TN ${XTERM_OPTS} OPT_XTERM_LOGIN &"
  ifdef([AT_WEIRD], [
-	"UXterm @xenful"	!". ./.shrc; onx11server -n xenful.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @xenful"	!". ./.shrc; onx11server -n xenful.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @xentastic"	!". ./.shrc; onx11server -n xentastic.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @xentastic"	!". ./.shrc; onx11server -n xentastic.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @xenful"	!". ./.shrc; onx11server -n xenful.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @xenful"	!". ./.shrc; onx11server -n xenful.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @xentastic"	!". ./.shrc; onx11server -n xentastic.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @xentastic"	!". ./.shrc; onx11server -n xentastic.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	#
-	"UXterm @building"	!". ./.shrc; onx11server -n building.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @building"	!". ./.shrc; onx11server -n building.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @more"		!". ./.shrc; onx11server -n more.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @more"	!". ./.shrc; onx11server -n more.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @future"	!". ./.shrc; onx11server -n future.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @future"	!". ./.shrc; onx11server -n future.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @isit"		!". ./.shrc; onx11server -n isit.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @isit"	!". ./.shrc; onx11server -n isit.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @lilbit"	!". ./.shrc; onx11server -n lilbit.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @lilbit"	!". ./.shrc; onx11server -n lilbit.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @rpi"		!". ./.shrc; onx11server -n rpi.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @rpi"	!". ./.shrc; onx11server -n rpi.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @historically"	!". ./.shrc; onx11server -n historically.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @historically" !". ./.shrc; onx11server -n historically.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @once"		!". ./.shrc; onx11server -n once.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @once"	!". ./.shrc; onx11server -n once.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @freebsd"	!". ./.shrc; RSH=ssh onx11server -n freebsd.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @freebsd"	!". ./.shrc; RSH=ssh onx11server -n freebsd.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @nbt"		!". ./.shrc; onx11server -n nbt.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @nbt"	!". ./.shrc; onx11server -n nbt.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @nbtest"	!". ./.shrc; onx11server -n nbtest.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @nbtest"	!". ./.shrc; onx11server -n nbtest.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
-	"UXterm-big @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local 'uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"UXterm @building"	!". ./.shrc; onx11server -n building.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @building"	!". ./.shrc; onx11server -n building.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @more"		!". ./.shrc; onx11server -n more.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @more"	!". ./.shrc; onx11server -n more.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @future"	!". ./.shrc; onx11server -n future.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @future"	!". ./.shrc; onx11server -n future.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @isit"		!". ./.shrc; onx11server -n isit.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @isit"	!". ./.shrc; onx11server -n isit.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @lilbit"	!". ./.shrc; onx11server -n lilbit.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @lilbit"	!". ./.shrc; onx11server -n lilbit.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @rpi"		!". ./.shrc; onx11server -n rpi.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @rpi"	!". ./.shrc; onx11server -n rpi.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @historically"	!". ./.shrc; onx11server -n historically.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @historically" !". ./.shrc; onx11server -n historically.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @once"		!". ./.shrc; onx11server -n once.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @once"	!". ./.shrc; onx11server -n once.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @freebsd"	!". ./.shrc; RSH=ssh onx11server -n freebsd.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @freebsd"	!". ./.shrc; RSH=ssh onx11server -n freebsd.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @nbt"		!". ./.shrc; onx11server -n nbt.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @nbt"	!". ./.shrc; onx11server -n nbt.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @nbtest"	!". ./.shrc; onx11server -n nbtest.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @nbtest"	!". ./.shrc; onx11server -n nbtest.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	#
 	# xxx these are not so useful as if the SSH connection drops then the
 	# window simply disappears with no hint as to when or why!  See further
 	# discussion in ~/.xinitrc regarding running X11 via tunnels, etc.
 	#
-	"Slogin @xentral"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C xentral.avoncote.ca' &"
-	"Slogin @central"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C central.weird.com' &"
-	"Slogin @central"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C bw.avoncote.ca' &"
+	"Slogin @xentral"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} -e 'slogin -C xentral.avoncote.ca' &"
+	"Slogin @central"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} -e 'slogin -C central.weird.com' &"
+	"Slogin @central"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} -e 'slogin -C bw.avoncote.ca' &"
   ifdef([AT_VERY_WEIRD], [], [
-	"Xterm @very"		!". ./.profile; onx11server -n very.local 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM' &"
-	"Slogin @very"		!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM OPT_LOGIN_XTERM OPT_ZICONBEEP -e 'slogin -C very.local' &"
+	"Xterm @very"		!". ./.profile; onx11server -n very.local \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
+	"Slogin @very"		!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} -e 'slogin -C very.local' &"
   ])
  ])
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
-	"Xterm @most"		!". ./.profile; onx11server -n most.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"Xterm @most"		!". ./.profile; onx11server -n most.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, historically.weird.com, [], [
-	"Xterm @historically"	!". ./.profile; onx11server -n historically.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"Xterm @historically"	!". ./.profile; onx11server -n historically.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, building.weird.com, [], [
-	"Xterm @building" 	!". ./.profile; onx11server -n building.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"Xterm @building" 	!". ./.profile; onx11server -n building.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, once.weird.com, [], [
-	"Xterm @once"		!". ./.profile; onx11server -n once.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM' &"
+	"Xterm @once"		!". ./.profile; onx11server -n once.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, very.weird.com, [], [
-	"Xterm @very"		!". ./.profile; onx11server -n very.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM' &"
+	"Xterm @very"		!". ./.profile; onx11server -n very.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, almost.weird.com, [], [
-	"Xterm @almost"		!". ./.profile; onx11server -n almost.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM' &"
+	"Xterm @almost"		!". ./.profile; onx11server -n almost.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, whats.weird.com, [], [
-	"Xterm @whats"		!". ./.profile; onx11server -n whats.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM' &"
+	"Xterm @whats"		!". ./.profile; onx11server -n whats.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, sometimes.weird.com, [], [
-	"Xterm @sometimes" 	!". ./.profile; onx11server -n sometimes.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"Xterm @sometimes" 	!". ./.profile; onx11server -n sometimes.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, always.weird.com, [], [
-	"Xterm @always" 	!". ./.profile; onx11server -n always.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"Xterm @always" 	!". ./.profile; onx11server -n always.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, freely.weird.com, [], [
-	"Xterm @freely" 	!". ./.profile; onx11server -n freely.weird.com 'xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY OPT_LOGIN_XTERM OPT_ZICONBEEP' &"
+	"Xterm @freely" 	!". ./.profile; onx11server -n freely.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
   ])
  ])
 }
@@ -1456,17 +1542,18 @@ ifdef([ON_OSX], [
 menu "osx-apps"
 {
 	"Mac OS X Applications"	f.title
-	"pasteboard copy"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM -T 'Paste text to PasteBoard here' -e pbcopy"
+	"pasteboard copy"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM -T 'Paste text to PasteBoard here, end with EOF' -e pbcopy"
 	""			f.separator
 	"Activity Monitor"	!"open '/Applications/Utilities/Activity Monitor.app' &"
-	"Adium"			!"open /Applications/Adium.app &"
 	"Console"		!"open /Applications/Utilities/Console.app &"
 	"Google Chrome"		!"open '/Applications/Google Chrome.app' &"
-	"iCal"			!"open /Applications/iCal.app &"
-	"iPhoto"		!"open /Applications/iPhoto.app &"
-	"iTunes"		!"open /Applications/iTunes.app &"
+	"Calendar"		!"open /Applications/Calendar.app &"
+	"Photos"		!"open /Applications/Photos.app &"
+	"Podcasts"		!"open /Applications/Podcasts.app &"
+	"Music"			!"open /Applications/Music.app &"
 	"Mail"			!"open /Applications/Mail.app &"
 	"Preview"		!"open /Applications/Preview.app &"
+	"Signal"		!"open /Applications/Signal.app &"
 	"System Preferences"	!"open '/Applications/Utilities/System Preferences.app' &"
 	"System Profiler"	!"open '/Applications/Utilities/System Profiler.app' &"
 	"Terminal"		!"open /Applications/Utilities/Terminal.app &"

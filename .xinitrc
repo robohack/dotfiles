@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.6	21/12/07 15:08:14 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.7	22/02/23 18:04:44 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -44,6 +44,232 @@ if [ "$XOPATH" != "$PATH" ] ; then
 fi
 unset XOPATH
 
+# XXX for debugging
+#
+#set -x
+
+if [ `uname -s` = "Darwin" ]; then
+	#
+	# xxx wait for possible resolution change by "invoking" xrandr...
+	#
+	sleep 5
+fi
+
+# XXX these should be a single AWK script (the shell can eval the AWK
+# output to set variables), and they should fetch only the values for
+# the screen number which matches the $DISPLAY value!!!
+#
+#	xdpyinfo | sed -n '/^screen/,+2p'
+#
+# for now this is only designed to work in single-screen environments.
+#
+# XXX this could also be a shell fragment with input fed to stdin and then spit
+# back out by:
+#
+#	xrdb -quiet -cpp m4 -E -n | sed 1,2d
+#
+VENDORSTR="`xdpyinfo | sed -n 's/^vendor string:[ ]*\(.*\)$/\1/p;//q'`"
+SCREENDEPTH=`xdpyinfo | sed -n 's/^[ ]*depth of root window:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q'`
+SCREENSIZE=`xdpyinfo | sed -n 's/^[ ]*dimensions:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q'`
+SCREENDIM=`xdpyinfo | sed -n 's/^[ ]*dimensions:[ ]*[^ ][^ ]* [^ ]* (\(.*\))$/\1/p;//q'`
+SCREENDIMmm_X=`expr "$SCREENDIM" : '\([0-9]*\)x'`
+SCREENDIMmm_Y=`expr "$SCREENDIM" : '[0-9]*x\([0-9]*\)'`
+SCREENSIZE_X=`expr "$SCREENSIZE" : '\([0-9]*\)x'`
+SCREENSIZE_Y=`expr "$SCREENSIZE" : '[0-9]*x\([0-9]*\)'`
+SCREENDPI=`xdpyinfo | sed -n 's/^[ ]*resolution:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q'`
+SCREENDPI_X=`expr "$SCREENDPI" : '\([0-9]*\)x'`
+SCREENDPI_Y=`expr "$SCREENDPI" : '[0-9]*x\([0-9]*\)'`
+# use DPI to get inches....
+SCREENDIM_X=`expr "$SCREENSIZE_X" / "$SCREENDPI_X"`
+SCREENDIM_Y=`expr "$SCREENSIZE_Y" / "$SCREENDPI_Y"`
+export VENDORSTR SCREENDEPTH SCREENSIZE SCREENDIM SCREENDPI
+export SCREENDIMmm_X SCREENDIMmm_Y SCREENSIZE_X SCREENSIZE_Y SCREENDPI_X SCREENDPI_Y SCREENDIM_X SCREENDIM_Y
+
+# N.B.:  If the true screen resolution is within 10% of 100DPI it makes the most
+# sense to claim exactly 100DPI to avoid font-scaling artifacts for bitmap fonts
+if expr \( $SCREENDPI_X / 100 = 1 \) \& \( $SCREENDPI_X % 100 \<= 10 \) >/dev/null; then
+	FontXDPI=100
+else
+	FontXDPI=${SCREENDPI_X}
+fi
+if expr \( $SCREENDPI_Y / 100 = 1 \) \& \( $SCREENDPI_Y % 100 \<= 10 \) >/dev/null; then
+	FontYDPI=100
+else
+	FontYDPI=${SCREENDPI_Y}
+fi
+export FontXDPI FontYDPI
+
+# Xrdb stuff must come before any other client is started!
+#
+if [ -r "/usr/lib/X11/Xdefaults" ] ; then
+	xrdb -merge /usr/lib/X11/Xdefaults	# Load default X11 resource database
+elif [ -r "$X11PATH/lib/X11/Xdefaults" ] ; then
+	xrdb -merge $X11PATH/lib/X11/Xdefaults	# Load default X11 resource database
+elif [ -r "$OPENWINHOME/lib/Xdefaults" ] ; then
+	xrdb -merge $OPENWINHOME/lib/Xdefaults	# Load default X11 resource database
+fi
+if [ -r $HOME/.Xdefaults ] ; then
+	# n.b.:  note the custom use of m4!
+	xrdb -cpp m4 -merge $HOME/.Xdefaults	# Load user's X11 resource database
+fi
+if [ ! -d $HOME/.fonts ]; then
+	echo "$argv0: making a new empty ~/.fonts directory!"
+	mkdir $HOME/.fonts
+	( cd $HOME/.fonts && mkfontdir -o fonts.dir && mkfontscale -o fonts.scale )
+fi
+if [ -r $HOME/.fonts.alias.m4 ] ; then
+	# n.b.:  note the abuse of xrdb and the custom use of m4!
+	xrdb -quiet -cpp m4 -E -n $HOME/.fonts.alias.m4 | sed 1,2d > $HOME/.fonts/fonts.alias
+fi
+
+#
+# Choose some defaults for pixel-sized things...
+#
+# XXX TitleHeight here is mostly based on observation, but could be calculated
+# with output from xwininfo (e.g. top corner - TDBorderWidth), or even from some
+# font info... and we're assuming a 10pt font is used....
+#
+if [ $SCREENDPI_Y -ge 200 ]; then
+	# a "6k" display
+	TDBorderWidth="10"
+	TitleHeight=55
+elif [  $SCREENDPI_Y -ge 110 ]; then
+	# a "4k" display
+	TDBorderWidth="8"
+	TitleHeight=42		# xxx unknown
+else
+	# a "normal" display
+	TDBorderWidth="6"
+	TitleHeight=31
+fi
+export TDBorderWidth
+export TitleHeight
+
+DecentDeciPt="80"
+DecentPt="8"
+export DecentDeciPt DecentPt
+#
+# Best is to arrange one's font-path to get the desired one first....
+#
+# XXX this should probably check the family name is actually installed and
+# available, but only after the font-path is set?
+#
+# See also https://www.x.org/releases/X11R7.7/doc/xorg-docs/xlfd/xlfd.html
+#
+DefaultFontSpec='-*-liberation mono-medium-r-*-*-*-${DecentDeciPt}-${FontXDPI}-${FontYDPI}-m-*-iso10646-1'
+DefaultFontSpecL1='-*-liberation mono-medium-r-*-*-*-${DecentDeciPt}-${FontXDPI}-${FontYDPI}-m-*-iso8859-1'
+export DefaultFontSpec DefaultFontSpecL1
+#
+DecentFontSpec=`eval echo "${DefaultFontSpec}"`
+DecentFontSpecL1=`eval echo "${DefaultFontSpecL1}"`
+export DecentFontSpec DecentFontSpecL1
+#
+# For Xft we've set the Xft.dpi resource so this allows the physical font size
+# to be specified (e.g. with Xterm's "-fs" option, using the following with it's
+# "-fa" option) and for a decent scalable font to be chosen (note ptSz-resX-resY
+# also seems to work as 0-0-0):
+#
+DefaultXftFontSpec="-*-*-medium-r-*-*-*-*-0-0-m-*-iso10646-1"
+DefaultXftFontSpecL1="-*-*-medium-r-*-*-*-*-0-0-m-*-iso8859-1"
+export DefaultXftFontSpec DefaultXftFontSpecL1
+
+# XXX this is actually done properly now with 'xrdb -cpp m4'
+#
+#{
+#	echo "Xft.dpi:		${FontYDPI}"
+#	echo "*dpi:		${SCREENDPI_Y}"	# XXX this may be a bad idea...
+#	echo "*font:		${DecentFontSpec}"
+#	echo "*Font:		${DecentFontSpec}"
+#	echo "*fontList:	${DecentFontSpec}"
+#	echo "*.fontList:	${DecentFontSpec}"
+#	echo "XtDefaultFont:	${DecentFontSpecL1}"
+#} | xrdb -merge
+#
+#
+# FontPath setup must also come before any other graphical client is started!
+#
+# Install any/all of the general-coverage and symbol TTF fonts, e.g. from
+# pkgsrc, along with "ttmkfdir2", and then:
+#
+#	cd ${PKG}/share/fonts/TTF
+#	ttmkfdir -o fonts.dir
+#
+# (xxx hmmm... just use mkfontdir and mkfontscale instead?)
+#
+# Non-packaged TTF fonts should be installed similarly in ~/.fonts.
+#
+# For hi-res displays one critical entry should be in ~/.fonts/fonts.alias:
+#
+#	cursor -xfree86-cursor-medium-r-normal--0-160-218-218-p-0-adobe-fontspecific
+#
+# (note there are "xcursor-*" pkgsrc packages with scalable loadable cursors)
+#
+fpappend X11FONTPATH "${HOME}/.fonts/"
+fpappend X11FONTPATH "${LOCAL}/share/fonts/X11/TTF/" "${LOCAL}/share/fonts/X11/OTF/"
+fpappend X11FONTPATH "${PKG}/share/fonts/X11/TTF/" "${PKG}/share/fonts/X11/OTF/"
+#
+# now for the standard X11 fonts, preferring scalable fonts of course!
+#
+fpappend X11FONTPATH "${X11PATH}/share/fonts/TTF/" "${X11PATH}/share/fonts/OTF/"
+#
+# N.B.:  If you've set the "cursor" alias above then this is where it is from!
+#
+fpappend X11FONTPATH "${X11PATH}/share/fonts/Type1/"
+#
+# Don't bother with unscalable fonts on high-res systems...
+#
+# XXX this assumes we have a modified fonts.alias though!
+#
+if [ $SCREENDPI_Y -lt 110 ]; then
+	: so this block can be commented out but for this line
+	fappend X11FONTPATH "${X11PATH}/share/fonts/100dpi/:unscaled"
+	# "misc" should come last, but must be present
+	# (XXX unless an equivalent fonts.alias is available elsewhere?)
+	fpappend X11FONTPATH "${X11PATH}/share/fonts/misc/:unscaled"
+fi
+#
+# The next three are of course just for OS X:
+#
+fpappend X11FONTPATH "${X11PATH}/share/fonts/system_fonts/"
+#
+# XXX warning though, some of these, or perhaps just these:  "/Library/Fonts/"
+# "/System/Library/Fonts/", cause most clients to die if they try to use any
+# font therein.  These fonts can be listed, but not opened -- I'm not sure why.
+#
+#fpappend X11FONTPATH  "/Library/Fonts/" "/System/Library/Fonts/"
+#
+if [ $SCREENDPI_Y -lt 110 ]; then
+	: so this block can be commented out but for this line
+	#
+	### xxx n.b.:  misc has "nil2", for which there doesn't seem to be a
+	### scalable variant, but do we really need it?  It only seems to be
+	### used by Xterm for the default "Unreadable" font (which we override
+	### anyway).
+	#
+	# XXX this/these give Ctwm's "identify" window a nicer, smaller ("normal
+	# sized"?) font on the iMac27 (the :unscaled variants above do not).
+	# However they do not give Xconsole a smaller "normal sized" font.
+	#
+	fpappend X11FONTPATH "${X11PATH}/share/fonts/100dpi/" "${X11PATH}/share/fonts/misc/"
+fi
+#
+echo $X11FONTPATH
+export X11FONTPATH
+
+#
+# finally we can set and activate the new font path
+#
+xset fp= "${X11FONTPATH}"
+xset fp rehash
+
+# xxx I'm not so sure this is needed....
+fc-cache
+
+#
+# now in case we've updated the "cursor" alias....
+#
+xsetroot -cursor_name tcross
+
 if [ $argv0 = ".xsession" -a -z "$XDMHOST" ] ; then
 	#
 	# assume HOSTNAME & DOMAINNAME are set reasonably by the user
@@ -51,14 +277,68 @@ if [ $argv0 = ".xsession" -a -z "$XDMHOST" ] ; then
 	# is useful both on the local host as well as on any servers
 	# where X11 applications may run.
 	#
-	XDMHOST="${HOSTNAME}${DOMAINNAME}"
+	case "${HOSTNAME}${DOMAINNAME}" in
+	*${DOMAINNAME})
+		XDMHOST=${HOSTNAME}
+		;;
+	*)
+		XDMHOST=${HOSTNAME}${DOMAINNAME}
+		;;
+	esac
 	export XDMHOST					# also used by .[c]twmrc
 	echo "$argv0: have set XDMHOST='$XDMHOST'"
 fi
 
-# XXX for debugging
+if [ "$SCREENDIM_X" -gt 12 ]; then
+	ClockSize="2"			# 2"x2" is OK on larger screens, but....
+else
+	ClockSize="1"
+fi
+ClockWidth=`expr ${SCREENDPI_X} \* ${ClockSize}`
+ClockHeight=`expr ${SCREENDPI_Y} \* ${ClockSize}`
+ClockGeom=${ClockWidth}x${ClockHeight}-0+0
+ClockOff=`expr ${ClockWidth} + ${TDBorderWidth} + ${TDBorderWidth}`
+DClockHeight=`expr ${SCREENDPI_Y} / 4` # 1/4 inch should always suffice?
+DClockGeom=${ClockWidth}x${DClockHeight}-0+${ClockOff}
+export ClockSize ClockWidth ClockHeight ClockGeom ClockOff DClockHeight DClockGeom
+
+# should this use floating point to get finer control???
+# note that m4 evals for ~/.ctwmrc use integer math too
+XloadWidth=`expr ${SCREENDPI_X} \* 1`
+XloadHeight=`expr ${SCREENDPI_Y} / 3`
+XloadGeom=${XloadWidth}x${XloadHeight}-${ClockOff}+0
+export XloadWidth XloadHeight XloadGeom
+
 #
-#set -x
+# XXX re-calculate WorkSpaceManager's geometry
+#
+# should this use floating point to get finer control???
+# note that m4 evals for ~/.ctwmrc use integer math too
+#
+# define(WS_GEOM, eval(WIDTH / 30 * WS_COLS)[x]eval(HEIGHT / 30 * WS_ROWS))
+WSWidth=`expr ${SCREENSIZE_X} / 30 \* 3`
+WSHeight=`expr ${SCREENSIZE_Y} / 30 \* 4`
+#
+# define(WS_OFF, eval(ClockWidth + XloadWidth + (2 * TDBORDERWIDTH)))
+#
+# XXX on a really wide screen, like the XDR, we might have two Xload columns
+#
+WSOff=`expr ${ClockOff} + ${XloadWidth} + ${TDBorderWidth} + ${TDBorderWidth}`
+#
+export WSOff WSWidth WSHeight
+
+XconsoleWidth=`expr ${WSOff} + ${WSWidth}`
+if [ $SCREENSIZE_Y -gt 3000 ]; then
+	XconsoleHeight=`expr ${SCREENDPI_Y} \* 2`
+elif [ $SCREENSIZE_Y -ge 1440 ]; then
+	# this should give 130 on the 27" iMac, matching my old pixel setting
+	XconsoleHeight=`expr ${SCREENDPI_Y} \* 12 / 10`
+else
+	XconsoleHeight=`expr ${SCREENDPI_Y} \* 1`
+fi
+# n.b. not sure why there's only one borderWidth involved!
+XconsoleVoff=`expr ${XconsoleHeight} + ${TitleHeight} + ${TDBorderWidth}`
+export XconsoleWidth XconsoleHeight XconsoleVoff
 
 ONCONSOLE=false
 export ONCONSOLE
@@ -75,22 +355,44 @@ case "$DISPLAY" in
 	# don't bother with this unless it'll do us some good...
 	# (i.e. unless XDM ran the GiveConsole script)
 	#
+	xconsole_args="-geometry ${XconsoleWidth}x${XconsoleHeight}-0-0"
+	xconsole_args=$xconsole_args" -saveLines 2000 -notify -verbose"
+	#
 	if [ `uname -s` = "Darwin" ]; then
 		# XXX
 		# XXX hmmmm.... what can we do to direct our output here????
-		# XXX (but maybe we don't need to with startx using the /var/log/system.log)
+		# XXX (but maybe we don't need to with startx writing to /var/log/system.log)
 		# XXX
-		tail -F /var/log/system.log | xconsole -geometry 500x120-0-0 -saveLines 2000 -notify -verbose -file /dev/stdin &
+#		tail -F /var/log/system.log | \
+		# XXX
+		# XXX n.b.:  with the advent of the new Unified Logging System
+		# XXX and log(1) but with XQuartz not (yet) using os_log(3), so
+		# XXX 'subsystem == "org.xquartz.X11"' cannot be used, though
+		# XXX then debug would be too much....
+		#
+		# XXX the "log" and "awk" may get left behind if nothing ever
+		# generates another "launchd_startx" message and so they never
+		# write to the closed pipe and so never get a SIGPIPE....
+		#
+		TEN_S_AGO=$(date -r $(($(date '+%s') - 10)) '+%Y-%m-%d %H:%M:0z')
+                { log show --info --debug --predicate 'process == "launchd_startx"' --style compact --start "${TEN_S_AGO}";
+                  log stream --level debug --predicate 'process == "launchd_startx"' --style compact; } | \
+			awk '{
+				match($0, /[^\]]*\][^\])]*[\])] /);
+				print substr($0, 1, 24) substr($0, (RLENGTH > 0) ? RLENGTH : 25);
+				fflush();
+			     }' | \
+		xconsole $xconsole_args -file /dev/stdin &
 	elif [ -w /dev/console ] ; then
 		ONCONSOLE=true
 		echo "$argv0: redirecting stdout and stderr to /dev/console."
 		exec 1>/dev/console 2>&1
 		echo "$argv0: redirected stdout and stderr to /dev/console, starting xconsole"
-		xconsole -geometry 500x120-0-0 -saveLines 2000 -notify -verbose &
+		xconsole $xconsole_args &
 		# wait a wee bit in hopes xconsole gets running to display any errors....
 		sleep 1
 	else
-		echo "$argv0: WARNING: display was '$DISPLAY' but /dev/console is not writable by $USER!"
+		echo "$argv0: WARNING: display was '$DISPLAY' but /dev/console is not writable by ${USER:-$LOGNAME}!"
 		ls -l /dev/console
 	fi
 	if [ ! -w /dev/console -a -n "${XDMHOST}" ]; then
@@ -160,28 +462,6 @@ if [ -z "$LONGITUDE" ]; then
 	export LATITUDE LONGITUDE
 fi
 
-# XXX these should be a single AWK script (the shell can eval the AWK
-# output to set variables), and they should fetch only the values for
-# the screen number which matches the $DISPLAY value.
-#
-VENDORSTR="`xdpyinfo | sed -n 's/^vendor string:[ ]*\(.*\)$/\1/p;//q'`"
-SCREENDEPTH=`xdpyinfo | sed -n 's/^[ ]*depth of root window:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q'`
-SCREENSIZE=`xdpyinfo | sed -n 's/^[ ]*dimensions:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q'`
-SCREENSIZE_X=`expr "$SCREENSIZE" : '[0-9]*x\([0-9]*\)'`
-SCREENSIZE_Y=`expr "$SCREENSIZE" : '\([0-9]*\)x'`
-export VENDORSTR SCREENDEPTH SCREENSIZE SCREENSIZE_X SCREENSIZE_Y
-
-if [ -r "/usr/lib/X11/Xdefaults" ] ; then
-	xrdb /usr/lib/X11/Xdefaults	# Load default X11 resource database
-elif [ -r "$X11PATH/lib/X11/Xdefaults" ] ; then
-	xrdb $X11PATH/lib/X11/Xdefaults	# Load default X11 resource database
-elif [ -r "$OPENWINHOME/lib/Xdefaults" ] ; then
-	xrdb $OPENWINHOME/lib/Xdefaults	# Load default X11 resource database
-fi
-if [ -r $HOME/.Xdefaults ] ; then
-	xrdb $HOME/.Xdefaults		# Load user's X11 resource database
-fi
-
 # Unfortunately there is no real way to tell what type of keyboard is
 # attached and no way to revert unknown earlier changes, so instead we
 # must just rely on the display name to know what keyboard is attached.
@@ -211,7 +491,7 @@ esac
 # might also have access to the local host), but doing so might save
 # your bacon if xdm or xinit has not set up ~/.Xauthority correctly!
 #
-xhost +`hostname` +localhost -
+xhost +`hostname` +localhost +local: -
 
 # deprecated xhost crap
 #
@@ -228,6 +508,13 @@ if [ -r $HOME/.xhosts ] ; then
 		esac
 	done < $HOME/.xhosts
 fi
+
+# N.B.:  once upon a time -ziconbeep was not universally available
+#
+if [ -z "$XTERM_OPTS" ]; then
+	XTERM_OPTS="-fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1"
+fi
+export XTERM_OPTS
 
 # If you're running on a diskless workstation that runs xdm itself
 # then you probably have a server that's more powerful and on which
@@ -246,7 +533,7 @@ if [ -n "$XDMHOST" -a "$XDMHOST" = "`echo $DISPLAY | sed 's/:.*$//'`" ] ; then
 		# (note: don't run this in the background!)
 		xauth extract - $DISPLAY | onx11server $X11SERVER 'xauth merge -'
 		# now start server programs we like for this scenario
-		onx11server -n $X11SERVER 'xload -display $DISPLAY -geometry 120x40-200+48 -hl grey90' &
+		onx11server -n $X11SERVER 'xload -geometry 120x40-200+48 -hl grey90' &
 		;;
 	very.weird.com|very.robohack.planix.com)
 		X11SERVER=${X11SERVER:-"once.weird.com"}
@@ -260,9 +547,9 @@ if [ -n "$XDMHOST" -a "$XDMHOST" = "`echo $DISPLAY | sed 's/:.*$//'`" ] ; then
 		xauth extract - $DISPLAY | onx11server isit.weird.com 'xauth merge -' &
 		xauth extract - $DISPLAY | onx11server historically.weird.com 'xauth merge -' &
 		# now start server programs we like for this scenario
-		onx11server -n $X11SERVER 'xload -display $DISPLAY -geometry 120x40-200+48 -hl red' &
-		onx11server -n $X11SERVER 'uxterm -tn xterm -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
-		onx11server -n $X11SERVER 'uxterm -tn xterm -display $DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+		onx11server -n $X11SERVER 'xload -geometry 120x40-200+48 -hl red' &
+		onx11server -n $X11SERVER "uxterm -tn xterm -geometry 132x82+0+0 -font 7x14 $XTERM_OPTS -n OccupyAll" &
+		onx11server -n $X11SERVER "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} $XTERM_OPTS -n OccupyAll" &
 		;;
 	*)
 		# not setting X11SERVER hopefully just makes the WM run all X11SERVER clients on
@@ -278,7 +565,7 @@ if [ -z "$WM" ] ; then
 	#
 	# XXX maybe it would be nice to have a window-manager-chooser
 	#
-	if expr "`type ctwm 2>/dev/null`" : '.* is .*/ctwm$' >/dev/null ; then
+	if type ctwm >/dev/null 2>&1; then
 		#
 		# N.B.:  in newer versions (>= 4.x) a new command-line syntax
 		# makes use of "-display $DISPLAY" break.  However since well
@@ -293,55 +580,57 @@ if [ -z "$WM" ] ; then
 		else
 			WM="ctwm -k"
 		fi
-	elif expr "`type tvtwm 2>/dev/null`" : '.* is .*/tvtwm$' >/dev/null ; then
+	elif type tvtwm >/dev/null 2>&1; then
 		WM=tvtwm
-	elif expr "`type wmx 2>/dev/null`" : '.* is .*/wmx$' >/dev/null ; then
+	elif type wmx >/dev/null 2>&1; then
 		WM=wmx
-	elif expr "`type wm2 2>/dev/null`" : '.* is .*/wm2$' >/dev/null ; then
+	elif type wm2 >/dev/null 2>&1; then
 		WM=wm2
-	elif expr "`type scwm 2>/dev/null`" : '.* is .*/scwm$' >/dev/null ; then
+	elif type scwm >/dev/null 2>&1; then
 		WM=scwm
-	elif expr "`type wmaker 2>/dev/null`" : '.* is .*/wmaker$' >/dev/null ; then
+	elif type wmaker >/dev/null 2>&1; then
 		WM=wmaker
-	elif expr "`type fvwm 2>/dev/null`" : '.* is .*/fvwm$' >/dev/null ; then
+	elif type fvwm >/dev/null 2>&1; then
 		WM=fvwm
+	elif type twm >/dev/null 2>&1; then
+		WM=twm
 	else
-		echo "$argv0: assuming 'twm' is available..."
-		WM=twm					# silly assumption?
+		echo "$argv0: assuming 'xterm' is available in lieu of a known WM..."
+		WM=xterm
 	fi
 	export WM
 fi
 
 HAVESWISSWATCH=false ; export HAVESWISSWATCH
-if expr "`type swisswatch 2>/dev/null`" : '.* is .*/swisswatch$' >/dev/null ; then
+if type swisswatch >/dev/null 2>&1; then
 	HAVESWISSWATCH=true
 fi
 HAVEXBUFFY=false ; export HAVEXBUFFY
-if expr "`type xbuffy 2>/dev/null`" : '.* is .*/xbuffy$' >/dev/null ; then
+if type xbuffy >/dev/null 2>&1; then
 	HAVEXBUFFY=true
 fi
 HAVEXBIFF=false ; export HAVEXBIFF
-if expr "`type xbiff 2>/dev/null`" : '.* is .*/xbiff$' >/dev/null ; then
+if type xbiff >/dev/null 2>&1; then
 	HAVEXBIFF=true
 fi
 HAVEXEARTH=false ; export HAVEXEARTH
-if expr "`type xearth 2>/dev/null`" : '.* is .*/xearth$' >/dev/null ; then
+if type xearth >/dev/null 2>&1; then
 	HAVEXEARTH=true
 fi
 HAVEXPLANET=false ; export HAVEXPLANET
-if expr "`type xplanet 2>/dev/null`" : '.* is .*/xplanet$' >/dev/null ; then
+if type xplanet >/dev/null 2>&1; then
 	HAVEXPLANET=true
 fi
 HAVEXPHOON=false ; export HAVEXPHOON
-if expr "`type xphoon 2>/dev/null`" : '.* is .*/xphoon$' >/dev/null ; then
+if type xphoon >/dev/null 2>&1; then
 	HAVEXPHOON=true
 fi
 HAVEXV=false ; export HAVEXV
-if expr "`type xv 2>/dev/null`" : '.* is .*/xv$' >/dev/null ; then
+if type xv >/dev/null 2>&1; then
 	HAVEXV=true
 fi
 HAVEIMAGEMAGICK=false ; export HAVEIMAGEMAGICK
-if expr "`type display 2>/dev/null`" : '.* is .*/display$' >/dev/null ; then
+if type display >/dev/null 2>&1; then
 	HAVEIMAGEMAGICK=true
 fi
 
@@ -355,7 +644,12 @@ if [ "$argv0" = ".xinitrc" ] ; then
 	case $DISPLAY in
 	:*)
 		case $REMOTE_DISPLAY in
-		very.local:*)	# xxx not so good for incoming SSH sessions...
+		#
+		# XXX most/all of this for my main desktop should move below to
+		# the main REMOTE_DISPLAY section as there's little possibility
+		# of ever using xdm with Xquartz
+		#
+		very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*)	# xxx not so good for incoming SSH sessions...
 			#
 			# probably available hosts...
 			#
@@ -375,32 +669,76 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			# menu operations!
 			#
 			# local server performance levels we want to be aware of
-			# (NOTE: in stacked order, 48 pixels apart)
-#			onx11server -n building.local 'xload -geometry 120x40-200+48 -hl red' &
-			onx11server -n more.local 'xload -geometry 120x40-200+96 -hl red' &
-# slot for central	onx11server -n central.weird.com 'xload -geometry 120x40-200+144 -hl red' &
-#			onx11server -n future.local 'xload -geometry 120x40-200+192 -hl red' &
-			onx11server -n xenful.local 'xload -geometry 80x40-418+192 -hl red' &
-			onx11server -n xentastic.local 'xload -geometry 80x40-332+192 -hl red' &
-# slot for xentral	onx11server -n xentral 'xload -geometry 80x40-418+240 -hl red
-#			onx11server -n once.local 'xload -geometry 80x40-332+240 -hl red' &
-#			onx11server -n historically.local 'xload -geometry 120x40-200+240 -hl red' &
-# slot for b2		onx11server -n b2.local 'xload -geometry 120x40-70+240 -hl red' &
-			#
-			onx11server -n building.local 'uxterm -tn xterm -geometry 80x45-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
-			onx11server -n more.local 'uxterm -tn xterm-256color -geometry 80x45-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
-			onx11server -n future.local 'uxterm -tn xterm -geometry 80x45-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
-#			onx11server -n historically.local 'uxterm -tn xterm -geometry 80x45-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
-			onx11server -n xenful.local 'uxterm -tn xterm -geometry 80x45-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
-			onx11server -n xentastic.local 'uxterm -tn xterm -geometry 80x45-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+			xloadoff="0"
+
+#			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+#			XloadGeomBuilding=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
+#			export XloadGeomBuilding
+#			onx11server -n building.local "xload -geometry ${XloadGeomBuilding -hl red" &
+
+			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+			XloadGeomMore=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
+			export XloadGeomMore
+			onx11server -n more.local "xload -geometry ${XloadGeomMore} -hl red" &
+
+			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+			XloadGeomCentral=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
+			export XloadGeomCentral
+# slot for central	onx11server -n central.weird.com "xload -geometry ${XloadGeomCentral} -hl red" &
+
+#			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+#			XloadGeomFuture=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
+#			export XloadGeomFuture
+#			onx11server -n future.local "xload -geometry ${XloadGeomFuture} -hl red" &
+
+			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+			XloadGeomXenful=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
+			export XloadGeomXenful
+			onx11server -n xenful.local "xload -geometry ${XloadGeomXenful} -hl red" &
+
+			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+			XloadGeomXentastic=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
+			export XloadGeomXentastic
+			onx11server -n xentastic.local "xload -geometry ${XloadGeomXentastic} -hl red" &
+
+			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+			XloadGeomXentral="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
+			export XloadGeomXentral
+# slot for xentral	onx11server -n xentral "xload -geometry ${XloadGeomXentral} -hl red" &
+
+#			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+#			XloadGeomOnce="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
+#			export XloadGeomOnce
+#			onx11server -n once.local "xload -geometry ${XloadGeomOnce} -hl red" &
+
+#			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+#			XloadGeomHistorically="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
+#			export XloadGeomHistorically
+#			onx11server -n historically.local "xload -geometry ${XloadGeomHistorically} -hl red: &
+
+			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+			XloadGeomB2="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
+			export XloadGeomB2
+# slot for b2		onx11server -n b2.local "xload -geometry ${XloadGeomB2} -hl red: &
+
+
+#			onx11server -n building.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
+			onx11server -n more.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
+#			onx11server -n future.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
+#			onx11server -n historically.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
+			onx11server -n xenful.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
+			onx11server -n xentastic.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 			#
 			# SSH-only hosts... (hopefully with auto-auth,
 			# but note the use of both '-f' and '&')
 			#
-			ssh -CY -C -f woods@central.weird.com '. ./.profile; exec xload -geometry 120x40-200+144 -hl red' &
+			# XXX n.b. try -Snone "because session multiplexing
+			# doesn't work very well with X forwarding"
+			#
+			ssh -CY -C -f woods@central.weird.com ". ./.profile; exec xload -geometry ${XloadGeomCentral} -hl red" &
 # xxx not until more stable...
-			ssh -CY -C -f woods@b2.avoncote.ca '. ./.profile; exec xload -geometry 120x40-70+240 -hl red' &
-			ssh -CY -C -f woods@xentral.avoncote.ca '. ./.profile; exec xload -geometry 80x40-418+240 -hl red' &
+			ssh -CY -C -f woods@b2.avoncote.ca ". ./.profile; exec xload -geometry ${XloadGeomB2} -hl red" &
+			ssh -CY -C -f woods@xentral.avoncote.ca ". ./.profile; exec xload -geometry ${XloadGeomXentral} -hl red" &
 			#
 			# possibly available hosts -- one background
 			# sub-shell for host each...
@@ -418,8 +756,8 @@ if [ "$argv0" = ".xinitrc" ] ; then
 ### not ideal as it leaves us with no clue as to why a window
 ### disappears when the connection is dropped....
 ###
-###			ssh -Y -n central.weird.com '. ./.profile; exec uxterm -tn xterm-256color -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
-###			ssh -Y -n central.weird.com '. ./.profile; exec uxterm -tn xterm-256color -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+###			ssh -Y -n central.weird.com ". ./.profile; exec uxterm -tn xterm-256color -geometry 132x82+0+0 -font 7x14 $XTERM_OPTS" &
+###			ssh -Y -n central.weird.com ". ./.profile; exec uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} $XTERM_OPTS -n OccupyAll" &
 ###
 ### XXX what we really want is to stuff an "ssh -Y hostname" command
 ### into the xterm so that it would be the first command run by an
@@ -454,17 +792,22 @@ if [ "$argv0" = ".xinitrc" ] ; then
 		xauth nextract - $DISPLAY | onx11server isit.weird.com 'xauth nmerge -'
 		xauth nextract - $DISPLAY | onx11server historically.weird.com 'xauth nmerge -'
 		# and then start some useful programs...
-		onx11server -n $X11SERVER 'xload -display $DISPLAY -geometry 120x40-200+48 -hl red' &
-		onx11server -n $X11SERVER 'uxterm -tn xterm-256color -display $DISPLAY -geometry 132x100+0+0 -font 7x14 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
-		onx11server -n $X11SERVER 'uxterm -tn xterm-256color -display $DISPLAY -geometry 80x45-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+		onx11server -n $X11SERVER 'xload -geometry 120x40-200+48 -hl red' &
+		onx11server -n $X11SERVER "uxterm -tn xterm-256color -geometry 132x100+0+0 -font 7x14 $XTERM_OPTS" &
+		onx11server -n $X11SERVER "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} $XTERM_OPTS -n OccupyAll" &
 		;;
 	esac
+
+	#
+	# Common for all xinit/startx startups
+	#
+
 	if $HAVEXV && [ -d '/Library/Desktop Pictures/Nature' ]; then
 		xv -root '/Library/Desktop Pictures/Nature/'* "$HOME/Pictures/"*.jpg &
-	elif $HAVEIMAGEMAGICK && [ -d "$HOME/Pictures" ]; then
-		# this is wonky and slow, but perhaps the best we can do...
-		# (nothing else sets the root window!)
-		display "vid:$HOME/Pictures/"'*.[gjp]*' vid:'/Library/Desktop Pictures/Nature/*.[gjp]*' &
+#	elif $HAVEIMAGEMAGICK && [ -d "$HOME/Pictures" ]; then
+#		# this is wonky and slow, but perhaps the best we can do...
+#		# (nothing else sets the root window!)
+#		display "vid:$HOME/Pictures/"'*.[gjp]*' vid:'/Library/Desktop Pictures/Nature/*.[gjp]*' &
 	elif $HAVEXEARTH ; then
 		XEGAMMA=""
 		if [ ${SCREENDEPTH:-1} -ne 1 ] ; then
@@ -489,22 +832,34 @@ if [ "$argv0" = ".xinitrc" ] ; then
 	fi
 elif $ONCONSOLE ; then
 	#
-	#	I/O is already redirected to /dev/console above, so we will see it...
+	#	we're probably signing in via xdm on the system console....
+	#
+	# I/O is already redirected to /dev/console above, so we will see it...
 	#
 	:
 else
 	#
 	#	we're probably signing in on an independent xterm....
 	#
+	# XXX I think these "tail"s could get left behind if nothing ever writes
+	# to the file they are watching (so they'll never write anything more to
+	# the closed pipe, and so never get a SIGPIPE....
+	#
 	if [ -r $HOME/.xsession-errors-$DISPLAY ] ; then
-		tail -F $HOME/.xsession-errors-$DISPLAY | xconsole -geometry 500x120-0-0 -saveLines 2000 -notify -verbose -file /dev/stdin &
+		tail -F $HOME/.xsession-errors-$DISPLAY | xconsole $xconsole_args -file /dev/stdin &
 	elif [ "$XODISPLAY" != "$DISPLAY" -a -r $HOME/.xsession-errors-$XODISPLAY ] ; then
-		tail -F $HOME/.xsession-errors-$XODISPLAY | xconsole -geometry 500x120-0-0 -saveLines 2000 -notify -verbose -file /dev/stdin &
+		tail -F $HOME/.xsession-errors-$XODISPLAY | xconsole $xconsole_args -file /dev/stdin &
 	else
 		echo "$argv0: didn't find ~/.xsession-errors-$DISPLAY, assuming old XDM config in use"
-		tail -F $HOME/.xsession-errors | xconsole -geometry 500x120-0-0 -saveLines 2000 -notify -verbose -file /dev/stdin &
+		tail -F $HOME/.xsession-errors | xconsole $xconsole_args -file /dev/stdin &
 	fi
 fi
+
+#
+# now we start more programs we like depending on which $DISPLAY we're
+# using, but which don't depend on whether X was started by XDM or
+# xinit/startx.
+#
 
 # run localhost mailbox monitor of some sort...
 #
@@ -518,93 +873,71 @@ elif $HAVEXBIFF ; then
 	xbiff -geometry 48x48-0+235 -bw 0 &
 fi
 
-#
-# now we start more programs we like depending on which $DISPLAY we're
-# using, but which don't depend on whether X was started by XDM or
-# xinit/startx.
-#
-
-set_osx_fontpath ()
-{
-	if [ -d /opt/X11/share/fonts/misc ]; then
-		X11FONTPATH='/opt/X11/share/fonts/misc/,/opt/X11/share/fonts/TTF/,/opt/X11/share/fonts/OTF/,/opt/X11/share/fonts/Type1/,/opt/X11/share/fonts/100dpi/:unscaled,/opt/X11/share/fonts/100dpi/'
-	fi
-	if [ -d /usr/X11/lib/X11/fonts/misc -a ! -L /usr/X11/lib/X11/fonts ]; then
-		X11FONTPATH="$X11FONTPATH,/usr/X11/lib/X11/fonts/misc/,/usr/X11/lib/X11/fonts/TTF/,/usr/X11/lib/X11/fonts/OTF,/usr/X11/lib/X11/fonts/Type1/,/usr/X11/lib/X11/fonts/100dpi/:unscaled,/usr/X11/lib/X11/fonts/100dpi/"
-	fi
-	#
-	# NB:  /System/Library/Fonts must come last else many things
-	# will blow chunks with:
-	#
-	#	X Error of failed request:  BadValue (integer parameter out of range for operation)
-	#	  Major opcode of failed request:  45 (X_OpenFont)
-	#	  Value in failed request:  0x3600045
-	#	  Serial number of failed request:  1991
-	#	  Current serial number in output stream:  1992
-	#
-	# xfontsel can reproduce this by explicitly selecting family "menlo"
-	#
-	X11FONTPATH="$X11FONTPATH,/Library/Fonts/,/System/Library/Fonts/"
-	xset fp= $X11FONTPATH
-	if [ -d /sw/lib/X11/fonts/intl ]; then
-		xset fp+ /sw/lib/X11/fonts/intl/
-	fi
-	if [ -d /sw/lib/X11/fonts/efont-unicode ]; then
-		xset fp+ /sw/lib/X11/fonts/efont-unicode/
-	fi
-	if [ -d /sw/lib/X11/fonts/applettf ]; then
-		xset fp+ /sw/lib/X11/fonts/applettf/
-	fi
-	if [ -d $HOME/.fonts ]; then
-		xset +fp $HOME/.fonts
-	fi
-	xset fp rehash
-}
-
 case ${REMOTE_DISPLAY:-${DISPLAY}} in
 
-very.local:*|very.weird.com:*|very.robohack.planix.com:*)
-	# very has a very large, very (or now, "rather") hi-res, display....
+very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.robohack.planix.com:*)
+	# very has a very large, very hi-res, display....
+	# very-old also has a quite large, quite hi-res, display...
 	xset m 2 0
 
-	set_osx_fontpath
-
-	xload -geometry 120x40-200+0 -hl red &
-	xclock -update 1 -geometry 215x30-0+196 -digital -chime &
+	xload -geometry $XloadGeom -hl red &
+	# xxx xclock with Render is very weird in its font handling!
+	LC_CTYPE=C xclock -geometry $DClockGeom -face :size=10 -digital -update 1 -chime &
 	if $HAVESWISSWATCH; then
-		swisswatch -name swissclock -geometry 190x190-0+0 &
+		swisswatch -name swissclock -geometry $ClockGeom &
 	else
-		xclock -update 1 -geometry 190x190-0+0 &
+		xclock -update 1 -geometry $ClockGeom &
 	fi
 
 	# All the small lower-right command terminals (starting with our own first one)
-	# note the -155 is the height of the normal xconsole window, at 120, plus its ctwm decorations (I think)
-	uxterm -tn xterm-256color -display $DISPLAY -geometry 80x45-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
-#	onx11server -n once.weird.com 'uxterm -tn xterm -display $DISPLAY -geometry 80x45-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll' &
+	uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -n OccupyAll -e login -pf ${USER:-$LOGNAME} &
+#	onx11server -n once.weird.com "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 
 	# All the big main area terminals (starting with our own first one)
-	uxterm -tn xterm-256color -display $DISPLAY -geometry 132x100+0+0 -fs 9 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
-#	onx11server -n once.weird.com 'uxterm -tn xterm -display $DISPLAY -geometry 132x100+0+0 -fs 9 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1' &
+	uxterm -tn xterm-256color -geometry 132x82+0+0 -fs 9 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -e login -pf ${USER:-$LOGNAME} &
+#	onx11server -n once.weird.com "uxterm -tn xterm -geometry 132x82+0+0 -fs 9 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS}" &
 
-	if expr "`type xmahjongg 2>/dev/null`" : '.* is .*/xmahjongg$' >/dev/null ; then
-		# xxx the offset never seems to apply properly
-		#xmahjongg --geometry +1000-0 &
-		xmahjongg &
+	if type xmahjongg >/dev/null 2>&1; then
+		#
+		# XXX the positioning portion of a geometry spec never seems to
+		# apply properly to xmahjongg (except "+0+0"
+		#
+		# assume the tiles and bin directory are in related places
+		MP=`type xmahjongg`
+		MP=`expr "${MP}" : '^[^/]*\(/[^ )]*\)'`
+		MP=`dirname $MP`
+		MP=`dirname $MP`
+		#
+		# Bigger tiles for a high-res display: resize the tile images to
+		# 200% using mogrify, xv, etc.
+		#
+		if [ $SCREENDPI_Y -gt 110 -a -f ${MP}/share/xmahjongg/tiles/real_x2.gif ]; then
+			if [ -r $HOME/public_html/marble.gif ]; then
+				MB="-bg $HOME/public_html/marble.gif"
+			fi
+#			xmahjongg -t real_x2 --geometry 2000x1500+2200-0 $MB &
+			xmahjongg -t real_x2 --geometry 2000x1500+1-1 $MB &
+		elif [ $SCREENDPI_Y -gt 110 ]; then
+			echo "You might want to make a bigger tile set for XmahJongg."
+			xmahjongg --geometry +1000-0 &
+		else
+			xmahjongg --geometry +1000-0 &
+		fi
 	fi
 
-	uxterm -tn xterm-256color -display $DISPLAY -geometry 80x25+1400-0 -fs 9 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor
+	uxterm -tn xterm-256color -geometry 80x25+`expr \( $SCREENDIM_X \* $SCREENDPI_X / 2 \) - \( 3 \* $SCREENDPI_X \)`-`expr $SCREENDPI_Y \* 2` -fs 9 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -fc 5 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor &
 
 	# All the normal emacs windows...
 	# oddly using 130x64 turns into 163x55 with the font change!
 	# this one's supposed to go in virtualscreen "Mail"
-###	$RSH -n building.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -display $DISPLAY -geometry 130x75+0+0" &
+###	$RSH -n building.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -geometry 130x75+0+0" &
 	# this one's supposed to go in virtualscreen "Coding"
-###	$RSH -n building.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -i -display $DISPLAY -geometry 130x75+0+0" &
+###	$RSH -n building.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -i -geometry 130x75+0+0" &
 	# this one should go in the virtualscreen "News"
-###	$RSH -n whats.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -i -display $DISPLAY -geometry 130x75+0+0" &
+###	$RSH -n whats.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -i -geometry 130x75+0+0" &
 	;;
 
-macweird.*:*|*xquartz:*)
+macweird.*:*|Gregs-MBP.*|*xquartz:*)
 	#
 	# macweird: Macbook 13" ancient
 	#
@@ -613,8 +946,6 @@ macweird.*:*|*xquartz:*)
 	#   Macbook Air 13-inch; 1440x900 32-bit
 	#   Macbook Air 13.3-inch; 2560x1600; 227 pixels per inch; 16:10 aspect ratio
 	#
-	set_osx_fontpath
-
 	if $HAVEXEARTH ; then
 		xearth -gamma 1.3 -bigstars 10 -pos fixed,${LATITUDE:-0},${LONGITUDE:-0} -label -labelpos +1+1 -grid -wait 900 -nice 10 &
 	elif $HAVEXPLANET ; then
@@ -632,21 +963,20 @@ macweird.*:*|*xquartz:*)
 	fi
 
 	xload -geometry 120x40-200+0 -hl red &
-	xclock -update 1 -geometry 190-0+196 -digital -chime -face lucidasans-9 &
+	LC_CTYPE=C xclock -update 1 -geometry 190-0+196 -digital -chime -face lucidasans-9 &
 	if $HAVESWISSWATCH; then
 		swisswatch -name swissclock -geometry 190x190-0+0 &
 	else
 		xclock -update 1 -geometry 190x190-0+0 &
 	fi
 	# All the small lower-right command terminals (starting with our own first one)
-	# note the -155 is the height of the normal xconsole window, at 120, plus its twm decorations (I think)
-	uxterm -tn xterm-256color -geometry 80x30-0-155 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	uxterm -tn xterm-256color -geometry 80x30-0-${XconsoleVoff} -fs 7.5 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -n OccupyAll -e login -pf ${USER:-$LOGNAME} &
 
 	# All the big main area terminals (starting with our own first one)
 	# XXX damn, the default "-font 7x14" is just a wee bit too wide at 132 chars!
 	# (but oddly not on the old macbook, only on the new macbook air!)
 	# the old 13" macbook can only handle 59 rows, but the 13" macbook air does 66
-	uxterm -tn xterm-256color -geometry 132x50+0+0 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
+	uxterm -tn xterm-256color -geometry 132x50+0+0 -fs 7.5 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -e login -pf ${USER:-$LOGNAME} &
 	;;
 
 xceptionally*:*)
@@ -670,37 +1000,37 @@ xceptionally*:*)
 		echo "$argv0: no background set"
 	fi
 	# local server performance levels we want to be aware of
-	$RSH -n most.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+48 -hl grey90 &
-	$RSH -n once.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+144 -hl grey90 &
-#	$RSH -n starting-out.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+192 -hl grey90 &
-#	$RSH -n whats.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-200+242 -hl grey90 &
-#	$RSH -n always.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x40-70+242 -hl grey90 &
+	$RSH -n most.weird.com exec /usr/X11R6/bin/xload -geometry 120x40-200+48 -hl grey90 &
+	$RSH -n once.weird.com exec /usr/X11R6/bin/xload -geometry 120x40-200+144 -hl grey90 &
+#	$RSH -n starting-out.weird.com exec /usr/X11R6/bin/xload -geometry 120x40-200+192 -hl grey90 &
+#	$RSH -n whats.weird.com exec /usr/X11R6/bin/xload -geometry 120x40-200+242 -hl grey90 &
+#	$RSH -n always.weird.com exec /usr/X11R6/bin/xload -geometry 120x40-70+242 -hl grey90 &
 
 	# All the small lower-right command terminals (starting with our own first one)
-	xterm -display $DISPLAY -geometry 80x42-0-155 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	xterm -geometry 80x42-0-${XconsoleVoff} $XTERM_OPTS -n OccupyAll &
 
 	# All the consoles:
 	# first column....
-	xterm -display $DISPLAY -geometry 102x24+0+0   -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:isit -T "Console [isit.weird.com]" -e console -S isit &
-	xterm -display $DISPLAY -geometry 102x24+0+205 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Con:hubly -T "Console [hubly.weird.com]" -e console -S hubly &
-	xterm -display $DISPLAY -geometry 102x24+0+410 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Con:flipping -T "Console [flipping.weird.com]" -e console -S flipping &
-	xterm -display $DISPLAY -geometry 102x24+0+615 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:building -T "Console [building.weird.com]" -e console -S building &
-	xterm -display $DISPLAY -geometry 102x24+0+820 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:whats -T "Console [whats.weird.com]" -e console -S whats &
+	xterm -geometry 102x24+0+0   -fn 5x7 $XTERM_OPTS -n Con:isit -T "Console [isit.weird.com]" -e console -S isit &
+	xterm -geometry 102x24+0+205 -fn 5x7 $XTERM_OPTS -ls -n Con:hubly -T "Console [hubly.weird.com]" -e console -S hubly &
+	xterm -geometry 102x24+0+410 -fn 5x7 $XTERM_OPTS -ls -n Con:flipping -T "Console [flipping.weird.com]" -e console -S flipping &
+	xterm -geometry 102x24+0+615 -fn 5x7 $XTERM_OPTS -n Con:building -T "Console [building.weird.com]" -e console -S building &
+	xterm -geometry 102x24+0+820 -fn 5x7 $XTERM_OPTS -n Con:whats -T "Console [whats.weird.com]" -e console -S whats &
 
 	# first column, from the bottom...
-	xterm -display $DISPLAY -geometry 80x24+0-0 -fn 5x7 -cn -rw -sb -si -sk -sl 100 -ls -ziconbeep 1 -n Con:RAID0 -T "Console [RAID-00 most:/var]" -e console -S raid-00 &
+	xterm -geometry 80x24+0-0 -fn 5x7 $XTERM_OPTS -ls -n Con:RAID0 -T "Console [RAID-00 most:/var]" -e console -S raid-00 &
 
 
 	# second column....
-#	xterm -display $DISPLAY -geometry 102x24+545+0 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:proven -T "Console [proven.weird.com]" -e console -S proven &
-	xterm -display $DISPLAY -geometry 102x24+545+0 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:once -T "Console [once.weird.com]" -e console -S once &
-	xterm -display $DISPLAY -geometry 102x24+545+205 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:sometimes -T "Console [sometimes.weird.com]" -e console -S sometimes &
-	xterm -display $DISPLAY -geometry 102x24+545+410 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:always -T "Console [always.weird.com]" -e console -S always &
-	xterm -display $DISPLAY -geometry 102x24+545+615 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:starting-out -T "Console [starting-out.weird.com]" -e console -S starting-out &
-	xterm -display $DISPLAY -geometry 102x24+545+820 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n CallerID -T "very:/dev/ttyb [Caller ID Box]" -e console -S callerid &
+#	xterm -geometry 102x24+545+0 -fn 5x7 $XTERM_OPTS -n Con:proven -T "Console [proven.weird.com]" -e console -S proven &
+	xterm -geometry 102x24+545+0 -fn 5x7 $XTERM_OPTS -n Con:once -T "Console [once.weird.com]" -e console -S once &
+	xterm -geometry 102x24+545+205 -fn 5x7 $XTERM_OPTS -n Con:sometimes -T "Console [sometimes.weird.com]" -e console -S sometimes &
+	xterm -geometry 102x24+545+410 -fn 5x7 $XTERM_OPTS -n Con:always -T "Console [always.weird.com]" -e console -S always &
+	xterm -geometry 102x24+545+615 -fn 5x7 $XTERM_OPTS -n Con:starting-out -T "Console [starting-out.weird.com]" -e console -S starting-out &
+	xterm -geometry 102x24+545+820 -fn 5x7 $XTERM_OPTS -n CallerID -T "very:/dev/ttyb [Caller ID Box]" -e console -S callerid &
 
 	# second column, from the bottom...
-	xterm -display $DISPLAY -geometry 102x24+545-0 -fn 5x7 -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n Con:best-1 -T "Console [BEST-3.1-UPS-1]" -e console -S best-3.1-1 &
+	xterm -geometry 102x24+545-0 -fn 5x7 $XTERM_OPTS -n Con:best-1 -T "Console [BEST-3.1-UPS-1]" -e console -S best-3.1-1 &
 
 
 	# start xv first, in a subshell that sleeps first for a bit
@@ -708,20 +1038,20 @@ xceptionally*:*)
 ###	( sleep 20; xv -owncm -iconic & ) &
 	# start tkined last, in a subshell that sleeps first for a bit
 	# -- hoping xv (from above) and the window manager are running already
-###	( sleep 40; $RSH -n building.weird.com exec /usr/local/bin/tkined1.5.0 -display $DISPLAY -use $(xwininfo -name "xv 3.10a(PNG) <unregistered>" | awk '/xwininfo/ {print $4}') -geometry 1200x925+0-0 /home/building/woods/tkined-3.tki & ) &
+###	( sleep 40; $RSH -n building.weird.com exec /usr/local/bin/tkined1.5.0 -use $(xwininfo -name "xv 3.10a(PNG) <unregistered>" | awk '/xwininfo/ {print $4}') -geometry 1200x925+0-0 /home/building/woods/tkined-3.tki & ) &
 	;;
 
 xtremely*:*)
 	xload -geometry 190x50-0+233 -hl red &
 	xclock -norender -geometry 190x30-0+196 -digital &
-	$RSH -n always.weird.com exec /usr/X11R6/bin/xload -display $DISPLAY -geometry 120x50-198+233 -hl red &
+	$RSH -n always.weird.com exec /usr/X11R6/bin/xload -geometry 120x50-198+233 -hl red &
 	if $HAVESWISSWATCH; then
 		swisswatch -name swissclock -geometry 190x190-0+0 &
 	else
 		xclock -norender -geometry 190x190-0+0 &
 	fi
 	# All the small lower-right command terminals (starting with our own first one)
-	uxterm -tn xterm -display $DISPLAY -geometry 80x42-0-0 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	uxterm -tn xterm -geometry 80x42-0-0 -fs 7.5 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -n OccupyAll &
 
 	;;
 
@@ -738,19 +1068,19 @@ xtremely*:*)
 	else
 		echo "$argv0: no background set"
 	fi
-#	if [ ${SCREENDEPTH:-1} -eq 1 ] ; then
-#		xload -geometry 100x50-0+150 -hl grey90 &
-#	else
-#		xload -geometry 100x50-0+150 -hl red &
-#	fi
-#	xclock -norender -geometry 100x30-0+110 -digital &
-	if $HAVESWISSWATCH ; then
-		swisswatch -name swissclock -geometry 100x100-100+252 &
-#	else
-#		xclock -geometry 100x100-0+0 &
+	if [ ${SCREENDEPTH:-1} -eq 1 ] ; then
+		xload -geometry $XloadGeom -hl grey90 &
+	else
+		xload -geometry $XloadGeom -hl red &
 	fi
-	uxterm -tn xterm -display $DISPLAY -geometry 100x50+0+0 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 &
-	uxterm -tn xterm -display $DISPLAY -geometry 80x24+0-0 -fn 5x7 -fs 7.5 -fa "-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1" -fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1 -n OccupyAll &
+	LC_CTYPE=C xclock -geometry $DClockGeom -face :size=10 -digital -update 1 -chime &
+	if $HAVESWISSWATCH ; then
+		swisswatch -name swissclock -geometry $ClockGeom &
+	else
+		xclock -update 1 -geometry $ClockGeom &
+	fi
+	uxterm -tn xterm -geometry 100x50+0+0 -fs 7.5 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} &
+	uxterm -tn xterm -geometry 80x24+0-0 -fn 5x7 -fs 7.5 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -n OccupyAll &
 	;;
 esac
 
@@ -759,7 +1089,10 @@ esac
 #
 exec $WM
 
-# and if that fails then we try a last-ditch trick
+### $WM || twm
+
+
+# and if that fails then we try a last-ditch "trick"
 #
-xterm -geometry 80x24+0+0 -cn -rw -sb -si -sk -ls -n FailSafe
+xterm -geometry 80x24+0+0 $XTERM_OPTS -n FailSafe
 exit 1

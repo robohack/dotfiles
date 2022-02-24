@@ -2,7 +2,7 @@
 !
 !	private fonts.alias -- must be first to have effect
 !
-!#ident	"@(#)HOME:.fonts.alias.m4	37.1	22/02/19 17:13:57 (woods)"
+!#ident	"@(#)HOME:.fonts.alias.m4	37.2	22/02/23 18:04:29 (woods)"
 !
 !	Work out the screen resolution in order to specify default Font DPIs
 !

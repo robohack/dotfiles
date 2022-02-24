@@ -1,35 +1,249 @@
+! -*- conf-xdefaults -*-
 !
-!#ident	"@(#)HOME:.Xdefaults	37.2	21/12/07 15:12:03 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.3	22/02/23 18:04:11 (woods)"
 !
 ! reload with:
 !
-!	xrdb -override .Xdefaults
+!	xrdb -cpp m4 -override .Xdefaults
 !
-! Note that most programs, e.g. xterm, must be restarted to notice changes in
-! their resources.
+! N.B. WARNING:  This file must be processed with "xrdb -cpp m4"
+! (perhaps it should be renamed to .Xdefaults.m4?)
 !
-! WARNING:  Do not use single quote contractions in comments!
+! Note that most(all?) programs, e.g. xterm, must be restarted to notice changes
+! in their resources.
 !
-#ifdef COLOR
-*customization:			-color
-*installColormap:		Yes
-*installCmap:			true
-xpdf.installCmap:		true
-#endif
+! WARNING:  Do not use lone single quotes (e.g. for contractions) in comments!
 !
-xpdf.toolTipEnable:		false
+!	Work out the screen resolution in order to specify default Font DPIs
+!
+! n.b.:  resolutions are in pixels per metre, for some stupid reason....
+! so 4500 dpM (/39.37) is just over 110 dpi
+!
+! XXX the next chunk should probably be an include file, shared with .ctwmrc
+! (and .fonts/fonts.alias)
+!
+! Note that although these macros appear commented out in .Xdefaults syntax,
+! they are still visible to m4.  Keeping them in comments help line counting.
+!
+! changequote([, ])
+!
+! define(HorizDPI, eval(((X_RESOLUTION * 100) / 3937) + ((((X_RESOLUTION * 1000) / 3937) % 10) >= 5)))
+! define(VertDPI, eval(((Y_RESOLUTION * 100) / 3937) + ((((X_RESOLUTION * 1000) / 3937) % 10) >= 5)))
+! define(ScreenDimX, eval(WIDTH / HorizDPI))
+! define(ScreenDimY, eval(HEIGHT / VertDPI))
+!
+! N.B.:  If true screen resolution is within 10% of 100DPI it could sense to
+! claim 100DPI to avoid font-scaling artifacts for bitmap fonts, but since we
+! already alias most font names that did refer to bitmap fonts into scalable
+! fonts anyway, there is not much to gain
+!
+! ifelse(eval((HorizDPI / 100 == 1) && (HorizDPI % 100 <= 10)), 1,
+!  [define(FontXDPI, HorizDPI)],
+!  [define(FontXDPI, HorizDPI)]
+! )
+! ifelse(eval((VertDPI / 100 == 1) && (VertDPI % 100 <= 10)), 1,
+!  [define(FontYDPI, VertDPI)],
+!  [define(FontYDPI, VertDPI)]
+! )
+! define(VertPix9pt, eval((VertDPI * (90000 / 720)) / 1000))
+!
+! avoid problems with square brackets in values below
+!
+! N.B.:  remember to turn quoting back on to use macros again!
+!
+! Note that Xft does not seem to initialize the default Xft.dpi setting properly -- it does
+! do the right computation:
+!
+!	dpi = (((double) DisplayHeight (dpy, screen) * 25.4) /
+!		(double) DisplayHeightMM (dpy, screen));
+!
+! However if you ask for a font without specifying the actual resolution for the
+! screen you are going to display it on then it just gives you, at best, the
+! option for a 100x100 dpi scaled variant:
+!
+! $ xlsfonts -fn '-*-liberation mono-medium-r-*-*-0-0-*-*-m-0-iso10646-1'
+! -misc-liberation mono-medium-r-normal--0-0-0-0-m-0-iso10646-1
+! -misc-liberation mono-medium-r-normal--0-0-100-100-m-0-iso10646-1
+!
+! In fact according to the X Logical Font Description the ptSz and resY are to
+! be used by X clients querying for fonts according to device-independent size
+! in order to maintain constant text size on the display regardless of the pixel
+! size.
+!
+! I have patches for Xfontsel that will allow it to give you the option of
+! choosing the actual resX and resY values for the very screen the widget is
+! displayed on, in which case it will then display the sample text accurately
+! scaled for that specific screen resolution (assuming of course that the screen
+! DPI was correctly configured in the X server, which for most this means
+! ensuring it gets accurate physical dimensions for the viewable area of the
+! monitor display and/or passing the value on the Xserver command line with
+! "-dpi" (though note the latter sets the resolution for all screens, and should
+! only be used when the server cannot determine the physical display size,
+! and/or it learns lies about it, e.g. as it does with Xquartz on XDR Pro).
+!
+*dpi:		VertDPI
+Xft.dpi:	FontYDPI
+!
+! These seem to be the default, but just to be sure:
+!
+Xft.antialias:			true
+Xft.hinting:			true
+!Xft.hintstyle:			hintfull
+!Xft.rgba:			rgb
+!
+! ifelse(eval(FontYDPI > 110), 1, [
+!
+! Emacs is "special" -- as in especially difficult to deal with
+!
+! Emacs actually ignores the resolutions, and needs either a '*' or a non-zero
+! pixelSz value.
+!
+Emacs.Font:		-*-liberation mono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-*-*
+! XXX additional fontset definitions do not seem to add anything useful....
+!Emacs.Fontset-0:	-*-dejavu sans mono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-fontset-global
+!Emacs.Fontset-1:	-*-freemono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-fontset-global
+!Emacs.Fontset-2:	-*-cascadia mono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-fontset-global
+!Emacs.Fontset-2:	-*-ubuntu mono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-fontset-global
+!Emacs.Fontset-3:	-*-liberation mono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-fontset-global
+!
+! Set a default font that should work for everyone
+!
+! Possible alternative (even more glyphs than liberation mono, but no mark in
+! the zero) (from the fonts/freefont-ttf package):
+!
+! -misc-freemono-medium-*-*-*-0-*-218-218-m-0-iso10646-1
+!
+! More alternatives (not quite as many glyphs):
+!
+! -ibm-ibm plex mono-medium-*-*-*-0-*-218-218-m-0-iso10646-1
+! -misc-cascadia mono-medium-*-*-*-0-*-218-218-m-0-iso10646-1
+!
+! XXX some or all of these best be -iso8859-1 (or -*-*) else some older apps may
+! not get the right glyphs.
+!
+! Note we want to pass a '0' for pixelSz for applications that will properly use
+! normal XLFD specs with Xft for scalable fonts, but for others we might be
+! better off passing a '*' instead, or maybe VertPix9pt as for Emacs?
+!
+! xxx hmmm.... which of these do what?  (See also Emacs.Font above!)
+!
+*Font:				-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-*-*
+*.Font:				-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-*-*
+*font:				-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-*-*
+*.font:				-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-*-*
+*font*:				-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-*-*
+*fontList:			-*-freemono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-*-*
+*.fontList:			-*-freemono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-*-*
+!
+! XXX is this right?  Does it do anything?  Some app-defaults files mention XtDefaultFont
+!
+xtDefaultFont:			-*-liberation mono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-*-*
+xtDefaultFontSet:		-*-freemono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-*-*
+! these are mentioned as the default values for font and fontSet resources for
+! the Xt AsciiText widget
+XtDefaultFont:			-*-liberation mono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-*-*
+XtDefaultFontSet:		-*-freemono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-*-*
+!,-*-*-*-*-*--0-100-FontXDPI-FontYDPI-*-0-*-*
+!
+! ], []) End (FontYDPI > 110)
+!
+! really just for Xfontsel (with "-scaled"):
+!
+*pixelSizeList:			0
+*pointSizeList:			80, 90, 100, 110, 120, 140, 160, 170, 180, 200, 240, 250, 300, 350, 400
+!
+! ifdef([COLOR], [
+! colors for xterm(?) and swisswatch (why the '-'?  I dunno!)
+*customization: 		-color
+! hmmm.... these are probably not necessary/good on >8bit displays any more??
+! (we could in theory use (PLANES <= 8) here...)
+!*installColormap:		Yes
+!*installCmap:			true
+! ], [])
+!
+! cleaner looking Xaw (Athena Widget Set) scrollbar appearance
+! (some say this is more like 9term) (otherwise is black)
+!
+*Scrollbar.foreground:		gray80
+*Scrollbar.background:		gray50
+!
+! The named pixmap is used to tile (or stipple) the "thumb" of the scrollbar.
+! Set to "None" to disable tiling.
+!
+*Scrollbar.thumb: None
+!
+! The width/height and minimum "length" should probably be more on a hi-res
+! display....
+!*Scrollbar.thickness:		???
+!*Scrollbar.minimumThumb: 	???
+!
+!
+! Xpdf settings
+!
+Xpdf*fontList:			-*-courier-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-*-*
+Xpdf.initialZoom:		page
+! ifdef([COLOR], [
+! (we could in theory also use (PLANES <= 8) here...)
+!Xpdf.installCmap:		true
+! ])
+Xpdf.toolTipEnable:		false
+!
+! also mainly for xpdf, but also other Motif things?
+! (these use new aliases from ~/.fonts.alias.m4)
+!
+! ifelse(eval(FontYDPI > 110), 1, [
+*.zoomComboBox*fontList:	variable
+*XmTextField.fontlist:		fixed
+!
+*buttonFontList:		varbold
+*defaultFontList:		fixed
+*labelFontList:			italic
+*menubar*fontList:		varbold
+*helpFont:			fixed
+*textFontList:			fixed
+*xrtGearFontListSelected:	bold
+! ], [])
+!
+! Xterm settings:
 !
 *cursorBlink:			true
 *deleteIsDEL:			true
 !
-! cleaner looking Xaw (Athena Widget Set) scrollbar appearance
-! (some say this is more like 9term)
+*SimpleMenu*menuLabel.font:	-*-liberation mono-bold-r-normal--*-100-FontXDPI-FontYDPI-m-0-iso8859-*
+*SimpleMenu*Cursor: 		hand2
 !
-!  borderWidth seems to do nothing for XTerm (1 is the default)
-!*Scrollbar.borderWidth: 4
-*Scrollbar.foreground: gray80
-*Scrollbar.background: gray50
-*Scrollbar.thumb: None
+! "Default", size is overridden by command-line "-fs" ???
+*VT100.font:		-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font:	-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.faceSize:	9.0
+! Unreadable: (this is by default "nil2", but that is a bitmap font (in misc))
+*VT100.font1:  		-*-liberation mono-medium-r-normal--0-50-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font1:	-*-liberation mono-medium-r-normal--0-10-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.faceSize1: 	0.5
+! Tiny:
+*VT100.font2:		-*-liberation mono-medium-r-normal--0-70-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font2:	-*-liberation mono-medium-r-normal--0-70-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.faceSize2:	7.0
+! Small:
+*VT100.font3:		-*-liberation mono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font3:	-*-liberation mono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.faceSize3:	9.0
+! Medium:
+*VT100.font4:		-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font4:	-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.faceSize4:	10.0
+! Large:
+*VT100.font5:		-*-liberation mono-medium-r-normal--0-120-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font5:	-*-liberation mono-medium-r-normal--0-120-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.faceSize5:	12.0
+! Huge:
+*VT100.font6:		-*-liberation mono-medium-r-normal--0-180-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font6:	-*-liberation mono-medium-r-normal--0-180-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.faceSize6:	18.0
+! Enormous:
+*VT100.font7:		-*-liberation mono-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font7:	-*-liberation mono-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.faceSize7:	24.0
 !
 ! Even with Unicode it is still nice to type accented chars
 !
@@ -49,15 +263,11 @@ xpdf.toolTipEnable:		false
 !
 ! Having the same operations on both shifted and meta keys might be stupid.
 !
-! XXX probably do not need the ~Shift entries -- they effectively force "normal
-! mode" cursor keys -- especially if terminfo has not been fixed to remove
-! "application" key switching from smkx and rmkx.
+! XXX we probably do not need the ~Shift entries -- they effectively force
+! "normal mode" cursor keys -- especially if terminfo has not been fixed to
+! remove "application" key switching from smkx and rmkx.
 !
-! xxx perhaps the leading "UXTerm" and "Xterm" parts can be removed to allow
-! having just one entry, but then it would apply to any app with a VT100 class
-! name.
-!
-UXTerm*VT100.Translations:       #override \n\
+*VT100.Translations:       #override \n\
 	Shift  <Key> Up:    scroll-back(1,line) \n\
 	Shift  <Key> Down:  scroll-forw(1,line) \n\
 	Shift  <Key> Prior: scroll-back(1,page) \n\
@@ -70,19 +280,8 @@ UXTerm*VT100.Translations:       #override \n\
 	Meta   <Key> Next:  scroll-forw(1,page) \n\
 	Meta   <Key> Home:  scroll-to(begin) \n\
 	Meta   <Key> End:   scroll-to(end) \n
-XTerm*VT100.Translations:       #override \n\
-	Shift  <Key> Up:    scroll-back(1,line) \n\
-	Shift  <Key> Down:  scroll-forw(1,line) \n\
-	Shift  <Key> Prior: scroll-back(1,page) \n\
-	Shift  <Key> Next:  scroll-forw(1,page) \n\
-	Shift  <Key> Home:  scroll-to(begin) \n\
-	Shift  <Key> End:   scroll-to(end) \n\
-	Meta   <Key> Up:    scroll-back(1,line) \n\
-	Meta   <Key> Down:  scroll-forw(1,line) \n\
-	Meta   <Key> Prior: scroll-back(1,page) \n\
-	Meta   <Key> Next:  scroll-forw(1,page) \n\
-	Meta   <Key> Home:  scroll-to(begin) \n\
-	Meta   <Key> End:   scroll-to(end) \n
+!
+! changequote()
 !
 ! XXX these would force "normal mode" cursor keys all the time:
 !
@@ -95,219 +294,68 @@ XTerm*VT100.Translations:       #override \n\
 !	~Shift <Key> Prior: string(\033[5~) \n\
 !	~Shift <Key> Next:  string(\033[6~) \n\
 !
-XFontSel*sampleText:		"abcdefghijklmnopqrstuvwxyz\n\
-				ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
-				0123456789_oO0_lL1Ii\n\
-				!@\#$%^&*()_+-=\\[];'`,./|{}:\"~<>?\n\
-				◆▒␉␌␍␊°±␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥π≠£·\n\
-				ABCDEFGHIJKLMNOPQRSTUVWXYZ /0123456789\n\
-				abcdefghijklmnopqrstuvwxyz"
+! Now some sample text for xfontsel.  The first is assumed to be in iso8859-1.
 !
-XFontSel*sampleTextUCS:		"abcdefghijklmnopqrstuvwxyz\n\
-				ABCDEFGHIJKLMNOPQRSTUVWXYZ\n\
-				0123456789_oO0_lL1Ii\n\
-				!@\#$%^&*()_+-=\\[];'`,./|{}:\"~<>?\n\
-				 ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿\n\
-				àáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ\n\
-				ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß\n\
-				に日本語を入れておくとよろしい。\n\
-				◆▒␉␌␍␊°±␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥π≠£·\n\
-				ABCDEFGHIJKLMNOPQRSTUVWXYZ /0123456789\n\
-				abcdefghijklmnopqrstuvwxyz £©µÀÆÖÞßéöÿ\n\
-				–―‘“”„†•…‰™œŠŸž€ ΑΒΓΔΩαβγδω АБВГДабвгд\n\
-				∀∂∈ℝ∧∪≡∞ ↑↗↨↻⇣ ┐┼╔╘░►☺♀ ﬁ�⑀₂ἠḂӥẄɐː⍎אԱა"
+! The first line of each are chars that must all be easily distinguisable as
+! unique for programming (except maybe the last two, the first of which is the
+! SOFT HYPHEN, which when displayed should probably look just like the
+! HYPHEN-MINUS that follows it).  The fifth line is made up of the ASCII
+! punctuation characters gathered in value-order.  The sixth-eighth lines are
+! value-order iso8859-1 characters 0x80-0xFF.
 !
-Netscape*XmLGrid.foreground:	Black
-Netscape*XmLGrid.background:	White
-Netscape*XmLGrid.selectForeground:	White
-Netscape*XmLGrid.selectBackground:	Black
-Netscape*blinkingEnabled:	False
-Netscape*documentColorsHavePriority:	False
-Netscape*progressInterval:	3
-Netscape*maxImageColors:	64
-Netscape*useStderrDialog: False
-Netscape*useStdoutDialog: False
+! N.B.:  Since this file contains UTF-8 encoded Unicode characters, the high-bit
+! ISO-8859 characters must be encoded as octal escaped characters (along with
+! some special ones that make Emacs font-lock mode happy, and of course the
+! embedded newlines too).
 !
-xosview*cpuDecay:	True
-xosview*usedLabelColor:	gray100
-xosview*swapDecay:	False
-xosview*mem:	True
-xosview*borderwidth:	0
-xosview*network:	2000
-xosview*memUsedColor:	gray100
-xosview*font:	7x13bold
-xosview*netInColor:	gray100
-xosview*memSharedColor:	gray60
-xosview*load:	True
-xosview*netOutColor:	gray80
-xosview*memBufferColor:	gray00
-xosview*loadWarnColor:	gray100
-xosview*netBackground:	gray40
-xosview*memFreeColor:	gray40
-xosview*loadProcColor:	gray80
-xosview*netPriority:	2
-xosview*memTextColor:	gray0
-xosview*loadIdleColor:	gray40
-xosview*netDecay:	True
-xosview*memOtherColor:	gray0
-xosview*loadPriority:	50
-xosview*serial1:	False
-xosview*memActiveColor:	gray100
-xosview*foreground:	gray100
-xosview*loadAlarmThreshold:	2
-xosview*serial2:	False
-xosview*memInactiveColor:	gray80
-xosview*background:	gray0
-xosview*cpu:	True
-xosview*serial3:	False
-xosview*memPriority:	10
-xosview*cpuUserColor:	gray100
-xosview*serial4:	False
-xosview*memDecay:	False
-xosview*cpuNiceColor:	gray80
-xosview*interrupts:	False
-xosview*cpuSystemColor:	gray60
-xosview*swap:	True
-xosview*cpuInterruptColor:	gray0
-xosview*labels:	True
-xosview*swapUsedColor:	gray100
-xosview*cpuFreeColor:	gray40
-xosview*meterLabelColor:	gray100
-xosview*swapFreeColor:	gray40
-xosview*cpuPriority:	1
-xosview*usedlabels:	True
-xosview*swapPriority:	10
+! Note that xrdb does not strip leading whitespace after a backslash (only after
+! the colon), so all these lines start with an extra tab character.
 !
-XVnews.Indent:	> 
-XVnews.displaysize:	9
-XVnews.sortSubjects:	0
-XVnews.highlight:	
-XVnews.background:	
-XVnews.textfontsize:	3
-XVnews.listfont:	2
-XVnews.textcolor:	
-XVnews.textfont:	0
-XVnews.Rescan:	15
-XVnews.textback:	
-XVnews.SearchDefault:	2
-XVnews.postEditor:	
-XVnews.Header:	0
-XVnews.NextDefault:	3
-XVnews.PrevDefault:	2
-XVnews.logFile:	/home/most/woods/News/news.record
-XVnews.listfontsize:	1
+XFontSel*sampleText:	\
+	`\264\250\047\0421lIi|\246\041¡/\3300Oo{[(<\253\273>)]},.;\072?\277\n\
+	\251\256a\2522\2623\263u\265pP\266#\244\243$\242\245\260.\267,\270\261+=\254~_\255-\n\
+	ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789\n\
+	abcdefghijklmnopqrstuvwxyz\n\
+	\040\041\042#$%&\047()*+,-./\072;<->?[\\]^_`{|}~\n\
+	\240\241\242\243\244\245\246\247\250\251\252\253\254\256\257\260\261\262\263\264\265\266\267\270\271\272\273\274\275\276\277\n\
+	\300\301\302\303\304\305\306\307\310\311\312\313\314\316\317\320\321\322\323\324\325\326\327\330\331\332\333\334\335\336\337\n\
+	\340\341\342\343\344\345\346\347\350\351\352\353\354\356\357\360\361\362\363\364\365\366\367\370\371\372\373\374\375\376\377\n
 !
-#ifndef COLOR
-plan*foreground:        #000000
-plan*background:        #a0a0a0
-plan*colStd:            #101010
-plan*colBack:           #b4b4b4
-plan*colGrayIcon:       #888888
-plan*colWireFrame:      #aaaaaa
-plan*colCalBack:        #e0e0e0
-plan*colCalShade:       #d0d0d0
-plan*colCalToday:       #60f060
-plan*colCalFrame:       #ffffff
-!plan*colCalFrame:       #e0e0e0
-plan*colGrid:           #404040
-plan*colWeekday:        #000000
-plan*colWeekend:        #c02020
-plan*colNote:           #404080
-plan*colNoteOff:        #a0a0c0
-plan*colToggle:         #00ff00
-plan*colRed:            #ff0000
-plan*colTextBack:       #c07070
-plan*colYearBack:       #e0e0e0
-plan*colYearBoxBack:    #d0d0d0
-plan*colYearNumber:     #000000
-plan*colYearWeekday:    #202020
-plan*colYearMonth:      #404080
-plan*colYearTitle:      #404080
-plan*colYearGrid:       #404040
-plan*colHolidayBlack:   #000000
-plan*colHolidayRed:     #ff4040
-plan*colHolidayGreen:   #008000
-plan*colHolidayYellow:  #a0a000
-plan*colHolidayBlue:    #0000ff
-plan*colHolidayMagenta: #ff00ff
-plan*colHolidayCyan:    #008080
-plan*colHolidayWhite:   #ffffff
-plan*menubar*fontList:  -*-helvetica-bold-*-normal-*-14-*
-plan*fontList:          -*-helvetica-*-r-normal-*-14-*
-plan*helpFont:          -*-helvetica-medium-r-normal-*-14-*
-plan*calNumberFont:     -*-helvetica-*-r-*-*-34-*
-plan*calNumberFontSm:   -*-helvetica-*-r-*-*-14-*
-plan*calNoteFont:       -*-helvetica-*-r-*-*-12-*
-plan*calBoxWidth:       100
-plan*calBoxHeight:      80
-plan*calBoxMargin:      20
-plan*calArrowWidth:     10
-plan*calBoxWidthSm:     40
-plan*calBoxHeightSm:    34
-plan*calBoxMarginSm:    10
-plan*calArrowWidthSm:   6
-plan*calBoxTitle:       25
-plan*noteWidth:         178
-plan*noIcon:            False
-plan*showIconTime:      True
-plan*frameToday:        False
-plan*noMonthShadow:     False
-plan*yearTitleFont:     -*-helvetica-*-r-*-*-34-*
-plan*yearMonthFont:     -*-helvetica-*-o-*-*-17-*
-plan*yearWeekdayFont:   -*-helvetica-*-o-*-*-12-*
-plan*yearNumberFont:    -*-helvetica-*-r-*-*-12-*
-plan*yearMargin:        20
-plan*yearGap:           20
-plan*yearTitle:         30
-plan*yearBoxWidth:      30
-plan*yearBoxHeight:     24
-plan*dayMargin:         26
-plan*dayGap:            4
-plan*dayHeadline:       15
-plan*dayHourWidth:      50
-plan*dayHourHeight:     32
-plan*dayBarWidth:       100
-plan*weekMargin:        16
-plan*weekGap:           6
-plan*weekDayWidth:      80
-plan*weekHourWidth:     50
-plan*weekBarHeight:     20
-plan*weekBarGap:        3
-plan*weekMaxNote:       200
-plan*yovWWidth:         870
-plan*yovWHeight:        400
-plan*yovDayWidth:       24
-plan*colWeekBack:       #e0e0e0
-plan*colWeekBoxback:    #c0c0c0
-plan*colWeekTitle:      #202020
-plan*colWeekGrid:       #606060
-plan*colWeekDay:        #404080
-plan*colWeekNote:       #202020
-plan*colWeekFrame:      #000000
-!plan*colWeekFrame:      #202020
-plan*colWeekWarn:       #808080
-plan*colWeekUser_0:     #8080c0
-plan*colWeekUser_1:     #e07070
-plan*colWeekUser_2:     #50d050
-plan*colWeekUser_3:     #c070c0
-plan*colWeekUser_4:     #b0c050
-plan*colWeekUser_5:     #50c0a0
-plan*colWeekUser_6:     #e0a020
-plan*colWeekUser_7:     #60b0d0
-plan*weekTitleFont:     -*-helvetica-*-r-*-*-18-*
-plan*weekDayFont:       -*-helvetica-*-o-*-*-14-*
-plan*weekHourFont:      -*-helvetica-*-r-*-*-14-*
-plan*weekNoteFont:      -*-helvetica-*-r-*-*-14-*
-#endif
-
-GV.beNiceToColormap:	True
-GV.autoResize:		False
-GV.fallbackPageMedia:	letter
-
-#ifdef COLOR
-GV.antialias:		True
-#else
-GV.antialias:		True
+! This set uses UTF-8 encoding directly, and adds three lines of some hopefully
+! commonly used Unicode characters, adding first the Greek and Cyrillic
+! alphabets, followed by a jumble of common/interesting Unicode characters.
+!
+XFontSel*sampleTextUCS:	\
+	~`´¨\'\"1lIi|¦\041¡/DØ0Oo{[(<«»>)]},.;\072?¿\n\
+	©®aª2²3³8BuµpP¶#¤£$¢¥°.·,¸±+=¬~_--\n\
+	ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789\n\
+	abcdefghijklmnopqrstuvwxyz\n\
+	 \041\042#$%&\047()*+,-./\072;<->?[\\]^_`{|}~\n\
+	 ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿\n\
+	ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß\n\
+	àáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ\n\
+	ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ\n\
+	αβγδεζηθικλμνξοπρςτυφχψω\n\
+	АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ\n\
+	абвгдеёжзийклмнопрстуфхцчшщъыьэюя\n\
+	–―†‡•…‰™ᴂﬁœᴈŠŸž€ \n\
+	☺☹✝✚✡☥⎈☭☪∀∂∈ℝ∧∪∞π↑↗↨↻⇣┐┼╔╘►⑀₂ἠḂӥẄɐː⍎אԱა�\n\
+	⌈⌉⌊⌋∏∑∫⊕⊖⊗⊘⊙⊚⊛∙∘′″‴∼∂√≔ⁱ⁰₀₁₂∧∨∃⊦∅∈∉⊂⊃⊆⊇⊄⋂⋃\n\
+	※◆░▒␉␌␍␊␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥≮≯≠≈≡£₿₠∎\n\
+	‹›“”‘’„〖〗【】「」『』〈〉《》〔〕\n\
+	•◦‣✓●■◆○□◇★☆♠♣♥♦♤♧♡♢♩♪♫♬♭♮♯☰☱☲☳☴☵☶☷\n\
+	←→↑↓↔↖↗↙↘⇐⇒⇑⇓⇔⇗⇦⇨⇧⇩↞↠↟↡↺↻☞☜☝☟\n\
+	☠☢☣☤♲♳⌬♨♿☉☼☾☽♀♂☯♔♕♖♗♘♙♚♛♜♝♞♟\n\
+	に日本語を入れておくとよろしい。\n\
+	林花謝了春紅 太匆匆, 無奈朝來寒雨 晚來風\n\
+	胭脂淚 留人醉 幾時重, 自是人生長恨 水長東\n
+!
+! changequote([, ])
+!
+! XXX: these have to be in ~/.Xdefaults because gv does not use CPP to process
+! this file...
+!
+! ifdef([COLOR], [], [
 GV.gsX11Device:		-sDEVICE=x11mono
-GV.gsArguments:		-sDEVICE=x11mono
-#endif
+GV.gsX11AlphaDevice:	-sDEVICE=x11mono -dTextAlphaBits=4 -dGraphicsAlphaBits=2 -dMaxBitmap=10000000 -dNOPLATFONTS
+! ])
