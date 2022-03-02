@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	37.6	22/02/23 17:37:41 (woods)"
+#ident	"@(#)HOME:.kshrc	37.7	22/03/02 13:36:44 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -77,13 +77,20 @@ esac
 #
 if ! typeset -f zhead >/dev/null ; then
 	# try to find a related .shrc, even when using "su" or a sub-shell
+	# the guts here could/should be a function, but it would be in .shrc!
 	if [ -n "${ENVFILE}" ]; then
 		. $(dirname ${ENVFILE})/.shrc
 		# also try to set MAILDOMAIN for .emacs.el if it was not set...
 		if [ -z "${MAILDOMAIN}" -a -r $(dirname ${ENVFILE})/.localprofile ]; then
 			. $(dirname ${ENVFILE})/.localprofile
 		fi
-	elif [ -n "${LOGNAME}" ]; then
+	elif [ -r ${HOME}/.shrc ]; then
+		. ${HOME}/.shrc
+		if [ -z "${MAILDOMAIN}" -a -r ${HOME}/.localprofile ]; then
+			. ${HOME}/.localprofile
+		fi
+	fi
+	if [ -n "${LOGNAME}" ]; then
 		eval shrc=~${LOGNAME}/.shrc
 		if [ -r ${shrc} ]; then
 			. ${shrc}

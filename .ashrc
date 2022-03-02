@@ -1,7 +1,7 @@
 #
 #	.ashrc - per-shell startup stuff for ash via $ENV
 #
-#ident	"@(#)HOME:.ashrc	37.4	22/02/23 17:37:33 (woods)"
+#ident	"@(#)HOME:.ashrc	37.5	22/03/02 13:36:44 (woods)"
 
 # Assumptions:
 #	- chdir must be synonymous with cd, and cd can be reset to a function
@@ -70,13 +70,20 @@ esac
 #
 if ! type zhead >/dev/null 2>&1; then
 	# try to find a related .shrc, even when using "su" or a sub-shell
+	# the guts here could/should be a function, but it would be in .shrc!
 	if [ -n "${ENVFILE}" ]; then
 		. $(dirname ${ENVFILE})/.shrc
 		# also try to set MAILDOMAIN for .emacs.el if it was not set...
 		if [ -z "${MAILDOMAIN}" -a -r $(dirname ${ENVFILE})/.localprofile ]; then
 			. $(dirname ${ENVFILE})/.localprofile
 		fi
-	elif [ -n "${LOGNAME}" ]; then
+	elif [ -r ${HOME}/.shrc ]; then
+		. ${HOME}/.shrc
+		if [ -z "${MAILDOMAIN}" -a -r ${HOME}/.localprofile ]; then
+			. ${HOME}/.localprofile
+		fi
+	fi
+	if [ -n "${LOGNAME}" ]; then
 		eval shrc=~${LOGNAME}/.shrc
 		if [ -r ${shrc} ]; then
 			. ${shrc}
