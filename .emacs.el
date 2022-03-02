@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.6	22/02/23 18:12:00 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.7	22/03/02 13:34:02 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v22.1 or newer
 ;;;;
@@ -2598,7 +2598,6 @@ mode according to start of the current buffer."
 ;;
 ;;	(push '("\\.suffix\\'" . my-mode) auto-mode-alist)
 
-
 ;; The REs in each element of `auto-mode-alist' match the visited file name so
 ;; you normally only want to match names at the end and not include any
 ;; directory portion unless you always visit the file using the directory
@@ -2615,6 +2614,24 @@ mode according to start of the current buffer."
 ;; N.B.:  There isn't anything special about `indented-text-mode' any more as
 ;; these days (since 1997, emacs-20.1) it is simply an alias for `text-mode'.
 ;;
+;; assume the autoloads are done for all these...
+
+(eval-when-compile
+  (defvar diff-mode-map))
+(if (elisp-file-in-loadpath-p "diff-mode")
+    (progn
+      (defun set-diff-mode-keys ()
+	"Set additional diff-mode related bindings."
+	(define-key diff-mode-map "\e," 'top-of-window)
+	(define-key diff-mode-map "\e." 'bottom-of-window)
+	(define-key diff-mode-map "\e?" 'help-command))
+      (add-hook 'diff-mode-hook
+		'set-diff-mode-keys)
+      (mapc 'add-to-auto-mode-alist
+	    (list
+	     '("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)
+	     '("patch-[^/]*\\'" . diff-mode)))))
+
 (mapc 'add-to-auto-mode-alist
       (list
        '("[Cc]onfig[^/\\.]*\\'" . sh-mode)	; sh-mode, in 19.28 and newer
@@ -2663,23 +2680,6 @@ mode according to start of the current buffer."
 
 (add-to-auto-mode-alist
  (cons (concat "\\`" (getenv "HOME") "/notes/.+\\'") 'indented-text-mode))
-
-;; assume the autoloads are done for this...
-(eval-when-compile
-  (defvar diff-mode-map))
-(if (elisp-file-in-loadpath-p "diff-mode")
-    (progn
-      (defun set-diff-mode-keys ()
-	"Set additional diff-mode related bindings."
-	(define-key diff-mode-map "\e," 'top-of-window)
-	(define-key diff-mode-map "\e." 'bottom-of-window)
-	(define-key diff-mode-map "\e?" 'help-command))
-      (add-hook 'diff-mode-hook
-		'set-diff-mode-keys)
-      (mapc 'add-to-auto-mode-alist
-	    (list
-	     '("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)
-	     '("patch-[^/]*\\'" . diff-mode)))))
 
 ;; assume the autoloads are done for this...
 (if (or (elisp-file-in-loadpath-p "makefile")
