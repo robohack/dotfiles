@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.6	22/02/23 17:37:49 (woods)"
+#ident	"@(#)HOME:.profile	37.7	22/03/02 13:43:13 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -321,33 +321,7 @@ case "${HOSTNAME}" in
 esac
 
 if [ -z "${DOMAINNAME}" ] ; then
-	if [ -r /etc/resolv.conf ] && fgrep domain /etc/resolv.conf >/dev/null 2>&1; then
-		#
-		# here we use domain, not "search", on purpose so that
-		# we will only set DOMAINNAME if that's been done
-		# explicitly in resolv.conf -- normally dhclient and
-		# such will set "search" from the network
-		#
-		# xxx except on MacOS X, sigh... (but see above....)
-		#
-		eval `sed -n '/^[;#]/d;s/domain[ 	]*/DOMAINNAME=./p' /etc/resolv.conf`
-	elif type domainname >/dev/null 2>&1; then
-		DOMAINNAME=`domainname`
-	elif expr "${HOSTNAME}" : '[^\.]*\.' >/dev/null 2>&1 ; then
-		DOMAINNAME="."`expr "${HOSTNAME}" : '[^\.]*\.\(.*\)$'`
-	else
-		# these cases for machines without domainname,
-		# and a short hostname....
-		#
-		case "${UUNAME}" in
-		weirdo )
-			DOMAINNAME=".weird.com"
-			;;
-		* )
-			DOMAINNAME=".UUCP"
-			;;
-		esac
-	fi
+	DOMAINNAME=`get_domainname`
 	export DOMAINNAME
 fi
 
@@ -358,6 +332,13 @@ TTYN=`tty | sed 's|/dev/||'`; export TTYN
 #
 if [ -r ${HOME}/.localprofile ] ; then
 	. ${HOME}/.localprofile
+fi
+
+ISSUN=false; export ISSUN
+if [ -x /usr/bin/sun ]; then
+	if sun; then
+		ISSUN=true
+	fi
 fi
 
 if "${PATH_IS_OKAY:-false}" ; then
@@ -452,21 +433,19 @@ fi
 # TODO: some of these we may want fixed in even if they don't exist at
 # login time...
 #
-dirappend PATH /usr/ccs/bin /usr/xpg4/bin ${X11BIN} ${LOCAL}/bin ${GNU}/bin ${CONTRIB}/bin ${PKG}/bin /usr/ucb /usr/bsd ${SLASHOPT}/bin ${SLASHOPT}/gnu/bin
+# On Solaris after 5.10 the most POSIX-ish behaviour is given by:
+#
+#	PATH=/usr/xpg6/bin:/usr/xpg4/bin:/usr/ccs/bin:/usr/bin
+#
+dirprepend PATH /usr/xpg6/bin /usr/xpg4/bin /usr/ccs/bin
+dirappend PATH ${X11BIN} ${LOCAL}/bin ${CONTRIB}/bin
+dirappend PATH ${PKG}/bin ${PKG}/DWB/bin
+dirappend PATH ${PKG}/heirloom-xpg4/bin ${PKG}/heirloom-ccs/bin ${PKG}/heirloom-doctools/bin ${PKG}/heirloom/bin
+dirappend PATH ${SLASHOPT}/bin
+dirappend PATH ${GNU}/bin ${SLASHOPT}/gnu/bin
+dirappend PATH /usr/ucb /usr/bsd
 dirappend PATH ${HI_TECH_C}/bin
 dirappend PATH /usr/games ${LOCAL}/games ${SLASHOPT}/games/bin
-
-# CDPATH isn't supported in all shells, but it won't hurt....
-#
-# make sure these directories are fixed in even if they are not
-# present at login time.
-#
-if [ -n "${CDPATH}" ]; then
-	OCDPATH=${CDPATH}; export OCDPATH
-fi
-CDPATH=:${HOME}:${WORKPATH}:${HOME}/src:${HOME}/src/lib:/usr/pkgsrc:/usr/ports
-
-export CDPATH
 
 if [ -n "${MANPATH}" ]; then
 	OMANPATH=${MANPATH} ; export OMANPATH
@@ -494,25 +473,21 @@ if [ -z "${INFOPATH}" ] ; then
 fi
 dirprepend INFOPATH ${LOCAL}/share/info ${LOCAL}/info ${GNU}/info ${CONTRIB}/share/info ${CONTRIB}/info ${PKG}/share/info ${PKG}/gnu/share/info ${PKG}/info ${X11PATH}/info
 
-ISSUN=false; export ISSUN
-if [ -x /usr/bin/sun ] ; then
-	if sun ; then
-		ISSUN=true
-		PATH=`echo ${PATH} | sed 's/^\/bin://'`
-		if [ "`uname -r | sed 's/^\([0-9]*\).*$/\1/'`" -lt 5 ] ; then
-			if [ "X${LOGNAME}" != "Xroot" ] ; then
-				dirprepend PATH /usr/5bin
-			else
-				dirappend PATH /usr/5bin
-			fi
+if $ISSUN; then
+	PATH=`echo ${PATH} | sed 's/^\/bin://'`
+	if [ "`uname -r | sed 's/^\([0-9]*\).*$/\1/'`" -lt 5 ] ; then
+		if [ "X${LOGNAME}" != "Xroot" ] ; then
+			dirprepend PATH /usr/5bin
 		else
-			dirprepend PATH /opt/SUNWspro/bin
+			dirappend PATH /usr/5bin
 		fi
-		# XXX FIXME: should use OPENWINHOME ???
-		# XXX FIXME: should only do this if DISPLAY set???
-		dirappend PATH /usr/openwin/bin /usr/openwin/demo
-		dirappend MANPATH /usr/openwin/share/man
+	else
+		dirprepend PATH /opt/SUNWspro/bin
 	fi
+	# XXX FIXME: should use OPENWINHOME ???
+	# XXX FIXME: should only do this if DISPLAY set???
+	dirappend PATH /usr/openwin/bin /usr/openwin/demo
+	dirappend MANPATH /usr/openwin/share/man
 fi
 
 if [ -d ${LOCAL}/dmdlayers/bin -a "X${TERM}" = "Xdmd" ] ; then
@@ -613,31 +588,44 @@ if [ -z "${LC_CTYPE}" -a -z "${LC_ALL}" -a -z "${LANG}" ]; then
 		#
 		LESSCHARSET="latin1"; export LESSCHARSET
 		#
-		# XXX when can I jump to UTF-8????
+		# We'll assume for now that the console is in vt100 emulation
+		# mode and loaded with an "iso" (i.e. ISO-8859-1) font.
 		;;
 	xterm*)
-		# Xterm probably set things up OK itself, i.e. if it was uxterm
-		# then we're probably not in this 'if' block....
+		# Xterm will normally set the environment up for itself, i.e. if
+		# it was started as "uxterm" then we're NOT in this 'if' block!
 		#
 		# For less, from the man page:
 		#	If neither LESSCHARSET nor LESSCHARDEF is set, but any of the strings
 		#	"UTF-8", "UTF8", "utf-8" or "utf8" is found in the LC_ALL, LC_CTYPE or
 		#	LANG environment variables, then the default character set is utf-8.
+		#
+		# So for plain (ascii) xterm, we probably also want to avoid
+		# using LESSCHARSET too....
+		#
 		unset LESSCHARSET
 		;;
 	esac
 else
+	# Here we have LC_CTYPE (and/or LC_ALL and/or LANG)...
+	#
 	# xxx printf(3)'s "%'d" flag (i.e. the "'") is pedantic about having a
 	# known locale set for at least LC_NUMERIC before it does commification!
 	#
 	# XXX XXX but this hard-coded choice may not be available everywhere,
-	# never mind appropriate for anyone but me...
+	# never mind appropriate for anyone but me...  On NetBSD there's a
+	# locale alias called "C.UTF-8", which is currently by default an alias
+	# for "en_US.UTF-8". but maybe the alias is more universal?
 	#
 	LC_NUMERIC="en_CA.UTF-8"
 	export LC_NUMERIC
+	LC_MONETARY="en_CA.UTF-8" # this is the only one different from en_US
+	export LC_MONETARY
 
-	# XXX BTW, why is $(LANG= LC_ALL= LC_CTYPE= locale charmap)=="646" on NetBSD???
-	# (it should be "US-ASCII"!)
+	# XXX BTW, why is $(LANG= LC_ALL= LC_CTYPE= locale charmap)=="646" on
+	# NetBSD but "locale -m" does not include "646" (only "US-ASCII"!)
+	#
+	# XXX Besides, shouldn't it properly be "ISO646"????
 fi
 # I am unlikely to ever want command to display times and dates in locale form!
 LC_TIME="C"
@@ -757,7 +745,6 @@ if [ -z "${UUCPSPOOLDIR}" ] ; then
 		export UUCPSPOOLDIR
 	fi
 fi
-
 
 # use MAIL instead of MAILPATH, primarily to avoid the clash of using
 # a POP specification in MAILPATH for emacs VM
@@ -893,20 +880,6 @@ export VISUAL
 
 EXINIT="set sm" ; export EXINIT
 
-if [ -z "${CVSROOT}" ] ; then
-	CVSROOT=${LOCAL}/src-CVS ; export CVSROOT
-fi
-
-# on older systems GNU Diff is preferred for things that use $DIFF,
-# but sometimes it's in ${LOCAL}/bin as just "diff"
-#
-if [ -x ${LOCAL}/bin/diff ] ; then
-	DIFF=${LOCAL}/bin/diff ; export DIFF
-elif type gdiff >/dev/null 2>&1; then
-	# XXX this isn't always best any more!
-	DIFF="gdiff" ; export DIFF
-fi
-
 HAVEAUPLAY=false ; export HAVEAUPLAY
 if type auplay >/dev/null 2>&1; then
 	HAVEAUPLAY=true
@@ -926,6 +899,7 @@ if [ -z "${AUDIOPLAYER}" ] ; then
 			AUDIOPLAYER="auplay -v 20"
 		fi
 	elif ${HAVEESDPLAY} ; then
+		# XXX ESound is actually a dead-end....
 		AUDIOPLAYER="esdplay"
 		if [ -z "$ESPEAKER" ]; then
 			# n.b.:  a hostname alias....

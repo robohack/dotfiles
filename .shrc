@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.12	22/02/24 15:01:06 (woods)"
+#ident	"@(#)HOME:.shrc	37.13	22/03/02 13:43:13 (woods)"
 
 PATH=$PATH
 export PATH
@@ -478,13 +478,25 @@ slashoptlast ()
 gnufirst ()
 {
 	dirremove PATH "$GNU/bin" "$GNU/sbin"
-	dirprepend PATH "$GNU/bin"
+	dirprepend PATH "$GNU/bin" "$GNU/sbin"
 }
 
 gnulast ()
 {
 	dirremove PATH "$GNU/bin" "$GNU/sbin"
-	dirappend PATH "$GNU/bin"
+	dirappend PATH "$GNU/bin" "$GNU/sbin"
+}
+
+xpgfirst ()
+{
+	dirremove PATH /usr/xpg6/bin /usr/xpg4/bin ${PKG}/heirloom-xpg4/bin
+	dirprepend PATH /usr/xpg6/bin /usr/xpg4/bin ${PKG}/heirloom-xpg4/bin
+}
+
+xpglast ()
+{
+	dirremove PATH /usr/xpg6/bin /usr/xpg4/bin ${PKG}/heirloom-xpg4/bin
+	dirappend PATH /usr/xpg6/bin /usr/xpg4/bin ${PKG}/heirloom-xpg4/bin
 }
 
 # every truly POSIX-compliant shell implements the built-in
@@ -565,10 +577,12 @@ if type chflags >/dev/null 2>&1; then
 	Darwin*)
 		LS_O="O"
 		HAVECOLORLS=true	# by coincidence....
+		LS="/bin/ls"
 		;;
 	FreeBSD)
 		LS_O="o"
 		HAVECOLORLS=true	# by coincidence....
+		LS="/bin/ls"
 		;;
 	*)
 		LS_O="o"
@@ -597,7 +611,7 @@ else
 	}
 fi
 
-# all machines without 'head' had a shell with functions...
+# all machines without 'head' had a shell with functions... well, all that matter
 #
 if type head >/dev/null 2>&1; then
 	: # have the real thing....
@@ -845,6 +859,66 @@ set_LOCAL_et_al ()
 	export GNU
 }
 
+if $ISSUN; then
+	NETBSDSRCDIR=/work/src
+	BSDSRCDIR=/work/src
+	X11SRCDIR=/work/xsrc
+	PKGSRCDIR=/work/pkgsrc
+	PORTSSRCDIR=/work/ports
+elif [ `uname -s` = "Darwin" ]; then
+	#
+	# Modern macOS won't let root create symlinks in / or /usr....
+	#
+	NETBSDSRCDIR=/Volumes/work/src
+	BSDSRCDIR=/Volumes/work/src
+	X11SRCDIR=/Volumes/work/xsrc
+	PKGSRCDIR=/Volumes/work/pkgsrc
+	PORTSSRCDIR=/Volumes/work/ports
+else
+	NETBSDSRCDIR=/usr/src
+	BSDSRCDIR=/usr/src
+	X11SRCDIR=/usr/xsrc
+	PKGSRCDIR=/usr/pkgsrc
+	PORTSSRCDIR=/usr/ports
+fi
+
+# CDPATH isn't supported in all shells, but it won't hurt....
+#
+# make sure these directories are fixed in even if they are not
+# present at login time.
+#
+if [ -n "${CDPATH}" ]; then
+	OCDPATH=${CDPATH}; export OCDPATH
+fi
+CDPATH=:${HOME}:${WORKPATH}:${HOME}/src:${HOME}/src/lib:${NETBSDSRCDIR}:${BSDSRCDIR}:${X11SRCDIR}:${PKGSRCDIR}:${PORTSSRCDIR}
+
+export CDPATH
+
+if [ -z "${CVSROOT}" ] ; then
+	CVSROOT=${LOCAL}/src-CVS ; export CVSROOT
+fi
+
+# on older systems GNU Diff is preferred for things that use $DIFF,
+# but sometimes it's in ${LOCAL}/bin as just "diff"
+#
+if [ -x ${LOCAL}/bin/diff ] ; then
+	DIFF=${LOCAL}/bin/diff
+elif type gdiff >/dev/null 2>&1; then
+	# XXX this isn't always best any more!
+	DIFF="gdiff"
+fi
+export DIFF
+
+if [ -n "`make --version 2> /dev/null`" ]; then
+	# oops, this system thinks GNU Make is a real Make!
+	# Assume there is or will be a "bmake", aka BSD Make
+	BMAKE="bmake"
+else
+	# Assume for the best...
+	BMAKE="make"
+fi
+export BMAKE
+
 # n.b.:  see also the corresponding elisp functions
 #
 dfgit2magit ()
@@ -946,24 +1020,35 @@ adjlinks ()
 	unset _USAGE _from _to _lnk _otarg _ntarg OPTCH
 }
 
-# this is a bit like the GNU (err, vim) "xxd -p", but far more portable
-#
-hexencode ()
+checkptrs ()
 {
-	hexdump -v -e '1/1 "%02x"'
-}
+	if [ $# -ne 1 ]; then
+		echo "Usage: checkptrs [ 192.168.1.0 | 1.168.192.in-addr.arpa ]" >&2
+		return 2
+	fi
+	_i=0
+	_in_addr_arpa=$1
 
-# xxx hmmm... this works!  (assuming we have printf(1), of course)
-#
-hexdecode ()
-{
-	sed 's/\([0-9A-Fa-f]\{2\}\)/\\\\\\x\1/g' | xargs printf
+	case ${_in_addr_arpa} in
+	*.in-addr.arpa)
+		:
+		;;
+	*)
+		_in_addr_arpa=`echo ${_in_addr_arpa} | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\3.\2.\1/'`".in-addr.arpa"
+	esac
+	echo "checkptrs: checking for all PTRs in: ${_in_addr_arpa}"
+	while [ $_i -lt 255 ]; do
+		host -a ${_i}.${_in_addr_arpa} 2>/dev/null || true;
+		_i=`expr ${_i} + 1`
+	done
+	unset _i _in_addr_arpa
 }
 
 cdpkgwrksrc ()
 {
 	# XXX don't do anything if not directly in a pacakge dir
-	cd `make show-var VARNAME=WRKSRC`
+	cd `${BMAKE} show-var VARNAME=WRKSRC`
+	pwd
 }
 
 # this name is chosen so as to complement cdpkgwrksrc to facilitate easier
@@ -972,7 +1057,8 @@ cdpkgwrksrc ()
 cdwrkpkg ()
 {
 	# XXX don't do anything if not directly in a pacakge dir
-	cd `make show-var VARNAME=WRKDIR`
+	cd `${BMAKE} show-var VARNAME=WRKDIR`
+	pwd
 }
 
 cvsupdateroot ()
@@ -1004,16 +1090,64 @@ difforig ()
 	unset _DIFFOPTS
 }
 
-# Display the opening doc comment in a script file.
-#
-shelp () {
-        _binfile=`which "$0"`
+filerot ()
+{
+	:
+	# xxx move file to file-, after file- to file-- and so on...
+}
 
-        _hdr=`dd if="$_binfile" count=2 bs=1`
-        if [ "$_hdr" = "#!" ]; then
-	        sed -rn 's/^### ?//;T;p' "$_binfile"
-        fi
-	unset _binfile _hdr
+get_domainname ()
+{
+	if [ -r /etc/resolv.conf ] && fgrep domain /etc/resolv.conf >/dev/null 2>&1; then
+		#
+		# here we use domain, not "search", on purpose so that
+		# we will only set DOMAINNAME if that's been done
+		# explicitly in resolv.conf -- normally dhclient and
+		# such will set "search" from the network DHCP server
+		#
+		# xxx except of course on MacOS X aka macOS, sigh...
+		#
+		sed -n '/^[;#]/d;s/domain[ 	]*/./p' /etc/resolv.conf
+	elif type domainname >/dev/null 2>&1; then
+		#
+		# for laggards like me who use this for DNS too
+		#
+		_D=domainname
+		if expr "${_D}" : '^\.' >/dev/null 2>&1 ; then
+			echo ${_D}
+		else
+			echo .${_D}
+		fi
+		unset _D
+	elif expr "${HOSTNAME}" : '[^\.]*\.' >/dev/null 2>&1; then
+		echo "."`expr "${HOSTNAME}" : '[^\.]*\.\(.*\)$'`
+	else
+		# these cases for machines without domainname,
+		# and a short hostname....
+		#
+		case "${UUNAME}" in
+		weirdo )
+			echo ".weird.com"
+			;;
+		* )
+			echo ".UUCP"
+			;;
+		esac
+	fi
+}
+
+# this is a bit like the GNU (err, vim) "xxd -p", but far more portable
+#
+hexencode ()
+{
+	hexdump -v -e '1/1 "%02x"'
+}
+
+# xxx hmmm... this works!  (assuming we have printf(1), of course)
+#
+hexdecode ()
+{
+	sed 's/\([0-9A-Fa-f]\{2\}\)/\\\\\\x\1/g' | xargs printf
 }
 
 # xxx this needs an option to specify which column or position the address is in
@@ -1061,16 +1195,14 @@ else
 			_signal=$1
 			_cmd=$2
 		fi
-		kill $_signal `ps -axuc | awk '$11 == "'$_cmd'" { print $2}'`
+		kill $_signal `ps -ax -o pid,ucomm | awk '$2 == "'$_cmd'" { print $1}'`
 		unset _signal _cmd
 	}
 fi
 
 krcmd ()
 {
-	# ps -ax -o uid,pid,ppid,ucomm
-
-	kill -9 `ps -axlc | awk '$1 == '${id}' && $3 == 1 && $13 == "rcmd" {print $2}'`
+	kill -9 `ps -ax -o uid,pid,ppid,ucomm | awk '$1 == '${id}' && $3 == 1 && $4 == "rcmd" {print $2}'`
 }
 
 mailclients ()
@@ -1125,11 +1257,23 @@ sedjoinnext ()
 	unset _start
 }
 
+# Display the opening doc comment in a script file.
+#
+shelp () {
+        _binfile=`which "$0"`
+
+        _hdr=`dd if="$_binfile" count=2 bs=1`
+        if [ "$_hdr" = "#!" ]; then
+	        sed -rn 's/^### ?//;T;p' "$_binfile"
+        fi
+	unset _binfile _hdr
+}
+
 show_make_var ()
 {
 	# a more portable version of "make -V \${1}'
 	#
-	echo "show-var-${1}:;@echo ${1}" | make -f - -f Makefile "show-var-${1}"
+	echo "show-var-${1}:;@echo \${$1}" | ${MAKE:-"make"} -f - -f Makefile "show-var-${1}"
 }
 
 show_cc_predef ()
@@ -1307,42 +1451,17 @@ if [ -n "$DISPLAY" ]; then
 		xauth nextract - ${_RDISP} | onx11server ${1+"$@"} 'xauth nmerge -'
 		unset _RDISP
 	}
-	sxauth ()
-	{
-		_RDISP=${REMOTE_DISPLAY:-${DISPLAY}}
-
-		xauth nextract - ${_RDISP} | onx11server -S ${1+"$@"} 'xauth nmerge -'
-		unset _RDISP
-	}
 	rxterm ()
 	{
 		_rhost=$1
 		shift
 		# alternatively:  unset LC_ALL; eval export `locale` ; unset LC_ALL
-		onx11server -n "$_rhost" "LANG=C LC_ALL=C xterm -ziconbeep 1 -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' -fs 9 -cn -rw -sb -si -sk -sl 2048 -ls -T rsh:$_rhost $*" &
-		unset _rhost
+		onx11server ${1+"$@"} "LANG=C LC_ALL=C xterm -ziconbeep 1 -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' -fs 9 -cn -rw -sb -si -sk -sl 2048 -ls -T rsh:$_rhost $*" &
 	}
 	ruxterm ()
 	{
-		_rhost=$1
 		shift
-		onx11server -n "$_rhost" "uxterm -ziconbeep 1 -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' -fs 9 -cn -rw -sb -si -sk -sl 2048 -ls -T rsh:$_rhost $*" &
-		unset _rhost
-	}
-	sxterm ()
-	{
-		_rhost=$1
-		shift
-		# alternatively:  unset LC_ALL; eval export `locale` ; unset LC_ALL
-		onx11server -S -f "$_rhost" "LANG=C LC_ALL=C xterm -ziconbeep 1 -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' -fs 9 -cn -rw -sb -si -sk -sl 2048 -ls -T ssh:$_rhost $*"
-		unset _rhost
-	}
-	suxterm ()
-	{
-		_rhost=$1
-		shift
-		onx11server -S -f "$_rhost" "uxterm -ziconbeep 1 -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' -fs 9 -cn -rw -sb -si -sk -sl 2048 -ls -T ssh:$_rhost $*"
-		unset _rhost
+		onx11server ${1+"$@"} "uxterm -ziconbeep 1 -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' -fs 9 -cn -rw -sb -si -sk -sl 2048 -ls -T rsh:$_rhost $*" &
 	}
 fi
 
@@ -1849,7 +1968,7 @@ if [ "$uid" -eq 0 ] ; then
 		export HOSTNAME
 	fi
 	if [ -z "$DOMAINNAME" ]; then
-		DOMAINNAME=`domainname`
+		DOMAINNAME=`get_domainname`
 		export DOMAINNAME
 	fi
 
@@ -1879,7 +1998,7 @@ if [ "$uid" -eq 0 ] ; then
 	fi
 	if [ ! -d /sbin -a ! -d /usr/etc ] ; then
 		dirprepend PATH /etc		# only really old systems...
-		dirappend PATH /usr/lib	# ditto
+		dirappend PATH /usr/lib		# ditto
 	fi
 	dirprepend PATH /sbin /usr/sbin
 	if [ -n "${UUCPSPOOLDIR}" ]; then
@@ -1972,18 +2091,21 @@ elif [ "$user" != "$LOGNAME" ] ; then
 		# xxx should do this in setban...
 		MYXBAN_R='$user:$group($LOGNAME)@$UUNAME[$LEV]:$TTYN'
 	fi
-	: ${PSc:="$"}
+	: ${PSc:='$'}
 else
 	if ismpx || [ "$TERM" = "dmd-myx" ] ; then
 		# xxx should do this in setban...
 		MYXBAN_R='$LOGNAME{$group}@$UUNAME[$LEV]:$TTYN'
 	fi
-	: ${PSc:="$"}
+	: ${PSc:='$'}
 fi
 PS1="${PS1} ${PSc} "
 
 if [ "$user" = usenet -o "$group" = news ] ; then
 	dirprepend PATH $LOCAL/lib/newsbin $LOCAL/lib/newsbin/maint $LOCAL/lib/newsbin/input
+fi
+if [ "$user" = cyrus -o "$group" = cyrus ] ; then
+	dirprepend PATH $LOCAL/cyrus/bin $PKG/cyrus/bin $SLASHOPT/cyrus/bin $CONTRIB/cyrus/bin
 fi
 
 #
