@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.7	22/03/02 13:43:13 (woods)"
+#ident	"@(#)HOME:.profile	37.8	22/03/13 14:21:11 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -443,6 +443,15 @@ dirappend PATH ${PKG}/bin ${PKG}/DWB/bin
 dirappend PATH ${PKG}/heirloom-xpg4/bin ${PKG}/heirloom-ccs/bin ${PKG}/heirloom-doctools/bin ${PKG}/heirloom/bin
 dirappend PATH ${SLASHOPT}/bin
 dirappend PATH ${GNU}/bin ${SLASHOPT}/gnu/bin
+
+# silly fuzting for older OSX...
+dirappend PATH /Developer/usr/bin
+if [ -d /Developer/usr/bin ]; then
+	dirprepend PATH ${PKG}/nbase/bin
+fi
+# always, for bootstrapped pkgsrc???
+dirappend PATH ${PKG}/nbase/bin
+
 dirappend PATH /usr/ucb /usr/bsd
 dirappend PATH ${HI_TECH_C}/bin
 dirappend PATH /usr/games ${LOCAL}/games ${SLASHOPT}/games/bin
@@ -462,6 +471,14 @@ if [ -z "${MANPATH}" -a ! -r /etc/man.conf ] ; then
 	export MANPATH
 fi
 dirprepend MANPATH ${LOCAL}/share/man ${LOCAL}/man ${GNU}/man ${CONTRIB}/share/man ${CONTRIB}/man ${PKG}/share/man ${PKG}/gnu/share/man ${PKG}/man ${X11PATH}/man
+
+# more silly fuzting for older OSX...
+dirappend MANPATH /Developer/usr/share/man
+if [ -d /Developer/usr/bin ]; then
+	dirprepend MANPATH ${PKG}/nbase/share/man
+fi
+# always, for bootstrapped pkgsrc???
+dirappend MANPATH ${PKG}/nbase/share/man
 
 if [ -z "${INFOPATH}" ] ; then
 	if [ -d /usr/share/info ] ; then
