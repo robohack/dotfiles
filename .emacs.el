@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.7	22/03/02 13:34:02 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.8	22/03/13 14:13:10 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v22.1 or newer
 ;;;;
@@ -793,6 +793,12 @@ match `%s'. Connect anyway? " host))))))
 	    ;; XXX WARNING XXX:  marmalade is apparently defunct....
 	    ;;(add-to-list 'package-archives
 	    ;;	     (cons "marmalade" (concat proto "://marmalade-repo.org/packages/")) t)
+	    (setq package-archive-priorities
+		  '(;("melpa-stable" . 10)
+		    ("gnu"          . 5)
+		    ("melpa"        . 0)
+		    ;("marmalade"    . 0)
+		    ))
 	    )
 	  ;;
 	  ;; Set `package-user-dir' to include `emacs-version' so that multiple
@@ -811,12 +817,36 @@ match `%s'. Connect anyway? " host))))))
 					 (number-to-string emacs-version-minor)
 					 "/"))
 	  ;; we must also reset things that depend on `package-user-dir'
+	  ;; 
+	  ;; XXX maybe also `pcache-directory' too -- would simplify setup for
+	  ;; `ucs-utils' and `unicode-fonts'
+	  ;; 
 	  (if (boundp 'package-gnupghome-dir)
 	      (progn
 		(defvar package-gnupghome-dir-ORIGINAL package-gnupghome-dir "The original value at startup")
 		(setq package-gnupghome-dir (expand-file-name "gnupg" package-user-dir))))
 	  ;;
+	  ;; make packages read-only by default (i.e. for viewing from help)
+	  ;;
+	  ;; (a programmatic way of doing what a .dir-locals.el file would do)
+	  ;;
+	  (dir-locals-set-class-variables
+	   'packages
+	   '((nil . ((buffer-read-only . t)))))
+	  (dir-locals-set-directory-class package-user-dir 'packages)
+	  ;;
+	  ;; but do allow `package-install' to write to such files
+	  ;;
+	  ;; (from https://emacs.stackexchange.com/a/46655)
+	  ;;
+	  (advice-add
+	   'package-install-from-archive
+	   :around (lambda (orig-fun &rest args)
+		     (let ((inhibit-read-only t))
+		       (apply orig-fun args))))
+	  ;;
 	  ;; xxx this has to come before `package-initialize'
+	  ;;
 	  (my-package-user-dir-cleanup)
 	  (package-initialize)
 	  ;;
