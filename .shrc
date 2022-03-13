@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.13	22/03/02 13:43:13 (woods)"
+#ident	"@(#)HOME:.shrc	37.14	22/03/13 14:52:51 (woods)"
 
 PATH=$PATH
 export PATH
@@ -121,6 +121,15 @@ else
 fi
 export MAILLOG
 
+# always use ``$echo'' if any of the other variables are used...
+#	$nl - print a newline (always required at end of line if desired)
+#	$n - option to turn off final newline
+#	$c - escape sequence to turn off final newline
+# usage for a prompt is:
+#	$echo $n "prompt: $c"
+# and for a normal line
+#	$echo "message$nl"
+#
 # Don't pretend to have print or printf if they are not builtin
 #
 HAVEPRINT=false ; export HAVEPRINT
@@ -131,28 +140,14 @@ HAVEPRINTF=false ; export HAVEPRINTF
 if expr "`type printf 2>/dev/null`" : '^printf is a shell ' > /dev/null 2>&1 ; then
 	HAVEPRINTF=true
 fi
-###
-### NOTE: we assume "echo" is builtin and we do not want to prefer an
-### external $echo even if it is more capable
-###
-###elif type printf >/dev/null 2>&1 ; then
-###	HAVEPRINTF=true
-###fi
-#
-# always use ``$echo'' if any of the other variables are used...
-#	$nl - print a newline (always required at end of line if desired)
-#	$n - option to turn off final newline
-#	$c - escape sequence to turn off final newline
-# usage for a prompt is:
-#	$echo $n "prompt: $c"
-# and for a normal line
-#	$echo "message$nl"
-#
 if ${HAVEPRINT} ; then
 	#
-	# XXX Ksh "print" is a horrible mess of unusability!
+	# XXX Ksh "print" is a horrible mess of unusability, but, if it is
+	# builtin....
 	#
-	# XXX in theory "print -R" is a better emulation of BSD echo?
+	# XXX in theory "print -R", if available, is a better emulation of BSD
+	# echo with '-n', but for $echo it doesn't really matter....
+	#
 	echo=print
 	nl='\n'
 	n='-n'
@@ -160,14 +155,6 @@ if ${HAVEPRINT} ; then
 	c=''
 elif ${HAVEPRINTF} ; then
 	echo=printf
-	if type alias >/dev/null 2>&1; then
-		alias print=echo
-	else
-		print ()
-		{
-			echo ${1+"${@}"}
-		}
-	fi
 	nl='\n'
 	n=''
 	c=''
@@ -178,15 +165,11 @@ elif ${HAVEPRINTF} ; then
 		printf "$FMT" ${1+"${@}"}
 	}
 else
+	# NOTE:  Assume if "echo" is builtin that it is OK and do not prefer an
+	# external "echo" for $echo, even if that is more capable (though that
+	# is not likely ever true).
+	#
 	echo=echo
-	if type alias >/dev/null 2>&1; then
-		alias print=echo
-	else
-		print ()
-		{
-			echo ${1+"${@}"}
-		}
-	fi
 	c=`echo "xyzzy\c" | sed 's/[^c]//g'`
 	if test -n "${c}" ; then
 		# BSD echo
@@ -194,11 +177,13 @@ else
 		n='-n'
 		c=''
 	else
-		# (Heirloom?) Bourne Shell (SYSV3 also has -n)
+		# (SysVr2 or newer) Bourne Shell echo
+		# (some may have -n, but ignore that as we know we have '\c')
 		nl='\n'
 		n=''
 		c='\c'
 	fi
+	# n.b.:  ancient echo (V7) is not supportable for this use!
 fi
 #
 # NOTE: we don't export $echo et al -- they're just in the current shell
@@ -1047,6 +1032,10 @@ checkptrs ()
 cdpkgwrksrc ()
 {
 	# XXX don't do anything if not directly in a pacakge dir
+	#
+	# note:  this can use '${BMAKE} -v WRKSRC' once bmake-20200524 or newer
+	# is purvasive....
+	#
 	cd `${BMAKE} show-var VARNAME=WRKSRC`
 	pwd
 }
@@ -1077,7 +1066,7 @@ difforig ()
 {
 	_DIFFOPTS=""
 	if [ $# -le 2 ]; then
-		echo "difforig [-DIFFOPTS] file" >&2
+		echo "Usage: difforig [-DIFFOPTS] file" >&2
 		return 2
 	fi
 	case "$1" in
@@ -1136,6 +1125,33 @@ get_domainname ()
 	fi
 }
 
+# to deal with shells that don't expand '~' in pathnames
+#
+# Leverages possible expansion first thus avoiding any obvious fork(s) and
+# external command exec(s)
+#
+get_user_home ()
+{
+	if [ $# -ne 2 ]; then
+		echo "Usage: get_user_home username" >&2
+		return 2
+	fi
+	eval _uhdir=~$1
+	case "${_uhdir}" in
+	/*)
+		echo $_uhdir
+		unset _uhdir
+		return 0
+		;;
+	esac
+	unset _uhdir
+	if type getent >/dev/null 2>&1; then
+		getent passwd $1 | awk -F: '{print $6}'
+	else
+		awk -F: '$1 == "'$1'" {print $6}' < /etc/passwd
+	fi
+}
+
 # this is a bit like the GNU (err, vim) "xxd -p", but far more portable
 #
 hexencode ()
@@ -1166,7 +1182,16 @@ ipaddrsort ()
 
 imgsize ()
 {
-	exiv2 ${1+"$@"} 2>/dev/null | awk '$1 == "Image" && $2 == "size" {print $4 " " $5 " " $6;}'
+	# note modern file(1) can print size too, but not consistently for
+	# differnt image types....
+	#
+	if type exiv2 >/dev/null 2>&1; then
+		exiv2 ${1+"$@"} 2>/dev/null | awk '$1 == "Image" && $2 == "size" {print $4 " " $5 " " $6;}'
+	else
+		# xxx so this only works for JPEGs...
+		#
+		file ${1+"$@"} | awk '{print $1 " " $(NF-2)}'
+	fi
 }
 
 kall ()
@@ -1563,9 +1588,11 @@ case "$TERM" in
 		WBANNER="${OWBANNER}"
 		setban
 	}
-	if type typeset >/dev/null 2>&1; then
-		typeset -ft clearban
-	fi
+	# for debugging, i.e. to show clearban is indeed being called...
+	#
+	#if type typeset >/dev/null 2>&1; then
+	#	typeset -ft clearban
+	#fi
 
 	setban ()
 	{
@@ -1879,13 +1906,11 @@ if [ "$uid" -eq 0 ] ; then
 	#
 	# we always want persistent (and shared) history for 'su'
 	#
-	# Note only some shells append a slash when expanding "~user"...
-	#
-	: ${ROOT_HOME:=~root}
+	ROOT_HOME=`get_user_home root`
 	if [ -n "$HISTFILE" ]; then
-		HISTFILE="${ROOT_HOME%/}/`basename $HISTFILE`"
+		HISTFILE="${ROOT_HOME}/`basename $HISTFILE`"
 	else
-		HISTFILE="${ROOT_HOME%/}/.sh_history"
+		HISTFILE="${ROOT_HOME}/.sh_history"
 	fi
 	if [ ! -f $HISTFILE ]; then
 		touch $HISTFILE
@@ -1931,11 +1956,13 @@ if [ "$uid" -eq 0 ] ; then
 		USER="root"
 		export USER
 	fi
-	# also get rid of the login user's ~/{usr/bin,bin} because
-	# it's usually first, and it usually contains personal hacks
-	# that are probably not safe to use as root, and (if this is
-	# not ~$SU_FROM/.kshrc then ~$SU_FROM/bin may also contain
-	# trojans or worse)
+	# also get rid of the login user's ~/{usr/bin,bin,go/bin} because they
+	# are usually first, and they usually contains personal hacks or test
+	# programs that are probably not safe to use as root, and (if this is
+	# not ~$SU_FROM/.kshrc then ~$SU_FROM/bin may also contain trojans or
+	# worse)
+	#
+	# n.b.:  this only works properly if the shell can expand "~user"
 	#
 	LOGNAMEPATH=`eval echo ~$LOGNAME/usr/bin`
 	dirremove PATH ${LOGNAMEPATH}
@@ -1951,6 +1978,10 @@ if [ "$uid" -eq 0 ] ; then
 	if type alias >/dev/null 2>&1; then
 		#
 		# for those that do trust ~$LOGNAME dotfiles
+		#
+		# n.b.:  here we assume that if there is an "alias" command then
+		# the shell can also expand '~user' and also properly expand
+		# shell arithmetic expressions....
 		#
 		alias setaliases='HOME=$(eval echo ~$LOGNAME); LEV=$((LEV-1)); . $HOME/.$(basename $SHELL)rc'
 	fi
@@ -2000,11 +2031,11 @@ if [ "$uid" -eq 0 ] ; then
 		dirprepend PATH /etc		# only really old systems...
 		dirappend PATH /usr/lib		# ditto
 	fi
-	dirprepend PATH /sbin /usr/sbin
+	dirprepend PATH /sbin /usr/sbin $LOCAL/sbin $PKG/sbin $CONTRIB/sbin $SLASHOPT/sbin $GNU/sbin
 	if [ -n "${UUCPSPOOLDIR}" ]; then
 		dirappend PATH /usr/libexec/uucp /usr/lib/uucp
 	fi
-	dirappend PATH $HOME/bin
+	dirappend PATH $ROOT_HOME/bin
 
 	if [ -z "$UUNAME" ]; then
 		if type uuname >/dev/null 2>&1 ; then
@@ -2071,11 +2102,14 @@ if [ "$uid" -eq 0 ] ; then
 		# current display to $HOME/.Xauthority instead of just
 		# pointing at it...  but why bother???
 		#
+		# n.b.:  this only works properly if the shell can expand
+		# "~user"
+		#
 		XAUTHORITY=`eval echo ~${SU_FROM}/.Xauthority`
 		export XAUTHORITY
 	fi
 
-	unset -f krcmd
+	unset -f krcmd || true
 	function krcmd
 	{
 		# WARNING: this version kills everyone's rcmd procs!
@@ -2150,7 +2184,7 @@ maillog ()
 
 malias ()
 {
-	grep "alias[ 	]$*" $LOCAL/lib/mush/Mail.rc ~/.mushrc
+	grep "alias[ 	]$*" $LOCAL/lib/mush/Mail.rc ${HOME}/.mushrc
 }
 
 signm ()
@@ -2285,12 +2319,12 @@ rm_alias_funcs ()
 	# note: '-f' is only in modern sh as well as ksh and bash, but that's
 	# where this is used
 	#
-	unset -f blsqueeze blstrip ds e elc l la ll lli lla llia llr llir llra llira lr lra lsa nstty rstty wcvs
+	unset -f blsqueeze blstrip ds e elc l la ll lli lla llia llr llir llra llira lr lra lsa nstty rstty wcvs || true
 	if [ -x /usr/ucb/rsh -a -x /bin/rsh ] ; then
-		unset -f rsh
+		unset -f rsh || true
 	fi
 	if [ -n "$UUCPSPOOLDIR" ]; then
-		unset -f uufollow
+		unset -f uufollow || true
 	fi
 }
 rm_func_aliases ()
@@ -2408,7 +2442,7 @@ rstty ()
 sshsendkey ()
 {
 	# not all systems have ssh-copy-id(1)
-	cat ~/.ssh/id_rsa.pub | ssh $1 '
+	cat ${HOME}/.ssh/id_rsa.pub | ssh $1 '
 		mkdir -pm 700 $HOME/.ssh
 		cat >> $HOME/.ssh/authorized_keys
 		chmod 600 $HOME/.ssh/authorized_keys
