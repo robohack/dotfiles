@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	37.7	22/03/02 13:36:44 (woods)"
+#ident	"@(#)HOME:.kshrc	37.8	22/03/13 14:15:13 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -188,7 +188,7 @@ fi
 PS1="${_time} "
 
 if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
-	unset -f cd
+	unset -f cd || true
 	alias cd='_cd'
 	# NOTE:  may be re-defined in ~/.kshpwd
 	function _cd
@@ -206,7 +206,7 @@ case "$TERM" in
 xterm*)
 	PS1="${PS1}"'[${LEV:+${LEV}.}'"${_c}"']'
 
-	unset -f cd
+	unset -f cd || true
 	alias cd='_cd'
 	# NOTE:  may be re-defined in ~/.kshpwd
 	function _cd
@@ -249,6 +249,22 @@ if [ -r $HOME/.kshdir ] ; then
 	alias pushd='unalias pushd popd showd sd;. $HOME/.kshdir; pushd'
 	alias popd='unalias pushd popd showd sd;. $HOME/.kshdir; popd'
 	alias showd='unalias pushd popd showd sd;. $HOME/.kshdir; showd'
+fi
+
+# provide ksh(1) "print" as echo, if not available (e.g. for bash and any other
+# future shells which might share ~/.kshrc)
+#
+if type print >/dev/null 2>&1; then
+	:
+else
+	if type alias >/dev/null 2>&1; then
+		alias print=echo
+	else
+		print ()
+		{
+			echo ${1+"${@}"}
+		}
+	fi
 fi
 
 trap '
