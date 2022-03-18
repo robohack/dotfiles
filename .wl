@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	37.4	22/02/13 16:39:15 (woods)"
+;;;;#ident	"@(#)HOME:.wl	37.5	22/03/18 12:22:57 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -758,6 +758,7 @@ If ARG is non-nil, forget everything about the message."
 	"^X-CHA:"
 	"^X-CMAE-Envelope:"
 	"^X-CTCH-[^:]*:"
+	"^X-ImunifyEmail-Filter-Info:"
 	"^X-Exchange[^:]*:"		; M$-Exchange
 	"^X-Filter-ID:"
 	"^X-Forefront[^:]*:"
