@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.14	22/03/13 14:52:51 (woods)"
+#ident	"@(#)HOME:.shrc	37.15	22/03/18 12:37:33 (woods)"
 
 PATH=$PATH
 export PATH
@@ -1094,7 +1094,7 @@ get_domainname ()
 		# explicitly in resolv.conf -- normally dhclient and
 		# such will set "search" from the network DHCP server
 		#
-		# xxx except of course on MacOS X aka macOS, sigh...
+		# xxx except of course on MacOS X, aka OSX, aka macOS, sigh...
 		#
 		sed -n '/^[;#]/d;s/domain[ 	]*/./p' /etc/resolv.conf
 	elif type domainname >/dev/null 2>&1; then
@@ -1124,6 +1124,25 @@ get_domainname ()
 		esac
 	fi
 }
+
+get_macos_sdk_path ()
+{
+	# n.b.:  to see all installed SDKs:
+	#
+	#	xcodebuild -showsdks
+	#
+	xcrun -sdk macosx --show-sdk-path
+}
+SKPREFIX=""
+if [ `uname -s` = "Darwin" ]; then
+	#
+	# this is actually the same as ${SDKROOT} as set by xcrun(1), but for
+	# now a different name in the login shell environment is probably
+	# apropos...
+	#
+	SDKPREFIX=`get_macos_sdk_path`
+fi
+export SDKPREFIX
 
 # to deal with shells that don't expand '~' in pathnames
 #
@@ -1317,12 +1336,12 @@ show_cc_predef ()
 
 signm ()
 {
-	grep "^#define[ 	]*SIG.*[ 	]*${1}[ 	]" /usr/include/sys/signal.h
+	grep "^#define[ 	]*SIG.*[ 	]*${1}[ 	]" ${SDKPREFIX}/usr/include/sys/signal.h
 }
 
 signo ()
 {
-	grep -i "^#define[ 	]*.*${1}[ 	]*[0-9]" /usr/include/sys/signal.h
+	grep -i "^#define[ 	]*.*${1}[ 	]*[0-9]" ${SDKPREFIX}/usr/include/sys/signal.h
 }
 
 snmpmiblist ()
@@ -2155,7 +2174,7 @@ fi
 
 errno ()
 {
-	grep "^#define[ 	]*[A-Z][A-Z]*[ 	]*$1[ 	]" /usr/include/sys/errno.h
+	grep "^#define[ 	]*[A-Z][A-Z]*[ 	]*$1[ 	]" ${SDKPREFIX}/usr/include/sys/errno.h
 }
 
 hex2d ()
@@ -2189,12 +2208,12 @@ malias ()
 
 signm ()
 {
-	grep "^#define[ 	]*SIG.*[ 	]*${1}[ 	]" /usr/include/sys/signal.h
+	grep "^#define[ 	]*SIG.*[ 	]*${1}[ 	]" ${SDKPREFIX}/usr/include/sys/signal.h
 }
 
 signo ()
 {
-	grep -i "^#define[ 	]*.*${1}[ 	]*[0-9]" /usr/include/sys/signal.h
+	grep -i "^#define[ 	]*.*${1}[ 	]*[0-9]" ${SDKPREFIX}/usr/include/sys/signal.h
 }
 
 # trivial hack to quickly search a source tree where traditional
