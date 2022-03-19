@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.18	22/03/19 15:28:44 (woods)"
+#ident	"@(#)HOME:.shrc	37.19	22/03/19 16:11:36 (woods)"
 
 PATH=$PATH
 export PATH
@@ -1167,7 +1167,7 @@ export SDKPREFIX		# xxx hmmm.... should it be exported?
 #
 get_user_home ()
 {
-	if [ $# -ne 2 ]; then
+	if [ $# -ne 1 ]; then
 		echo "Usage: get_user_home username" >&2
 		return 2
 	fi
