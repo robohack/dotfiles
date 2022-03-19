@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.17	22/03/19 15:03:53 (woods)"
+#ident	"@(#)HOME:.shrc	37.18	22/03/19 15:28:44 (woods)"
 
 PATH=$PATH
 export PATH
@@ -1304,6 +1304,16 @@ repfirst ()
 	# AWK equivalent:
 	#
 	#	awk "/$1/ && !done { sub(/$1/, \"$2\"); done=1; }; 1;"
+}
+
+reverse_word_order ()
+{
+	_result=""
+	for _word in $@; do
+		_result="$_word $_result"
+	done
+	echo "$_result"
+	unset _result _word
 }
 
 sedjoinnext ()
