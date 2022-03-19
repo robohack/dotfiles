@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.15	22/03/18 12:37:33 (woods)"
+#ident	"@(#)HOME:.shrc	37.16	22/03/18 17:59:42 (woods)"
 
 PATH=$PATH
 export PATH
@@ -535,9 +535,9 @@ else
 		# seeing this function definition for 'local' here!!!
 		# (dash-0.5.5.1 is OK, dash-0.5.9.1 through 0.5.10.2 are STUPID)
 		#
-		# even worse it is almost impossible to programatically detect
-		# dash programatically.  However luckily we can hide it in a
-		# variable value....
+		# even worse it is almost impossible to detect dash
+		# programatically.  However luckily we can hide the definition
+		# in a variable value....
 		#
 		eval ${defun_local}
 	fi
@@ -548,37 +548,52 @@ unset defun_local
 #
 # Setup for ls(1) shortcuts.
 #
-LS=`type ls`
-LS=`expr "$LS" : '^[^/]*\(/[^ )]*\)'`
 LS_O=
+LS_COLOUR=
 HAVECOLORLS=false
 if type colorls >/dev/null 2>&1; then
+	LS_O=
 	LS=`type colorls`
 	LS=`expr "$LS" : '^[^/]*\(/[^ )]*\)'`
 	HAVECOLORLS=true
 fi
 if type chflags >/dev/null 2>&1; then
 	case `uname -s` in
-	Darwin*)
+	Darwin*|FreeBSD)
 		LS_O="O"
 		HAVECOLORLS=true	# by coincidence....
-		LS="/bin/ls"
-		;;
-	FreeBSD)
-		LS_O="o"
-		HAVECOLORLS=true	# by coincidence....
+		LS_COLOUR="-G"
 		LS="/bin/ls"
 		;;
 	*)
-		LS_O="o"
+		LS_O="o"	# assume for the BSD best!
+		LS_COLOUR=""
 		;;
 	esac
+fi
+if [ -z "${LS}" ]; then
+	LS=`type ls`
+	LS=`expr "$LS" : '^[^/]*\(/[^ )]*\)'`
+	if ${LS} --version >/dev/null 2>&1; then
+		# likely GNU ls....
+		LS_O=""
+		HAVECOLORLS=true
+		LS_COLOUR="--color"
+	elif [ ${LS} = "/usr/bin/ls" ]; then
+		# likely SysV-ish or Solaris?
+		LS_O=""
+		LS_COLOUR=""
+	else
+		# hmmm.... what could it be?
+		LS_O=""
+		LS_COLOUR=""
+	fi
 fi
 if [ -n "$TERM" -a "X$TERM" != "Xdumb" ] && $HAVETPUT && $HAVECOLORLS; then
 	# xxx colorls(1) is quite "dumb" -- it apparently just uses ANSI color
 	# escape sequences directly without consulting $TERM
 	if [ "`tput colors`" -gt 0 ]; then
-		LS="${LS} -G"
+		LS="${LS} ${LS_COLOUR}"
 	fi
 fi
 
@@ -998,7 +1013,8 @@ adjlinks ()
 		if [ $? -eq 0 ]; then
 			_ntarg=`echo "${_otarg}" | sed "s|${_from}|${_to}|"`
 			if [ "${_otarg}" != "${_ntarg}" ]; then
-				ln -fhs "${_ntarg}" "${_lnk}" && echo adjusted: "${_lnk}" '->' "${_otarg}" to: '->' "${_ntarg}"
+				rm -f "${_lnk}"
+				ln -s "${_ntarg}" "${_lnk}" && echo adjusted: "${_lnk}" '->' "${_otarg}" to: '->' "${_ntarg}"
 			fi
 		fi
 	done
