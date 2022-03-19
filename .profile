@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.9	22/03/18 17:57:39 (woods)"
+#ident	"@(#)HOME:.profile	37.10	22/03/19 15:03:53 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -325,16 +325,13 @@ if [ -z "${DOMAINNAME}" ] ; then
 	export DOMAINNAME
 fi
 
-TTY=`tty` ; export TTY
-TTYN=`tty | sed 's|/dev/||'`; export TTYN
-
 # system-local user preferences go in here
 #
 if [ -r ${HOME}/.localprofile ] ; then
 	. ${HOME}/.localprofile
 fi
 
-ISSUN=false; export ISSUN
+ISSUN=false
 if [ -x /usr/bin/sun ]; then
 	if sun; then
 		ISSUN=true
@@ -676,19 +673,19 @@ else
 fi
 export SSH			# used by .twmrc, .ctwmrc, as well as .xinitrc
 
-HAVEMONTH=false ; export HAVEMONTH
+HAVEMONTH=false
 if type month >/dev/null 2>&1; then
 	HAVEMONTH=true
 fi
 
 MONTH="AIKO" ; export MONTH
 
-HAVELAYERS=false ; export HAVELAYERS
+HAVELAYERS=false
 if type layers >/dev/null 2>&1; then
 	HAVELAYERS=true
 fi
 
-HAVEMUSH=false ; export HAVEMUSH
+HAVEMUSH=false
 MAILER=mail ; export MAILER
 if [ -s ${HOME}/.mailer ] ; then
 	# mktable just throws away comments....
@@ -774,12 +771,12 @@ if [ -z "${MAIL}" ] ; then
 fi
 export MAIL
 
-HAVECALENDAR=false ; export HAVECALENDAR
+HAVECALENDAR=false
 if type calendar >/dev/null 2>&1; then
 	HAVECALENDAR=true
 fi
 
-HAVEFORTUNE=false ; export HAVEFORTUNE
+HAVEFORTUNE=false
 if type fortune >/dev/null 2>&1; then
 	HAVEFORTUNE=true
 	FORTUNE=fortune ; export FORTUNE
@@ -846,8 +843,8 @@ fi
 
 case "${EDPREF}" in
 emacs | "" )
-	HAVEEMACS=false; export HAVEEMACS
-	HAVEJOVE=false; export HAVEJOVE
+	HAVEEMACS=false
+	HAVEJOVE=false
 	if ${HAVEEMACS}; then
 		EDITOR="${MY_EMACS}"
 	elif type jove >/dev/null 2>&1; then
@@ -899,15 +896,15 @@ export VISUAL
 
 EXINIT="set sm" ; export EXINIT
 
-HAVEAUPLAY=false ; export HAVEAUPLAY
+HAVEAUPLAY=false
 if type auplay >/dev/null 2>&1; then
 	HAVEAUPLAY=true
 fi
-HAVEAUDIOPLAY=false ; export HAVEAUDIOPLAY
+HAVEAUDIOPLAY=false
 if type audioplay >/dev/null 2>&1; then
 	HAVEAUDIOPLAY=true
 fi
-HAVEESDPLAY=false ; export HAVEESDPLAY
+HAVEESDPLAY=false
 if type esdplay >/dev/null 2>&1; then
 	HAVEESDPLAY=true
 fi
@@ -1179,7 +1176,7 @@ else
 	fi
 fi
 
-HAVEX=false ; export HAVEX
+HAVEX=false
 if type xinit >/dev/null 2>&1; then
 	HAVEX=true
 fi

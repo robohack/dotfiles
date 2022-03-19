@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.16	22/03/18 17:59:42 (woods)"
+#ident	"@(#)HOME:.shrc	37.17	22/03/19 15:03:53 (woods)"
 
 PATH=$PATH
 export PATH
@@ -132,11 +132,11 @@ export MAILLOG
 #
 # Don't pretend to have print or printf if they are not builtin
 #
-HAVEPRINT=false ; export HAVEPRINT
+HAVEPRINT=false
 if expr "`type print 2>/dev/null`" : '^print is a shell ' > /dev/null 2>&1 ; then
 	HAVEPRINT=true
 fi
-HAVEPRINTF=false ; export HAVEPRINTF
+HAVEPRINTF=false
 if expr "`type printf 2>/dev/null`" : '^printf is a shell ' > /dev/null 2>&1 ; then
 	HAVEPRINTF=true
 fi
@@ -1158,7 +1158,7 @@ if [ `uname -s` = "Darwin" ]; then
 	#
 	SDKPREFIX=`get_macos_sdk_path`
 fi
-export SDKPREFIX
+export SDKPREFIX		# xxx hmmm.... should it be exported?
 
 # to deal with shells that don't expand '~' in pathnames
 #
@@ -1385,7 +1385,7 @@ fi
 # N.B.:  note the use of $_ttytype, for $TERMTESTCMD, shared with get_newterm()
 # below!
 #
-HAVETPUT=false ; export HAVETPUT
+HAVETPUT=false
 if type tput >/dev/null 2>&1; then
 	HAVETPUT=true
 	# WARNING: this may only work with a SysV compatible tput.
@@ -1558,6 +1558,9 @@ do_first_time ()
 	fi
 	lnotes
 }
+
+TTY=`tty`
+TTYN=`tty | sed 's|/dev/||'`
 
 if type ismpx >/dev/null 2>&1; then
 	: might just be running layers
@@ -2039,7 +2042,6 @@ if [ "$uid" -eq 0 ] ; then
 	fi
 
 	ISSUN=false
-	export ISSUN
 	if [ -x /usr/bin/sun ] ; then
 		if sun ; then
 			ISSUN=true
