@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	37.8	22/03/13 14:15:13 (woods)"
+#ident	"@(#)HOME:.kshrc	37.9	22/03/18 17:58:33 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -127,7 +127,11 @@ alias set_secs_to_midnight='SECONDS=$(date "+3600*%H+60*%M+%S")'
 # their content whenever they are referenced in an arithmetic expression like
 # Ksh does.
 #
-SECONDS=$(date '+3600*%H+60*%M+%S' | bc)
+if type bc >/dev/null 2>&1; then
+	SECONDS=$(date '+3600*%H+60*%M+%S' | bc)
+else
+	SECONDS=$(eval expr $(date '+3600 \* %H + 60 \* %M + %S'))
+fi
 
 # We wouldn't normally have to reset $SECONDS since our calculations
 # for hours and minutes only need to find the remainder values for the
