@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.8	22/03/13 14:21:11 (woods)"
+#ident	"@(#)HOME:.profile	37.9	22/03/18 17:57:39 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -529,13 +529,15 @@ if [ -f ${HOME}/.xinitrc ] ; then
 		echo "WARNING: fixing execute bit on ~/.xinitrc!"
 		chmod +x ${HOME}/.xinitrc
 	fi
-	if [ ! -f ${HOME}/.xsession ] ; then
-		ln -fhs .xinitrc ${HOME}/.xsession
+	if [ ! -r ${HOME}/.xsession ] ; then
+		rm -f ${HOME}/.xsession
+		ln -s .xinitrc ${HOME}/.xsession
 	fi
 fi
 # note .emacs.elc may not yet exist
-if [ ! -f ${HOME}/.emacs -a -f ${HOME}/.emacs.el ] ; then
-	ln -fhs .emacs.elc ${HOME}/.emacs
+if [ ! -r ${HOME}/.emacs -a -r ${HOME}/.emacs.el ] ; then
+	rm -f ${HOME}/.emacs
+	ln -s .emacs.elc ${HOME}/.emacs
 fi
 
 if [ "X${HOME}" != "X/" ] ; then
@@ -1064,6 +1066,8 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] || [ "
 			if type resize >/dev/null 2>&1; then
 				resize > /dev/null
 			else
+				# XXX it would be nice to detect if/when this
+				# may actually be necessary!
 				echo "NOTICE:  you may have to manually run 'stty rows \$LINES columns \$COLUMNS'."
 			fi
 			;;
