@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.7	22/02/23 18:04:44 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.8	22/03/19 11:15:23 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -900,7 +900,7 @@ very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.roboha
 	if type xmahjongg >/dev/null 2>&1; then
 		#
 		# XXX the positioning portion of a geometry spec never seems to
-		# apply properly to xmahjongg (except "+0+0"
+		# apply properly to xmahjongg (except if it is exactly "+0+0")
 		#
 		# assume the tiles and bin directory are in related places
 		MP=`type xmahjongg`
@@ -915,13 +915,13 @@ very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.roboha
 			if [ -r $HOME/public_html/marble.gif ]; then
 				MB="-bg $HOME/public_html/marble.gif"
 			fi
-#			xmahjongg -t real_x2 --geometry 2000x1500+2200-0 $MB &
-			xmahjongg -t real_x2 --geometry 2000x1500+1-1 $MB &
+#			xmahjongg -t real_x2 -g 2000x1500+2200+0 $MB &
+			xmahjongg -t real_x2 -g 2000x1500 $MB &
 		elif [ $SCREENDPI_Y -gt 110 ]; then
 			echo "You might want to make a bigger tile set for XmahJongg."
-			xmahjongg --geometry +1000-0 &
+			xmahjongg -g +1000+0 &
 		else
-			xmahjongg --geometry +1000-0 &
+			xmahjongg -g +1000+0 &
 		fi
 	fi
 

@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.5	22/02/23 18:04:18 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.6	22/03/19 11:15:23 (woods)"
 #
 # N.B.:  To test find the temp file output from the most recent run with '-k'
 # and then do:
@@ -1401,7 +1401,11 @@ menu "games"
 	"xgalaga"		!"xgalaga &"
 	"xjig"			!"xjig &"
 	"xkobo"			!"xkobo &"
+ ifelse(eval(FontYDPI > 110), 1, [
+	"xmahjongg"		!"xmahjongg -t real_x2 -g 2000x1500 &"
+ ], [
 	"xmahjongg"		!"xmahjongg &"
+ ])
 	"xmris"			!"xmris &"
 	"xpat2"			!"xpat2 &"
 	"xpilot"		!"xpilot &"
