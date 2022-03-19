@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.10	22/03/19 15:03:53 (woods)"
+#ident	"@(#)HOME:.profile	37.11	22/03/19 15:29:19 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -393,8 +393,8 @@ export WORKPATH
 #
 if [ -z "${X11PATH}" ] ; then
 	# for X11R? try to get the newest (highest numeric value) one first...
-	x11paths=`eval echo /opt/X11 /local/X11R? /local/X11 /usr/X11R? /usr/X11 /usr/X??? /usr/local/X11R? /usr/local/X11 | sort -rn`
-	for x11pc in ${x11paths}; do
+	x11paths=`eval echo /opt/X11 /local/X11R? /local/X11 /usr/X11R? /usr/X11 /usr/X??? /usr/local/X11R? /usr/local/X11`
+	for x11pc in `reverse_word_order ${x11paths}`; do
 		if [ -d ${x11pc} -a ! -L ${x11pc} -a -d ${x11pc}/bin -a -x ${x11pc}/bin/xterm ] ; then
 			X11PATH=${x11pc}
 			break;
@@ -457,7 +457,7 @@ if [ -n "${MANPATH}" ]; then
 	OMANPATH=${MANPATH} ; export OMANPATH
 fi
 
-# don't set MANPATH with 4.4BSD man....
+# don't set initial MANPATH with 4.4BSD man....
 #
 if [ -z "${MANPATH}" -a ! -r /etc/man.conf ] ; then
 	if [ -d /usr/share/man ] ; then
@@ -469,12 +469,12 @@ if [ -z "${MANPATH}" -a ! -r /etc/man.conf ] ; then
 fi
 dirprepend MANPATH ${LOCAL}/share/man ${LOCAL}/man ${GNU}/man ${CONTRIB}/share/man ${CONTRIB}/man ${PKG}/share/man ${PKG}/gnu/share/man ${PKG}/man ${X11PATH}/man
 
-# more silly fuzting for older OSX...
-dirappend MANPATH /Developer/usr/share/man
+# more silly fuzting for OSX...
+dirappend MANPATH /Developer/usr/share/man /Library/Developer/CommandLineTools/usr/share/man ${SDKPREFIX}/usr/share/man
 if [ -d /Developer/usr/bin ]; then
 	dirprepend MANPATH ${PKG}/nbase/share/man
 fi
-# always, for bootstrapped pkgsrc???
+# always, for bootstrapped (or just Joyent?) pkgsrc???
 dirappend MANPATH ${PKG}/nbase/share/man
 
 if [ -z "${INFOPATH}" ] ; then
