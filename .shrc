@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.19	22/03/19 16:11:36 (woods)"
+#ident	"@(#)HOME:.shrc	37.20	22/03/19 17:55:39 (woods)"
 
 PATH=$PATH
 export PATH
@@ -556,6 +556,7 @@ if type colorls >/dev/null 2>&1; then
 	LS=`type colorls`
 	LS=`expr "$LS" : '^[^/]*\(/[^ )]*\)'`
 	HAVECOLORLS=true
+	LS_COLOUR="-G"
 fi
 if type chflags >/dev/null 2>&1; then
 	case `uname -s` in
