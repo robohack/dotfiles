@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.20	22/03/19 17:55:39 (woods)"
+#ident	"@(#)HOME:.shrc	37.21	22/03/22 16:13:35 (woods)"
 
 PATH=$PATH
 export PATH
@@ -111,6 +111,13 @@ is_schily_sh ()
 
 	return ${_rc}
 }
+
+ISSUN=false
+if [ -x /usr/bin/sun ]; then
+	if sun; then
+		ISSUN=true
+	fi
+fi
 
 if [ -r /var/log/smail/logfile ] ; then
 	MAILLOG="/var/log/smail/logfile"
@@ -858,7 +865,18 @@ set_LOCAL_et_al ()
 		fi
 	fi
 	export GNU
+
+	if [ -z "${PROJECT}" ] ; then
+		PROJECT="SCCS"
+	fi
+	export PROJECT
 }
+
+if [ -z "${WORKPATH}" ] ; then
+	WORKPATH=${HOME}/work.d:${HOME}/work
+fi
+dirappend WORKPATH /work/${LOGNAME} ${LOCAL}/work.d/${LOGNAME}
+export WORKPATH
 
 if $ISSUN; then
 	NETBSDSRCDIR=/work/src
@@ -2052,25 +2070,21 @@ if [ "$uid" -eq 0 ] ; then
 		export DOMAINNAME
 	fi
 
-	ISSUN=false
-	if [ -x /usr/bin/sun ] ; then
-		if sun ; then
-			ISSUN=true
-			PATH=`echo $PATH | sed 's/^\/bin://'`
-			if [ `uname -r | sed 's/^\([0-9]*\).*$/\1/'` -lt 5 ] ; then
-				if [ "X$LOGNAME" != "Xroot" ] ; then
-					dirprepend PATH /usr/5bin
-				else
-					dirappend PATH /usr/5bin
-				fi
+	if $ISSUN ; then
+		PATH=`echo $PATH | sed 's/^\/bin://'`
+		if [ `uname -r | sed 's/^\([0-9]*\).*$/\1/'` -lt 5 ] ; then
+			if [ "X$LOGNAME" != "Xroot" ] ; then
+				dirprepend PATH /usr/5bin
 			else
-				dirprepend PATH /opt/SUNWspro/bin
+				dirappend PATH /usr/5bin
 			fi
-			# XXX FIXME: should use OPENWINHOME ???
-			# XXX FIXME: should only do this if DISPLAY set???
-			dirappend PATH /usr/openwin/bin /usr/openwin/demo
-			dirappend MANPATH /usr/openwin/share/man
+		else
+			dirprepend PATH /opt/SUNWspro/bin
 		fi
+		# XXX FIXME: should use OPENWINHOME ???
+		# XXX FIXME: should only do this if DISPLAY set???
+		dirappend PATH /usr/openwin/bin /usr/openwin/demo
+		dirappend MANPATH /usr/openwin/share/man
 	fi
 	if [ ! -d /usr/sbin ] ; then
 		dirprepend PATH /usr/etc	# only old BSDs

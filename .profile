@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.11	22/03/19 15:29:19 (woods)"
+#ident	"@(#)HOME:.profile	37.12	22/03/22 16:13:35 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -331,13 +331,6 @@ if [ -r ${HOME}/.localprofile ] ; then
 	. ${HOME}/.localprofile
 fi
 
-ISSUN=false
-if [ -x /usr/bin/sun ]; then
-	if sun; then
-		ISSUN=true
-	fi
-fi
-
 if "${PATH_IS_OKAY:-false}" ; then
 	: # we trust $PATH has been initialized correctly on these machines....
 	echo "$0: keeping PATH"
@@ -373,17 +366,6 @@ fi
 export PATH
 
 set_LOCAL_et_al
-
-if [ -z "${PROJECT}" ] ; then
-	PROJECT="SCCS"
-fi
-export PROJECT
-
-if [ -z "${WORKPATH}" ] ; then
-	WORKPATH=${HOME}/work.d:${HOME}/work
-fi
-dirappend WORKPATH /work/${LOGNAME} ${LOCAL}/work.d/${LOGNAME}
-export WORKPATH
 
 # TODO: explore more options for this....  (xmkmf?)
 #
