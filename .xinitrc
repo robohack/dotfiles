@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.8	22/03/19 11:15:23 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.9	22/04/04 15:04:55 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -913,7 +913,7 @@ very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.roboha
 		#
 		if [ $SCREENDPI_Y -gt 110 -a -f ${MP}/share/xmahjongg/tiles/real_x2.gif ]; then
 			if [ -r $HOME/public_html/marble.gif ]; then
-				MB="-bg $HOME/public_html/marble.gif"
+				MB="--bg $HOME/public_html/marble.gif"
 			fi
 #			xmahjongg -t real_x2 -g 2000x1500+2200+0 $MB &
 			xmahjongg -t real_x2 -g 2000x1500 $MB &
