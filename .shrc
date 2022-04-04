@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.21	22/03/22 16:13:35 (woods)"
+#ident	"@(#)HOME:.shrc	37.22	22/04/04 15:01:45 (woods)"
 
 PATH=$PATH
 export PATH
@@ -575,7 +575,6 @@ if type chflags >/dev/null 2>&1; then
 		;;
 	*)
 		LS_O="o"	# assume for the BSD best!
-		LS_COLOUR=""
 		;;
 	esac
 fi
