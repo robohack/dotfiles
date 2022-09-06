@@ -1,7 +1,7 @@
 #
 #	.bashrc - per-shell startup stuff for bash via $ENV
 #
-#ident	"@(#)HOME:.bashrc	37.1	21/03/23 11:43:02 (woods)"
+#ident	"@(#)HOME:.bashrc	37.2	22/09/06 12:17:52 (woods)"
 
 # Assumptions:
 
@@ -9,6 +9,10 @@
 #
 #	$HOME/.kshrc		- sourced for common shell functions
 #	$HOME/.bashlocal	- sourced, if it is readable
+
+# Apple is stupid
+#
+export BASH_SILENCE_DEPRECATION_WARNING=1
 
 if [ -z "$SHELL" ] ; then
 	export SHELL=$BASH
