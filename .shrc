@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.22	22/04/04 15:01:45 (woods)"
+#ident	"@(#)HOME:.shrc	37.23	22/11/03 14:02:16 (woods)"
 
 PATH=$PATH
 export PATH
@@ -2217,6 +2217,16 @@ fi
 errno ()
 {
 	grep "^#define[ 	]*[A-Z][A-Z]*[ 	]*$1[ 	]" ${SDKPREFIX}/usr/include/sys/errno.h
+}
+
+file2imgsz ()
+{
+	# file(1), as of 5.39 at least, displays the pixel size of a JPG in a
+	# "field" matching "[0-9]*x[0-9]*," unless the "field" starts with the
+	# word "density".... (fields are (un)officially comma separated, but we
+	# can split using the normal AWK FS and stilll easily find the match)
+	#
+	awk '{file=$1; for (f=1; f<NF; f++) {if ($(f-1) != "density" && $f ~ /[0-9]*x[0-9]*,/) {print file $f}}}'
 }
 
 hex2d ()
