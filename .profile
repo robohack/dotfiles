@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.12	22/03/22 16:13:35 (woods)"
+#ident	"@(#)HOME:.profile	37.13	22/11/03 13:56:51 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -186,7 +186,7 @@ if ${ISATTY}; then
 		trap '. ${HOME}/.bashlogout ; exit $?' EXIT
 	elif is_ksh && [ -r ${HOME}/.kshlogout ]; then
 		trap '. ${HOME}/.kshlogout ; exit $?' EXIT
-	elif [ -r ${HOME}/.shlogout ] ; then
+	elif [ -r ${HOME}/.shlogout ]; then
 		trap '. ${HOME}/.shlogout ; exit $?' 0
 	fi
 fi
@@ -215,7 +215,7 @@ elif [ -r ${HOME}/.ashtype ]; then
 	export ENV
 fi
 
-if [ "`echo ~`" = "${HOME}" -a ${RANDOM:-0} -eq ${RANDOM:-0} ] ; then
+if [ "`echo ~`" = "${HOME}" -a ${RANDOM:-0} -eq ${RANDOM:-0} ]; then
 	#
 	# apparently a POSIX capable shell
 	#
@@ -290,46 +290,80 @@ else
 	limit openfiles `limit -h openfiles | awk '{print $2}'`
 fi
 
-if [ -z "${LOGNAME}" ] ; then
+if [ -z "${LOGNAME}" ]; then
 	LOGNAME=${USER}
-	export LOGNAME
 fi
+export LOGNAME
 
-if [ -z "${UUNAME}" ] ; then
+if [ -z "${UUNAME}" ]; then
 	if type uuname >/dev/null 2>&1; then
 		UUNAME=`uuname -l`
 	else
 		UUNAME=`hostname`
 	fi
-	export UUNAME
 fi
+export UUNAME
 
-if [ -z "${HOSTNAME}" ] ; then
+if [ -z "${HOSTNAME}" ]; then
 	if type hostname >/dev/null 2>&1; then
 		HOSTNAME=`hostname`
 	else
 		HOSTNAME=${UUNAME}
 	fi
-	export HOSTNAME
 fi
+export HOSTNAME
 
 case "${HOSTNAME}" in
 *.local)
 	DOMAINNAME=".local"
-	export DOMAINNAME
 	;;
 esac
-
-if [ -z "${DOMAINNAME}" ] ; then
+if [ -z "${DOMAINNAME}" ]; then
 	DOMAINNAME=`get_domainname`
-	export DOMAINNAME
 fi
+export DOMAINNAME
 
 # system-local user preferences go in here
 #
-if [ -r ${HOME}/.localprofile ] ; then
+if [ -r ${HOME}/.localprofile ]; then
 	. ${HOME}/.localprofile
 fi
+
+if [ -n "${MANPATH}" ]; then
+	OMANPATH=${MANPATH} ; export OMANPATH
+fi
+
+if [ -z "${MANPATH}" ]; then
+	if [ -r /etc/man.conf ]; then
+		if man -w >/dev/null 2>&1; then
+			# for OpenBSD, FreeBSD et al, etc.
+			MANPATH=`man -w`
+			# and for Planix NetBSD, expand any curly braces
+			echo $MANPATH | sed 's/ /:/g'
+		else
+			MANPATH=`man -w sh | sed 1q`
+			MANPATH=${MANPATH%/*}
+			MANPATH=${MANPATH%/*}
+		fi
+	elif [ -d /usr/share/man] ; then
+		MANPATH="/usr/share/man"
+	else
+		MANPATH="/usr/man"
+	fi
+fi
+export MANPATH
+
+if [ -n "${MANPATH}" ] ; then
+	OINFOPATH=${INFOPATH} ; export OINFOPATH
+fi
+if [ -z "${INFOPATH}" ] ; then
+	if [ -d /usr/share/info ] ; then
+		INFOPATH="/usr/share/info"
+	else
+		INFOPATH="/usr/man"
+	fi
+fi
+export INFOPATH
 
 if "${PATH_IS_OKAY:-false}" ; then
 	: # we trust $PATH has been initialized correctly on these machines....
@@ -360,8 +394,13 @@ else
 	else
 		PATH="/bin:/usr/bin"
 	fi
-	export PATH
 	dirappend PATH /usr/lbin
+
+	if [ -d /usr/share/man ] ; then
+		dirappend MANPATH /usr/share/man
+	else
+		dirappend MANPATH /usr/man
+	fi
 fi
 export PATH
 
@@ -385,19 +424,26 @@ if [ -z "${X11PATH}" ] ; then
 	if [ -z "${X11PATH}" ] ; then
 		X11PATH="/NO-X11-FOUND"
 	fi
-	export X11PATH
 	unset x11paths x11pc
 fi
+export X11PATH
 if [ -z "${X11BIN}" ] ; then
 	if [ -d /usr/bin/X11 -a ! -L /usr/bin/X11 ] ; then
 		# this is never(?) used any more....
 		X11BIN="/usr/bin/X11"
+		X11MAN="/usr/man/X11"
 	else
 		# XXX: this is a best guess -- should check!
 		X11BIN=${X11PATH}/bin
+		if [ -d ${X11PATH}/share/man ]; then
+			X11MAN=${X11PATH}/share/man
+		else
+			X11MAN=${X11PATH}/man
+		fi
 	fi
-	export X11BIN
 fi
+export X11BIN
+export X11MAN
 # deal with startx madness of $oldbindir
 if [ -L /usr/X11 -a $X11BIN != /usr/X11/bin ]; then
 	dirremove PATH /usr/X11/bin
@@ -416,12 +462,25 @@ fi
 #
 #	PATH=/usr/xpg6/bin:/usr/xpg4/bin:/usr/ccs/bin:/usr/bin
 #
+# Ordering of PKG, SLASHOPT, GNU, and X11BIN are of course personal prefs too....
+#
 dirprepend PATH /usr/xpg6/bin /usr/xpg4/bin /usr/ccs/bin
+dirprepend MANPATH /usr/xpg6/man /usr/xpg4/man /usr/ccs/man
+
 dirappend PATH ${X11BIN} ${LOCAL}/bin ${CONTRIB}/bin
+dirappend MANPATH ${X11MAN} ${LOCAL}/share/man ${CONTRIB}/share/man ${LOCAL}/man ${CONTRIB}/man
+
 dirappend PATH ${PKG}/bin ${PKG}/DWB/bin
+dirappend MANPATH ${PKG}/share/man ${PKG}/man
+
 dirappend PATH ${PKG}/heirloom-xpg4/bin ${PKG}/heirloom-ccs/bin ${PKG}/heirloom-doctools/bin ${PKG}/heirloom/bin
+dirappend MANPATH ${PKG}/heirloom-xpg4/man ${PKG}/heirloom-ccs/man ${PKG}/heirloom-doctools/man ${PKG}/heirloom/man
+
 dirappend PATH ${SLASHOPT}/bin
+dirappend MANPATH ${SLASHOPT}/share/man ${SLASHOPT}/man
+
 dirappend PATH ${GNU}/bin ${SLASHOPT}/gnu/bin
+dirappend MANPATH ${GNU}/share/man ${GNU}/man
 
 # silly fuzting for older OSX...
 dirappend PATH /Developer/usr/bin
@@ -434,40 +493,6 @@ dirappend PATH ${PKG}/nbase/bin
 dirappend PATH /usr/ucb /usr/bsd
 dirappend PATH ${HI_TECH_C}/bin
 dirappend PATH /usr/games ${LOCAL}/games ${SLASHOPT}/games/bin
-
-if [ -n "${MANPATH}" ]; then
-	OMANPATH=${MANPATH} ; export OMANPATH
-fi
-
-# don't set initial MANPATH with 4.4BSD man....
-#
-if [ -z "${MANPATH}" -a ! -r /etc/man.conf ] ; then
-	if [ -d /usr/share/man ] ; then
-		MANPATH="/usr/share/man"
-	else
-		MANPATH="/usr/man"
-	fi
-	export MANPATH
-fi
-dirprepend MANPATH ${LOCAL}/share/man ${LOCAL}/man ${GNU}/man ${CONTRIB}/share/man ${CONTRIB}/man ${PKG}/share/man ${PKG}/gnu/share/man ${PKG}/man ${X11PATH}/man
-
-# more silly fuzting for OSX...
-dirappend MANPATH /Developer/usr/share/man /Library/Developer/CommandLineTools/usr/share/man ${SDKPREFIX}/usr/share/man
-if [ -d /Developer/usr/bin ]; then
-	dirprepend MANPATH ${PKG}/nbase/share/man
-fi
-# always, for bootstrapped (or just Joyent?) pkgsrc???
-dirappend MANPATH ${PKG}/nbase/share/man
-
-if [ -z "${INFOPATH}" ] ; then
-	if [ -d /usr/share/info ] ; then
-		INFOPATH="/usr/share/info"
-	else
-		INFOPATH="/usr/man"
-	fi
-	export INFOPATH
-fi
-dirprepend INFOPATH ${LOCAL}/share/info ${LOCAL}/info ${GNU}/info ${CONTRIB}/share/info ${CONTRIB}/info ${PKG}/share/info ${PKG}/gnu/share/info ${PKG}/info ${X11PATH}/info
 
 if $ISSUN; then
 	PATH=`echo ${PATH} | sed 's/^\/bin://'`
@@ -490,7 +515,7 @@ if [ -d ${LOCAL}/dmdlayers/bin -a "X${TERM}" = "Xdmd" ] ; then
 	DMD=${LOCAL}/dmdlayers ; export DMD
 	TOOLS=${DMD}/local ; export TOOLS
 	dirappend PATH ${DMD}/bin ${TOOLS}/bin
-	dirprepend MANPATH ${DMD}/man ${TOOLS}/man
+	dirappend MANPATH ${DMD}/man ${TOOLS}/man
 fi
 
 # make sure our home-dir is set up properly...
@@ -530,7 +555,9 @@ if [ "X${HOME}" != "X/" ] ; then
 		echo ""
 		sleep 5
 	fi
-	dirprepend PATH ${HOME}/bin ${HOME}/go/bin ${HOME}/usr/bin ${HOME}/pkg/bin
+	dirprepend PATH ${HOME}/.local/bin ${HOME}/bin ${HOME}/usr/bin ${HOME}/pkg/bin
+	dirprepend MANPATH ${HOME}/.local/share/man ${HOME}/share/man ${HOME}/man ${HOME}/usr/share/man ${HOME}/pkg/share/man ${HOME}/pkg/man
+	dirprepend PATH ${HOME}/go/bin
 	case "${PATH}" in
 	*:)
 		echo 'NOTICE: PATH already ends in a colon.' ;;
@@ -541,7 +568,7 @@ if [ "X${HOME}" != "X/" ] ; then
 fi
 
 #
-# PATH should finally be set properly!  Just Mh and X11 set below
+# *PATH should finally be set properly!  Just Mh and X11 set below
 #
 
 if type mktable >/dev/null 2>&1; then
