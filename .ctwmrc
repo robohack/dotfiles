@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.6	22/03/19 11:15:23 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.7	22/11/03 14:03:47 (woods)"
 #
 # N.B.:  To test find the temp file output from the most recent run with '-k'
 # and then do:
@@ -32,6 +32,11 @@
 # REMOTE_DISPLAY - suitable for local network access, with xauth sent
 # PATH		- sometimes included in one passed to remote hosts
 # AUDIOPLAYER	- program to invoke to play a sound file (eg. "auplay")
+#
+# Note macros expanded by M4, e.g. HOME, must be used, as they are obviously
+# expanded first while environment variables are expanded at run/use time!  Thus
+# environment variable names (in script settings) should be encosed in curly
+# brackets, e.g. "${DISPLAY}".
 #
 # The current directory is always expected to be $HOME.
 #
@@ -220,10 +225,10 @@ WorkSpaceFont	"-*-liberation sans-medium-r-normal--*-70-FontXDPI-FontYDPI-p-0-is
 # Define some useful functions for motion-based actions.
 # These must come after fonts....
 #
-ChangeWorkspaceFunction		!"$AUDIOPLAYER $HOME/lib/sounds/wm-wschange &"
-IconifyFunction			!"$AUDIOPLAYER $HOME/lib/sounds/wm-iconify &"
-DeIconifyFunction		!"$AUDIOPLAYER $HOME/lib/sounds/wm-deiconify &"
-DefaultFunction			!"$AUDIOPLAYER $HOME/lib/sounds/wm-default &"
+ChangeWorkspaceFunction		!"${AUDIOPLAYER} HOME/lib/sounds/wm-wschange &"
+IconifyFunction			!"${AUDIOPLAYER} HOME/lib/sounds/wm-iconify &"
+DeIconifyFunction		!"${AUDIOPLAYER} HOME/lib/sounds/wm-deiconify &"
+DefaultFunction			!"${AUDIOPLAYER} HOME/lib/sounds/wm-default &"
 # this is the default...
 #WindowFunction			{ f.deiconify f.raise }
 
@@ -395,7 +400,7 @@ define(OPT_UXTERM_FA, [-fa '-*-*-medium-r-*-*-*-*-0-0-m-0-iso10646-1'])
 
 # on OSX Xterm isn't configured to record logins properly with "-ls"
 #
-ifdef([ON_OSX], [define(OPT_XTERM_LOGIN, [-e login -pf ${USER:-$LOGNAME}])])
+ifdef([ON_OSX], [define(OPT_XTERM_LOGIN, [-e login -pf USER])])
 
 # Can only be one directory!  Uses resource bitmapFilePath first...
 #
@@ -836,18 +841,18 @@ menu "quickies"
 	"Xauth to Weird.com..."	f.menu "xauth-to-weird"
  ])
 	""			f.separator
-	"emacs [@CLIENTHOST]"	!"${MY_EMACS} -fh &"
+	"emacs @CLIENTHOST"	!"${MY_EMACS} -fh &"
  ifdef([AT_WEIRD], [
   ifdef([USE_X11SERVER], [
-	"emacs @X11SERVER"	!". ./.shrc; onx11server $X11SERVER '${MY_EMACS} -fh' &"
+	"emacs @X11SERVER"	!". ./.shrc; onx11server ${X11SERVER} '${MY_EMACS} -fh' &"
   ])
 	"emacs @more"		!". ./.shrc; onx11server more.local 'emacs -fh' &"
 	"Emacs Everywhere..."	f.menu "emacs"
 	#
 	""			f.separator
-	"links -g [@CLIENTHOST]"	!"links -g &"
+	"links -g @CLIENTHOST"	!"links -g &"
   ifdef([USE_X11SERVER], [
-	"links -g [@X11SERVER]"	!". ./.shrc; onx11server -n $X11SERVER 'links -g' &"
+	"links -g @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} 'links -g' &"
   ])
 	"links -g @more"	!". ./.shrc; onx11server -n more.local 'links -g' &"
 	# xxx unfortunately duckduckgo.com isn't very usable with links
@@ -864,14 +869,14 @@ menu "quickies"
 	"Xclipboard"		!"xclipboard &"
  ])
 	""			f.separator
-	"UXterm [@CLIENTHOST]"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} OPT_XTERM_LOGIN &"
-	"UXterm-big [@CLIENTHOST]"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS} OPT_XTERM_LOGIN &"
+	"UXterm @CLIENTHOST"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} OPT_XTERM_LOGIN &"
+	"UXterm-big @CLIENTHOST"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS} OPT_XTERM_LOGIN &"
 	#
  ifdef([USE_X11SERVER], [
-	"Xterm @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER \"xterm OPT_XTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"Xterm-big @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER \"xterm OPT_XTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @X11SERVER"	!". ./.shrc; onx11server -n $X11SERVER \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"Xterm @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xterm OPT_XTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"Xterm-big @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xterm OPT_XTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
  ])
 	"UXterm @more"		!". ./.shrc; onx11server -n more.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
 	"UXterm-big @more"	!". ./.shrc; onx11server -n more.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
@@ -1206,7 +1211,7 @@ menu "audios"
 	"Audio Tools"			f.title
 	"xmms"				!"xmms -m &"
 	""				f.separator
-	"audemo"			!"cd $HOME/lib/sounds; audemo &"
+	"audemo"			!"cd HOME/lib/sounds; audemo &"
 	"auedit"			!"auedit &"
 	"aupanel"			!"aupanel &"
 	"auphone"			!"auphone &"
@@ -1233,8 +1238,8 @@ menu "graphics"
 	"xmag"				!"xmag &"
 	"xditview"			!"xditview &"
 	"xcmap"				!"xcmap &"
-	"xwd > ~/tmp/win.xwd"		!"xwd > $HOME/tmp/win.xwd"
-	"xwd -root > ~/tmp/root.xwd"	!"xwd -root > $HOME/tmp/root.xwd"
+	"xwd > ~/tmp/win.xwd"		!"xwd > HOME/tmp/win.xwd"
+	"xwd -root > ~/tmp/root.xwd"	!"xwd -root > HOME/tmp/root.xwd"
 }
 
 menu "tools"
@@ -1284,21 +1289,21 @@ menu "emacs"
 				# XXX should this start a shell that sources .profile first?
 	"@localhost"		!"${MY_EMACS} -fh &"
  ifdef([USE_X11SERVER], [
-	"@X11SERVER"		!"$RSH -n $X11SERVER 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec ${MY_EMACS} -display '$REMOTE_DISPLAY' -fh &"
+	"@X11SERVER"		!"${RSH} -n ${X11SERVER} 'DISPLAY='${REMOTE_DISPLAY}'; . ./.profile; exec ${MY_EMACS} -display '${REMOTE_DISPLAY}' -fh &"
  ])
  ifdef([AT_WEIRD], [
-	"@more"			!"$RSH -n more.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
-#	"@building"		!"$RSH -n building.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
-#	"@future"		!"$RSH -n future.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
-	"@xenful"		!"$RSH -n xenful.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
-	"@xentastic"		!"$RSH -n xentastic.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
-#	"@once"			!"$RSH -n once.local 'export DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
-#	"@whats"		!"$RSH -n whats.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
-#	"@almost"		!"$RSH -n almost.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
-#	"@always"		!"$RSH -n always.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
-#	"@historically"		!"$RSH -n historically.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
-#	"@starting-out"		!"$RSH -n starting-out.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
-#	"@sometimes"		!"$RSH -n sometimes.local 'DISPLAY='$REMOTE_DISPLAY'; . ./.profile; exec emacs -display '$REMOTE_DISPLAY -fh &"
+	"@more"			!"${RSH} -n more.local 'export DISPLAY='${REMOTE_DISPLAY}'; . ./.profile; exec emacs -display '${REMOTE_DISPLAY} -fh &"
+#	"@building"		!"${RSH} -n building.local 'export DISPLAY='${REMOTE_DISPLAY}'; . ./.profile; exec emacs -display '${REMOTE_DISPLAY} -fh &"
+#	"@future"		!"${RSH} -n future.local 'export DISPLAY='${REMOTE_DISPLAY}'; . ./.profile; exec emacs -display '${REMOTE_DISPLAY} -fh &"
+	"@xenful"		!"${RSH} -n xenful.local 'export DISPLAY='${REMOTE_DISPLAY}'; . ./.profile; exec emacs -display '${REMOTE_DISPLAY} -fh &"
+	"@xentastic"		!"${RSH} -n xentastic.local 'export DISPLAY='${REMOTE_DISPLAY}'; . ./.profile; exec emacs -display '${REMOTE_DISPLAY} -fh &"
+#	"@once"			!"${RSH} -n once.local 'export DISPLAY='${REMOTE_DISPLAY}'; . ./.profile; exec emacs -display '${REMOTE_DISPLAY} -fh &"
+#	"@whats"		!"${RSH} -n whats.local 'DISPLAY='${REMOTE_DISPLAY}'; . ./.profile; exec emacs -display '${REMOTE_DISPLAY} -fh &"
+#	"@almost"		!"${RSH} -n almost.local 'DISPLAY='${REMOTE_DISPLAY}'; . ./.profile; exec emacs -display '${REMOTE_DISPLAY} -fh &"
+#	"@always"		!"${RSH} -n always.local 'DISPLAY='${REMOTE_DISPLAY}'; . ./.profile; exec emacs -display '${REMOTE_DISPLAY} -fh &"
+#	"@historically"		!"${RSH} -n historically.local 'DISPLAY='${REMOTE_DISPLAY}'; . ./.profile; exec emacs -display '${REMOTE_DISPLAY} -fh &"
+#	"@starting-out"		!"${RSH} -n starting-out.local 'DISPLAY='${REMOTE_DISPLAY}'; . ./.profile; exec emacs -display '${REMOTE_DISPLAY} -fh &"
+#	"@sometimes"		!"${RSH} -n sometimes.local 'DISPLAY='${REMOTE_DISPLAY}'; . ./.profile; exec emacs -display '${REMOTE_DISPLAY} -fh &"
 ])
 }
 
@@ -1306,50 +1311,50 @@ menu "monitors"
 {
 	"Monitors"		f.title
 	"xconsole"		!"xconsole -geometry 500x120-0-0 -notify -verbose &"
-	"xconsole x-errors"	!"xconsole -geometry 500x120-0-0 -notify -verbose -file $HOME/.xsession-errors &"
-	"xconsole x-errors-DISPLAY" !"xconsole -geometry 500x120-0-0 -notify -verbose -file $HOME/.xsession-errors-`echo $DISPLAY | sed 's/\.[[0-9]]*$//'` &"
+	"xconsole x-errors"	!"xconsole -geometry 500x120-0-0 -notify -verbose -file HOME/.xsession-errors &"
+	"xconsole x-errors-DISPLAY" !"xconsole -geometry 500x120-0-0 -notify -verbose -file HOME/.xsession-errors-`echo ${DISPLAY} | sed 's/\.[[0-9]]*$//'` &"
 	""			f.separator
-	"xclock"		!"xclock -geometry 190x190-0+0 &"
-	"xclock -digital"	!"xclock -geometry 190x30-0+192 -digital &"
-	"swissclock"		!"swisswatch -name swissclock -geometry 190x190-0+0 &"
+	"xclock"		!"xclock -geometry ${ClockGeom} &"
+	"xclock -digital"	!"xclock -geometry ${DClockGeom} -digital &"
+	"swissclock"		!"swisswatch -name swissclock -geometry ${ClockGeom} &"
 	"xchrono"		!"xchrono -local Toronto -tokyo &"
 	"asclock"		!"asclock -shape -position -200+234 &"
 	""			f.separator
 	"xbiff"			!"xbiff -rv -bw 0 &"
 	"xlbiff"		!"xlbiff &"
 	"xbuffy"		!"xbuffy -geometry 80x25-0+235 -shortnames -header 0 &"
-	"xbuffy w/-acmd"	!"xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd \"$AUDIOPLAYER $HOME/lib/sounds/newmail &\" &"
+	"xbuffy w/-acmd"	!"xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd \"${AUDIOPLAYER} HOME/lib/sounds/newmail &\" &"
 
 	""			f.separator
 	"xload"			!"xload -geometry ${XloadGeom} -hl XLOAD_HL &"
  ifdef([USE_X11SERVER], [
-	"xload @X11SERVER"	!". ./.profile; onx11server -n $X11SERVER \"xload -display $REMOTE_DISPLAY -geometry 120x40-200+48 -hl XLOAD_HL\" &"
+	"xload @X11SERVER"	!". ./.profile; onx11server -n ${X11SERVER} \"xload -display ${REMOTE_DISPLAY} -geometry 120x40-200+48 -hl XLOAD_HL\" &"
  ])
  ifdef([AT_WEIRD], [
-#	"xload @building"	!"$RSH -n building.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry ${XloadGeomBuilding} -hl red\" &"
-	"xload @more"		!"$RSH -n more.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry ${XloadGeomMore} -hl red\" &"
+#	"xload @building"	!"${RSH} -n building.local \". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomBuilding} -hl red\" &"
+	"xload @more"		!"${RSH} -n more.local \". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomMore} -hl red\" &"
 	"xload @central"	!"ssh -CY -n woods@central.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomCentral} -hl red\" &"
-#	"xload @future"		!"$RSH -n future.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry ${XloadGeomFuture} -hl red\" &"
-	"xload @xenful"		!"$RSH -n xenful.local \". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomXenful} -hl red\" &"
-	"xload @xentastic"	!"$RSH -n xentastic.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry ${XloadGeomXentastic} -hl red\" &"
+#	"xload @future"		!"${RSH} -n future.local \". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomFuture} -hl red\" &"
+	"xload @xenful"		!"${RSH} -n xenful.local \". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomXenful} -hl red\" &"
+	"xload @xentastic"	!"${RSH} -n xentastic.local \". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomXentastic} -hl red\" &"
 	"xload @xentral"	!"ssh -CY -n woods@xentral.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomXentral} -hl red\" &"
-#	"xload @once"		!"$RSH -n once.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry ${XloadGeomOnce} -hl red\" &"
+#	"xload @once"		!"${RSH} -n once.local \". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomOnce} -hl red\" &"
 	#
-	"xload @historically"	!"$RSH -n historically.local \". ./.profile; exec xload -display $REMOTE_DISPLAY -geometry ${XloadGeomHistorically} -hl red\" &"
+	"xload @historically"	!"${RSH} -n historically.local \". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomHistorically} -hl red\" &"
 	"xload @b2"		!"ssh -CY -n woods@b2.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomB2} -hl red\" &"
  ])
 	"xosview"		!"xosview -geometry 120x137-200+0 &"
  ifdef([USE_X11SERVER], [
-	"xosview @X11SERVER"	!". ./.profile; onx11server -n $X11SERVER \"xosview -display $REMOTE_DISPLAY\" &"
+	"xosview @X11SERVER"	!". ./.profile; onx11server -n ${X11SERVER} \"xosview -display ${REMOTE_DISPLAY}\" &"
  ])
 	"xcpustate"		!"xcpustate -geometry 190x20-0+270 -shorten 1 -wait -cpu -disk &"
  ifdef([USE_X11SERVER], [
-	"xcpustate @X11SERVER"	!". ./.profile; onx11server -n $X11SERVER \"xcpustate -display $REMOTE_DISPLAY -geometry 190x20-0+300 -shorten 1 -wait -cpu -disk\" &"
+	"xcpustate @X11SERVER"	!". ./.profile; onx11server -n ${X11SERVER} \"xcpustate -display ${REMOTE_DISPLAY} -geometry 190x20-0+300 -shorten 1 -wait -cpu -disk\" &"
  ])
 	"xuvmstat"		!"xuvmstat &"
 	""			f.separator
 	"xnetload localhost"	!"xnetload -hl grey90 -scale 0 -label 'local netload' localhost &"
-	"xnetload @xdmhost"	!"xnetload -hl grey90 -scale 0 -label ${XDMHOST}-net $XDMHOST &"
+	"xnetload @xdmhost"	!"xnetload -hl grey90 -scale 0 -label ${XDMHOST}-net ${XDMHOST} &"
 	""			f.separator
 	"tkined"		!"tkined &"
 }
@@ -1379,15 +1384,15 @@ menu "backgrounds"
  ])
 	"xplanet"		!"xplanet  -label -labelpos +15-15 -radius 60 -latitude ${LATITUDE:-0} -longitude ${LONGITUDE:-0} -wait 300 &"
 	"xphoon"		!"xphoon -t 10 &"
-	"xsetroot eschernknot"	!"xsetroot -bitmap $X11PATH/[include]/X11/bitmaps/escherknot"
-	"xsetroot xsnow"	!"xsetroot -bitmap $X11PATH/[include]/X11/bitmaps/xsnow"
+	"xsetroot eschernknot"	!"xsetroot -bitmap ${X11PATH}/[include]/X11/bitmaps/escherknot"
+	"xsetroot xsnow"	!"xsetroot -bitmap ${X11PATH}/[include]/X11/bitmaps/xsnow"
 }
 
 menu "games"
 {
 	"X11 Games"		f.title
 	"Abuse"			!"abuse &"
-	"battleball"		!"battleball $DISPLAY &"
+	"battleball"		!"battleball ${DISPLAY} &"
 	"GalaXa"		!"galaxa &"
 	"nighthawk"		!"nighthawk &"
 	"Spider"		!"spider &"
@@ -1402,7 +1407,7 @@ menu "games"
 	"xjig"			!"xjig &"
 	"xkobo"			!"xkobo &"
  ifelse(eval(FontYDPI > 110), 1, [
-	"xmahjongg"		!"xmahjongg -t real_x2 -g 2000x1500 &"
+	"xmahjongg"		!"xmahjongg -t real_x2 -g 2000x1500 --bg HOME/public_html/marble.gif &"
  ], [
 	"xmahjongg"		!"xmahjongg &"
  ])
@@ -1433,8 +1438,8 @@ menu "samplegames"
 menu "xterms"
 {
 	"Xterms Everywhere"	f.title
-	"Xterm @localhost"	!"$X11BIN/xterm OPT_XTERM_FA OPT_XTERM_TN ${XTERM_OPTS} OPT_XTERM_LOGIN &"
-	"UXterm @localhost"	!"$X11BIN/uxterm OPT_UXTERM_FA OPT_XTERM_TN ${XTERM_OPTS} OPT_XTERM_LOGIN &"
+	"Xterm @localhost"	!"${X11BIN}/xterm OPT_XTERM_FA OPT_XTERM_TN ${XTERM_OPTS} OPT_XTERM_LOGIN &"
+	"UXterm @localhost"	!"${X11BIN}/uxterm OPT_UXTERM_FA OPT_XTERM_TN ${XTERM_OPTS} OPT_XTERM_LOGIN &"
  ifdef([AT_WEIRD], [
 	"UXterm @xenful"	!". ./.shrc; onx11server -n xenful.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
 	"UXterm-big @xenful"	!". ./.shrc; onx11server -n xenful.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
@@ -1474,40 +1479,40 @@ menu "xterms"
 	"Slogin @central"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} -e 'slogin -C central.weird.com' &"
 	"Slogin @central"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} -e 'slogin -C bw.avoncote.ca' &"
   ifdef([AT_VERY_WEIRD], [], [
-	"Xterm @very"		!". ./.profile; onx11server -n very.local \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
+	"Xterm @very"		!". ./.profile; onx11server -n very.local \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
 	"Slogin @very"		!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} -e 'slogin -C very.local' &"
   ])
  ])
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
-	"Xterm @most"		!". ./.profile; onx11server -n most.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
+	"Xterm @most"		!". ./.profile; onx11server -n most.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, historically.weird.com, [], [
-	"Xterm @historically"	!". ./.profile; onx11server -n historically.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
+	"Xterm @historically"	!". ./.profile; onx11server -n historically.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, building.weird.com, [], [
-	"Xterm @building" 	!". ./.profile; onx11server -n building.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
+	"Xterm @building" 	!". ./.profile; onx11server -n building.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, once.weird.com, [], [
-	"Xterm @once"		!". ./.profile; onx11server -n once.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
+	"Xterm @once"		!". ./.profile; onx11server -n once.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, very.weird.com, [], [
-	"Xterm @very"		!". ./.profile; onx11server -n very.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
+	"Xterm @very"		!". ./.profile; onx11server -n very.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, almost.weird.com, [], [
-	"Xterm @almost"		!". ./.profile; onx11server -n almost.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
+	"Xterm @almost"		!". ./.profile; onx11server -n almost.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, whats.weird.com, [], [
-	"Xterm @whats"		!". ./.profile; onx11server -n whats.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
+	"Xterm @whats"		!". ./.profile; onx11server -n whats.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, sometimes.weird.com, [], [
-	"Xterm @sometimes" 	!". ./.profile; onx11server -n sometimes.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
+	"Xterm @sometimes" 	!". ./.profile; onx11server -n sometimes.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, always.weird.com, [], [
-	"Xterm @always" 	!". ./.profile; onx11server -n always.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
+	"Xterm @always" 	!". ./.profile; onx11server -n always.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, freely.weird.com, [], [
-	"Xterm @freely" 	!". ./.profile; onx11server -n freely.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display $REMOTE_DISPLAY ${XTERM_OPTS}\" &"
+	"Xterm @freely" 	!". ./.profile; onx11server -n freely.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
   ])
  ])
 }
@@ -1515,21 +1520,21 @@ menu "xterms"
 # for pushing our AUTH cookies over to the various target hosts in case they
 # don't share $HOME with the local host...
 #
-#	xauth nextract - $REMOTE_DISPLAY | rsh $X11SERVER $X11BIN/xauth nmerge -
+#	xauth nextract - ${REMOTE_DISPLAY} | rsh $X11SERVER $X11BIN/xauth nmerge -
 #
 ifdef([AT_WEIRD], [
 menu "xauth-to-weird"
 {
 	"Xauth pushes to Weird.com"	f.title
  ifdef([USE_X11SERVER], [
-	"Xauth to X11SERVER"	!"xauth nextract - $REMOTE_DISPLAY | (. ./.profile; onx11server $X11SERVER 'xauth nmerge -' ) &"
+	"Xauth to X11SERVER"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.profile; onx11server ${X11SERVER} 'xauth nmerge -' ) &"
  ])
-	"Xauth to most"		!"xauth nextract - $REMOTE_DISPLAY | $RSH most.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
-	"Xauth to isit"		!"xauth nextract - $REMOTE_DISPLAY | $RSH isit.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
-	"Xauth to once"		!"xauth nextract - $REMOTE_DISPLAY | $RSH once.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
-	"Xauth to historically"	!"xauth nextract - $REMOTE_DISPLAY | $RSH historically.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
-	"Xauth to freely"	!"xauth nextract - $REMOTE_DISPLAY | $RSH freely.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
-	"Xauth to whats"	!"xauth nextract - $REMOTE_DISPLAY | $RSH whats.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to most"		!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} most.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to isit"		!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} isit.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to once"		!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} once.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} historically.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to freely"	!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} freely.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to whats"	!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} whats.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
 }
 ])
 
@@ -1537,9 +1542,9 @@ ifdef([AT_WEIRD], [
 menu "xauth"
 {
 	"Xauth pushes"		f.title
-	"Xauth to more"		!"xauth nextract - $REMOTE_DISPLAY | $RSH more.local exec /usr/X11R6/bin/xauth nmerge - &"
-	"Xauth to historically"	!"xauth nextract - $REMOTE_DISPLAY | $RSH historically.local exec /usr/X11R6/bin/xauth nmerge - &"
-	"Xauth to once"		!"xauth nextract - $REMOTE_DISPLAY | $RSH once.local exec /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to more"		!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} more.local exec /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} historically.local exec /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to once"		!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} once.local exec /usr/X11R6/bin/xauth nmerge - &"
 }
 ])
 ifdef([ON_OSX], [
