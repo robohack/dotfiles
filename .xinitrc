@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.9	22/04/04 15:04:55 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.10	22/11/03 14:01:37 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -656,7 +656,8 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server more.local 'xauth nmerge -'
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server xenful.local 'xauth nmerge -'
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server xentastic.local 'xauth nmerge -'
-#			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbtest.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbtest.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbtcur.local 'xauth nmerge -'
 #			xauth nextract - ${REMOTE_DISPLAY} | onx11server historically.local 'xauth nmerge -'
 #			xauth nextract - ${REMOTE_DISPLAY} | onx11server once.local 'xauth nmerge -'
 #			xauth nextract - ${REMOTE_DISPLAY} | RSH=ssh onx11server freebsd.local 'xauth nmerge -'
@@ -722,8 +723,12 @@ if [ "$argv0" = ".xinitrc" ] ; then
 # slot for b2		onx11server -n b2.local "xload -geometry ${XloadGeomB2} -hl red: &
 
 
+# xxx thse need a variable for "80x45" as it could be wider (e.g. 91x45), or shorter....
+
 #			onx11server -n building.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 			onx11server -n more.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
+			onx11server -n nbtest.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
+			onx11server -n nbtcur.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 #			onx11server -n future.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 #			onx11server -n historically.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 			onx11server -n xenful.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
