@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.13	22/11/03 13:56:51 (woods)"
+#ident	"@(#)HOME:.profile	37.14	22/12/09 13:34:23 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -827,10 +827,11 @@ if [ -s "${HOME}/.editor" ] ; then
 	EDPREF=`mktable ${HOME}/.editor` ; export EDPREF
 fi
 
+HAVEEMACS=false
 if [ -z "${MY_EMACS}" ]; then
 	if type emacs >/dev/null 2>&1; then
 		MY_EMACS=`type emacs`
-		MY_EMACS=`expr "${EMACS}" : '^[^/]*\(/[^ )]*\)'`
+		MY_EMACS=`expr "${MY_EMACS}" : '^[^/]*\(/[^ )]*\)'`
 		case `uname -s` in
 		Darwin*)
 			# native emacs is usually very old!
@@ -847,12 +848,12 @@ if [ -z "${MY_EMACS}" ]; then
 		HAVEEMACS=true
 	fi
 else
+	# assume $MY_EMACS exists, or will exist
 	HAVEEMACS=true
 fi
 
 case "${EDPREF}" in
 emacs | "" )
-	HAVEEMACS=false
 	HAVEJOVE=false
 	if ${HAVEEMACS}; then
 		EDITOR="${MY_EMACS}"
