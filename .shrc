@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.23	22/11/03 14:02:16 (woods)"
+#ident	"@(#)HOME:.shrc	37.24	23/02/28 12:58:34 (woods)"
 
 PATH=$PATH
 export PATH
@@ -2049,6 +2049,9 @@ if [ "$uid" -eq 0 ] ; then
 		# the shell can also expand '~user' and also properly expand
 		# shell arithmetic expressions....
 		#
+		if [ -n "${WBANNER}" ] ; then
+			echo "Run 'setaliases' to set aliases from ~${LOGNAME}/.$(basename $SHELL)rc ... "
+		fi
 		alias setaliases='HOME=$(eval echo ~$LOGNAME); LEV=$((LEV-1)); . $HOME/.$(basename $SHELL)rc'
 	fi
 
