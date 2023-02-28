@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.10	22/11/03 14:01:37 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.11	23/02/28 13:02:53 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -886,12 +886,19 @@ very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.roboha
 	xset m 2 0
 
 	xload -geometry $XloadGeom -hl red &
-	# xxx xclock with Render is very weird in its font handling!
-	LC_CTYPE=C xclock -geometry $DClockGeom -face :size=10 -digital -update 1 -chime &
+	#
+	# xxx the xclock supplied with Xquartz 2.8.2 is broken somehow in how it
+	# displays text, but the pkgsrc build works OK....
+	#
+	XCLOCK="xclock"
+	if [ -x ${PKG}/bin/xclock ]; then
+		XCLOCK=${PKG}/bin/xclock
+	fi
+	LC_CTYPE=C ${XCLOCK} -geometry $DClockGeom -face :size=10 -digital -update 1 -chime &
 	if $HAVESWISSWATCH; then
 		swisswatch -name swissclock -geometry $ClockGeom &
 	else
-		xclock -update 1 -geometry $ClockGeom &
+		${XCLOCK} -update 1 -geometry $ClockGeom &
 	fi
 
 	# All the small lower-right command terminals (starting with our own first one)
