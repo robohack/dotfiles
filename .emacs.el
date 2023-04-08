@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.8	22/03/13 14:13:10 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.9	23/04/08 13:43:36 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v22.1 or newer
 ;;;;
@@ -52,6 +52,8 @@
 ;;; (load-file "~/.emacs.el")
 ;;;
 ;;; [note:  newer emacs have a "--debug-init" command-line option]
+;;;
+;;; See also:  https://svn.red-bean.com/repos/kfogel/trunk/.emacs
 
 ;;; more goodies for debug:
 ;;;
