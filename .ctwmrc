@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.7	22/11/03 14:03:47 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.8	23/04/08 13:42:58 (woods)"
 #
 # N.B.:  To test find the temp file output from the most recent run with '-k'
 # and then do:
@@ -1329,6 +1329,9 @@ menu "monitors"
 	"xload"			!"xload -geometry ${XloadGeom} -hl XLOAD_HL &"
  ifdef([USE_X11SERVER], [
 	"xload @X11SERVER"	!". ./.profile; onx11server -n ${X11SERVER} \"xload -display ${REMOTE_DISPLAY} -geometry 120x40-200+48 -hl XLOAD_HL\" &"
+ ])
+ ifdef([AT_VERY_WEIRD], [
+	"air-traffic-monitor"	!"uxterm OPT_UXTERM_FA -tn xterm-256color -geometry 80x25+eval((WIDTH / 2) - ( 3 * HorizDPI))-eval(VertDPI * 2) -fs 9 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -fc 5 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor &"
  ])
  ifdef([AT_WEIRD], [
 #	"xload @building"	!"${RSH} -n building.local \". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomBuilding} -hl red\" &"
