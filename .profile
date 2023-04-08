@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.14	22/12/09 13:34:23 (woods)"
+#ident	"@(#)HOME:.profile	37.15	23/04/08 13:41:56 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -49,7 +49,7 @@
 #	$HOME/.shell	- mktable'd and exec'ed as shell (see end of this file)
 #	$HOME/.shlogin	- sourced once, if running sh(1)
 #	$HOME/.shlogout	- set on trap 0, if running sh(1) or ash(1)
-#	$HOME/.shrc	- sourced very near the beginning of ~/.profile, and by $ENV
+#	$HOME/.shrc	- sourced near the beginning herein, and (again) by $ENV
 #	$HOME/.stty	- sourced for stty command(s), etc. just before tset(1)
 #	$HOME/.trninit	- pathname set as value for $TRNINIT
 
@@ -656,7 +656,15 @@ fi
 LC_TIME="C"
 export LC_TIME
 # Similarly we don't need any surprises from sorting order changes!
-LC_COLLATE="C"
+#
+# In the event LANG is set, even to a POSIX-compatible language, such as
+# LANG=en_US.UTF-8 or LANG=en_GB.UTF-8 or LANG=en_CA.UTF-8, etc., the sorting
+# order used by some tools will change, e.g. the "ls" command now sorts
+# filenames with uppercase and lowercase first character next to each other
+# (like in a dictionary), and file globbing will also no longer use the ASCII
+# order either (e.g. “echo [a-z]*” will also list any filenames starting with
+# uppercase letters).
+LC_COLLATE="C"		# alternatively:  LC_COLLATE=POSIX
 export LC_COLLATE
 
 # XXX can these ($RSH and $SSH) cause problems with other tools?
@@ -1093,6 +1101,7 @@ if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] || [ "
 			# N.B.:  once upon a time -ziconbeep was not universally available
 			#
 			if [ -z "$XTERM_OPTS" ]; then
+				# XXX try moving most/all of these to .Xdefaults
 				XTERM_OPTS="-fbx -bc -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1"
 			fi
 			export XTERM_OPTS
