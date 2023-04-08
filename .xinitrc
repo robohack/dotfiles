@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.11	23/02/28 13:02:53 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.12	23/04/08 13:40:38 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -374,7 +374,7 @@ case "$DISPLAY" in
 		# generates another "launchd_startx" message and so they never
 		# write to the closed pipe and so never get a SIGPIPE....
 		#
-		TEN_S_AGO=$(date -r $(($(date '+%s') - 10)) '+%Y-%m-%d %H:%M:0z')
+		TEN_S_AGO=$(date -r $(($(date '+%s') - 10)) '+%Y-%m-%d %H:%M:%S''%z')
                 { log show --info --debug --predicate 'process == "launchd_startx"' --style compact --start "${TEN_S_AGO}";
                   log stream --level debug --predicate 'process == "launchd_startx"' --style compact; } | \
 			awk '{
