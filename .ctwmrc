@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.8	23/04/08 13:42:58 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.9	23/11/06 18:07:09 (woods)"
 #
 # N.B.:  To test find the temp file output from the most recent run with '-k'
 # and then do:
@@ -382,7 +382,7 @@ IconJustification		"right"
 #   big ones.
 #
 ifelse(eval(WIDTH >= 6016 && HEIGHT >= 3384), 1, [define(OPT_BIG_XTERM, [-geometry 132x100+0+0 -fs 9])],
- ifelse(eval(WIDTH >= 2560 && HEIGHT >= 1440), 1, [define(OPT_BIG_XTERM, [-geometry 132x82+0+0 -fs 9])],
+ [ifelse(eval(WIDTH >= 2560 && HEIGHT >= 1440), 1, [define(OPT_BIG_XTERM, [-geometry 132x82+0+0 -fs 9])],
   [ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1280), 1, [define(OPT_BIG_XTERM, [-geometry 117x82+0+0 -fs 9])],
    [ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [define(OPT_BIG_XTERM, [-geometry 117x77+0+0 -fs 9])],
     [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [define(OPT_BIG_XTERM, [-geometry 100x50+0+0 -fs 7.5])],
