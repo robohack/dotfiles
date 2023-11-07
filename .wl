@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	37.5	22/03/18 12:22:57 (woods)"
+;;;;#ident	"@(#)HOME:.wl	37.6	23/11/06 18:25:45 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -528,6 +528,11 @@ into too much confusion (use this for bindings to `delete-other-windows')."
   ;;
   ;; note:  long ago there was code in `wl-summary-toggle-disp-msg' that hid the
   ;; folder window when displaying the summary, but it was commented out.
+  ;;
+  ;; XXX ToDo:  also kill any raw buffer window
+;  (let ((raw-buffer (get-buffer "*wl:raw message*"))
+;	(if raw-buffer
+;	    (kill-buffer-and-window raw-buffer))))
   )
 
 (define-key wl-summary-mode-map "\C-x1" 'my-wl-summary-turn-off-disp-msg)
@@ -651,7 +656,7 @@ If ARG is non-nil, forget everything about the message."
 (setq wl-message-buffer-prefetch-threshold 1000000)
 
 ;(setq elmo-message-fetch-confirm t)	; is the default
-(setq elmo-message-fetch-threshold 1000000)
+(setq elmo-message-fetch-threshold 5000000)
 
 ;; additional fields to retrieve when fetching headers
 ;;
