@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	37.6	23/11/06 18:25:45 (woods)"
+;;;;#ident	"@(#)HOME:.wl	37.7	23/11/07 14:25:55 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -529,10 +529,13 @@ into too much confusion (use this for bindings to `delete-other-windows')."
   ;; note:  long ago there was code in `wl-summary-toggle-disp-msg' that hid the
   ;; folder window when displaying the summary, but it was commented out.
   ;;
-  ;; XXX ToDo:  also kill any raw buffer window
-;  (let ((raw-buffer (get-buffer "*wl:raw message*"))
-;	(if raw-buffer
-;	    (kill-buffer-and-window raw-buffer))))
+  ;; Also kill any raw buffer window
+  ;;
+  (save-excursion
+    (let ((raw-msg-buf (get-buffer "*wl:raw message*")))
+      (when raw-msg-buf
+	  (switch-to-buffer-other-window raw-msg-buf)
+	  (kill-buffer-and-window))))
   )
 
 (define-key wl-summary-mode-map "\C-x1" 'my-wl-summary-turn-off-disp-msg)
