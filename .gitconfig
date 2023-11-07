@@ -2,7 +2,7 @@
 #
 #	.gitconfig - per-user Git setup
 #
-#ident	"@(#)HOME:.gitconfig	37.8	22/02/19 17:31:54 (woods)"
+#ident	"@(#)HOME:.gitconfig	37.9	23/11/06 18:03:03 (woods)"
 #
 # N.B.:  user.* could be set in GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL and those
 # should probably be set in ~/.localprofile, though Git is stupid and prefers
@@ -133,9 +133,13 @@
 # should just use "git pull", which already honours all these flags and options
 # itself.
 #
+# Git-2.39 or so says:
+#
+#   stderr: 'fatal: --preserve-merges was replaced by --rebase-merges
+#
 [git-up "rebase"]
 	auto = false
-	arguments = --preserve-merges
+	arguments = --rebase-merges
 #
 # Git 1.7.10+ supports an include path, e.g. to hide secrets:
 # (Expansion of '~' appeared in Git 1.7.10.2)
