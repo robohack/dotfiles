@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.9	23/04/08 13:43:36 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.10	23/11/06 18:27:18 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v22.1 or newer
 ;;;;
@@ -917,6 +917,7 @@ match `%s'. Connect anyway? " host))))))
     emojify
     emojify-logos
     ffmpeg-player		; maybe this could be fun?
+    font-utils
     forge			; esp for magit
     form-feed			; show ^L as lines, if added to mode's hook
     gh
@@ -933,6 +934,7 @@ match `%s'. Connect anyway? " host))))))
     json-mode
     json-reformat
     json-snatcher
+    list-utilsa
     lua-mode
     magit	    ; XXX git needs to be installed first!?!?!?!?
 ;    magit-annex		; I don't need this any more
@@ -955,6 +957,7 @@ match `%s'. Connect anyway? " host))))))
 ;    otp			; xxx gone?
     package-build
     password-vault		; try for size?
+    persistent-soft
     pg				; needed for emacsql-psql
     pinentry
     sed-mode			; xxx only in gnu repo, not melpa
@@ -1386,6 +1389,8 @@ be useful for scenarios where an emacs server runs in an xterm?)."
 ;;
 ;; (see also `modify-all-frames-parameters'...)
 ;;
+;; (see also https://archive.casouri.cc/note/2021/fontset/)
+;;
 (eval-and-compile
   (defvar display-x-dpi nil
     "Current X11 display's dots (pixels) per inch (horizontally).")
@@ -1666,6 +1671,9 @@ an existing and usable font."
 	  (progn
 	    (unless x-display-name
 	      (setq x-display-name (symbol-name window-system)))
+	    (require 'persistent-soft)
+	    (require 'font-utils)
+	    (require 'list-utils)
 	    (require 'ucs-utils)
 	    (setq ucs-utils-use-persistent-storage ; "ucs-utils")
 		  (concat ucs-utils-use-persistent-storage "-"
