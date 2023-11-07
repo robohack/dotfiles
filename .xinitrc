@@ -3,7 +3,9 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.12	23/04/08 13:40:38 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.13	23/11/06 18:19:49 (woods)"
+
+# N.B.:  see below for the best place to enable 'set -x' for debugging...
 
 # Assumptions that may cause breakage:
 #
@@ -48,11 +50,13 @@ unset XOPATH
 #
 #set -x
 
-if [ `uname -s` = "Darwin" ]; then
-	#
-	# xxx wait for possible resolution change by "invoking" xrandr...
-	#
-	sleep 5
+#
+# try making sure we are using the maximum display resolution right away
+#
+if type xrandr >/dev/null 2>&1; then
+	xrandr -s $(xrandr | awk '/^Screen [0-9]+:/ {print $(NF-2) "x" $(NF)}')
+else
+	echo "$argv0: cannot force hi-res display without xrandr utility..."
 fi
 
 # XXX these should be a single AWK script (the shell can eval the AWK
