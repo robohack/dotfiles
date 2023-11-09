@@ -1,7 +1,7 @@
 #
 #	.bashlogin - login shell startup for bash
 #
-#ident	"@(#)HOME:.bashlogin	37.1	21/03/23 11:43:05 (woods)"
+#ident	"@(#)HOME:.bashlogin	37.2	23/11/09 11:28:08 (woods)"
 
 case "$-" in
 *i*)
@@ -27,7 +27,7 @@ fi
 
 export FCEDIT=$(type -path ed)
 export HISTSIZE=2000
-if [ "$TTY" = "not a tty" ] ; then
+if [ "$TTY" != "not a tty" ] ; then
 	echo "Trying to fix TTY..."
 	TTY=$(tty)
 	TTYN=$(basename $TTY)
