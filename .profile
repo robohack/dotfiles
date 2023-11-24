@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.15	23/04/08 13:41:56 (woods)"
+#ident	"@(#)HOME:.profile	37.16	23/11/24 12:51:34 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -19,7 +19,7 @@
 #	- the shell supports functions (but not necessarily "typeset")
 #	- the shell supports "getopts" (used by some functions)
 #	- standard environment has been set by login(1)
-#	- $argv0 (if set) is `basename $0` from .xinitrc or .xsession
+#	- $argv0 (if set) is `basename $0`, from .xinitrc or .xsession
 #	- test(1), aka "[", supports '-L' for testing symlinks
 #	  (note that "test -L" is POSIX, but old systems had "-h")
 #
@@ -49,7 +49,7 @@
 #	$HOME/.shell	- mktable'd and exec'ed as shell (see end of this file)
 #	$HOME/.shlogin	- sourced once, if running sh(1)
 #	$HOME/.shlogout	- set on trap 0, if running sh(1) or ash(1)
-#	$HOME/.shrc	- sourced near the beginning herein, and (again) by $ENV
+#	$HOME/.shrc	- sourced at the beginning herein, and (again) by $ENV
 #	$HOME/.stty	- sourced for stty command(s), etc. just before tset(1)
 #	$HOME/.trninit	- pathname set as value for $TRNINIT
 
@@ -90,98 +90,16 @@ umask 022
 echo "$0: startup PATH=$PATH"
 OPATH=$PATH
 
-if [ -n "${DISPLAY}" ]; then
-	echo "$0: startup DISPLAY=$DISPLAY"
-	ODISPLAY=${DISPLAY}
-fi
-
+# every shell gets all the basic functions and variable settings....
 #
-# N.B.:  These next is_* functions are copied early in ~/.shrc too!
+# we assume ~/.profile is sourced only by login shells, and by
+# ~/.xinitrc or by a window manager
 #
+# XXX probably should move all the HAVE* settings there too....
+#
+. ${HOME}/.shrc
 
-is_bash ()
-{
-	[ ${RANDOM:-0} -ne ${RANDOM:-0} -a -n "${BASH}" ]
-}
-
-is_ksh ()
-{
-	if [ ${RANDOM:-0} -ne ${RANDOM:-0} -a -z "${BASH}" ]; then
-		case "${KSH_VERSION}" in
-		"Version"*)
-			return 0 # likely att ksh
-			;;
-		"@(#)MIRBSD"*)
-			return 0 # mksh
-			;;
-		"@(#)"*)
-			return 0 # likely pdksh or some other derivative
-			;;
-		*)
-			return 1
-			;;
-		esac
-	else
-		return 1
-	fi
-}
-
-is_attksh ()
-{
-	is_bash && return 1
-
-	# Note the use of eval to avoid any non-Ksh, non-bosh shell from kicking
-	# out an error about "bad substitution" and stopping execution as a
-	# result.
-
-	# ksh93 and [p]bosh
-	_sh_version=`eval 'echo "${.sh.version}"' 2>/dev/null`
-	# [p]bosh only
-	_sh_shell=`eval 'echo "${.sh.shell}"' 2>/dev/null`
-
-	test -n "${_sh_version}" -a -z "${_sh_shell}"
-	_rc=$?
-	unset _sh_shell _sh_version
-
-	return ${_rc}
-}
-
-is_ash ()
-{
-	is_ksh && return 1
-	is_bash && return 1
-	# older Ash didn't have $RANDOM?
-	[ "`echo ~`" = "${HOME}" ]
-}
-
-is_bourne_sh ()
-{
-	is_ash && return 1
-	[ "`echo ~`" != "${HOME}" -a -z "${RANDOM}" ]
-}
-
-is_posixish_sh ()
-{
-	[ "`echo ~`" = "${HOME}" -a ${RANDOM:-0} -eq ${RANDOM:-0} ]
-}
-
-is_schily_sh ()
-{
-	_sh_shell=`eval 'echo "${.sh.shell}"' 2>/dev/null`
-
-	test -n "${_sh_shell}"
-	_rc=$?
-	unset _sh_shell
-
-	return ${_rc}
-}
-
-ISATTY=false
-if tty >/dev/null; then
-	ISATTY=true
-fi
-
-if ${ISATTY}; then
+if ${ISATTY}; then		# XXX && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] XXX and not yet in layers
 	if is_bash && [ -r ${HOME}/.bashlogout ]; then
 		trap '. ${HOME}/.bashlogout ; exit $?' EXIT
 	elif is_ksh && [ -r ${HOME}/.kshlogout ]; then
@@ -190,13 +108,6 @@ if ${ISATTY}; then
 		trap '. ${HOME}/.shlogout ; exit $?' 0
 	fi
 fi
-
-# every shell gets all the basic functions and variable settings....
-#
-# we assume ~/.profile is sourced only by login shells, and by
-# ~/.xinitrc or by a window manager
-#
-. ${HOME}/.shrc
 
 # Note:  early ash reads SHINIT at start (except if a login shell or called with
 # "sh file")
@@ -668,7 +579,7 @@ LC_COLLATE="C"		# alternatively:  LC_COLLATE=POSIX
 export LC_COLLATE
 
 # XXX can these ($RSH and $SSH) cause problems with other tools?
-# (will be OK with at least cvs and rsync which use ${ARGV0}_RSH)
+# (will be OK with at least cvs and rsync which use ${argv0}_RSH)
 #
 if type rsh >/dev/null 2>&1 ; then
 	RSH="rsh"
@@ -963,7 +874,7 @@ fi
 
 # set terminal type and tty settings, etc....
 #
-if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] || [ "X${TERM}" = "Xdmd" -a "`ismpx`" != "yes" ] ; then
+if ${ISATTY}; then
 	echo "Re-setting terminal preferences...."
 
 	# turn this off by default, turn it on by hand in one main window?
@@ -1154,7 +1065,7 @@ if [ -d ${HOME}/lib/terminfo ] ; then
 	esac
 fi
 
-if ${ISATTY} && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] ; then
+if ${ISATTY}; then
 	# WARNING: some stupid stty's cause this to fail!!!!
 	# eg., ULTRIX V4.3 stty(1) 'cause it uses stdout, not stdin....
 	SANE=`stty -g` ; export SANE
@@ -1200,7 +1111,7 @@ if type xinit >/dev/null 2>&1; then
 	HAVEX=true
 fi
 
-if ${ISATTY} && ${HAVEX} && [ "X$argv0" != "X.xinitrc" -a "X$argv0" != "X.xsession" ] ; then
+if ${ISATTY} && ${HAVEX} && [ "X$DISPLAY" = "X" ] ; then
 	case "${TTYN}" in
 	console|vg*|vt*|ttyc*|ttyE*)
 		case "${TERM}" in
@@ -1213,7 +1124,7 @@ if ${ISATTY} && ${HAVEX} && [ "X$argv0" != "X.xinitrc" -a "X$argv0" != "X.xsessi
 			case "$yn" in
 				"" | [yY]*)
 				trap '' 2
-				xinit
+				startx # xxx was just xinit
 				exec sleep 1
 				;;
 			*)
@@ -1226,53 +1137,52 @@ if ${ISATTY} && ${HAVEX} && [ "X$argv0" != "X.xinitrc" -a "X$argv0" != "X.xsessi
 	esac
 fi
 
-if ${ISATTY} && ${HAVELAYERS} && [ "X${TERM}" = "Xdmd" -a "`ismpx`" != "yes" ] ; then
-	trap '' 2
-	echo ""
-	$echo $n "Do you want to start layers? ([y]/n/debug) $c"
-	read yn
-	trap 2
-	case "$yn" in
-	"" | [yY]* | d*)
-		if expr "$yn" : 'd.*' >/dev/null ; then
-			layers=layers-DEBUG
-		else
-			layers=layers
-		fi
-		# TODO: maybe not?
-		if [ "${VISUAL}" = "emacs" ] ; then
-			VISUAL="emacsclient" ; export VISUAL
-		fi
-		LAYERSPID=$$ ; export LAYERSPID
-		rc=.${TERM}rc
-		# TODO: think about dmdmyx here....
-		TERM="dmd"; export TERM
-		stty -ixon -ixoff -ixany
-		if [ -s ${HOME}/$rc ] ; then
-			exec $layers -f $rc 2>> ${HOME}/tmp/layers.stderr
-		else
-			exec $layers 2>> ${HOME}/tmp/layers.stderr
-		fi
-		echo "Couldn't exec layers."
-		stty ixon ixoff -ixany
-		;;
-	*)
-		echo "OK, not starting layers..."
-		;;
-	esac
+if ${ISATTY} && ${HAVELAYERS} && [ "X${TERM}" = "Xdmd" ] ; then
+	if ismpx -s; then
+		echo "This should be a window running in layers..."
+	else
+		trap '' 2
+		echo ""
+		$echo $n "Do you want to start layers? ([y]/n/debug) $c"
+		read yn
+		trap 2
+		case "$yn" in
+		"" | [yY]* | d*)
+			if expr "$yn" : 'd.*' >/dev/null ; then
+				layers=layers-DEBUG
+			else
+				layers=layers
+			fi
+			# TODO: maybe not?
+			if [ "${VISUAL}" = "emacs" ] ; then
+				VISUAL="emacsclient" ; export VISUAL
+			fi
+			LAYERSPID=$$ ; export LAYERSPID
+			rc=.${TERM}rc
+			# TODO: think about dmdmyx here....
+			TERM="dmd"; export TERM
+			stty -ixon -ixoff -ixany
+			if [ -s ${HOME}/$rc ] ; then
+				exec $layers -f $rc 2>> ${HOME}/tmp/layers.stderr
+			else
+				exec $layers 2>> ${HOME}/tmp/layers.stderr
+			fi
+			echo "Couldn't exec layers."
+			stty ixon ixoff -ixany
+			;;
+		*)
+			echo "OK, not starting layers..."
+			;;
+		esac
+	fi
 fi
 
 #
-# NOTE:  we don't get here the first time if we're starting a window system, so
-# for first time in for window systems which emulate login shells in each window
+# NOTE:  we don't get here the first time if we're starting a window system
 #
 
 if ${ISATTY}; then
 	do_first_time
-fi
-
-if [ -r ${HOME}/.trninit${TERM} ] ; then
-	TRNINIT=${HOME}/.trninit${TERM} ; export TRNINIT
 fi
 
 # There is a trick here -- if your shell is like ksh(1) or modern GNU Bash, and
@@ -1287,7 +1197,7 @@ fi
 # set, and if it is readable, do that now.  In this case sub-shells will not
 # have automatic sourcing of $ENV.  (and of course ~/.shrc was sourced above)
 #
-if [ -n "${ENV}" -a "${ENV}" != "${HOME}/.shrc" -a -r "${ENV}" ] ; then
+if ${ISATTY} && [ -n "${ENV}" -a "${ENV}" != "${HOME}/.shrc" -a -r "${ENV}" ] ; then
 	. ${ENV}
 fi
 
@@ -1297,16 +1207,16 @@ if [ ${RANDOM:-0} -eq ${RANDOM:-0} ] ; then
 	unset RANDOM
 fi
 
-# TODO: do something with msgs(1) if needed....
-
 # NOTE: trick 4.4BSD shell into -E by putting it in here, 'cause you can't
 # "set -o emacs" in .ashrc, as that'll cause some versions of it to dump core....
 #
-if [ -s ${HOME}/.shell -a "X${argv0}" != "X.xinitrc" -a "X${argv0}" != "X.xsession" ] ; then
+if ${ISATTY} && [ -s ${HOME}/.shell ] ; then
 	# mktable just throws away comments....
 	exec `mktable ${HOME}/.shell`
 fi
 
-cd
+if ${ISATTY}; then
+	cd
+fi
 
 # End Of File
