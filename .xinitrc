@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.14	23/11/24 12:56:37 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.15	23/11/24 15:16:21 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -75,7 +75,8 @@ fi
 # try making sure we are using the maximum display resolution right away
 #
 # N.B.:  This assumes we've told startx to set the DPI parameter correctly for
-# the current screen.  On macos with XQuartz this is done with:
+# the current screen.  On macos, with XQuartz, for the Retina 6K Pro Display
+# XDR, which has approximately 218 DPI, this is done with:
 #
 #	defaults write org.xquartz.X11 dpi -int 218
 #
@@ -152,15 +153,6 @@ if [ -r $HOME/.Xdefaults ] ; then
 	# n.b.:  note the custom use of m4!
 	xrdb -cpp m4 -merge $HOME/.Xdefaults	# Load user's X11 resource database
 fi
-if [ ! -d $HOME/.fonts ]; then
-	echo "$argv0: making a new empty ~/.fonts directory!"
-	mkdir $HOME/.fonts
-	( cd $HOME/.fonts && mkfontdir -o fonts.dir && mkfontscale -o fonts.scale )
-fi
-if [ -r $HOME/.fonts.alias.m4 ] ; then
-	# n.b.:  note the abuse of xrdb and the custom use of m4!
-	xrdb -quiet -cpp m4 -E -n $HOME/.fonts.alias.m4 | sed 1,2d > $HOME/.fonts/fonts.alias
-fi
 
 #
 # Choose some defaults for pixel-sized things...
@@ -213,30 +205,6 @@ DefaultXftFontSpec="-*-*-medium-r-*-*-*-*-0-0-m-*-iso10646-1"
 DefaultXftFontSpecL1="-*-*-medium-r-*-*-*-*-0-0-m-*-iso8859-1"
 export DefaultXftFontSpec DefaultXftFontSpecL1
 
-# XXX this is actually done properly now with 'xrdb -cpp m4'
-#
-#{
-#	echo "Xft.dpi:		${FontYDPI}"
-#	echo "*dpi:		${SCREENDPI_Y}"	# XXX this may be a bad idea...
-#	echo "*font:		${DecentFontSpec}"
-#	echo "*Font:		${DecentFontSpec}"
-#	echo "*fontList:	${DecentFontSpec}"
-#	echo "*.fontList:	${DecentFontSpec}"
-#	echo "XtDefaultFont:	${DecentFontSpecL1}"
-#} | xrdb -merge
-#
-#
-# FontPath setup must also come before any other graphical client is started!
-#
-# Install any/all of the general-coverage and symbol TTF fonts, e.g. from
-# pkgsrc, along with "ttmkfdir2", and then:
-#
-#	cd ${PKG}/share/fonts/TTF
-#	ttmkfdir -o fonts.dir
-#
-# (xxx hmmm... just use mkfontdir and mkfontscale instead?)
-#
-# Non-packaged TTF fonts should be installed similarly in ~/.fonts.
 #
 # For hi-res displays one critical entry should be in ~/.fonts/fonts.alias:
 #
@@ -244,6 +212,33 @@ export DefaultXftFontSpec DefaultXftFontSpecL1
 #
 # (note there are "xcursor-*" pkgsrc packages with scalable loadable cursors)
 #
+# FontPath setup must also come before any other graphical client is started!
+#
+# Install any/all of the general-coverage (and symbol) TTF fonts, e.g. from
+# pkgsrc, along with "ttmkfdir2", and then:
+#
+#	cd ${PKG}/share/fonts/TTF
+#	ttmkfdir -o fonts.dir
+#
+# (xxx hmmm... just use mkfontdir and mkfontscale instead?)
+#
+# Non-packaged TTF fonts should be installed similarly in ~/.fonts:
+#
+if [ ! -d $HOME/.fonts ]; then
+	echo "$argv0: making a new empty ~/.fonts directory!"
+	echo "$argv0: NOTICE: you may need to install some TTF fonts here (e.g. Liberation)!"
+	mkdir $HOME/.fonts
+	( cd $HOME/.fonts && mkfontdir -o fonts.dir && mkfontscale -o fonts.scale )
+fi
+#
+if [ -r $HOME/.fonts.alias.m4 ] ; then
+	# n.b.:  note the abuse of xrdb and the custom use of m4!
+	xrdb -quiet -cpp m4 -E -n $HOME/.fonts.alias.m4 | sed 1,2d > $HOME/.fonts/fonts.alias
+fi
+#
+if [ -n "${X11FONTPATH}" ]; then
+	echo "$argv0: initial X11FONTPATH=${X11FONTPATH}"
+fi
 fpappend X11FONTPATH "${HOME}/.fonts/"
 fpappend X11FONTPATH "${LOCAL}/share/fonts/X11/TTF/" "${LOCAL}/share/fonts/X11/OTF/"
 fpappend X11FONTPATH "${PKG}/share/fonts/X11/TTF/" "${PKG}/share/fonts/X11/OTF/"
