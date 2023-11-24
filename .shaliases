@@ -1,7 +1,7 @@
 #
 #	.shaliases - common aliases for Ksh and clones, Ash, etc.
 #
-#ident	"@(#)HOME:.shaliases	37.3	22/03/13 14:21:43 (woods)"
+#ident	"@(#)HOME:.shaliases	37.4	23/11/23 18:03:28 (woods)"
 
 if $ISSUN; then
 	alias df="/usr/bin/df"
@@ -31,7 +31,14 @@ alias lman='MANPATH=$LOCAL/share/man man'
 alias pkgman='MANPATH=$PKG/share/man man'
 alias optman='MANPATH=$SLASHOPT/share/man man'
 alias tkman='MANPATH=$LOCAL/share/man.tcltk man'
-alias x11man='MANPATH=$X11PATH/man man'
+
+if ${HAVEX}; then
+	alias x11man='MANPATH=$X11PATH/man man'
+
+	# XXX this is probably only necessary on macos where they don't run the
+	# "retina" displays at full resolution and you're already in a GUI....
+	alias goX11='xrandr -s $(xrandr 2>/dev/null | awk "/^Screen [0-9]+:/ {print \$(NF-2) \"x\" \$(NF)}")'
+fi
 
 if $HAVETPUT; then
 	alias c='tput clear'
