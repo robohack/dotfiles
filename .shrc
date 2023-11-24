@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.24	23/02/28 12:58:34 (woods)"
+#ident	"@(#)HOME:.shrc	37.25	23/11/24 12:46:49 (woods)"
 
 PATH=$PATH
 export PATH
@@ -28,16 +28,17 @@ if [ -z "${SHELL}" ]; then
 	SHELL=`expr "$0" : '-*\(.*\)'`
 fi
 
-# N.B.:  this will be possibly reset, then appended to....
-PS1=""
+# This file sets D_PS1 once done to allow setaliases to avoid clobbering
+# .kshrc's new value.
+#
+if [ -z "${D_PS1}" ]; then
+	# N.B.:  this will be possibly reset, then appended to....
+	PS1=""
+fi
 
 # PS2="> "
 # PS3="#? "
 # PS4="+ "
-
-#
-# N.B.:  These next is_* functions are copied early in ~/.profile too!
-#
 
 is_bash ()
 {
@@ -1473,13 +1474,11 @@ get_newterm ()
 }
 
 if [ -n "$DISPLAY" ]; then
-	#
-	# note: $argv0 will have been set by .xinitrc, but....
-	#
 	onx11server ()
 	{
 		_RDISPLAY=${REMOTE_DISPLAY:-${DISPLAY}}
 		_REMSHELL=${RSH:-rsh}
+		# note: $argv0 will have been set by .xinitrc, but....
 		_USAGE="onx11server: Usage: onx11server [-n[S]|-[f]S] [-D REMOTE_DISPLAY] X11SERVERNAME 'command string'"
 		_nullopt=""
 		OPTIND="1"
@@ -1555,6 +1554,7 @@ fi
 
 do_first_time ()
 {
+	# TODO:  do something with msgs(1) if needed....
 	# TODO:  should use $HAVEFORTUNE and $FORTUNE
 	if [ -x /usr/games/fortune ] ; then
 		echo ""
@@ -1584,11 +1584,20 @@ do_first_time ()
 			fi
 		fi
 	fi
+	if [ -r ${HOME}/.trninit${TERM} ] ; then
+		TRNINIT=${HOME}/.trninit${TERM} ; export TRNINIT
+	fi
 	lnotes
 }
 
-TTY=`tty`
-TTYN=`tty | sed 's|/dev/||'`
+ISATTY="true"
+# xxx && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] 
+TTY=`tty` || ISATTY="false"	# "not a tty" if not...
+if ${ISATTY}; then
+	TTYN=`basename $TTY`
+else
+	TTYN="not-tty"
+fi
 
 if type ismpx >/dev/null 2>&1; then
 	: might just be running layers
@@ -1596,17 +1605,22 @@ else
 	# otherwise it's just not possible....
 	ismpx ()
 	{
+		if [ X$1 != X"-s" ]; then
+			echo "no"
+		fi
 		false
 	}
 fi
 
-if ismpx || [ "$TERM" = "dmd-myx" ] ; then
+if ismpx -s || [ "$TERM" = "dmd-myx" ] ; then
 	if [ "${LEV:-0}" -eq 0 ] ; then
 		# in xterms, we are (normally, supposed to be) a login
 		# shell, but not in layers
 		do_first_time
 	fi
-	PS1="${PS1}${UUNAME}"
+	if [ -z "${D_PS1}" ]; then
+		PS1="${PS1}${UUNAME}"
+	fi
 	MYXCLR_L="`myxban -l`"
 	MYXCLR_C="`myxban -c`"
 	MYXCLR_R="`myxban -r`"
@@ -1647,7 +1661,9 @@ fi
 # else
 case "$TERM" in
 *xterm*)
-	PS1="${PS1}${UUNAME}"
+	if [ -z "${D_PS1}" ]; then
+		PS1="${PS1}${UUNAME}"
+	fi
 
 	clearban ()
 	{
@@ -1703,10 +1719,12 @@ case "$TERM" in
 *)
 	# assume there's only a plain terminal with no banner line...
 	#
-	if [ "$user" != "$LOGNAME" ] ; then
-		PS1="${PS1}$TTYN:$user($LOGNAME)@$UUNAME)"
-	else
-		PS1="${PS1}$TTYN:$LOGNAME@$UUNAME"
+	if [ -z "${D_PS1}" ]; then
+		if [ "$user" != "$LOGNAME" ] ; then
+			PS1="${PS1}$TTYN:$user($LOGNAME)@$UUNAME)"
+		else
+			PS1="${PS1}$TTYN:$LOGNAME@$UUNAME"
+		fi
 	fi
 	;;
 esac
@@ -2043,7 +2061,7 @@ if [ "$uid" -eq 0 ] ; then
 
 	if type alias >/dev/null 2>&1; then
 		#
-		# for those that do trust ~$LOGNAME dotfiles
+		# for those that _do_ trust ~$LOGNAME dotfiles
 		#
 		# n.b.:  here we assume that if there is an "alias" command then
 		# the shell can also expand '~user' and also properly expand
@@ -2112,7 +2130,7 @@ if [ "$uid" -eq 0 ] ; then
 
 	set_LOCAL_et_al
 
-	if ismpx || [ "$TERM" = "dmd-myx" ] ; then
+	if ismpx -s || [ "$TERM" = "dmd-myx" ] ; then
 		# xxx should do this in setban...
 		MYXBAN_R='$user:$group($LOGNAME)@$UUNAME[$LEV]:$TTYN'
 		dirappend PATH $DMD/bin $DMDSGS/bin/3b5 $DMD/local/bin
@@ -2185,19 +2203,21 @@ if [ "$uid" -eq 0 ] ; then
 	WBANNER="SU `basename ${SHELL}`"
 	setban
 elif [ "$user" != "$LOGNAME" ] ; then
-	if ismpx || [ "$TERM" = "dmd-myx" ] ; then
+	if ismpx -s || [ "$TERM" = "dmd-myx" ] ; then
 		# xxx should do this in setban...
 		MYXBAN_R='$user:$group($LOGNAME)@$UUNAME[$LEV]:$TTYN'
 	fi
 	: ${PSc:='$'}
 else
-	if ismpx || [ "$TERM" = "dmd-myx" ] ; then
+	if ismpx -s || [ "$TERM" = "dmd-myx" ] ; then
 		# xxx should do this in setban...
 		MYXBAN_R='$LOGNAME{$group}@$UUNAME[$LEV]:$TTYN'
 	fi
 	: ${PSc:='$'}
 fi
-PS1="${PS1} ${PSc} "
+if [ -z "${D_PS1}" ]; then
+	PS1="${PS1} ${PSc} "
+fi
 
 if [ "$user" = usenet -o "$group" = news ] ; then
 	dirprepend PATH $LOCAL/lib/newsbin $LOCAL/lib/newsbin/maint $LOCAL/lib/newsbin/input
@@ -2205,6 +2225,8 @@ fi
 if [ "$user" = cyrus -o "$group" = cyrus ] ; then
 	dirprepend PATH $LOCAL/cyrus/bin $PKG/cyrus/bin $SLASHOPT/cyrus/bin $CONTRIB/cyrus/bin
 fi
+
+D_PS1="done"
 
 #
 # now some helpful functions
