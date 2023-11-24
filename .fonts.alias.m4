@@ -2,7 +2,7 @@
 !
 !	private fonts.alias -- must be first to have effect
 !
-!#ident	"@(#)HOME:.fonts.alias.m4	37.3	23/11/24 13:19:06 (woods)"
+!#ident	"@(#)HOME:.fonts.alias.m4	37.4	23/11/24 15:57:40 (woods)"
 !
 !	Work out the screen resolution in order to specify default Font DPIs
 !
@@ -27,10 +27,11 @@
 ! define(ScreenDimX, eval(WIDTH / HorizDPI))
 ! define(ScreenDimY, eval(HEIGHT / VertDPI))
 !
-! N.B.:  If true screen resolution is within 10% of 100DPI it could sense to
-! claim 100DPI to avoid font-scaling artifacts for bitmap fonts, but since we
-! already alias most font names that did refer to bitmap fonts into scalable
-! fonts anyway, there is not much to gain
+! N.B.:  If true screen resolution is within 10% of 100DPI it could make the
+! most sense to simply claim 100DPI to avoid font-scaling artifacts for bitmap
+! fonts, but since we already alias most font names that did refer to bitmap
+! fonts into scalable fonts anyway, there is not much to gain by sticking to
+! exactly 100DPI.
 !
 ! ifelse(eval((HorizDPI / 100 == 1) && (HorizDPI % 100 <= 10)), 1,
 !  [define(FontXDPI, HorizDPI)],
