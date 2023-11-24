@@ -3,9 +3,12 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.13	23/11/06 18:19:49 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.14	23/11/24 12:56:37 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
+
+# XXX WARNING XXX:  It seems something on macos (launchd_startx?) blows up if
+# any line of output from this script is more than 512 bytes!!!
 
 # Assumptions that may cause breakage:
 #
@@ -16,21 +19,35 @@
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
 argv0="`basename $0`"
-echo "$argv0: running from $0"
+echo "$argv0: running from $0 (shell flags: -$-) on '$(tty)'"
 XOPATH=$PATH
 echo "$argv0: initial PATH='$PATH'"
 XODISPLAY=$DISPLAY
 echo "$argv0: starting up with DISPLAY='$DISPLAY'"
 
+#echo "With the following arguments:"
+#
+#c=0
+#for i in "${@}"; do
+#	c=`expr ${c} + 1`
+#	echo "arg #${c}: \"${i}\""
+#done
+#if [ $c -eq 0 ]; then
+#	echo "# (No arguments)"
+#fi
+#echo '# End-of-Arguments'
+
 # note we redirect input from /dev/null while sourcing in hopes of
 # showing these scripts that they are not attached to a TTY.
 #
 if [ -r /etc/profile ] ; then
+	echo "$argv0: sourcing /etc/profile"
 	. /etc/profile < /dev/null
 else
 	echo "$argv0: no /etc/profile on this host!"
 fi
 if [ -r $HOME/.profile ] ; then
+	echo "$argv0: sourcing $HOME/.profile"
 	. $HOME/.profile < /dev/null
 else
 	echo "$argv0: no $HOME/.profile on this host!"
@@ -48,13 +65,32 @@ unset XOPATH
 
 # XXX for debugging
 #
-#set -x
+DEBUG=true
+#DEBUG=false
+if $DEBUG; then
+	echo "$argv0: Debugging enabled ...."
+	set -x
+fi
 
-#
 # try making sure we are using the maximum display resolution right away
 #
+# N.B.:  This assumes we've told startx to set the DPI parameter correctly for
+# the current screen.  On macos with XQuartz this is done with:
+#
+#	defaults write org.xquartz.X11 dpi -int 218
+#
+# On Xquartz/Darwin (and in general with the Xorg Xserver) the command-line
+# "-dpi" value is used to compute the frame buffer's width and height based on
+# the number of pixels each way, so there's no way to fetch this original
+# command-line parameter back except in the way xdpyinfo does, i.e. by getting
+# the pixel dimensions and the screen dimensions and re-computing the x/y DPI.
+# Due to rounding errors this may end up returning an off-by-one value for one
+# of the dimentions.
+#
+echo "$argv0: Getting ready to try xrandr stuff ...."
 if type xrandr >/dev/null 2>&1; then
-	xrandr -s $(xrandr | awk '/^Screen [0-9]+:/ {print $(NF-2) "x" $(NF)}')
+	xrandr -s $(xrandr 2>/dev/null | awk '/^Screen [0-9]+:/ {print $(NF-2) "x" $(NF)}')
+	echo "$argv0: Done xrandr ...."
 else
 	echo "$argv0: cannot force hi-res display without xrandr utility..."
 fi
@@ -226,7 +262,7 @@ fpappend X11FONTPATH "${X11PATH}/share/fonts/Type1/"
 #
 if [ $SCREENDPI_Y -lt 110 ]; then
 	: so this block can be commented out but for this line
-	fappend X11FONTPATH "${X11PATH}/share/fonts/100dpi/:unscaled"
+	fpappend X11FONTPATH "${X11PATH}/share/fonts/100dpi/:unscaled"
 	# "misc" should come last, but must be present
 	# (XXX unless an equivalent fonts.alias is available elsewhere?)
 	fpappend X11FONTPATH "${X11PATH}/share/fonts/misc/:unscaled"
@@ -257,7 +293,7 @@ if [ $SCREENDPI_Y -lt 110 ]; then
 	fpappend X11FONTPATH "${X11PATH}/share/fonts/100dpi/" "${X11PATH}/share/fonts/misc/"
 fi
 #
-echo $X11FONTPATH
+#echo $X11FONTPATH
 export X11FONTPATH
 
 #
@@ -379,8 +415,8 @@ case "$DISPLAY" in
 		# write to the closed pipe and so never get a SIGPIPE....
 		#
 		TEN_S_AGO=$(date -r $(($(date '+%s') - 10)) '+%Y-%m-%d %H:%M:%S''%z')
-                { log show --info --debug --predicate 'process == "launchd_startx"' --style compact --start "${TEN_S_AGO}";
-                  log stream --level debug --predicate 'process == "launchd_startx"' --style compact; } | \
+                { log show --info --debug --predicate 'process == "launchd_startx" || process == "privileged_startx"' --style compact --start "${TEN_S_AGO}";
+                  log stream --level debug --predicate 'process == "launchd_startx" || process == "privileged_startx"' --style compact; } | \
 			awk '{
 				match($0, /[^\]]*\][^\])]*[\])] /);
 				print substr($0, 1, 24) substr($0, (RLENGTH > 0) ? RLENGTH : 25);
