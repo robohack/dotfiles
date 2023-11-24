@@ -2,14 +2,14 @@
 !
 !	private fonts.alias -- must be first to have effect
 !
-!#ident	"@(#)HOME:.fonts.alias.m4	37.2	22/02/23 18:04:29 (woods)"
+!#ident	"@(#)HOME:.fonts.alias.m4	37.3	23/11/24 13:19:06 (woods)"
 !
 !	Work out the screen resolution in order to specify default Font DPIs
 !
 ! n.b.:  resolutions are in pixels per metre, for some stupid reason....
 ! so 4500 dpM (/39.37) is just over 110 dpi
 !
-! Reload with:
+! Reload with (this is done in ~/.xinitrc):
 !
 !	xrdb -quiet -cpp m4 -E -n $HOME/.fonts.alias.m4 | sed 1,2d > $HOME/.fonts/fonts.alias
 !	xset fp rehash
