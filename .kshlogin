@@ -1,7 +1,7 @@
 #
 #	.kshlogin - login shell startup for ksh
 #
-#ident	"@(#)HOME:.kshlogin	37.2	22/02/19 17:32:57 (woods)"
+#ident	"@(#)HOME:.kshlogin	37.3	23/11/24 12:52:06 (woods)"
 
 case "$-" in
 *i*)
@@ -21,7 +21,6 @@ case "$-" in
 	fi
 	;;
 *)
-	# this can be misleading for .xinitrc
 	echo "$0: WARNING: .kshlogin being sourced by a non-interactive shell!"
 	;;
 esac
