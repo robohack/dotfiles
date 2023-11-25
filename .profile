@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.16	23/11/24 12:51:34 (woods)"
+#ident	"@(#)HOME:.profile	37.17	23/11/25 14:23:17 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -892,145 +892,135 @@ if ${ISATTY}; then
 		stty -echo
 	fi
 
-	case "${UUNAME}" in
-	robohack | weirdo | most | very | isit )
-		# we trust that everything is all set up as it should be on
-		# sites we know, except for personal preferences set above...
-		:
+	case "${TERM}" in
+	""|network|dialup|unknown|none)
+		# n.b.:  a function may not work to set an env var, see
+		# the note above the definition of ~/.shrc:get_newterm()
+		get_newterm
 		;;
 	*)
-		case "${TERM}" in
-		""|network|dialup|unknown|none)
-			# n.b.:  a function may not work to set an env var, see
-			# the note above the definition of ~/.shrc:get_newterm()
-			get_newterm
-			;;
-		*)
-			# xxx hmmm.... this could just use $TERMTESTCMD (also
-			# from ~/.shrc), but doing so would make showing the
-			# warning notice impossible...
-			#
-			if ${HAVETPUT} ; then
-				if tput longname > /dev/null; then
-					:
-				else
-					echo "NOTICE:  the preset TERM=${TERM} is unknown...";
-					TERM=unknown;
-					get_newterm
-				fi
-			elif type tset >/dev/null 2>&1; then
-				# n.b.:  this asks if TERM is unknown...
-				eval `tset -s`
-				# xxx if we want this, we get it later!
-				unset TERMCAP
+		# xxx hmmm.... this could just use $TERMTESTCMD (also
+		# from ~/.shrc), but doing so would make showing the
+		# warning notice impossible...
+		#
+		if ${HAVETPUT} ; then
+			if tput longname > /dev/null; then
+				:
 			else
-				echo "NOTICE:  I don't know how to test your TERM (${TERM})."
+				echo "NOTICE:  the preset TERM=${TERM} is unknown...";
+				TERM=unknown;
+				get_newterm
 			fi
-			;;
-		esac
-
-		export TERM
-
-		case "${TERM}" in
-		vt220*)
-			if [ ! -r ${HOME}/.stty ] ; then
-				# real vt220 keyboards make this the best setup
-				# n.b.:  on *BSD this could be "stty dec"
-				stty intr '^C' erase '^?'
-			fi
-			;;
-		esac
-
-		case "${TTYN}" in
-		tty[p-zP-Z]*|vt*|vg*|console)
-			echo "Setting TTY modes for 8-bit transparency...."
-			stty cs8 -istrip -parenb
-			;;
-		esac
-
-		# now, one more time to really do the correct initialisation...
-		#
-		# unfortunately "tput reset" will almost always clear an
-		# xterm, and "tput init" may do so, depending on the vintage of
-		# terminfo definitions the host system has
-		#
-		case "${TERM}" in
-		xterm*)
-			;;
-		*)
-			if ${HAVETPUT} ; then
-				tput init
-			fi
-			;;
-		esac
-		# Note: in other places we assume tset is avaliable....
-		if type tset >/dev/null 2>&1; then
-			# On BSD, without the "-I" it uses /etc/termcap....
-			# (but maybe that is a good thing?)
-			tset -r
-			if ${HAVETPUT} ; then
-				echo ${TERM}: `tput longname`
-			fi
-		elif ${HAVETPUT}; then
-			:
+		elif type tset >/dev/null 2>&1; then
+			# n.b.:  this asks if TERM is unknown...
+			eval `tset -s`
+			# xxx if we want this, we get it later!
+			unset TERMCAP
 		else
-			echo "NOTICE:  I don't know how to set up your terminal."
+			echo "NOTICE:  I don't know how to test your TERM (${TERM})."
 		fi
-
-		# "tput" and/or "tset" do not support setting or clearing tabs.
-		#
-		# (note "tabs" is required by POSIX (since at least SUSv2, i.e.
-		# 1997), but it was not in NetBSD until 6.0 -- "tset" though is
-		# not in POSIX at all.)
-		#
-		if type tabs >/dev/null 2>&1; then
-			tabs -8
-		fi
-
-		case "${TERM}" in
-		xterm*)
-			if type resize >/dev/null 2>&1; then
-				resize > /dev/null
-			else
-				# XXX it would be nice to detect if/when this
-				# may actually be necessary!
-				echo "NOTICE:  you may have to manually run 'stty rows \$LINES columns \$COLUMNS'."
-			fi
-			;;
-		esac
-
-		# try setting up for X11 if possible....
-		# (XXX this may not be the right place for this)
-		case "${TERM}" in
-		xterm*|sun|pc3|ibmpc3)
-			# users will have to set their own $DISPLAY....
-			dirappend PATH ${X11PATH}/bin
-			dirappend MANPATH ${X11PATH}/man
-			#
-			# In case this is onx11server running an xterm via rsh/ssh
-			#
-			# N.B.:  once upon a time -ziconbeep was not universally available
-			#
-			if [ -z "$XTERM_OPTS" ]; then
-				# XXX try moving most/all of these to .Xdefaults
-				XTERM_OPTS="-fbx -bc -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1"
-			fi
-			export XTERM_OPTS
-			;;
-		esac
-
-		if [ -n "${SSH_TTY}" -o -n "${SSH_CLIENT}" -o -n "${SSH2_CLIENT}" ]; then
-			echo "Secure connection from ${SSH_CLIENT:-${SSH2_CLIENT}} on ${SSH_TTY} (tty ${TTY})"
-			if [ -n "${DISPLAY}" ] ; then
-				echo "Secure X11 connections forwarded via ${DISPLAY}"
-			fi
-			echo ""
-		else
-			echo "Your terminal is port ${TTY}."
-		fi
-
 		;;
 	esac
+
+	export TERM
+
+	case "${TERM}" in
+	vt220*)
+		if [ ! -r ${HOME}/.stty ] ; then
+			# real vt220 keyboards make this the best setup
+			# n.b.:  on *BSD this could be "stty dec"
+			stty intr '^C' erase '^?'
+		fi
+		;;
+	esac
+
+	case "${TTYN}" in
+	tty[p-zP-Z]*|vt*|vg*|console)
+		echo "Setting TTY modes for 8-bit transparency...."
+		stty cs8 -istrip -parenb
+		;;
+	esac
+
+	# now, one more time to really do the correct initialisation...
+	#
+	# unfortunately "tput reset" will almost always clear an
+	# xterm, and "tput init" may do so, depending on the vintage of
+	# terminfo definitions the host system has
+	#
+	case "${TERM}" in
+	xterm*)
+	;;
+	*)
+		if ${HAVETPUT} ; then
+			tput init
+		fi
+		;;
+	esac
+	# Note: in other places we assume tset is avaliable....
+	if type tset >/dev/null 2>&1; then
+		# On BSD, without the "-I" it uses /etc/termcap....
+		# (but maybe that is a good thing?)
+		tset -r
+		if ${HAVETPUT} ; then
+			echo ${TERM}: `tput longname`
+		fi
+	elif ${HAVETPUT}; then
+		:
+	else
+		echo "NOTICE:  I don't know how to set up your terminal."
+	fi
+
+	# "tput" and/or "tset" do not support setting or clearing tabs.
+	#
+	# (note "tabs" is required by POSIX (since at least SUSv2, i.e.
+	# 1997), but it was not in NetBSD until 6.0 -- "tset" though is
+	# not in POSIX at all.)
+	#
+	if type tabs >/dev/null 2>&1; then
+		tabs -8
+	fi
+
+	case "${TERM}" in
+	xterm*)
+		if type resize >/dev/null 2>&1; then
+			resize > /dev/null
+		else
+			# XXX it would be nice to detect if/when this
+			# may actually be necessary!
+			echo "NOTICE:  you may have to manually run 'stty rows \$LINES columns \$COLUMNS'."
+		fi
+		;;
+	esac
+
+	# try setting up for X11 if possible....
+	# (XXX this may not be the right place for this)
+	case "${TERM}" in
+	xterm*|sun|pc3|ibmpc3)
+		# users will have to set their own $DISPLAY....
+		dirappend PATH ${X11PATH}/bin
+		dirappend MANPATH ${X11PATH}/man
+		#
+		# In case this is onx11server running an xterm via rsh/ssh
+		#
+		# N.B.:  once upon a time -ziconbeep was not universally available
+		#
+		if [ -z "$XTERM_OPTS" ]; then
+			# XXX try moving most/all of these to .Xdefaults
+			XTERM_OPTS="-fbx -bc -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1"
+		fi
+		export XTERM_OPTS
+		;;
+	esac
+
+	if [ -n "${SSH_TTY}" -o -n "${SSH_CLIENT}" -o -n "${SSH2_CLIENT}" ]; then
+		echo "Secure connection from ${SSH_CLIENT:-${SSH2_CLIENT}} on ${SSH_TTY} (tty ${TTY})"
+		if [ -n "${DISPLAY}" ] ; then
+			echo "Secure X11 connections forwarded via ${DISPLAY}"
+		fi
+		echo ""
+	else
+		echo "Your terminal is port ${TTY}."
+	fi
 fi
 
 # TODO: find some way to see if login(1) ran, or xterm(n) started us
