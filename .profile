@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.17	23/11/25 14:23:17 (woods)"
+#ident	"@(#)HOME:.profile	37.18	23/11/25 16:19:33 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -899,9 +899,9 @@ if ${ISATTY}; then
 		get_newterm
 		;;
 	*)
-		# xxx hmmm.... this could just use $TERMTESTCMD (also
-		# from ~/.shrc), but doing so would make showing the
-		# warning notice impossible...
+		# xxx hmmm.... this could just use $TERMTESTCMD (also from
+		# ~/.shrc), after setting $_ttytype, but doing so would make
+		# showing the warning notice impossible...
 		#
 		if ${HAVETPUT} ; then
 			if tput longname > /dev/null; then
@@ -912,7 +912,7 @@ if ${ISATTY}; then
 				get_newterm
 			fi
 		elif type tset >/dev/null 2>&1; then
-			# n.b.:  this asks if TERM is unknown...
+			# n.b.:  this asks the user interactively if TERM is unknown...
 			eval `tset -s`
 			# xxx if we want this, we get it later!
 			unset TERMCAP
@@ -934,6 +934,19 @@ if ${ISATTY}; then
 		;;
 	esac
 
+	case `uname -s` in
+	Darwin*)
+		# assume that if there's no .stty, and no global keyboard
+		# modifier mapping preference set then the keyboard <Delete>
+		# will generate DEL, otherwise we will have configured both
+		# modifier mappings _and_ key mappings for Terminal.app
+		#
+		if [ ! -r ${HOME}/.stty ] ; then
+			defaults -currentHost find modifiermapping 2>/dev/null | grep keyboard.modifiermapping > /dev/null || stty dec
+		fi
+		;;
+	esac
+
 	case "${TTYN}" in
 	tty[p-zP-Z]*|vt*|vg*|console)
 		echo "Setting TTY modes for 8-bit transparency...."
@@ -949,7 +962,7 @@ if ${ISATTY}; then
 	#
 	case "${TERM}" in
 	xterm*)
-	;;
+		;;
 	*)
 		if ${HAVETPUT} ; then
 			tput init
