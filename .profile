@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.19	23/12/21 14:38:15 (woods)"
+#ident	"@(#)HOME:.profile	37.20	23/12/21 14:39:16 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -942,7 +942,9 @@ if ${ISATTY}; then
 		# modifier mappings _and_ key mappings for Terminal.app
 		#
 		if [ ! -r ${HOME}/.stty ] ; then
-			defaults -currentHost find modifiermapping 2>/dev/null | grep keyboard.modifiermapping > /dev/null || stty dec
+			# run it in the background as it can 'hang' for a while
+			# after a reboot....
+			( defaults -currentHost find modifiermapping 2>/dev/null | grep keyboard.modifiermapping > /dev/null || stty dec ) &
 		fi
 		;;
 	esac
