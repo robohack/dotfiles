@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.18	23/11/25 16:19:33 (woods)"
+#ident	"@(#)HOME:.profile	37.19	23/12/21 14:38:15 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -87,7 +87,7 @@
 
 umask 022
 
-echo "$0: startup PATH=$PATH"
+echo "$0: startup PATH=$PATH" | sed 's/:/: /g' | fold -s
 OPATH=$PATH
 
 # every shell gets all the basic functions and variable settings....

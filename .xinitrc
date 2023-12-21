@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.15	23/11/24 15:16:21 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.16	23/12/21 14:38:30 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -59,7 +59,7 @@ fi
 # will not be reset by ~/.profile if they're exported via the environment here.
 
 if [ "$XOPATH" != "$PATH" ] ; then
-	echo "$argv0: adjusted PATH='$PATH'"
+	echo "$argv0: adjusted PATH='$PATH'" | sed 's/:/: /g' | fold -s
 fi
 unset XOPATH
 
