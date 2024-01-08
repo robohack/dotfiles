@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.20	23/12/21 14:39:16 (woods)"
+#ident	"@(#)HOME:.profile	37.21	24/01/07 17:28:57 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -256,7 +256,7 @@ if [ -z "${MANPATH}" ]; then
 			MANPATH=${MANPATH%/*}
 			MANPATH=${MANPATH%/*}
 		fi
-	elif [ -d /usr/share/man] ; then
+	elif [ -d /usr/share/man ]; then
 		MANPATH="/usr/share/man"
 	else
 		MANPATH="/usr/man"
@@ -264,11 +264,11 @@ if [ -z "${MANPATH}" ]; then
 fi
 export MANPATH
 
-if [ -n "${MANPATH}" ] ; then
+if [ -n "${MANPATH}" ]; then
 	OINFOPATH=${INFOPATH} ; export OINFOPATH
 fi
-if [ -z "${INFOPATH}" ] ; then
-	if [ -d /usr/share/info ] ; then
+if [ -z "${INFOPATH}" ]; then
+	if [ -d /usr/share/info ]; then
 		INFOPATH="/usr/share/info"
 	else
 		INFOPATH="/usr/man"
@@ -296,18 +296,18 @@ else
 	# originally this code was to avoid having /bin in $PATH if
 	# /bin were pointing to /usr/bin (i.e. making it redundant)
 
-###	if [ -L /bin -a `ls -l /bin | awk '{print $(NF)}'` = "/usr/bin" ] ; then
-	if [ -L /bin ] ; then
+###	if [ -L /bin -a `ls -l /bin | awk '{print $(NF)}'` = "/usr/bin" ]; then
+	if [ -L /bin ]; then
 		PATH="/usr/bin"
-###	if [ -L /usr/bin -a `ls -l /usr/bin | awk '{print $(NF)}'` = "/bin" -o ! -d "/usr/bin" ] ; then
-	elif [ -L /usr/bin -o ! -d /usr/bin ] ; then
+###	if [ -L /usr/bin -a `ls -l /usr/bin | awk '{print $(NF)}'` = "/bin" -o ! -d "/usr/bin" ]; then
+	elif [ -L /usr/bin -o ! -d /usr/bin ]; then
 		PATH="/bin"
 	else
 		PATH="/bin:/usr/bin"
 	fi
 	dirappend PATH /usr/lbin
 
-	if [ -d /usr/share/man ] ; then
+	if [ -d /usr/share/man ]; then
 		dirappend MANPATH /usr/share/man
 	else
 		dirappend MANPATH /usr/man
@@ -323,23 +323,23 @@ set_LOCAL_et_al
 #
 # don't worry about openwin -- it's handled in the ISSUN case below
 #
-if [ -z "${X11PATH}" ] ; then
+if [ -z "${X11PATH}" ]; then
 	# for X11R? try to get the newest (highest numeric value) one first...
 	x11paths=`eval echo /opt/X11 /local/X11R? /local/X11 /usr/X11R? /usr/X11 /usr/X??? /usr/local/X11R? /usr/local/X11`
 	for x11pc in `reverse_word_order ${x11paths}`; do
-		if [ -d ${x11pc} -a ! -L ${x11pc} -a -d ${x11pc}/bin -a -x ${x11pc}/bin/xterm ] ; then
+		if [ -d ${x11pc} -a ! -L ${x11pc} -a -d ${x11pc}/bin -a -x ${x11pc}/bin/xterm ]; then
 			X11PATH=${x11pc}
 			break;
 		fi
 	done
-	if [ -z "${X11PATH}" ] ; then
+	if [ -z "${X11PATH}" ]; then
 		X11PATH="/NO-X11-FOUND"
 	fi
 	unset x11paths x11pc
 fi
 export X11PATH
-if [ -z "${X11BIN}" ] ; then
-	if [ -d /usr/bin/X11 -a ! -L /usr/bin/X11 ] ; then
+if [ -z "${X11BIN}" ]; then
+	if [ -d /usr/bin/X11 -a ! -L /usr/bin/X11 ]; then
 		# this is never(?) used any more....
 		X11BIN="/usr/bin/X11"
 		X11MAN="/usr/man/X11"
@@ -407,8 +407,8 @@ dirappend PATH /usr/games ${LOCAL}/games ${SLASHOPT}/games/bin
 
 if $ISSUN; then
 	PATH=`echo ${PATH} | sed 's/^\/bin://'`
-	if [ "`uname -r | sed 's/^\([0-9]*\).*$/\1/'`" -lt 5 ] ; then
-		if [ "X${LOGNAME}" != "Xroot" ] ; then
+	if [ "`uname -r | sed 's/^\([0-9]*\).*$/\1/'`" -lt 5 ]; then
+		if [ "X${LOGNAME}" != "Xroot" ]; then
 			dirprepend PATH /usr/5bin
 		else
 			dirappend PATH /usr/5bin
@@ -422,7 +422,7 @@ if $ISSUN; then
 	dirappend MANPATH /usr/openwin/share/man
 fi
 
-if [ -d ${LOCAL}/dmdlayers/bin -a "X${TERM}" = "Xdmd" ] ; then
+if [ -d ${LOCAL}/dmdlayers/bin -a "X${TERM}" = "Xdmd" ]; then
 	DMD=${LOCAL}/dmdlayers ; export DMD
 	TOOLS=${DMD}/local ; export TOOLS
 	dirappend PATH ${DMD}/bin ${TOOLS}/bin
@@ -431,32 +431,32 @@ fi
 
 # make sure our home-dir is set up properly...
 #
-if [ ! -d ${HOME}/tmp ] ; then
+if [ ! -d ${HOME}/tmp ]; then
 	mkdir ${HOME}/tmp
 	chmod 700 ${HOME}/tmp
 fi
-if [ ! -d ${HOME}/Mail ] ; then
+if [ ! -d ${HOME}/Mail ]; then
 	mkdir ${HOME}/Mail
 	chmod 700 ${HOME}/Mail
 fi
-if [ -f ${HOME}/.xinitrc ] ; then
-	if [ ! -x ${HOME}/.xinitrc ] ; then
+if [ -f ${HOME}/.xinitrc ]; then
+	if [ ! -x ${HOME}/.xinitrc ]; then
 		echo "WARNING: fixing execute bit on ~/.xinitrc!"
 		chmod +x ${HOME}/.xinitrc
 	fi
-	if [ ! -r ${HOME}/.xsession ] ; then
+	if [ ! -r ${HOME}/.xsession ]; then
 		rm -f ${HOME}/.xsession
 		ln -s .xinitrc ${HOME}/.xsession
 	fi
 fi
 # note .emacs.elc may not yet exist
-if [ ! -r ${HOME}/.emacs -a -r ${HOME}/.emacs.el ] ; then
+if [ ! -r ${HOME}/.emacs -a -r ${HOME}/.emacs.el ]; then
 	rm -f ${HOME}/.emacs
 	ln -s .emacs.elc ${HOME}/.emacs
 fi
 
-if [ "X${HOME}" != "X/" ] ; then
-	if [ ! -d ${HOME}/bin ] ; then
+if [ "X${HOME}" != "X/" ]; then
+	if [ ! -d ${HOME}/bin ]; then
 		mkdir ${HOME}/bin
 		chmod 755 ${HOME}/bin
 	fi
@@ -583,7 +583,7 @@ export LC_COLLATE
 #
 if type rsh >/dev/null 2>&1 ; then
 	RSH="rsh"
-elif [ -x /usr/ucb/rsh ] ; then	# maybe /usr/ucb not in $PATH?
+elif [ -x /usr/ucb/rsh ]; then	# maybe /usr/ucb not in $PATH?
 	RSH="/usr/ucb/rsh"
 else
 	# assuming 'ssh' exists and is the only way to run remote shells...
@@ -615,7 +615,7 @@ fi
 
 HAVEMUSH=false
 MAILER=mail ; export MAILER
-if [ -s ${HOME}/.mailer ] ; then
+if [ -s ${HOME}/.mailer ]; then
 	# mktable just throws away comments....
 	MAILER=`mktable ${HOME}/.mailer`
 elif type mush >/dev/null 2>&1; then
@@ -628,38 +628,38 @@ elif type mailx >/dev/null 2>&1; then
 fi
 case "${MAILER}" in
 mh )
-	if [ -d ${CONTRIB}/mh ] ; then
+	if [ -d ${CONTRIB}/mh ]; then
 		dirprepend PATH ${CONTRIB}/mh/bin
 		dirprepend MANPATH ${CONTRIB}/mh/man
-	elif [ -d ${PKG}/mh ] ; then
+	elif [ -d ${PKG}/mh ]; then
 		dirprepend PATH ${CONTRIB}/mh/bin
 		dirprepend MANPATH ${CONTRIB}/mh/man
-	elif [ -d ${LOCAL}/mh ] ; then
+	elif [ -d ${LOCAL}/mh ]; then
 		dirprepend PATH ${LOCAL}/mh/bin
 		dirprepend MANPATH ${LOCAL}/mh/man
-	elif [ -d /usr/mh ] ; then
+	elif [ -d /usr/mh ]; then
 		dirprepend PATH /usr/mh/bin
 		dirprepend MANPATH /usr/mh/man
-	elif [ -d ${LOCAL}/bin/mh ] ;then
+	elif [ -d ${LOCAL}/bin/mh ];then
 		# this is a non-std setup -- ${LOCAL}/mh/man might not exist
 		dirprepend PATH ${LOCAL}/bin/mh
 		dirprepend MANPATH ${LOCAL}/mh/man
 	fi
 	;;
 nmh )
-	if [ -d ${CONTRIB}/nmh ] ; then
+	if [ -d ${CONTRIB}/nmh ]; then
 		dirprepend PATH ${CONTRIB}/nmh/bin
 		dirprepend MANPATH ${CONTRIB}/nmh/man
-	elif [ -d ${PKG}/nmh ] ; then
+	elif [ -d ${PKG}/nmh ]; then
 		dirprepend PATH ${CONTRIB}/nmh/bin
 		dirprepend MANPATH ${CONTRIB}/nmh/man
-	elif [ -d ${LOCAL}/nmh ] ; then
+	elif [ -d ${LOCAL}/nmh ]; then
 		dirprepend PATH ${LOCAL}/nmh/bin
 		dirprepend MANPATH ${LOCAL}/nmh/man
-	elif [ -d /usr/nmh ] ; then
+	elif [ -d /usr/nmh ]; then
 		dirprepend PATH /usr/nmh/bin
 		dirprepend MANPATH /usr/nmh/man
-	elif [ -d ${LOCAL}/bin/nmh ] ;then
+	elif [ -d ${LOCAL}/bin/nmh ];then
 		# this is a non-std setup -- ${LOCAL}/nmh/man might not exist
 		dirprepend PATH ${LOCAL}/bin/nmh
 		dirprepend MANPATH ${LOCAL}/nmh/man
@@ -667,21 +667,21 @@ nmh )
 	;;
 esac
 
-if [ -z "${MAILDIR}" ] ; then
-	if [ -d /var/mail ] ; then
+if [ -z "${MAILDIR}" ]; then
+	if [ -d /var/mail ]; then
 		MAILDIR="/var/mail"
-	elif [ -d /var/spool/mail ] ; then
+	elif [ -d /var/spool/mail ]; then
 		MAILDIR="/var/spool/mail"
-	elif [ -d /usr/mail ] ; then
+	elif [ -d /usr/mail ]; then
 		MAILDIR="/usr/mail"
-	elif [ -d /usr/spool/mail ] ; then
+	elif [ -d /usr/spool/mail ]; then
 		MAILDIR="/usr/spool/mail"
 	fi
 fi
 export MAILDIR
 
-if [ -z "${UUCPSPOOLDIR}" ] ; then
-	if [ -d /var/spool/uucp ] ; then
+if [ -z "${UUCPSPOOLDIR}" ]; then
+	if [ -d /var/spool/uucp ]; then
 		UUCPSP0OLDIR=/var/spool/uucp
 		export UUCPSPOOLDIR
 	elif [ -d /usr/spool/uucp ]; then
@@ -694,7 +694,7 @@ fi
 # a POP specification in MAILPATH for emacs VM
 #
 unset MAILPATH
-if [ -z "${MAIL}" ] ; then
+if [ -z "${MAIL}" ]; then
 	MAIL=${MAILDIR}/${LOGNAME}
 fi
 export MAIL
@@ -713,18 +713,18 @@ fi
 if type less >/dev/null 2>&1; then
 	PAGER="less"
 	LESS="-M" ; export LESS
-	if [ ! -f ${HOME}/.less ] ; then
+	if [ ! -f ${HOME}/.less ]; then
 		# xxx lesskey(1) seems to have gone missing on OSX 10.8 and 10.9
 		# (maybe even on 10.7 too?)
 		if type lesskey >/dev/null 2>&1; then
-			if [ ! -f ${HOME}/.lesskey ] ; then
+			if [ ! -f ${HOME}/.lesskey ]; then
 				echo "N	next-file" > ${HOME}/.lesskey
 				echo "P	prev-file" >> ${HOME}/.lesskey
 			fi
 			lesskey
 		fi
 	fi
-elif [ -x /usr/xpg4/bin/more ] ; then
+elif [ -x /usr/xpg4/bin/more ]; then
 	# SunOS-5's, at least, has the 'G' command!
 	PAGER="/usr/xpg4/bin/more"
 	# use '-s' as it can't be turned on later during runtime
@@ -737,11 +737,11 @@ else
 	PAGER="cat"
 fi
 export PAGER
-if [ "${PAGER}" = "less" ] ; then
+if [ "${PAGER}" = "less" ]; then
 	MANPAGER="${PAGER} -Rsi"; export MANPAGER # n.b. more and less both suppport "-Rsi"
 fi
 
-if [ -s "${HOME}/.editor" ] ; then
+if [ -s "${HOME}/.editor" ]; then
 	# mktable just throws away comments....
 	EDPREF=`mktable ${HOME}/.editor` ; export EDPREF
 fi
@@ -838,8 +838,8 @@ if type esdplay >/dev/null 2>&1; then
 	HAVEESDPLAY=true
 fi
 
-if [ -z "${AUDIOPLAYER}" ] ; then
-	if [ -n "${AUDIOSERVER}" ] ; then
+if [ -z "${AUDIOPLAYER}" ]; then
+	if [ -n "${AUDIOSERVER}" ]; then
 		if ${HAVEAUPLAY} ; then
 			AUDIOPLAYER="auplay -v 20"
 		fi
@@ -850,13 +850,13 @@ if [ -z "${AUDIOPLAYER}" ] ; then
 			# n.b.:  a hostname alias....
 			ESPEAKER="audiosrvr"; export ESPEAKER
 		fi
-	elif [ -w /dev/audio ] ; then
+	elif [ -w /dev/audio ]; then
 		if ${HAVEAUDIOPLAY} ; then
 			AUDIOPLAYER="audioplay"
 		fi
 	fi
 fi
-if [ -z "${AUDIOPLAYER}" ] ; then
+if [ -z "${AUDIOPLAYER}" ]; then
 	# avoid trying to run audio files...
 	AUDIOPLAYER=":"
 fi
@@ -880,7 +880,7 @@ if ${ISATTY}; then
 	# turn this off by default, turn it on by hand in one main window?
 	mesg n
 
-	if [ -r "${HOME}/.stty" ] ; then
+	if [ -r "${HOME}/.stty" ]; then
 		. ${HOME}/.stty
 	else
 		stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
@@ -926,7 +926,7 @@ if ${ISATTY}; then
 
 	case "${TERM}" in
 	vt220*)
-		if [ ! -r ${HOME}/.stty ] ; then
+		if [ ! -r ${HOME}/.stty ]; then
 			# real vt220 keyboards make this the best setup
 			# n.b.:  on *BSD this could be "stty dec"
 			stty intr '^C' erase '^?'
@@ -941,7 +941,7 @@ if ${ISATTY}; then
 		# will generate DEL, otherwise we will have configured both
 		# modifier mappings _and_ key mappings for Terminal.app
 		#
-		if [ ! -r ${HOME}/.stty ] ; then
+		if [ ! -r ${HOME}/.stty ]; then
 			# run it in the background as it can 'hang' for a while
 			# after a reboot....
 			( defaults -currentHost find modifiermapping 2>/dev/null | grep keyboard.modifiermapping > /dev/null || stty dec ) &
@@ -1029,8 +1029,10 @@ if ${ISATTY}; then
 
 	if [ -n "${SSH_TTY}" -o -n "${SSH_CLIENT}" -o -n "${SSH2_CLIENT}" ]; then
 		echo "Secure connection from ${SSH_CLIENT:-${SSH2_CLIENT}} on ${SSH_TTY} (tty ${TTY})"
-		if [ -n "${DISPLAY}" ] ; then
+		if [ -n "${DISPLAY}" ]; then
 			echo "Secure X11 connections forwarded via ${DISPLAY}"
+		else
+			echo "NOTICE: X11 connections are NOT forwarded!"
 		fi
 		echo ""
 	else
@@ -1048,12 +1050,12 @@ if type messages >/dev/null 2>&1; then
 else
 	[ -x /bin/mail ] && /bin/mail -e
 	HAVENEWMAIL=$?
-	if ${HAVEMUSH} && [ ${HAVENEWMAIL} -eq 0 ] ; then
+	if ${HAVEMUSH} && [ ${HAVENEWMAIL} -eq 0 ]; then
 		echo 'You have mail:'
 		mush -H:n
-	elif [ "${MAILER}" = mh -a ${HAVENEWMAIL} -eq 0 ] ; then
+	elif [ "${MAILER}" = mh -a ${HAVENEWMAIL} -eq 0 ]; then
 		echo "Change this line in ${HOME}/.profile to show new mail using MH"
-	elif [ ${HAVENEWMAIL} -eq 0 ] ; then
+	elif [ ${HAVENEWMAIL} -eq 0 ]; then
 		echo "You have some mail!"
 	fi
 	unset HAVENEWMAIL
@@ -1062,7 +1064,7 @@ fi
 
 # once upon a time this needed to be a lot smarter....
 #
-if [ -d ${HOME}/lib/terminfo ] ; then
+if [ -d ${HOME}/lib/terminfo ]; then
 	case "${TERM}" in
 	at386*|AT386*|386AT*|386at*|dmd|dmd-myx|ibmpc3|pc3)
 		TERMINFO=${HOME}/lib/terminfo ; export TERMINFO
@@ -1085,26 +1087,26 @@ fi
 # ~/.profile must, by definition, be an interactive shell.
 #
 if is_ksh ; then
-	if [ -r ${HOME}/.kshlogin ] ; then
+	if [ -r ${HOME}/.kshlogin ]; then
 		. ${HOME}/.kshlogin
 	fi
 elif is_bash ; then
-	if [ -r ${HOME}/.bashlogin ] ; then
+	if [ -r ${HOME}/.bashlogin ]; then
 		. ${HOME}/.bashlogin
 	fi
 elif is_ash ; then
 	# this will only be modern ash(1) or a derivative of it
 	# (eg. from 4.4BSD or newer), or Schily Shell
 	#
-	if [ -r ${HOME}/.ashlogin ] ; then
+	if [ -r ${HOME}/.ashlogin ]; then
 		. ${HOME}/.ashlogin
 	fi
-elif [ -r ${HOME}/.shlogin ] ; then
+elif [ -r ${HOME}/.shlogin ]; then
 	# plain old Bourne shell, e.g. Heirloom Sh
 	#
 	. ${HOME}/.shlogin
 else
-	if [ "X${LOGNAME}" = "Xroot" ] ; then
+	if [ "X${LOGNAME}" = "Xroot" ]; then
 		PS1="login [${TTYN}]<${LOGNAME}@${UUNAME}> # "
 	else
 		PS1="login [${TTYN}]<${LOGNAME}@${UUNAME}> $ "
@@ -1116,7 +1118,7 @@ if type xinit >/dev/null 2>&1; then
 	HAVEX=true
 fi
 
-if ${ISATTY} && ${HAVEX} && [ "X$DISPLAY" = "X" ] ; then
+if ${ISATTY} && ${HAVEX} && [ "X$DISPLAY" = "X" ]; then
 	case "${TTYN}" in
 	console|vg*|vt*|ttyc*|ttyE*)
 		case "${TERM}" in
@@ -1142,7 +1144,7 @@ if ${ISATTY} && ${HAVEX} && [ "X$DISPLAY" = "X" ] ; then
 	esac
 fi
 
-if ${ISATTY} && ${HAVELAYERS} && [ "X${TERM}" = "Xdmd" ] ; then
+if ${ISATTY} && ${HAVELAYERS} && [ "X${TERM}" = "Xdmd" ]; then
 	if ismpx -s; then
 		echo "This should be a window running in layers..."
 	else
@@ -1159,7 +1161,7 @@ if ${ISATTY} && ${HAVELAYERS} && [ "X${TERM}" = "Xdmd" ] ; then
 				layers=layers
 			fi
 			# TODO: maybe not?
-			if [ "${VISUAL}" = "emacs" ] ; then
+			if [ "${VISUAL}" = "emacs" ]; then
 				VISUAL="emacsclient" ; export VISUAL
 			fi
 			LAYERSPID=$$ ; export LAYERSPID
@@ -1167,7 +1169,7 @@ if ${ISATTY} && ${HAVELAYERS} && [ "X${TERM}" = "Xdmd" ] ; then
 			# TODO: think about dmdmyx here....
 			TERM="dmd"; export TERM
 			stty -ixon -ixoff -ixany
-			if [ -s ${HOME}/$rc ] ; then
+			if [ -s ${HOME}/$rc ]; then
 				exec $layers -f $rc 2>> ${HOME}/tmp/layers.stderr
 			else
 				exec $layers 2>> ${HOME}/tmp/layers.stderr
@@ -1202,20 +1204,20 @@ fi
 # set, and if it is readable, do that now.  In this case sub-shells will not
 # have automatic sourcing of $ENV.  (and of course ~/.shrc was sourced above)
 #
-if ${ISATTY} && [ -n "${ENV}" -a "${ENV}" != "${HOME}/.shrc" -a -r "${ENV}" ] ; then
+if ${ISATTY} && [ -n "${ENV}" -a "${ENV}" != "${HOME}/.shrc" -a -r "${ENV}" ]; then
 	. ${ENV}
 fi
 
 # minor cleanup
 #
-if [ ${RANDOM:-0} -eq ${RANDOM:-0} ] ; then
+if [ ${RANDOM:-0} -eq ${RANDOM:-0} ]; then
 	unset RANDOM
 fi
 
 # NOTE: trick 4.4BSD shell into -E by putting it in here, 'cause you can't
 # "set -o emacs" in .ashrc, as that'll cause some versions of it to dump core....
 #
-if ${ISATTY} && [ -s ${HOME}/.shell ] ; then
+if ${ISATTY} && [ -s ${HOME}/.shell ]; then
 	# mktable just throws away comments....
 	exec `mktable ${HOME}/.shell`
 fi
