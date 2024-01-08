@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.22	24/01/07 17:36:48 (woods)"
+#ident	"@(#)HOME:.profile	37.23	24/01/07 17:37:27 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -264,7 +264,7 @@ if [ -z "${MANPATH}" ]; then
 fi
 export MANPATH
 
-if [ -n "${MANPATH}" ]; then
+if [ -n "${INFOPATH}" ]; then
 	OINFOPATH=${INFOPATH}
 fi
 if [ -z "${INFOPATH}" ]; then
