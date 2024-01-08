@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.16	23/12/21 14:38:30 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.17	24/01/07 17:31:43 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -757,6 +757,10 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			export XloadGeomB2
 # slot for b2		onx11server -n b2.local "xload -geometry ${XloadGeomB2} -hl red: &
 
+			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+			XloadGeomFezzik="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
+			export XloadGeomFezzik
+# slot for fezzik		onx11server -n fezzik.local "xload -geometry ${XloadGeomFezzik} -hl red: &
 
 # xxx thse need a variable for "80x45" as it could be wider (e.g. 91x45), or shorter....
 
