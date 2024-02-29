@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.26	24/02/28 17:50:07 (woods)"
+#ident	"@(#)HOME:.shrc	37.27	24/02/28 17:55:31 (woods)"
 
 PATH=$PATH
 export PATH
@@ -695,6 +695,8 @@ publishdotfiles ()
 			#
 		fi
 		rsync -v -lptHS --progress --delete-after --stats --files-from=$HOME/dotfiles.list $HOME ${CENTRAL_USER}@${CENTRAL_SERVER}:.
+		#
+		archivedotfiles
 		;;
 	*)
 		echo "publishdotfiles: not useful when run on client host!" 1>&2
@@ -705,11 +707,12 @@ publishdotfiles ()
 
 archivedotfiles ()
 {
-	# XXX somehow this should be combined with vnewrel?
+	# XXX somehow this should be combined with vnewrel, or should call
+	# vnewrel (sometimes)??
 	#
-	# XXX also put them on the FTP server?
+	# XXX also put them on the FTP server?  (only when vnewrel?)
 	#
-	# (note I never put these in /work/release.d, so no need to now)
+	# (note I had never put these in /work/release.d, so no need to now)
 	#
 	pax -wzf ${HOME}/dotffiles.tar.gz < ${HOME}/dotfiles.list
 	scp dotfiles.list dotfiles.tar.gz ${CENTRAL_USER}@${CENTRAL_SERVER}:.
