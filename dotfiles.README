@@ -86,7 +86,7 @@ you do need here else you'll get the repository cloned into
 _Note:_  Until I figure out the Magit vs. `GIT_DIR` problem[*](#more) I
 won't likely be using Git directly to record changes -- I'll continue
 using SCCS and incrementally update
-[dotfiles](https://github.com/robohack/dotfiles) from them.
+[dotfiles](https://github.com/robohack/dotfiles) from them[*](#still).
 
 
 ## More Notes and Open Questions {#more}
@@ -113,9 +113,31 @@ But how to manage changes with Magit???
   for just one repository!?!?!?
 
 
+## What I Actually Still Do {#still}
+
+Instead of using Git directly to modify my dotfiles I still use SCCS,
+and then re-run the `git-sccsimport` every time I want to push changes
+to Git, using the following from `~/.shrc` (see the function
+`publishdotfiles`):
+
+	cd && \
+	git-sccsimport --move-date=2010/11/5T00:00:00 --move-offset=3		\
+	   --expand-kw --maildomain=robohack.ca --git-dir="$HOME/work/home"	\
+	   --dirs SCCS && \
+	cd $HOME/work/home && \
+	git push --mirror
+
+I fetch new updates on other machines using `rsync`.  See the function
+`syncdotfiles` in `~/.shrc`:
+
+	rsync -v -lptHS --progress --delete-after --stats	\
+	   --files-from=$HOME/dotfiles.list $HOME		\
+	   ${CENTRAL_USER}@${CENTRAL_SERVER}:.
+
+
 ## References
 
 Another detailed description of this kind of setup is found at:
 [https://www.atlassian.com/git/tutorials/dotfiles]
 
-#ident	"@(#)HOME:dotfiles.README	37.1	21/03/26 10:36:19 (woods)"
+#ident	"@(#)HOME:dotfiles.README	37.2	24/02/28 18:08:13 (woods)"
