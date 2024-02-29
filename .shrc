@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.25	23/11/24 12:46:49 (woods)"
+#ident	"@(#)HOME:.shrc	37.26	24/02/28 17:50:07 (woods)"
 
 PATH=$PATH
 export PATH
@@ -559,6 +559,8 @@ unset defun_local
 LS_O=
 LS_COLOUR=
 HAVECOLORLS=false
+# XXX perhaps we should just do the following in .profile:
+# export CLICOLOR="defined"
 if type colorls >/dev/null 2>&1; then
 	LS_O=
 	LS=`type colorls`
@@ -568,8 +570,14 @@ if type colorls >/dev/null 2>&1; then
 fi
 if type chflags >/dev/null 2>&1; then
 	case `uname -s` in
-	Darwin*|FreeBSD)
+	Darwin*)
 		LS_O="O"
+		HAVECOLORLS=true	# by coincidence....
+		LS_COLOUR="-G"
+		LS="/bin/ls"
+		;;
+	FreeBSD)
+		LS_O="o"
 		HAVECOLORLS=true	# by coincidence....
 		LS_COLOUR="-G"
 		LS="/bin/ls"
@@ -586,7 +594,7 @@ if [ -z "${LS}" ]; then
 		# likely GNU ls....
 		LS_O=""
 		HAVECOLORLS=true
-		LS_COLOUR="--color"
+		LS_COLOUR="--color=auto"
 	elif [ ${LS} = "/usr/bin/ls" ]; then
 		# likely SysV-ish or Solaris?
 		LS_O=""
