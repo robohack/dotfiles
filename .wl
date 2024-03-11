@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	37.7	23/11/07 14:25:55 (woods)"
+;;;;#ident	"@(#)HOME:.wl	37.8	24/03/11 11:39:00 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -121,21 +121,32 @@
 ;;
 ;; `3' means "Reject connection if verification fails"
 ;;
-(setq ssl-certificate-verification-policy 3)
+;(setq ssl-certificate-verification-policy 3)
+
+(setq tls-checktrust 'ask)
+
+;(setq tls-program
+;      '("gnutls-cli --insecure -p %p %h"))
 
 ;    ;; https://github.com/wanderlust/wanderlust/issues/166
 ;   (setq gnutls-verify-error nil)	; xxx ???
 ;   (setq gnutls-min-prime-bits 1024)
 ;   (setq gnutls-algorithm-priority "SECURE128:-VERS-SSL3.0:-VERS-TLS1.3")
 
-(setq ssl-program-arguments
-      '("s_client"
-	"-tls1"			; new mailbox.weird.com requires TLSv1 (or SSLv3)
-	"-quiet"
-	"-host" host
-	"-port" service
-	"-verify" (int-to-string ssl-certificate-verification-policy)
-	"-CApath" ssl-certificate-directory))
+;; XXX why did I never set `ssl-program-name' ???
+
+;(setq ssl-program-arguments
+;      '("s_client"
+;	"-tls1"			; new mailbox.weird.com requires TLSv1 (or SSLv3)
+;	"-quiet"
+;	"-host" host
+;	"-port" service
+;	"-verify" (int-to-string ssl-certificate-verification-policy)
+;	"-CApath" ssl-certificate-directory))
+
+;; XXX new .../net/tls.el is very different!
+;(setq tls-program
+;      '("openssl s_client -tls1 -quiet -host %h -port %p"))
 
 ;; password always sent in the clear for my servers (over TLS, of course)
 ;;
@@ -152,20 +163,31 @@
 
 ;; Directory where icons are placed (XXX should be set by configuration!)
 ;;
+;; N.B.:  the icons-big versions are created with a copy, then:
+;;
+;;	mogrify -resize 200% *
+;;
+;; (mogrify is from ImageMagick)
+;;
 (eval-and-compile
   (defvar wl-icon-directory-ORIGINAL wl-icon-directory
     "original value at startup")
   )
 (setq wl-icon-directory
-      (cond ((let ((icons
-		    (expand-file-name "icons/"
-				      (string-matched "/wanderlust" load-path))))
-	       (if (file-directory-p icons)
-		   icons)))
+      (cond ;((let ((icons
+	;	    (expand-file-name "icons/"
+	;			      (string-matched "/wanderlust" load-path))))
+	;	(if (file-directory-p icons)
+	;	   icons)))
 	    ;; n.b.:  the first will almost certainly always win, but keep these
 	    ;; for posterity:
 	    ((let ((icons
-		    (expand-file-name "../../wl/icons/"
+		    (expand-file-name (cond ((and (boundp 'display-y-dpi)
+						  display-y-dpi
+						  (>= display-y-dpi 110))
+					     "../../wl/icons-big/")
+					    (t
+					     "../../wl/icons/"))
 				      (cond ((boundp 'local-site-lisp-dir)
 					     local-site-lisp-dir)
 					    ((boundp 'pkg-site-lisp-dir)
@@ -173,7 +195,12 @@
 	       (if (file-directory-p icons)
 		   icons)))
 	    ((let ((icons
-		    (expand-file-name "icons/"
+		    (expand-file-name (cond ((and (boundp 'display-y-dpi)
+						  display-y-dpi
+						  (>= display-y-dpi 110))
+					     "icons-big/")
+					    (t
+					     "icons/"))
 				      (cond ((and (boundp 'package-alist)
 						  (fboundp 'package-desc-dir))
 					     (package-desc-dir
@@ -184,12 +211,17 @@
 	       (if (file-directory-p icons)
 		   icons)))
 	    ((let ((icons
-		    (expand-file-name "wl/icons/"
+		    (expand-file-name (cond ((and (boundp 'display-y-dpi)
+						  display-y-dpi
+						  (>= display-y-dpi 110))
+					     "wl/icons-big/")
+					    (t
+					     "wl/icons/"))
 				      data-directory)))
 	       (if (file-directory-p icons)
-		   icons))
-	     (t
-	      nil))))
+		   icons)))
+	    (t
+	     nil)))
 
 ;; prefetch everything that's uncached, not just unread-uncached (U) and
 ;; new-uncached (N)
@@ -807,6 +839,7 @@ If ARG is non-nil, forget everything about the message."
 	"^X-VADE-[^:]*:"
 	"^X-VM-[^:]*:"
 	"^X-Virus[^:]*:"
+	"^X-VR-[^:]*:"
 	"^X-YMail-OSG:"			; some Mozilla mailer?
 	"^Xref:"
 ;	"^X-Original-To:"		; fml?
