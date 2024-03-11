@@ -2,11 +2,11 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.10	23/11/06 18:27:18 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.11	24/03/11 11:17:36 (woods)"
 ;;;;
-;;;; per-user start-up functions for GNU-emacs v22.1 or newer
+;;;; per-user start-up functions for GNU-emacs v23.1 or newer (with Xft)
 ;;;;
-;;;; primarily tested on v26.1 and Git "master" branch, and maybe on 22.1
+;;;; primarily tested on v26.3, and sometimes Git "master" branch, and maybe on 25.3
 ;;;;
 ;;;; (someday support for versions prior to v23.3 should just be removed)
 ;;;;
@@ -24,6 +24,17 @@
 ;;;	cd $HOME && emacs -batch -q -no-site-file -f batch-byte-compile .emacs.el
 
 ;;; N.B.:  Run `my-packages-install' after first installing, or upgrading, Emacs.
+;;;
+;;; XXX  but first hack in a working markdown-mode:
+;;; 
+;;;	cd ~/.emacs.d/packages-$(emacs-version-nobuild)		# the current one!
+;;;	cp -R ../packages-26.1/markdown-mode-* .
+;;;
+;;; XXX gnu-elpa-keyring-update may have to be manually installed and used first!
+;;;
+;;; N.B.:  Also if on X then after `ucs-utils' and `unicode-fonts' are installed
+;;; you need to start emacs fresh, then quit it after their cache files are
+;;; built so that those files get saved (they are only saved on quit!!!)
 
 ;;; NOTES:
 ;;;
@@ -520,13 +531,28 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 
 (eval-after-load 'gnutls
   '(progn
+     ;; N.B.:  This is a list, but only the `car' is ever used!!!!!
      (add-to-list 'gnutls-trustfiles "/etc/openssl/certs/ca-certificates.crt")
+     (add-to-list 'gnutls-trustfiles "/etc/openssl/certs/weird-ca.pem")
+     ;;
+     ;; So, make sure to add any self-signed certs or private CAs to a new
+     ;; merged file as the tls-checktrust stuff doesn't actually work.
+     ;;
+     ;; I.e. this must come last for gnutls-cli to work:
+     ;;
+     (add-to-list 'gnutls-trustfiles "/etc/openssl/certs/merged-ca.crt")
      ;; https://www.reddit.com/r/emacs/comments/cdei4p/failed_to_download_gnu_archive_bad_request/
-     (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3"))) ; xxx fixed in 26.3???
+     (setq gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")))
 
-;;(eval-when-compile
-;;  (defvar starttls-use-gnutls))
-;;(setq starttls-use-gnutls nil)	; XXX defaults to nil if security/starttls is installed
+(eval-after-load 'starttls
+  '(progn
+     ;; here "gnutls" means run `starttls-gnutls-program' instead of
+     ;; `starttls-program' (nothing in `starttls' uses built-in GNUtls)
+     (setq-local starttls-use-gnutls t)
+     (setq-local starttls-extra-args '("--x509cafile")) ; "--crlf" causes problems with end-of-DATA!
+     (add-to-list 'starttls-extra-args (car (gnutls-trustfiles)) t)
+     (setq-local starttls-success "\\(^- Compression:\\|^- Options:\\)")
+     (setq starttls-connect "^- Simple Client Mode:")))
 
 ;; TLS helpers for package fetching in older (and non-gnutls) releases...
 ;;
@@ -554,11 +580,24 @@ in `.emacs', and put all the actual code on `after-init-hook'."
   ;;
   (unless (and (fboundp 'gnutls-available-p)
 	       (gnutls-available-p))
+    (require 'tls)
     
-;      ;; xxx gnutls-cli is broken when used with emacs-23.3
-;      ;; (xxx "-no_ssl2" might still be required for older openssl?)
-;      ;; n.b. the "-crlf" is now necessary for Gmail, but not Cyrus
-;      (setq tls-program '("openssl s_client -connect %h:%p -quiet -ign_eof"))
+    (setq tls-program
+	  ;; n.b.:  "[-]-crlf" is necessary for Gmail on command-line but
+	  ;; seemingly not in Wanderlust.  On the other hand it would break
+	  ;; interactions with Cyrus!
+	  ;;
+	  '("gnutls-cli --x509cafile %t -p %p %h"
+	    ;; XXX remove "--protocols ssl3" variant, it's deprecated since 3.?
+	    ;;
+	    ;; more optional ways to work around broken connections....
+	    ;;
+;	    "gnutls-cli --verify-allow-broken --x509cafile %t -p %p %h"
+;	    "gnutls-cli --insecure --x509cafile %t -p %p %h"
+;	    "gnutls-cli --verify-allow-broken --insecure --x509cafile %t -p %p %h"
+;	    ;; (xxx "-no_ssl2" might still be required for older openssl?)
+	    "openssl s_client -quiet -verify 3 -CAfile %t -connect %h:%p -no_ssl2"
+	    ))
     ;; 
     ;; XXX as of OpenSSL 1.1.1a  20 Nov 2018 there's a new ending to the noise
     ;; c_client prints before real data starts.
@@ -577,6 +616,11 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 \\|^\\*\\*\\* Starting TLS handshake
 \\)*\\)")
     
+    ;; XXX fixing this doesn't actually make the `tls-checktrust' thing work....
+    (setq tls-untrusted
+	  "- Status: The certificate is NOT trusted.
+\\|- Peer's certificate is NOT trusted
+\\|Verify return code: \\([^0] \\|.[^ ]\\)")
     (defun open-tls-stream (name buffer host port)
       "Open a TLS connection for a port to a host.
 Returns a subprocess-object to represent the connection.
@@ -585,7 +629,7 @@ Args are NAME BUFFER HOST PORT.
 NAME is name for process.  It is modified if necessary to make it unique.
 BUFFER is the buffer (or buffer name) to associate with the process.
  Process output goes at end of that buffer, unless you specify
- an output stream or filter function to handle the output.
+ a filter function to handle the output.
  BUFFER may be also nil, meaning that this process is not associated
  with any buffer
 Third arg is name of the host to connect to, or its IP address.
@@ -607,7 +651,7 @@ Fourth arg PORT is an integer specifying a port to connect to."
 		   (format-spec
 		    cmd
 		    (format-spec-make
-                     ?t (car (gnutls-trustfiles))
+		     ?t (car (gnutls-trustfiles)) ; XXX bogus!  How to use the whole list!?!?!?
 		     ?h host
 		     ?p (if (integerp port)
 			    (int-to-string port)
@@ -616,12 +660,15 @@ Fourth arg PORT is an integer specifying a port to connect to."
 	      (setq process (start-process
 			     name buffer shell-file-name shell-command-switch
 			     formatted-cmd))
+	      (message "Searching for tls-success pattern...")
+	      ;; XXX this should probably time out....
 	      (while (and process
 			  (memq (process-status process) '(open run))
 			  (progn
 			    (goto-char (point-min))
 			    (not (setq done (re-search-forward
 					     tls-success nil t)))))
+		(message "Still Searching for tls-success pattern....")
 		(unless (accept-process-output process 1)
 		  (sit-for 1)))
 	      (message "Opening TLS connection with `%s'...%s" formatted-cmd
@@ -650,25 +697,30 @@ Fourth arg PORT is an integer specifying a port to connect to."
 		    (accept-process-output process 1))
 		  (if start-of-data
 		      ;; move point to start of client data
-		      (goto-char start-of-data)))
+		      (goto-char start-of-data)
+		    (message "WARNING: did not find tls-end-of-info pattern!!!")))
 		(setq done process))))
 	  (when (and done
 		     (or
 		      (and tls-checktrust
 			   (save-excursion
+			     (message "Searching for tls-untrusted pattern...")
 			     (goto-char (point-min))
 			     (re-search-forward tls-untrusted nil t))
 			   (or
 			    (and (not (eq tls-checktrust 'ask))
 				 (message "The certificate presented by `%s' is \
 NOT trusted." host))
+			    ;; XXX shouldn't something be dnoe if "yes"!?!?!?
 			    (not (yes-or-no-p
-				  (format-message "\
+				  (tls-format-message "\
 The certificate presented by `%s' is NOT trusted. Accept anyway? " host)))))
 		      (and tls-hostmismatch
 			   (save-excursion
+			     (message "Searching for tls-hostmismatch pattern...")
 			     (goto-char (point-min))
 			     (re-search-forward tls-hostmismatch nil t))
+			   ;; XXX shouldn't something be dnoe if "yes"!?!?!?
 			   (not (yes-or-no-p
 				 (format "Host name in certificate doesn't \
 match `%s'. Connect anyway? " host))))))
@@ -781,14 +833,14 @@ match `%s'. Connect anyway? " host))))))
 	  (let ((proto "https"))		; M$ systems need gnutls built-in
 	    ;; Comment/uncomment the next two expressions to enable/disable MELPA
 	    ;; or MELPA Stable as desired
-	    (add-to-list 'package-archives
-			 (cons "melpa" (concat proto "://melpa.org/packages/")) t)
+;;	    (add-to-list 'package-archives
+;;			 (cons "melpa" (concat proto "://melpa.org/packages/")) t)
 	    ;; XXX melpa-stable is not recommended:  "Note that the MELPA
 	    ;; maintainers do not use MELPA Stable themselves, and do not
 	    ;; particularly recommend its use."
 	    ;;
-	    ;;(add-to-list 'package-archives
-	    ;;           (cons "melpa-stable" (concat proto "://stable.melpa.org/packages/")) t)
+	    (add-to-list 'package-archives
+			 (cons "melpa-stable" (concat proto "://stable.melpa.org/packages/")) t)
 	    ;; For important compatibility libraries like cl-lib
 	    ;; Note that after 24.x this should be in the list by default!
 	    (add-to-list 'package-archives `("gnu" . ,(concat proto "://elpa.gnu.org/packages/")))
@@ -905,9 +957,16 @@ match `%s'. Connect anyway? " host))))))
 ;; automatically maintained in `custom-file', aka ~/.emacs-custom.el for this
 ;; init file, contains the list of manually installed packages.
 ;;
+;; Hint to filter dependencies that might be locally handled or uneeded:
+;;
+;;	https://emacs.stackexchange.com/questions/24290/how-to-install-package-without-install-dependencies-through-package
+;;
+;;	(push '(org 9 5) package--builtin-versions)
+;;	(add-to-list 'package--builtin-versions `(go-rename 1 2 1))	; before package-initialize
+;;
 (defvar my-packages
-  `(ascii-table			; xxx was called "ascii"!!!
-    csv-mode			; n.b.:  if this is missing, so is elpa.gnu.org!
+  `(;ascii-table		; xxx was called "ascii"!!! (XXX currently only in melpa, not melpa-stable)
+;    csv-mode			; XXX already requires 27.1!
     diff-hl
     diffview
     diminish
@@ -915,66 +974,67 @@ match `%s'. Connect anyway? " host))))))
     emacsql-psql
     emacsql-sqlite
     emojify
-    emojify-logos
+;    emojify-logos		; XXX only in melpa, not melpa-stable
     ffmpeg-player		; maybe this could be fun?
     font-utils
-    forge			; esp for magit
+    forge			; esp for magit XXX requires markdown-mode, which requires 27.1!
     form-feed			; show ^L as lines, if added to mode's hook
     gh
     ghub			; for forge
-    github-stars
+;    github-stars		; XXX currently only in melpa, not melpa-stable
     git-timemachine
-    gnu-elpa-keyring-update	; xxx maybe avoid need for key downloading?
+    gnu-elpa-keyring-update	; xxx may have to be manually installed and used first!
     go-add-tags
-    go-complete
-    go-gen-test
+;    go-complete		; XXX currently only in melpa, not melpa-stable
+;    go-gen-test		; XXX currently only in melpa, not melpa-stable
     go-mode
     gxref
     htmlize
     json-mode
     json-reformat
     json-snatcher
-    list-utilsa
+    list-utils
     lua-mode
     magit	    ; XXX git needs to be installed first!?!?!?!?
 ;    magit-annex		; I don't need this any more
 ;    magit-gh-pulls		; xxx broken?
     magit-gitflow
-    magit-org-todos
-    markdown-mode
+;    magit-org-todos		; xxx what does this add again?
+;    markdown-mode		; XXX requires 27.1!!!	(XXX copy from previous package-MM.m)
     memory-usage		; xxx only in gnu repo, not melpa
     minimap			; xxx only in gnu repo, not melpa
-    nov
+;    nov			; XXX needs kv, which is currently only in melpa, not melpa-stable
+    oath2			; n.b. really a dependency of FLIM
     org
     org-journal
     ,(if (>= emacs-version-nobuild 27.1)
 	 'org-preview-html)
     org-static-blog
-    org2issue
+;    org2issue			; XXX currently only in melpa, not melpa-stable
     osx-clipboard		; only do for OS X?
     osx-dictionary		; only do for OS X?
     osx-plist
 ;    otp			; xxx gone?
     package-build
-    password-vault		; try for size?
     persistent-soft
-    pg				; needed for emacsql-psql
+;    pg				; needed for emacsql-psql XXX requires 28.1!!!!
     pinentry
     sed-mode			; xxx only in gnu repo, not melpa
     posix-manual
     smart-tabs-mode
-    svg
+    svg				; xxx should be built-in??? but newer available?
 ;    svg-clock			; xxx MELPA version already requires emacs 27.0!
-    syslog-mode
+;    syslog-mode		; XXX needs hide-lines and ov, which are currently only in melpa, not melpa-stable
     ucs-utils
     unicode-fonts
-    uuid
-    vc-fossil
+;    uuid			; XXX currently only in melpa, not melpa-stable
+    uuidgen			; xxx maybe only in melpa-stable, not melpa???
+;    vc-fossil			; XXX currently only in melpa, not melpa-stable
     vc-hgcmd
 ;    w3				; xxx gone...  see eww
-    w3m
-;    wanderlust			; xxx usually locally installed
-    x509-mode
+;    w3m			; XXX currently only in melpa, not melpa-stable
+;    wanderlust			; xxx usually locally installed, also only in melpa, not melpa-stable
+;    X509-mode			; XXX currently only in melpa, not melpa-stable
     xcscope
     xkcd			; xxx was called emacs-xkcd
 ;    xterm-color 		; may allow TERM=xterm-256color in emacs term window?
@@ -1415,6 +1475,7 @@ default sans-serif monospace font, in order of preference.")
 default serif-ed monospace font, in order of preference.")
   (defvar preferred-frame-font nil
     "XLFD spec for the default/preferred frame font.")
+  ;; XXX or should it be an XftPattern font name (since 23.x)???
   )
 
 ;;
@@ -1619,7 +1680,8 @@ an existing and usable font."
 		 (not (string-match "bold" ff)) ; xxx rarely in all other styles
 		 (find-font fs)
 		 (condition-case nil
-		     (font-info xlfd)
+		     (font-info xlfd)	; XXX "If the named font is not yet
+					; loaded, return nil."
 		   (error (message "Bad font family: %s" ff)
 			  nil))
 		 (if (or (eq window-system 'x)
@@ -1865,6 +1927,13 @@ available (though sometimes a failure just crashes emacs?!?!?)."
 ;;  –―‘“”„†•…‰™œŠŸž€ ΑΒΓΔΩαβγδω АБВГДабвгд
 ;;  ∀∂∈ℝ∧∪≡∞ ↑↗↨↻⇣ ┐┼╔╘░►☺♀ ﬁ�⑀₂ἠḂӥẄɐː⍎אԱა
 ;;
+;; Easily confused characters according to "Commit Mono":
+;;
+;; tl1I|!ij
+;; O0QDØ38B
+;; :;.,`‘'"
+;; 2Z5S7T6b
+;;
 (require 'faces)
 (setq list-faces-sample-text
       ;; The first two lines are chars that must all be easily distinguisable as
@@ -1879,7 +1948,7 @@ available (though sometimes a failure just crashes emacs?!?!?)."
 ©®aª2²3³8BuµpP¶#¤£$¢¥°.·,¸±+=¬~_--
 ABCDEFGHIJKLMNOPQRSTUVWXYZ /0123456789
 abcdefghijklmnopqrstuvwxyz
- !\"#$%&'()*+,-./:;<->?[\\]^_`{|}~
+ !\"#$%&'()*+,-./:;<->?@[\\]^_`{|}~
  ¡¢£¤¥¦§¨©ª«¬-®¯°±²³´µ¶·¸¹º»¼½¾¿
 ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß
 àáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ
