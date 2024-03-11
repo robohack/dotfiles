@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.12	24/03/11 11:36:36 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.13	24/03/11 11:53:15 (woods)"
 #
 # N.B.:  To test find the temp file output from the most recent run with '-k'
 # and then do:
@@ -392,11 +392,14 @@ ifelse(eval(WIDTH >= 6016 && HEIGHT >= 3384), 1, [define(OPT_BIG_XTERM, [-geomet
   )]
  )]
 )
+# With CommitMono font this could be 50 high
+# With Liberation Mono and CommitMono font this could be 91 wide
 define(OPT_LITTLE_XTERM, [-fs 7.5 -geometry 80x45-0-${XconsoleVoff}])
 
-# XXX should we specify "liberation mono" or just "*mono*"???
-define(OPT_XTERM_FA, [-fa '-*-*-medium-r-*-*-*-*-0-0-m-0-iso8859-1'])
-define(OPT_UXTERM_FA, [-fa '-*-*-medium-r-*-*-*-*-0-0-m-0-iso10646-1'])
+# Xterm fonts via Xft with '-fa' (assume all systems are "new" enough)
+#
+define(OPT_XTERM_FA, [-fa 'CommitMono'])
+define(OPT_UXTERM_FA, [-fa 'CommitMono'])
 
 # on OSX Xterm isn't configured to record logins properly with "-ls"
 #

@@ -1,6 +1,6 @@
 ! -*- conf-xdefaults -*-
 !
-!#ident	"@(#)HOME:.Xdefaults	37.3	22/02/23 18:04:11 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.4	24/03/11 11:53:15 (woods)"
 !
 ! reload with:
 !
@@ -45,6 +45,9 @@
 !  [define(FontYDPI, VertDPI)],
 !  [define(FontYDPI, VertDPI)]
 ! )
+!
+! XXX this is not really necessary, but an example of how to work out the number
+! of pixels for a given point size (9.0)
 ! define(VertPix9pt, eval((VertDPI * (90000 / 720)) / 1000))
 !
 ! avoid problems with square brackets in values below
@@ -64,6 +67,10 @@
 ! $ xlsfonts -fn '-*-liberation mono-medium-r-*-*-0-0-*-*-m-0-iso10646-1'
 ! -misc-liberation mono-medium-r-normal--0-0-0-0-m-0-iso10646-1
 ! -misc-liberation mono-medium-r-normal--0-0-100-100-m-0-iso10646-1
+!
+! $ xlsfonts -fn '-misc-commitmono-medium-r-*-*-0-0-*-*-m-0-iso10646-1'
+! -misc-commitmono-medium-r-normal--0-0-0-0-m-0-iso10646-1
+! -misc-commitmono-medium-r-normal--0-0-100-100-m-0-iso10646-1
 !
 ! In fact according to the X Logical Font Description the ptSz and resY are to
 ! be used by X clients querying for fonts according to device-independent size
@@ -88,8 +95,18 @@ Xft.dpi:	FontYDPI
 !
 Xft.antialias:			true
 Xft.hinting:			true
+!Xft.autohint:			false
+! What degree of hinting to use (hintnone, hintslight, hintmedium, or hintfull)
 !Xft.hintstyle:			hintfull
+! Type of subpixel antialiasing (none, rgb, bgr, vrgb or vbgr)
 !Xft.rgba:			rgb
+!
+! Do eliminate extra leading between lines!
+Xft.minspace:			true
+!
+! XXX Do these still exist?
+!Xft.render			false
+!Xft.core			true
 !
 ! ifelse(eval(FontYDPI > 110), 1, [
 !
@@ -98,15 +115,19 @@ Xft.hinting:			true
 ! Emacs actually ignores the resolutions, and needs either a '*' or a non-zero
 ! pixelSz value.
 !
-Emacs.Font:		-*-liberation mono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-*-*
-! XXX additional fontset definitions do not seem to add anything useful....
-!Emacs.Fontset-0:	-*-dejavu sans mono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-fontset-global
-!Emacs.Fontset-1:	-*-freemono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-fontset-global
-!Emacs.Fontset-2:	-*-cascadia mono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-fontset-global
-!Emacs.Fontset-2:	-*-ubuntu mono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-fontset-global
-!Emacs.Fontset-3:	-*-liberation mono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-fontset-global
+! this may not be necessary???  (only from 23.x(?) onwards)
+! https://www.emacswiki.org/emacs/XftGnuEmacs
+! `(frame-parameter nil 'font-backend)'
+Emacs.FontBackend: xft
 !
-! Set a default font that should work for everyone
+! see also https://www.emacswiki.org/emacs/SetFonts
+!
+Emacs.Font:		CommitMono:size=9
+!Emacs.Font:		-misc-commitmono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-*-*
+!Emacs.Font:		-*-liberation mono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-*-*
+!
+! Set a default font that should work for everyone.  Best looking is
+! "commitmono", most complete is "liberation mono".
 !
 ! Possible alternative (even more glyphs than liberation mono, but no mark in
 ! the zero) (from the fonts/freefont-ttf package):
@@ -118,31 +139,36 @@ Emacs.Font:		-*-liberation mono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI
 ! -ibm-ibm plex mono-medium-*-*-*-0-*-218-218-m-0-iso10646-1
 ! -misc-cascadia mono-medium-*-*-*-0-*-218-218-m-0-iso10646-1
 !
-! XXX some or all of these best be -iso8859-1 (or -*-*) else some older apps may
-! not get the right glyphs.
-!
 ! Note we want to pass a '0' for pixelSz for applications that will properly use
-! normal XLFD specs with Xft for scalable fonts, but for others we might be
-! better off passing a '*' instead, or maybe VertPix9pt as for Emacs?
+! normal XLFD specs for scalable fonts, but for others we might be better off
+! passing a '*' instead, or maybe VertPix9pt as for Emacs?
 !
-! xxx hmmm.... which of these do what?  (See also Emacs.Font above!)
+! xxx hmmm.... which of these do what?
 !
-*Font:				-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-*-*
-*.Font:				-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-*-*
-*font:				-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-*-*
-*.font:				-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-*-*
-*font*:				-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-*-*
-*fontList:			-*-freemono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-*-*
-*.fontList:			-*-freemono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-*-*
+*Font:				-misc-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-1
+*.Font:				-misc-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-1
+! this next one is used by xfontsel, xconsole, etc., and may have been same as
+! "7x14"?, but that's way too big, so we shrink it down to be the same as "6x10"
+*font:				-misc-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-1
+*.font:				-misc-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-1
+*font*:				-misc-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-1
+*fontList:			-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-1
+*.fontList:			-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-1
 !
 ! XXX is this right?  Does it do anything?  Some app-defaults files mention XtDefaultFont
 !
-xtDefaultFont:			-*-liberation mono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-*-*
-xtDefaultFontSet:		-*-freemono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-*-*
+! XXX some apps have really strange FontSet definitions, such as gv (which
+! currently complains that it cannot convert the following to a FontSet
+! structure despite the trailing '*' entry):
+!
+!	"-efont-biwidth-medium-r-normal--16-*-*-*-*-*-iso10646-1,-gnu-unifont-medium-r-normal--16-*-*-*-*-*-iso10646-1,-adobe-helvetica-medium-r-normal--14-*-*-*-*-*-*-*,-jis-fixed-medium-r-*--16-*-*-*-*-*-jisx0208.1983-0,-*-*-medium-r-*--16-*-*-*-*-*-*-*,*"
+!
+xtDefaultFont:			-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-1
+xtDefaultFontSet:		-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-1
 ! these are mentioned as the default values for font and fontSet resources for
 ! the Xt AsciiText widget
-XtDefaultFont:			-*-liberation mono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-*-*
-XtDefaultFontSet:		-*-freemono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-*-*
+XtDefaultFont:			-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-1
+XtDefaultFontSet:		-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-1
 !,-*-*-*-*-*--0-100-FontXDPI-FontYDPI-*-0-*-*
 !
 ! ], []) End (FontYDPI > 110)
@@ -180,7 +206,7 @@ XtDefaultFontSet:		-*-freemono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-*-*
 !
 ! Xpdf settings
 !
-Xpdf*fontList:			-*-courier-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-*-*
+Xpdf*fontList:			-*-courier-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-1
 Xpdf.initialZoom:		page
 ! ifdef([COLOR], [
 ! (we could in theory also use (PLANES <= 8) here...)
@@ -206,43 +232,47 @@ Xpdf.toolTipEnable:		false
 !
 ! Xterm settings:
 !
+! force TrueType (Xft) startup
+*renderFont:			true
+*faceName:			CommitMono
+!
 *cursorBlink:			true
 *deleteIsDEL:			true
 !
-*SimpleMenu*menuLabel.font:	-*-liberation mono-bold-r-normal--*-100-FontXDPI-FontYDPI-m-0-iso8859-*
+*SimpleMenu*menuLabel.font:	-misc-commitmono-bold-r-normal--*-100-FontXDPI-FontYDPI-m-0-iso8859-*
 *SimpleMenu*Cursor: 		hand2
 !
 ! "Default", size is overridden by command-line "-fs" ???
-*VT100.font:		-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font:	-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso10646-1
+!*VT100.font:		-misc-commitmono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-*
+!*VT100.utf8Fonts.font:	-misc-commitmono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize:	9.0
 ! Unreadable: (this is by default "nil2", but that is a bitmap font (in misc))
-*VT100.font1:  		-*-liberation mono-medium-r-normal--0-50-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font1:	-*-liberation mono-medium-r-normal--0-10-FontXDPI-FontYDPI-m-0-iso10646-1
+!*VT100.font1:  		-misc-commitmono-medium-r-normal--0-50-FontXDPI-FontYDPI-m-0-iso8859-*
+!*VT100.utf8Fonts.font1:	-misc-commitmono-medium-r-normal--0-10-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize1: 	0.5
 ! Tiny:
-*VT100.font2:		-*-liberation mono-medium-r-normal--0-70-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font2:	-*-liberation mono-medium-r-normal--0-70-FontXDPI-FontYDPI-m-0-iso10646-1
+!*VT100.font2:		-misc-commitmono-medium-r-normal--0-70-FontXDPI-FontYDPI-m-0-iso8859-*
+!*VT100.utf8Fonts.font2:	-misc-commitmono-medium-r-normal--0-70-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize2:	7.0
 ! Small:
-*VT100.font3:		-*-liberation mono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font3:	-*-liberation mono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso10646-1
+!*VT100.font3:		-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+!*VT100.utf8Fonts.font3:	-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize3:	9.0
 ! Medium:
-*VT100.font4:		-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font4:	-*-liberation mono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso10646-1
+!*VT100.font4:		-misc-commitmono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-*
+!*VT100.utf8Fonts.font4:	-misc-commitmono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize4:	10.0
 ! Large:
-*VT100.font5:		-*-liberation mono-medium-r-normal--0-120-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font5:	-*-liberation mono-medium-r-normal--0-120-FontXDPI-FontYDPI-m-0-iso10646-1
+!*VT100.font5:		-misc-commitmono-medium-r-normal--0-120-FontXDPI-FontYDPI-m-0-iso8859-*
+!*VT100.utf8Fonts.font5:	-misc-commitmono-medium-r-normal--0-120-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize5:	12.0
 ! Huge:
-*VT100.font6:		-*-liberation mono-medium-r-normal--0-180-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font6:	-*-liberation mono-medium-r-normal--0-180-FontXDPI-FontYDPI-m-0-iso10646-1
+!*VT100.font6:		-misc-commitmono-medium-r-normal--0-180-FontXDPI-FontYDPI-m-0-iso8859-*
+!*VT100.utf8Fonts.font6:	-misc-commitmono-medium-r-normal--0-180-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize6:	18.0
 ! Enormous:
-*VT100.font7:		-*-liberation mono-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font7:	-*-liberation mono-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso10646-1
+!*VT100.font7:		-misc-commitmono-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso8859-*
+!*VT100.utf8Fonts.font7:	-misc-commitmono-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize7:	24.0
 !
 ! Even with Unicode it is still nice to type accented chars
@@ -316,7 +346,7 @@ XFontSel*sampleText:	\
 	\251\256a\2522\2623\263u\265pP\266#\244\243$\242\245\260.\267,\270\261+=\254~_\255-\n\
 	ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789\n\
 	abcdefghijklmnopqrstuvwxyz\n\
-	\040\041\042#$%&\047()*+,-./\072;<->?[\\]^_`{|}~\n\
+	\040\041\042#$%&\047()*+,-./\072;<->?@[\\]^_`{|}~\n\
 	\240\241\242\243\244\245\246\247\250\251\252\253\254\256\257\260\261\262\263\264\265\266\267\270\271\272\273\274\275\276\277\n\
 	\300\301\302\303\304\305\306\307\310\311\312\313\314\316\317\320\321\322\323\324\325\326\327\330\331\332\333\334\335\336\337\n\
 	\340\341\342\343\344\345\346\347\350\351\352\353\354\356\357\360\361\362\363\364\365\366\367\370\371\372\373\374\375\376\377\n
@@ -330,7 +360,7 @@ XFontSel*sampleTextUCS:	\
 	©®aª2²3³8BuµpP¶#¤£$¢¥°.·,¸±+=¬~_--\n\
 	ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789\n\
 	abcdefghijklmnopqrstuvwxyz\n\
-	 \041\042#$%&\047()*+,-./\072;<->?[\\]^_`{|}~\n\
+	 \041\042#$%&\047()*+,-./\072;<->?@[\\]^_`{|}~\n\
 	 ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿\n\
 	ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß\n\
 	àáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ\n\
@@ -352,10 +382,15 @@ XFontSel*sampleTextUCS:	\
 !
 ! changequote([, ])
 !
-! XXX: these have to be in ~/.Xdefaults because gv does not use CPP to process
-! this file...
+!
+! GhostView:
+!
+! N.B.:  See also ~/.gv, which is also an X11 resource file, however it doesn't
+! use CPP to process it, instead it reads it directly, so some resources have to
+! be here of they're conditional on any xrdb symbol values!
 !
 ! ifdef([COLOR], [], [
 GV.gsX11Device:		-sDEVICE=x11mono
 GV.gsX11AlphaDevice:	-sDEVICE=x11mono -dTextAlphaBits=4 -dGraphicsAlphaBits=2 -dMaxBitmap=10000000 -dNOPLATFONTS
+
 ! ])

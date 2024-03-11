@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.17	24/01/07 17:31:43 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.18	24/03/11 11:53:15 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -21,7 +21,7 @@
 argv0="`basename $0`"
 echo "$argv0: running from $0 (shell flags: -$-) on '$(tty)'"
 XOPATH=$PATH
-echo "$argv0: initial PATH='$PATH'"
+echo "$argv0: initial PATH='$PATH'" | sed 's/:/: /g' | fold -s
 XODISPLAY=$DISPLAY
 echo "$argv0: starting up with DISPLAY='$DISPLAY'"
 
@@ -63,10 +63,12 @@ if [ "$XOPATH" != "$PATH" ] ; then
 fi
 unset XOPATH
 
+echo "$argv0: using X11 in '$X11PATH'"
+
 # XXX for debugging
 #
-DEBUG=true
-#DEBUG=false
+#DEBUG=true
+DEBUG=false
 if $DEBUG; then
 	echo "$argv0: Debugging enabled ...."
 	set -x
@@ -154,6 +156,12 @@ if [ -r $HOME/.Xdefaults ] ; then
 	xrdb -cpp m4 -merge $HOME/.Xdefaults	# Load user's X11 resource database
 fi
 
+if [ -r ${X11PATH}/lib/X11/fonts/misc/fonts.dir ]; then
+	X11FONTDIR=${X11PATH}/lib/X11/fonts
+#elif [ -r ${X11PATH}/share/fonts/misc/fonts.dir ]; then
+else
+	X11FONTDIR=${X11PATH}/share/fonts
+fi
 #
 # Choose some defaults for pixel-sized things...
 #
@@ -188,8 +196,8 @@ export DecentDeciPt DecentPt
 #
 # See also https://www.x.org/releases/X11R7.7/doc/xorg-docs/xlfd/xlfd.html
 #
-DefaultFontSpec='-*-liberation mono-medium-r-*-*-*-${DecentDeciPt}-${FontXDPI}-${FontYDPI}-m-*-iso10646-1'
-DefaultFontSpecL1='-*-liberation mono-medium-r-*-*-*-${DecentDeciPt}-${FontXDPI}-${FontYDPI}-m-*-iso8859-1'
+DefaultFontSpec='-*-commitmono-medium-r-*-*-*-${DecentDeciPt}-${FontXDPI}-${FontYDPI}-m-*-iso10646-1'
+DefaultFontSpecL1='-*-commitmono-medium-r-*-*-*-${DecentDeciPt}-${FontXDPI}-${FontYDPI}-m-*-iso8859-1'
 export DefaultFontSpec DefaultFontSpecL1
 #
 DecentFontSpec=`eval echo "${DefaultFontSpec}"`
@@ -198,11 +206,16 @@ export DecentFontSpec DecentFontSpecL1
 #
 # For Xft we've set the Xft.dpi resource so this allows the physical font size
 # to be specified (e.g. with Xterm's "-fs" option, using the following with it's
-# "-fa" option) and for a decent scalable font to be chosen (note ptSz-resX-resY
-# also seems to work as 0-0-0):
+# "-fa" option) and for a decent scalable font to be chosen:
 #
-DefaultXftFontSpec="-*-*-medium-r-*-*-*-*-0-0-m-*-iso10646-1"
-DefaultXftFontSpecL1="-*-*-medium-r-*-*-*-*-0-0-m-*-iso8859-1"
+# Note for Xft using fc-list(1) is probably the best way to fint Xft fonts...
+#
+# See "Font Name" in the following for how XftPatterns are specified:
+#
+#	https://fontconfig.pages.freedesktop.org/fontconfig/fontconfig-user.html
+#
+DefaultXftFontSpec="CommitMono"
+DefaultXftFontSpecL1="CommitMono"
 export DefaultXftFontSpec DefaultXftFontSpecL1
 
 #
@@ -214,67 +227,84 @@ export DefaultXftFontSpec DefaultXftFontSpecL1
 #
 # FontPath setup must also come before any other graphical client is started!
 #
-# Install any/all of the general-coverage (and symbol) TTF fonts, e.g. from
-# pkgsrc, along with "ttmkfdir2", and then:
+# Install any/all of the general-coverage (and symbol) TTF or OTF fonts,
+# e.g. from pkgsrc, and then:
 #
-#	cd ${PKG}/share/fonts/TTF
-#	ttmkfdir -o fonts.dir
+#	cd ${PKG}/share/fonts/X11/{OTF,TTF}
+#	mkfontscale .
+#	mkfontdir .
+#	xset fp rehash	# if X is already running....
 #
-# (xxx hmmm... just use mkfontdir and mkfontscale instead?)
+# Non-packaged TrueType (TTF) fonts should be installed similarly in ~/.fonts:
 #
-# Non-packaged TTF fonts should be installed similarly in ~/.fonts:
+# Note that OpenType (OTF) fonts don't work unless they are _also_ installed on
+# the client system.  They can be listed by xlsfonts, but not opened!  See:
 #
-if [ ! -d $HOME/.fonts ]; then
+#	https://stackoverflow.com/questions/57078805/xloadqueryfont-fails-on-font-found-with-xlistfonts
+#
+# FontConfig is a stupid STUPID design!  Having to have fonts installed on the
+# both client and server is STUPID!
+#
+if [ ! -d ${HOME}/.fonts ]; then
 	echo "$argv0: making a new empty ~/.fonts directory!"
 	echo "$argv0: NOTICE: you may need to install some TTF fonts here (e.g. Liberation)!"
-	mkdir $HOME/.fonts
-	( cd $HOME/.fonts && mkfontdir -o fonts.dir && mkfontscale -o fonts.scale )
+	mkdir ${HOME}/.fonts
 fi
 #
-if [ -r $HOME/.fonts.alias.m4 ] ; then
+if [ -r ${HOME}/.fonts.alias.m4 ] ; then
 	# n.b.:  note the abuse of xrdb and the custom use of m4!
-	xrdb -quiet -cpp m4 -E -n $HOME/.fonts.alias.m4 | sed 1,2d > $HOME/.fonts/fonts.alias
+	xrdb -quiet -cpp m4 -E -n ${HOME}/.fonts.alias.m4 | sed 1,2d > ${HOME}/.fonts/fonts.alias
 fi
+#
+# XQuartz comes with a script called "font_cache" that is run (if the preference
+# "org.xquartz.X11 cache_fonts" is true) by startx (and privileged_startx) that
+# does this and more for all standard font directories on macos.
+#
+# XXX However since we have possibly created or updated the fonts.alias file we
+# must re-run mkfontdir!
+#
+# XXX If a private "~/.fonts/encodings" directory is needed, add it here too!
+#
+MKF_ENC=${X11FONTDIR}/encodings
+mkfontscale -a ${MKF_ENC} -a ${MKF_ENC}/large -- ${HOME}/.fonts
+mkfontdir -e ${MKF_ENC} -e ${MKF_ENC}/large -- ${HOME}/.fonts
 #
 if [ -n "${X11FONTPATH}" ]; then
 	echo "$argv0: initial X11FONTPATH=${X11FONTPATH}"
 fi
+# xxx ~/.fonts should always come first!
 fpappend X11FONTPATH "${HOME}/.fonts/"
-fpappend X11FONTPATH "${LOCAL}/share/fonts/X11/TTF/" "${LOCAL}/share/fonts/X11/OTF/"
-fpappend X11FONTPATH "${PKG}/share/fonts/X11/TTF/" "${PKG}/share/fonts/X11/OTF/"
+if [ -d ${HOME}/Library/Fonts ]; then
+	for fd in $(find "${HOME}/Library/Fonts" -type d) ; do
+		fpappend X11FONTPATH ${fd}
+	done
+fi
+fpappend X11FONTPATH "${LOCAL}/share/fonts/X11/TTF/" "${LOCAL}/share/fonts/X11/OTF/" "${LOCAL}/share/fonts/X11/Type1/"
+fpappend X11FONTPATH "${PKG}/share/fonts/X11/TTF/" "${PKG}/share/fonts/X11/OTF/" "${PKG}/share/fonts/X11/Type1/"
+fpappend X11FONTPATH "${PKG}/share/fonts/X11/intlfonts/TrueType" "${PKG}/share/fonts/X11/intlfonts/Type1"
 #
 # now for the standard X11 fonts, preferring scalable fonts of course!
 #
-fpappend X11FONTPATH "${X11PATH}/share/fonts/TTF/" "${X11PATH}/share/fonts/OTF/"
+fpappend X11FONTPATH "${X11FONTDIR}/TTF/" "${X11FONTDIR}/OTF/"
 #
 # N.B.:  If you've set the "cursor" alias above then this is where it is from!
 #
-fpappend X11FONTPATH "${X11PATH}/share/fonts/Type1/"
+fpappend X11FONTPATH "${X11FONTDIR}/Type1/"
+#
+# The next three are of course just for OS X:
+#
+# (see /opt/X11/bin/font_cache)
+#
+# this may have been a fiction of faulty cut&paste....
+fpappend X11FONTPATH "${X11PATH}/share/fonts/system_fonts/" "${X11PATH}/share/fonts/system_fonts/Supplemental"
+fpappend X11FONTPATH "${X11PATH}/share/system_fonts/" "${X11PATH}/share/system_fonts/Supplemental"
 #
 # Don't bother with unscalable fonts on high-res systems...
 #
 # XXX this assumes we have a modified fonts.alias though!
 #
 if [ $SCREENDPI_Y -lt 110 ]; then
-	: so this block can be commented out but for this line
-	fpappend X11FONTPATH "${X11PATH}/share/fonts/100dpi/:unscaled"
-	# "misc" should come last, but must be present
-	# (XXX unless an equivalent fonts.alias is available elsewhere?)
-	fpappend X11FONTPATH "${X11PATH}/share/fonts/misc/:unscaled"
-fi
-#
-# The next three are of course just for OS X:
-#
-fpappend X11FONTPATH "${X11PATH}/share/fonts/system_fonts/"
-#
-# XXX warning though, some of these, or perhaps just these:  "/Library/Fonts/"
-# "/System/Library/Fonts/", cause most clients to die if they try to use any
-# font therein.  These fonts can be listed, but not opened -- I'm not sure why.
-#
-#fpappend X11FONTPATH  "/Library/Fonts/" "/System/Library/Fonts/"
-#
-if [ $SCREENDPI_Y -lt 110 ]; then
-	: so this block can be commented out but for this line
+	: so this block can be commented out for testing but for this line
 	#
 	### xxx n.b.:  misc has "nil2", for which there doesn't seem to be a
 	### scalable variant, but do we really need it?  It only seems to be
@@ -283,12 +313,25 @@ if [ $SCREENDPI_Y -lt 110 ]; then
 	#
 	# XXX this/these give Ctwm's "identify" window a nicer, smaller ("normal
 	# sized"?) font on the iMac27 (the :unscaled variants above do not).
-	# However they do not give Xconsole a smaller "normal sized" font.
 	#
-	fpappend X11FONTPATH "${X11PATH}/share/fonts/100dpi/" "${X11PATH}/share/fonts/misc/"
+	# N.B.:  The ":unscaled" suffix is undocumented (at least in xset(1))
+	# (it is mentioned as a "hack" in the main "Fonts in X11" document).  It
+	# prevents the server from scaling bitmap fonts, avoiding pixelation and
+	# other weird artifacts.
+	#
+	fpappend X11FONTPATH "${X11FONTDIR}/100dpi/:unscaled"
+	#
+	# "misc" should come last, but must be present
+	#
+	# (XXX unless an equivalent fonts.alias is available elsewhere(?), which
+	# of course it does with my ~/.fonts/fonts.alias, but beware that it
+	# contains many of the same alias names pointing at scalable fonts!)
+	#
+	fpappend X11FONTPATH "${X11FONTDIR}/misc/:unscaled"
 fi
 #
-#echo $X11FONTPATH
+#
+#echo "$argv0: final FONTPATH='$FONTPATH'" | sed 's/:/: /g' | fold -s
 export X11FONTPATH
 
 #
@@ -297,8 +340,29 @@ export X11FONTPATH
 xset fp= "${X11FONTPATH}"
 xset fp rehash
 
-# xxx I'm not so sure this is needed....
-fc-cache
+fc-cache -v
+
+##################
+#xlsfonts > $HOME/tmp/xlsfonts.out
+#xset q
+## /Users/woods/.fonts/,/Users/woods/Library/Fonts,/opt/pkg/share/fonts/X11/TTF/,/opt/pkg/share/fonts/X11/intlfonts/TrueType,/opt/pkg/share/fonts/X11/intlfonts/Type1,/opt/X11/share/fonts/TTF/,/opt/X11/share/fonts/OTF/,/opt/X11/share/fonts/Type1/,/opt/X11/share/system_fonts/,/opt/X11/share/system_fonts/Supplemental
+#set -x
+#xlsfonts -fn "-misc-commitmono-medium-r-normal--0-86-218-218-m-0-iso8859-1"
+#xlsfonts -fn "-*-commitmono-medium-r-normal--0-86-218-218-m-0-iso8859-1"
+#xlsfonts -fn "-*-*-medium-r-normal--0-86-218-218-m-0-iso8859-1"
+#xlsfonts -fn "-misc-commitmono-medium-r-normal--0-86-218-218-m-0-*-1"
+#xlsfonts -o -fn "-misc-commitmono-medium-r-normal--0-86-218-218-m-0-iso8859-1"
+#xlsfonts -o -fn "-*-commitmono-medium-r-normal--0-86-218-218-m-0-iso8859-1"
+#xlsfonts -o -fn "-*-*-medium-r-normal--0-86-218-218-m-0-iso8859-1"
+#xlsfonts -o -fn "-misc-commitmono-medium-r-normal--0-86-218-218-m-0-*-1"
+#
+#xlsfonts -fn "-xfree86-cursor-medium-r-normal--0-160-218-218-p-0-adobe-fontspecific"
+#xlsfonts -o -fn "-xfree86-cursor-medium-r-normal--0-160-218-218-p-0-adobe-fontspecific"
+#xlsfonts -fn "cursor"
+#xlsfonts -o -fn "cursor"
+#
+#set +x
+##################
 
 #
 # now in case we've updated the "cursor" alias....
@@ -477,6 +541,7 @@ esac
 export REMOTE_DISPLAY
 export DISPLAY
 
+
 if [ "$XODISPLAY" != "$DISPLAY" ] ; then
 	echo "$argv0: notice: XODISPLAY='$XODISPLAY', DISPLAY='$DISPLAY'"
 fi
@@ -525,6 +590,8 @@ esac
 # TODO:  allowing the local host might be a mistake (since other users
 # might also have access to the local host), but doing so might save
 # your bacon if xdm or xinit has not set up ~/.Xauthority correctly!
+#
+# xxx xhost tries to open a font for some unknown reason!
 #
 xhost +`hostname` +localhost +local: -
 
@@ -933,7 +1000,7 @@ very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.roboha
 	if [ -x ${PKG}/bin/xclock ]; then
 		XCLOCK=${PKG}/bin/xclock
 	fi
-	LC_CTYPE=C ${XCLOCK} -geometry $DClockGeom -face :size=10 -digital -update 1 -chime &
+	LC_CTYPE=C ${XCLOCK} -geometry $DClockGeom -face ${DefaultXftFontSpec}:size=10 -digital -update 1 -chime &
 	if $HAVESWISSWATCH; then
 		swisswatch -name swissclock -geometry $ClockGeom &
 	else

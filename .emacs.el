@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.12	24/03/11 11:28:05 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.13	24/03/11 11:53:15 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v23.1 or newer (with Xft)
 ;;;;
@@ -1409,6 +1409,11 @@ be useful for scenarios where an emacs server runs in an xterm?)."
 ;; resX-resY parameters you pass (i.e. '*' or '0'), so long as you have set the
 ;; Xft.dpi resource correctly.
 ;;
+;; CommitMono, an OTF, if installed and usable, is complete enough and is very
+;; reasonable looking (get it from https://commitmono.com/):
+;;(setq preferred-frame-font "-*-commitmono-medium-r-*-*-*-90-*-*-m-*-iso10646-1")
+;;(setq preferred-frame-font "commitmono:size=9")
+;;
 ;; Liberation Mono, a TTF, if installed and usable, is quite complete and
 ;; very reasonable looking:
 ;;(setq preferred-frame-font "-*-liberation mono-medium-r-*-*-*-90-*-*-m-*-iso10646-1")
@@ -1460,7 +1465,8 @@ be useful for scenarios where an emacs server runs in an xterm?)."
     "Ideal (deci)point size for the current display.")
   (defvar probable-pixel-size nil
     "The calculated pixel height for `my-ideal-point-size'")
-  (defvar my-preferred-sans-fonts '("liberation mono" "dejavu sans mono"
+  (defvar my-preferred-sans-fonts '("commitmono"
+				    "liberation mono" "dejavu sans mono"
 				    "mensch" "pt mono" "andale mono" "consola mono"
 				    "cascadia mono" "freemono" "ubuntu mono"
 				    "courier" "courier 10 pitch")
