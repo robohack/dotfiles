@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.11	24/01/07 17:31:16 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.12	24/03/11 11:36:36 (woods)"
 #
 # N.B.:  To test find the temp file output from the most recent run with '-k'
 # and then do:
@@ -903,18 +903,23 @@ menu "consoles"
   ])
 	CONSOLE_REP(xenful)
 	CONSOLE_REP(xentastic)
-	CONSOLE_REP(bbb-1)
-	CONSOLE_REP(rpi-1)
-	CONSOLE_REP(lilbit)
 	CONSOLE_REP(more)
-	CONSOLE_REP(building)
-	CONSOLE_REP(future)
-	CONSOLE_REP(freebsd)
-	CONSOLE_REP(historically)
+	CONSOLE_REP(nbtcur)
+	CONSOLE_REP(nbtest)
+	CONSOLE_REP(fbsd-test)
+# powered off, but enabled in tserver
 	CONSOLE_REP(once)
 	CONSOLE_REP(isit)
-	CONSOLE_REP(whats)
-	CONSOLE_REP(flipping)
+# not connected
+#	CONSOLE_REP(bbb-1)
+#	CONSOLE_REP(rpi-1)
+#	CONSOLE_REP(lilbit)
+#	CONSOLE_REP(building)
+#	CONSOLE_REP(future)
+#	CONSOLE_REP(freebsd)
+#	CONSOLE_REP(historically)
+#	CONSOLE_REP(whats)
+#	CONSOLE_REP(flipping)
   undefine(CONSOLE_REP)
 }
 
@@ -1257,7 +1262,10 @@ menu "miscapps"
 	"Miscellaneous Applications"	f.title
 	"xalarm"			!"xalarm &"
  ifelse(eval(FontYDPI > 110), 1, [
-	"xcalc"				!"xcalc -stipple -geometry 800x500 &"
+# 800 is barely wide enough for the widest button (trunc), and 500 is also a
+# little short for the buttons, except making it taller obscures too much of the
+# "degree" indicators
+	"xcalc"				!"xcalc -stipple -geometry 800x550 &"
  ], [
 	"xcalc"				!"xcalc -stipple &"
  ])
@@ -1470,6 +1478,8 @@ menu "xterms"
 	"UXterm-big @fezzik"	!". ./.shrc; RSH=ssh onx11server -n fezzik.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"UXterm @nbt"		!". ./.shrc; onx11server -n nbt.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
 	"UXterm-big @nbt"	!". ./.shrc; onx11server -n nbt.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @nbt2"		!". ./.shrc; onx11server -n nbt2.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @nbt2"	!". ./.shrc; onx11server -n nbt2.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"UXterm @nbtest"	!". ./.shrc; onx11server -n nbtest.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
 	"UXterm-big @nbtest"	!". ./.shrc; onx11server -n nbtest.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"UXterm @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
