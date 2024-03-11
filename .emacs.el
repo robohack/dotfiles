@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.11	24/03/11 11:17:36 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.12	24/03/11 11:28:05 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v23.1 or newer (with Xft)
 ;;;;
@@ -7000,6 +7000,8 @@ but it's seriously brain damaged so we re-define it as nothing."
   "Wiznet Support <support@wiznet.ca>")
 (define-mail-abbrev "walled"
   "Walled Networks Support <support@walled.net>")
+(define-mail-abbrev "sjg"
+  "Simon J. Gerraty <sjg@crufty.net>")
 
 (define-mail-abbrev "dduffey"
   "dduffey@slb.com (sandra's friend sending baby pictures)")
