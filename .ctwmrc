@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.15	24/03/13 13:27:42 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.16	24/03/13 13:29:04 (woods)"
 #
 # N.B.:  To test find the temp file output from the most recent run with '-k'
 # and then do:
@@ -902,7 +902,7 @@ menu "consoles"
 {
 	"Console Server"	f.title
   define(CONSOLE_REP, [
-	"$1 []"			!"uxterm OPT_UXTERM_FA OPT_XTERM_TN -geometry 132x66 -fn 5x7 -fbx -cn -rw -sb -si -sk -sl 2048 -n $1 -T '\"$1 Virtual Console\"' -e console $1 &"
+	"$1 []"			!"uxterm OPT_UXTERM_FA OPT_XTERM_TN -fg lightgreen -bg black -geometry 132x66 -fn 5x7 -fbx -cn -rw -sb -si -sk -sl 2048 -n $1 -T '\"$1 Virtual Console\"' -e console $1 &"
   ])
 	CONSOLE_REP(xenful)
 	CONSOLE_REP(nbtcur)
