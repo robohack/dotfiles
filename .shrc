@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.27	24/02/28 17:55:31 (woods)"
+#ident	"@(#)HOME:.shrc	37.28	24/03/13 13:39:06 (woods)"
 
 PATH=$PATH
 export PATH
@@ -714,8 +714,9 @@ archivedotfiles ()
 	#
 	# (note I had never put these in /work/release.d, so no need to now)
 	#
-	pax -wzf ${HOME}/dotffiles.tar.gz < ${HOME}/dotfiles.list
-	scp dotfiles.list dotfiles.tar.gz ${CENTRAL_USER}@${CENTRAL_SERVER}:.
+	(cd; pax -wzf ${HOME}/dotffiles.tar.gz < ${HOME}/dotfiles.list)
+	ssh ${CENTRAL_USER}@${CENTRAL_SERVER} rm -f dotfiles.list
+	scp ${HOME}/dotfiles.list ${HOME}/dotfiles.tar.gz ${CENTRAL_USER}@${CENTRAL_SERVER}:.
 }
 
 pushdotfiles ()
@@ -2076,12 +2077,12 @@ if [ "$uid" -eq 0 ] ; then
 		#
 		# n.b.:  here we assume that if there is an "alias" command then
 		# the shell can also expand '~user' and also properly expand
-		# shell arithmetic expressions....
+		# shell arithmetic expressions and use $()....
 		#
 		if [ -n "${WBANNER}" ] ; then
-			echo "Run 'setaliases' to set aliases from ~${LOGNAME}/.$(basename $SHELL)rc ... "
+			echo "Run 'setaliases' to set aliases from ~${LOGNAME}/.$([ $(basename $SHELL) = oksh ] && echo ksh || basename $SHELL)rc ... "
 		fi
-		alias setaliases='HOME=$(eval echo ~$LOGNAME); LEV=$((LEV-1)); . $HOME/.$(basename $SHELL)rc'
+		alias setaliases='HOME=$(eval echo ~$LOGNAME); LEV=$((LEV-1)); . $HOME/.$([ $(basename $SHELL) = oksh ] && echo ksh || basename $SHELL)rc'
 	fi
 
 	# must have X11BIN before openwin if newer X on system....
