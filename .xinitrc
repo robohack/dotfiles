@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.18	24/03/11 11:53:15 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.19	24/03/13 12:36:47 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -82,7 +82,7 @@ fi
 #
 #	defaults write org.xquartz.X11 dpi -int 218
 #
-# On Xquartz/Darwin (and in general with the Xorg Xserver) the command-line
+# On XQuartz/Darwin (and in general with the Xorg Xserver) the command-line
 # "-dpi" value is used to compute the frame buffer's width and height based on
 # the number of pixels each way, so there's no way to fetch this original
 # command-line parameter back except in the way xdpyinfo does, i.e. by getting
@@ -736,7 +736,7 @@ if type display >/dev/null 2>&1; then
 	HAVEIMAGEMAGICK=true
 fi
 
-# argv0 is .xinitrc if called by xinit or startx (XXX this is nearly useless now...)
+# argv0 is .xinitrc if called by xinit or startx (likely only for XQuartz)
 #
 if [ "$argv0" = ".xinitrc" ] ; then
 	echo "$argv0: looks like X was started with xinit or startx..."
@@ -749,7 +749,7 @@ if [ "$argv0" = ".xinitrc" ] ; then
 		#
 		# XXX most/all of this for my main desktop should move below to
 		# the main REMOTE_DISPLAY section as there's little possibility
-		# of ever using xdm with Xquartz
+		# or likelyhood of ever using xdm with XQuartz
 		#
 		very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*)	# xxx not so good for incoming SSH sessions...
 			#
@@ -760,9 +760,9 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server xentastic.local 'xauth nmerge -'
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbtest.local 'xauth nmerge -'
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbtcur.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server -S fezzik.local 'xauth nmerge -'
 #			xauth nextract - ${REMOTE_DISPLAY} | onx11server historically.local 'xauth nmerge -'
 #			xauth nextract - ${REMOTE_DISPLAY} | onx11server once.local 'xauth nmerge -'
-#			xauth nextract - ${REMOTE_DISPLAY} | RSH=ssh onx11server freebsd.local 'xauth nmerge -'
 			# next ones share a home dir mounted from more.local
 			#xauth nextract - ${REMOTE_DISPLAY} | onx11server building.local 'xauth nmerge -'
 			#xauth nextract - ${REMOTE_DISPLAY} | onx11server future.local 'xauth nmerge -'
@@ -787,7 +787,7 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
 			XloadGeomCentral=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
 			export XloadGeomCentral
-# slot for central	onx11server -n central.weird.com "xload -geometry ${XloadGeomCentral} -hl red" &
+# see below central	onx11server -n central.weird.com "xload -geometry ${XloadGeomCentral} -hl red" &
 
 #			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
 #			XloadGeomFuture=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
@@ -807,7 +807,7 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
 			XloadGeomXentral="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
 			export XloadGeomXentral
-# slot for xentral	onx11server -n xentral "xload -geometry ${XloadGeomXentral} -hl red" &
+# see below for xentral	onx11server -nS xentral "xload -geometry ${XloadGeomXentral} -hl red" &
 
 #			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
 #			XloadGeomOnce="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
@@ -822,14 +822,15 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
 			XloadGeomB2="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
 			export XloadGeomB2
-# slot for b2		onx11server -n b2.local "xload -geometry ${XloadGeomB2} -hl red: &
+# see below for b2	onx11server -n b2.local "xload -geometry ${XloadGeomB2} -hl red: &
 
 			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
 			XloadGeomFezzik="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
 			export XloadGeomFezzik
-# slot for fezzik		onx11server -n fezzik.local "xload -geometry ${XloadGeomFezzik} -hl red: &
+			onx11server -nS fezzik.local "xload -geometry ${XloadGeomFezzik}" -hl red: &
 
-# xxx thse need a variable for "80x45" as it could be wider (e.g. 91x45), or shorter....
+# xxx these need a variable for "80x45" as it could be wider (e.g. 91x45, 95x50), or taller, or shorter....
+# (calculate based on character size and $XconsoleWidth and something related to IR_GEOM vs. $XconsoleHeight)
 
 #			onx11server -n building.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 			onx11server -n more.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
@@ -840,16 +841,15 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			onx11server -n xenful.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 			onx11server -n xentastic.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 			#
-			# SSH-only hosts... (hopefully with auto-auth,
+			# SSH-only hosts... (hopefully with auto-xauth via -Y,
 			# but note the use of both '-f' and '&')
 			#
 			# XXX n.b. try -Snone "because session multiplexing
 			# doesn't work very well with X forwarding"
 			#
 			ssh -CY -C -f woods@central.weird.com ". ./.profile; exec xload -geometry ${XloadGeomCentral} -hl red" &
-# xxx not until more stable...
-			ssh -CY -C -f woods@b2.avoncote.ca ". ./.profile; exec xload -geometry ${XloadGeomB2} -hl red" &
 			ssh -CY -C -f woods@xentral.avoncote.ca ". ./.profile; exec xload -geometry ${XloadGeomXentral} -hl red" &
+			ssh -CY -C -f woods@b2.avoncote.ca ". ./.profile; exec xload -geometry ${XloadGeomB2} -hl red" &
 			#
 			# possibly available hosts -- one background
 			# sub-shell for host each...
@@ -993,7 +993,7 @@ very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.roboha
 
 	xload -geometry $XloadGeom -hl red &
 	#
-	# xxx the xclock supplied with Xquartz 2.8.2 is broken somehow in how it
+	# xxx the xclock supplied with XQuartz 2.8.2 is broken somehow in how it
 	# displays text, but the pkgsrc build works OK....
 	#
 	XCLOCK="xclock"
