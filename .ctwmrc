@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.13	24/03/11 11:53:15 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.14	24/03/13 12:23:26 (woods)"
 #
 # N.B.:  To test find the temp file output from the most recent run with '-k'
 # and then do:
@@ -905,11 +905,11 @@ menu "consoles"
 	"$1 []"			!"uxterm OPT_UXTERM_FA OPT_XTERM_TN -geometry 132x66 -fn 5x7 -fbx -cn -rw -sb -si -sk -sl 2048 -n $1 -T '\"$1 Virtual Console\"' -e console $1 &"
   ])
 	CONSOLE_REP(xenful)
+	CONSOLE_REP(nbtcur)
 	CONSOLE_REP(xentastic)
 	CONSOLE_REP(more)
-	CONSOLE_REP(nbtcur)
 	CONSOLE_REP(nbtest)
-	CONSOLE_REP(fbsd-test)
+	CONSOLE_REP(fezzik)
 # powered off, but enabled in tserver
 	CONSOLE_REP(once)
 	CONSOLE_REP(isit)
@@ -1356,7 +1356,7 @@ menu "monitors"
 	#
 #	"xload @historically"	!"${RSH} -n historically.local \". ./.profile; exec xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomHistorically} -hl red\" &"
 	"xload @b2"		!"ssh -CY -n woods@b2.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomB2} -hl red\" &"
-	"xload @fezzik"		!"ssh -CY -n woods@b2.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomFezzik} -hl red\" &"
+	"xload @fezzik"		!"ssh -CY -n woods@fezzik.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomFezzik} -hl red\" &"
  ])
 	"xosview"		!"xosview -geometry 120x137-200+0 &"
  ifdef([USE_X11SERVER], [
@@ -1477,12 +1477,12 @@ menu "xterms"
 #	"UXterm-big @historically" !". ./.shrc; onx11server -n historically.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 #	"UXterm @once"		!". ./.shrc; onx11server -n once.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
 #	"UXterm-big @once"	!". ./.shrc; onx11server -n once.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-	"UXterm @fezzik"	!". ./.shrc; RSH=ssh onx11server -n fezzik.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @fezzik"	!". ./.shrc; RSH=ssh onx11server -n fezzik.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-	"UXterm @nbt"		!". ./.shrc; onx11server -n nbt.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @nbt"	!". ./.shrc; onx11server -n nbt.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-	"UXterm @nbt2"		!". ./.shrc; onx11server -n nbt2.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @nbt2"	!". ./.shrc; onx11server -n nbt2.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @fezzik"	!". ./.shrc; onx11server -nS fezzik.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @fezzik"	!". ./.shrc; onx11server -nS fezzik.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+#	"UXterm @nbt"		!". ./.shrc; onx11server -n nbt.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+#	"UXterm-big @nbt"	!". ./.shrc; onx11server -n nbt.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+#	"UXterm @nbt2"		!". ./.shrc; onx11server -n nbt2.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+#	"UXterm-big @nbt2"	!". ./.shrc; onx11server -n nbt2.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"UXterm @nbtest"	!". ./.shrc; onx11server -n nbtest.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
 	"UXterm-big @nbtest"	!". ./.shrc; onx11server -n nbtest.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"UXterm @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
