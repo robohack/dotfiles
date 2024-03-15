@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.23	24/01/07 17:37:27 (woods)"
+#ident	"@(#)HOME:.profile	37.24	24/03/15 09:35:02 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -151,6 +151,8 @@ if expr "`type ulimit 2>/dev/null`" : '^ulimit is a shell ' > /dev/null 2>&1 ; t
 	# XXX sadly POSIX 1003.1 2004 only specifies '-f' (file size
 	# limit in 512-byte blocks, aka RLIMIT_FSIZE)
 	#
+	# ToDo N.B. first compare to "unlimited" then do "<" numerical comparison!
+	#
 	RLIMIT_CORE=`ulimit -H -c`
 	if [ "${RLIMIT_CORE}" != "`ulimit -S -c`" ]; then
 		ulimit -S -c ${RLIMIT_CORE}	# coredump
@@ -180,8 +182,29 @@ if expr "`type ulimit 2>/dev/null`" : '^ulimit is a shell ' > /dev/null 2>&1 ; t
 			ulimit -S -p ${RLIMIT_PROC}
 		fi
 	fi
-	RLIMIT_NOFILE=`ulimit -H -n`
-	if [ "${RLIMIT_NOFILE}" != "`ulimit -S -n`" ]; then
+	#
+	# FreeBSD, Darwin (and maybe others?) have kern.maxfilesperproc as their
+	# system limit for "nofile", so use that instead of an arbitrary value
+	# from the hard limit especially if that is "unlimited", as on Darwin
+	# "unlimited" causes major problems for the currently supplied version
+	# of Ksh-93!
+	#
+	# See: https://forums.developer.apple.com/forums/thread/722226
+	# and: https://github.com/ksh93/ksh/issues/591
+	#
+	SYSCTL=""
+	if [ -x /sbin/sysctl ]; then
+		SYSCTL="/sbin/sysctl"
+	fi
+	if [ -x /usr/sbin/sysctl ]; then
+		SYSCTL="/usr/sbin/sysctl"
+	fi
+	if [ -n "${SYSCTL}" ] && ${SYSCTL} kern.maxfilesperproc >/dev/null 2>&1; then
+		RLIMIT_NOFILE=`${SYSCTL} kern.maxfilesperproc | awk '{print $2}'`
+	else
+		RLIMIT_NOFILE=`ulimit -H -n`
+	fi
+	if [ "${RLIMIT_NOFILE}" != "`ulimit -S -n`" ]; then # XXX numerical comparison impossible!
 		ulimit -S -n ${RLIMIT_NOFILE}	# nofile
 		if [ $? -ne 0 ]; then
 			new_nofile=`expr ${RLIMIT_PROC} \* 4`
