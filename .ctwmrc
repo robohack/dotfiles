@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.16	24/03/13 13:29:04 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.17	24/03/15 15:05:27 (woods)"
 #
 # N.B.:  To test find the temp file output from the most recent run with '-k'
 # and then do:
@@ -906,10 +906,12 @@ menu "consoles"
   ])
 	CONSOLE_REP(xenful)
 	CONSOLE_REP(nbtcur)
-	CONSOLE_REP(xentastic)
 	CONSOLE_REP(more)
+	""			f.separator
+	CONSOLE_REP(xentastic)
 	CONSOLE_REP(nbtest)
 	CONSOLE_REP(fezzik)
+	""			f.separator
 # powered off, but enabled in tserver
 	CONSOLE_REP(once)
 	CONSOLE_REP(isit)
