@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.28	24/03/13 13:39:06 (woods)"
+#ident	"@(#)HOME:.shrc	37.29	24/03/15 12:57:36 (woods)"
 
 PATH=$PATH
 export PATH
@@ -714,7 +714,7 @@ archivedotfiles ()
 	#
 	# (note I had never put these in /work/release.d, so no need to now)
 	#
-	(cd; pax -wzf ${HOME}/dotffiles.tar.gz < ${HOME}/dotfiles.list)
+	(cd; pax -wzf ${HOME}/dotfiles.tar.gz < ${HOME}/dotfiles.list)
 	ssh ${CENTRAL_USER}@${CENTRAL_SERVER} rm -f dotfiles.list
 	scp ${HOME}/dotfiles.list ${HOME}/dotfiles.tar.gz ${CENTRAL_USER}@${CENTRAL_SERVER}:.
 }
