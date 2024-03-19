@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.24	24/03/15 09:35:02 (woods)"
+#ident	"@(#)HOME:.profile	37.25	24/03/19 15:33:41 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -270,13 +270,16 @@ fi
 if [ -z "${MANPATH}" ]; then
 	if [ -r /etc/man.conf ]; then
 		if man -w >/dev/null 2>&1; then
-			# for OpenBSD, FreeBSD et al, etc.
+			# for OpenBSD et al, etc.
 			MANPATH=`man -w`
-			# and for Planix NetBSD, expand any curly braces
-			echo $MANPATH | sed 's/ /:/g'
+			# and for Planix NetBSD, also expand any curly braces
+			# then convert the spaces to colons
+			MANPATH=`echo $MANPATH | sed 's/ /:/g'`
 		else
 			MANPATH=`man -w sh | sed 1q`
+			# drop the filename
 			MANPATH=${MANPATH%/*}
+			# drop the section subdir
 			MANPATH=${MANPATH%/*}
 		fi
 	elif [ -d /usr/share/man ]; then
@@ -1086,6 +1089,13 @@ fi
 
 
 # once upon a time this needed to be a lot smarter....
+#
+# N.B.: modern implementations, i.e. ncurses, support the environment variable
+# TERMINFO_DIRS as a colon-separated search path.
+#
+# XXX WARNING XXX:  Unfortunately NetBSD curses, which since about NetBSD-6.0
+# has provided a modern terminfo and X/Open compatible library, implements
+# TERMINFO_DIRS in a completely incompatible and useless manner!
 #
 if [ -d ${HOME}/lib/terminfo ]; then
 	case "${TERM}" in
