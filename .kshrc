@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	37.9	22/03/18 17:58:33 (woods)"
+#ident	"@(#)HOME:.kshrc	37.10	24/03/19 15:35:24 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -30,8 +30,6 @@ else
 	set -o nolog		# no functions in $HISTFILE
 	_c='!'
 fi
-
-export PATH
 
 # If I remember correctly SHLVL was not in early Ksh.... (and it's not in pdksh
 # nor its derivatives)
