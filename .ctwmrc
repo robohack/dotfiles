@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.17	24/03/15 15:05:27 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.18	24/03/20 15:06:54 (woods)"
 #
 # N.B.:  To test find the temp file output from the most recent run with '-k'
 # and then do:
@@ -1449,6 +1449,7 @@ menu "xterms"
 	"Xterm @localhost"	!"${X11BIN}/xterm OPT_XTERM_FA OPT_XTERM_TN ${XTERM_OPTS} OPT_XTERM_LOGIN &"
 	"UXterm @localhost"	!"${X11BIN}/uxterm OPT_UXTERM_FA OPT_XTERM_TN ${XTERM_OPTS} OPT_XTERM_LOGIN &"
  ifdef([AT_WEIRD], [
+# xxx this should use a macro!
 	"UXterm @xenful"	!". ./.shrc; onx11server -n xenful.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
 	"UXterm-big @xenful"	!". ./.shrc; onx11server -n xenful.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"UXterm @xentastic"	!". ./.shrc; onx11server -n xentastic.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
@@ -1480,6 +1481,8 @@ menu "xterms"
 	"UXterm-big @nbtest"	!". ./.shrc; onx11server -n nbtest.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"UXterm @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
 	"UXterm-big @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @very-old"	!". ./.shrc; onx11server -n very-old.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @very-old"	!". ./.shrc; onx11server -n very-old.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	#
 	# xxx these are not so useful as if the SSH connection drops then the
 	# window simply disappears with no hint as to when or why!  See further
@@ -1561,6 +1564,7 @@ menu "xauth"
 	"Xauth to fezzik"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server -S fezzik.local 'xauth nmerge -' ) &"
 #	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server historically.local 'xauth nmerge -' ) &"
 #	"Xauth to once"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server once.local 'xauth nmerge -' ) &"
+	"Xauth to very-old"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server very-old.local 'xauth nmerge -' ) &"
 }
 ])
 ifdef([ON_OSX], [
