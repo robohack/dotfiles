@@ -17,10 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.29	24/03/15 12:57:36 (woods)"
-
-PATH=$PATH
-export PATH
+#ident	"@(#)HOME:.shrc	37.30	24/03/20 14:45:24 (woods)"
 
 if [ -z "${SHELL}" ]; then
 	# likely plain old Bourne (heirloom) shell
@@ -325,6 +322,9 @@ removedups ()
 	varname=${1}
 	eval varvalue='${'${varname}'}'
 	nvalue=`echo "${varvalue}" | awk -v RS=: -v ORS=: '
+		BEGIN {
+			A[""] = 0;
+		}
 		{
 			# removing the newline is necessary in case the last
 			# element is a duplicate
@@ -336,12 +336,27 @@ removedups ()
 			}
 		}'
 	`
-	eval ${varname}="${nvalue}"
-	unset varname varvalue nvalue
+	# XXX 'nbase' awk version 20121220 from Joyent packages core-dumps on macos
+	rc=$?
+	if [ ${rc} -ne 0 ]; then
+		echo "removedups: awk failed: $rc" >&2
+		unset varname varvalue nvalue rc
+		return 1
+	fi
+	if [ -n "${nvalue}" ]; then
+		eval ${varname}="${nvalue}"
+	else
+		echo "removedups: empty result!" >&2
+		unset varname varvalue nvalue rc
+		return 1
+	fi
+	unset varname varvalue nvalue rc
 }
 
 # ToDo:  consider rewriting the above so they accept '-F sepchar' and then the
-# following can be eliminated?  (but what about the check for .../fonts.dir?)
+# following can be eliminated?  (but what about the check for .../fonts.dir?
+# maybe another option '-f file' to say the directory must contain a file named
+# "file"?)
 
 in_fppathvar_p() {
 	if [ $# -le 1 -o -z "${1}" ] ; then
@@ -1191,7 +1206,7 @@ if [ `uname -s` = "Darwin" ]; then
 fi
 export SDKPREFIX		# xxx hmmm.... should it be exported?
 
-# to deal with shells that don't expand '~' in pathnames
+# to deal with shells that may not expand '~' in pathnames
 #
 # Leverages possible expansion first thus avoiding any obvious fork(s) and
 # external command exec(s)
@@ -2017,6 +2032,12 @@ if [ "$uid" -eq 0 ] ; then
 
 	PRE_SU_PATH=$PATH
 
+	# XXX this is for older macos systems (e.g. 10.13.6) with Joyent
+	# packages where the 'nbase' build of awk version 20121220 dumps core on
+	# the script in removedups!  (same version as /opt/pkg/bin/nawk works!)
+	#
+	dirremove PATH /opt/pkg/nbase/bin
+
 	removedups PATH
 
 	# got to get rid of lone ":" or any "." in PATH
@@ -2058,7 +2079,9 @@ if [ "$uid" -eq 0 ] ; then
 	# not ~$SU_FROM/.kshrc then ~$SU_FROM/bin may also contain trojans or
 	# worse)
 	#
-	# n.b.:  this only works properly if the shell can expand "~user"
+	# n.b.:  this only works properly if the shell can expand "~user",
+	# though if eventually neede it could be changed to use the
+	# get_user_home function above....
 	#
 	LOGNAMEPATH=`eval echo ~$LOGNAME/usr/bin`
 	dirremove PATH ${LOGNAMEPATH}
@@ -2070,20 +2093,6 @@ if [ "$uid" -eq 0 ] ; then
 	unset LOGNAMEPATH
 
 	SU_POST_CLEAN_PATH=$PATH
-
-	if type alias >/dev/null 2>&1; then
-		#
-		# for those that _do_ trust ~$LOGNAME dotfiles
-		#
-		# n.b.:  here we assume that if there is an "alias" command then
-		# the shell can also expand '~user' and also properly expand
-		# shell arithmetic expressions and use $()....
-		#
-		if [ -n "${WBANNER}" ] ; then
-			echo "Run 'setaliases' to set aliases from ~${LOGNAME}/.$([ $(basename $SHELL) = oksh ] && echo ksh || basename $SHELL)rc ... "
-		fi
-		alias setaliases='HOME=$(eval echo ~$LOGNAME); LEV=$((LEV-1)); . $HOME/.$([ $(basename $SHELL) = oksh ] && echo ksh || basename $SHELL)rc'
-	fi
 
 	# must have X11BIN before openwin if newer X on system....
 	dirappend PATH /usr/lbin /usr/ucb ${X11BIN}
