@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.18	24/03/20 15:06:54 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.19	24/03/20 15:31:27 (woods)"
 #
 # N.B.:  To test find the temp file output from the most recent run with '-k'
 # and then do:
@@ -1481,8 +1481,8 @@ menu "xterms"
 	"UXterm-big @nbtest"	!". ./.shrc; onx11server -n nbtest.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"UXterm @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
 	"UXterm-big @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-	"UXterm @very-old"	!". ./.shrc; onx11server -n very-old.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @very-old"	!". ./.shrc; onx11server -n very-old.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @very-old"	!". ./.shrc; onx11server -nS very-old.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @very-old"	!". ./.shrc; onx11server -nS very-old.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	#
 	# xxx these are not so useful as if the SSH connection drops then the
 	# window simply disappears with no hint as to when or why!  See further
@@ -1564,7 +1564,7 @@ menu "xauth"
 	"Xauth to fezzik"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server -S fezzik.local 'xauth nmerge -' ) &"
 #	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server historically.local 'xauth nmerge -' ) &"
 #	"Xauth to once"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server once.local 'xauth nmerge -' ) &"
-	"Xauth to very-old"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server very-old.local 'xauth nmerge -' ) &"
+	"Xauth to very-old"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server -S very-old.local 'xauth nmerge -' ) &"
 }
 ])
 ifdef([ON_OSX], [
