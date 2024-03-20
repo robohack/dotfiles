@@ -3,17 +3,21 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	37.10	24/03/19 15:35:24 (woods)"
+#ident	"@(#)HOME:.kshrc	37.11	24/03/20 14:43:06 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
 
+# Assumptions that may cause breakage:
+#
+#	- $ENVFILE is the file referenced by $ENV (see ~/.kshlogin)
+
+# Notice:  HOME may be reset to $(dirname ${ENVFILE}) or ~${LOGNAME}.
+#
 # Files referenced:
 #
-#	$(dirname ${ENVFILE})/.shrc - sourced for common funcs, if needed & avail.
-#	$(dirname ${ENVFILE})/.localprofile - may be sourced if using above .shrc
-#	~${LOGNAME}/.shrc       - sourced for common functs, if still needed
-#	~${LOGNAME}/.localprofile - sourced for $MAILDOMAIN, if needed & avail.
+#	$HOME/.shrc		- sourced for common funcs, if needed & readable
+#	$HOME/.localprofile	- may be sourced (mostly for MAILDOMAIN)
 #	$HOME/.shaliases	- sourced, if it is readable
 #	$HOME/.kshsccs		- sourced, if it is readable
 #	$HOME/.kshpwd		- sourced, if it is readable
@@ -65,39 +69,37 @@ case ${0} in
 esac
 
 # Handle the case of sourcing this file e.g. by a "su" shell user, or some other
-# interactive sub-shell, etc.
+# interactive sub-shell (which sourced $ENV(FILE)), etc.  Forcibly resets HOME
+# to the location of the first discovered .shrc.
 #
-# It is assumed that ~/.profile, which would otherwise source ~/.shrc, is
+# WARNING:  This could be a major security problem for 'su' users if their
+# $ENVFILE value is hacked, but then again Ksh is already sourcing this via
+# $ENV regardless so be careful!
+#
+# It is assumed that ~/.profile, which will always also source ~/.shrc, is
 # sourced only by login shells, and by ~/.xinitrc or by a window manager, but
-# won't be sourced by default by a non-interactive shell or a "su" shell.  It is
-# also assumed of course that "zhead" is defined as a function in the desired
-# ~/.shrc file.
+# won't be sourced by default by a non-interactive shell or a "su" shell, or any
+# interactive sub-shell.
+#
+# It is also assumed of course that "zhead" is defined as a function in the
+# desired ~/.shrc file.
 #
 if ! typeset -f zhead >/dev/null ; then
-	# try to find a related .shrc, even when using "su" or a sub-shell
-	# the guts here could/should be a function, but it would be in .shrc!
-	if [ -n "${ENVFILE}" ]; then
-		. $(dirname ${ENVFILE})/.shrc
-		# also try to set MAILDOMAIN for .emacs.el if it was not set...
-		if [ -z "${MAILDOMAIN}" -a -r $(dirname ${ENVFILE})/.localprofile ]; then
-			. $(dirname ${ENVFILE})/.localprofile
-		fi
-	elif [ -r ${HOME}/.shrc ]; then
+	envhome=$(dirname ${ENVFILE})
+	# there's a bit of a chicken&egg situation w.r.t. LOGNAME (see ~/.shrc)
+	loghome=$(eval echo ~$LOGNAME)
+	if [ -n "${ENVFILE}" -a -f ${envhome}/.shrc ]; then
+		HOME=${envhome}
+	elif [ -r ${loghome}/.shrc ]; then
+		HOME=${loghome}
+	fi
+	unset envhome loghome
+	if [ -r ${HOME}/.shrc ]; then
 		. ${HOME}/.shrc
+		# also try to set MAILDOMAIN for .emacs.el if it was not set...
 		if [ -z "${MAILDOMAIN}" -a -r ${HOME}/.localprofile ]; then
 			. ${HOME}/.localprofile
 		fi
-	fi
-	if [ -n "${LOGNAME}" ]; then
-		eval shrc=~${LOGNAME}/.shrc
-		if [ -r ${shrc} ]; then
-			. ${shrc}
-		fi
-		eval lprof=~${LOGNAME}/.localprofile
-		if [ -z "${MAILDOMAIN}" -a -r ${lprof} ]; then
-			. ${lprof}
-		fi
-		unset shrc lprof
 	fi
 	if typeset -f rm_alias_funcs >/dev/null ; then
 		rm_alias_funcs
