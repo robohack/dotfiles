@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.25	24/03/19 15:33:41 (woods)"
+#ident	"@(#)HOME:.profile	37.26	24/03/20 15:11:05 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -421,11 +421,12 @@ dirappend MANPATH ${GNU}/share/man ${GNU}/man
 
 # silly fuzting for older OSX...
 dirappend PATH /Developer/usr/bin
-if [ -d /Developer/usr/bin ]; then
-	dirprepend PATH ${PKG}/nbase/bin
-fi
+# XXX Joyent /opt/pkg/nbase/bin things are crashing sometimes now....
+#if [ -d /Developer/usr/bin ]; then
+#	dirprepend PATH ${PKG}/nbase/bin
+#fi
 # always, for bootstrapped pkgsrc???
-dirappend PATH ${PKG}/nbase/bin
+#dirappend PATH ${PKG}/nbase/bin
 
 dirappend PATH /usr/ucb /usr/bsd
 dirappend PATH ${HI_TECH_C}/bin
