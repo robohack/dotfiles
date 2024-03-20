@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.26	24/03/20 15:11:05 (woods)"
+#ident	"@(#)HOME:.profile	37.27	24/03/20 15:18:19 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -419,8 +419,10 @@ dirappend MANPATH ${SLASHOPT}/share/man ${SLASHOPT}/man
 dirappend PATH ${GNU}/bin ${SLASHOPT}/gnu/bin
 dirappend MANPATH ${GNU}/share/man ${GNU}/man
 
-# silly fuzting for older OSX...
 dirappend PATH /Developer/usr/bin
+dirappend MANPATH /Developer/usr/share/man
+
+# silly fuzting for older OSX...
 # XXX Joyent /opt/pkg/nbase/bin things are crashing sometimes now....
 #if [ -d /Developer/usr/bin ]; then
 #	dirprepend PATH ${PKG}/nbase/bin
