@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.13	24/03/11 11:53:15 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.14	24/04/01 12:33:35 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v23.1 or newer (with Xft)
 ;;;;
@@ -1038,6 +1038,8 @@ match `%s'. Connect anyway? " host))))))
     xcscope
     xkcd			; xxx was called emacs-xkcd
 ;    xterm-color 		; may allow TERM=xterm-256color in emacs term window?
+    yaml-mode
+    yaml-pro
     )
   "A list of packages we want to ensure are installed at launch.")
 
