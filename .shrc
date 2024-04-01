@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.30	24/03/20 14:45:24 (woods)"
+#ident	"@(#)HOME:.shrc	37.31	24/04/01 12:31:28 (woods)"
 
 if [ -z "${SHELL}" ]; then
 	# likely plain old Bourne (heirloom) shell
@@ -952,15 +952,23 @@ if [ -x ${LOCAL}/bin/diff ] ; then
 elif type gdiff >/dev/null 2>&1; then
 	# XXX this isn't always best any more!
 	DIFF="gdiff"
+else
+	# xxx this is probably a no-op...
+	DIFF="diff"
 fi
 export DIFF
 
-if [ -n "`make --version 2> /dev/null`" ]; then
-	# oops, this system thinks GNU Make is a real Make!
-	# Assume there is or will be a "bmake", aka BSD Make
-	BMAKE="bmake"
+if type make >/dev/null 2>&1; then
+	if make -v >/dev/null 2>&1; then
+		# oops, this system thinks GNU Make is a real Make!
+		# Assume there is or will be a "bmake", aka BSD Make
+		BMAKE="bmake"
+	else
+		# Assume for the best...
+		BMAKE="make"
+	fi
 else
-	# Assume for the best...
+	# Hope for the best, eventually...
 	BMAKE="make"
 fi
 export BMAKE
@@ -1009,7 +1017,7 @@ lnotes ()
 	if [ -d $HOME/notes ] ; then
 	(
 		# in a subshell
-		cd $HOME/notes
+		\cd $HOME/notes
 		if [ `ls|wc -w` != 0 ] ; then
 			echo 'You have notes on: '
 			${LS} -dC *[!~]
@@ -1394,7 +1402,20 @@ show_make_var ()
 
 show_cc_predef ()
 {
-	${CC} -E -dM -x c /dev/null | sort
+	${CC:-"cc"} -E -dM -x c /dev/null | sort
+}
+
+show_cc_optim ()
+{
+	# to show optimizer options (and include path, and build info, etc.):
+	#
+	#OPTIM="-O4"
+	#OPTIM="-O3"
+	#OPTIM="-O2"
+	#OPTIM="-O1"
+	#OPTIM="-O0"
+	#
+	${CC:-"cc"} -v ${OPTIM:-"-O4"} -S -fverbose-asm -o - -x c /dev/null
 }
 
 #sedjoinafter ()
@@ -2343,7 +2364,7 @@ signo ()
 #
 srcfgrep ()
 {
-	find . \( -type d \( -name CVS -or -name .git -or -name .svn -or -name build -or -name 'build-*' -or -name autom4te.cache \) -prune \) -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -exec fgrep ${1+"${@}"} {} +
+	find . \( -type d \( -name CVS -or -name .git -or -name .svn -or -name build -or -name 'build-*' -or -name dist -or -name 'dist-*' -or -name autom4te.cache \) -prune \) -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -exec fgrep ${1+"${@}"} {} +
 }
 
 trim ()
