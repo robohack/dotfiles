@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.27	24/03/20 15:18:19 (woods)"
+#ident	"@(#)HOME:.profile	37.28	24/04/01 12:33:12 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -974,6 +974,18 @@ if ${ISATTY}; then
 			# run it in the background as it can 'hang' for a while
 			# after a reboot....
 			( defaults -currentHost find modifiermapping 2>/dev/null | grep keyboard.modifiermapping > /dev/null || stty dec ) &
+		fi
+		#
+		# Developer tools and command-line toolchain programs are run
+		# through a wrapper program that uses a cache file to find the
+		# appropriate binary for the currently selected SDK, but until
+		# this cache is built any tool can have a significant
+		# multi-second startup overhead!
+		#
+		if [ ! -f $(xcrun --show-cache-path) ]; then
+			echo "NOTICE:  will try to fully populate the xcodebuild cache in the background"
+			( for file in $(xcode-select --print-path)/usr/bin/*; do xcrun -n -find $(basename $file) > /dev/null; done;
+			  for file in $(dirname $(xcrun -n -find clang))/*; do xcrun -n -find $(basename $file) > /dev/null; done ) &
 		fi
 		;;
 	esac
