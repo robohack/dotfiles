@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.31	24/04/01 12:31:28 (woods)"
+#ident	"@(#)HOME:.shrc	37.32	24/04/13 06:42:03 (woods)"
 
 if [ -z "${SHELL}" ]; then
 	# likely plain old Bourne (heirloom) shell
@@ -2335,32 +2335,47 @@ signo ()
 	grep -i "^#define[ 	]*.*${1}[ 	]*[0-9]" ${SDKPREFIX}/usr/include/sys/signal.h
 }
 
-# trivial hack to quickly search a source tree where traditional
-# globbing would exceed ARG_MAX
+# trivial hack to quickly search a source tree where traditional globbing would
+# exceed ARG_MAX
 #
-# Requires a find with the SysVR4 "-exec ... {} ... +" feature.  (now
-# also mandated by SUSv3, aka IEEE 1003.1-2001/2004)
+# Requires a find with the SysVR4 "-exec ... {} ... +" feature.  (now also
+# mandated by SUSv3, aka IEEE 1003.1-2001/2004)
 #
-# Here is a command which must succeed on any POSIX conformant system
-# but which will fail if find lacks support for '+' due to a missing
-# ';' argument:
+# OpenGroup gives the following example of using this showing how arguments with
+# whitespace, including newlines, are preserved:
+#
+#	find . ! -name . -prune -name '*.old' -exec \
+#	    sh -c 'mv "$@" ../old/' sh {} +
+#
+# Following is a command which must succeed on any POSIX conformant system but
+# which will fail if find lacks support for '+' due to a missing ';' argument,
+# so could be used to detect incompatability and thus make it possible to
+# provide an alternative implementation if desired:
 #
 #	find /dev/null -exec true '{}' +
 #
-# The most portable alternative might be to use 'sed' and 'xargs'.
-# The sed command here is mandatory.  Contrary to popular belief,
-# xargs does NOT accept newline-delimited lists.  Rather it accepts
-# shell-quoted lists, i.e. the input list is separated by whitespace
-# and all internal whitespace must be quoted.  This command simply
-# quotes all characters with backslashes to satisfy this requirement,
-# protecting embedded whitespace in filenames.
+# The most portable alternative might be to use 'sed' and 'xargs'.  Note the
+# 'sed' command in the pipeline is mandatory.  Contrary to popular belief, xargs
+# does NOT accept newline-delimited lists.  Rather it accepts shell-quoted
+# lists, i.e. the input list is separated by whitespace and all internal
+# whitespace must be quoted.  To avoid this the following command simply quotes
+# _all_ characters with backslashes to satisfy this requirement, protecting
+# embedded whitespace in filenames.
 #
 #	find ... | sed 's/./\\&/g' | xargs command
 #
-# The best alternative is to use -print0, but that still requires a
-# pipeline to xargs.
+# The best alternative to the 'sed' is to use 'find -print0', but that still
+# requires a pipeline to 'xargs', and it requires both a 'find' with '-print0'
+# and an 'xargs' with '-0' (which are non-standard but nearly ubiquitous now)
+# (i.e. to support printing and reading NUL separated values).
 #
-# So, this is the a faster alternative to "find ... -print0 | xargs -0 ..."
+# Some versions of 'find' (notably on NetBSD) support '-printx' which does the
+# backslash escaping directly itself, and as with the use of 'sed' shown above,
+# 'xargs' supports this escaping by default (as per POSIX).  (It is indeed very
+# weird that POSIX 'find' does not (yet) have the corresponding '-printx'.)
+#
+# So, this is the faster, standards-conformant, alternative to "find ... -print0
+# | xargs -0 ..." or "find ... -printx | xargs ..."
 #
 srcfgrep ()
 {
