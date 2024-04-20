@@ -3,22 +3,23 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.19	24/03/13 12:36:47 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.20	24/04/20 11:39:05 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
 # XXX WARNING XXX:  It seems something on macos (launchd_startx?) blows up if
-# any line of output from this script is more than 512 bytes!!!
+# any line of output from this script is more than 512 bytes!!!  Pipe long lines
+# through:   | sed 's/:/: /g' | fold -s
 
 # Assumptions that may cause breakage:
 #
-#	- the shell supports functions and getopts and $((expr))
-#	- test(1), aka "[", supports '-L' for testing symlinks
-#	  (note that "test -L" is POSIX, but old systems had "-h")
+#	- the shell supports functions
+#	- the shell supports $(cmd) substitution
+#	- other assumptions made by ~/.profile
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
-argv0="`basename $0`"
+argv0="$(basename $0)"
 echo "$argv0: running from $0 (shell flags: -$-) on '$(tty)'"
 XOPATH=$PATH
 echo "$argv0: initial PATH='$PATH'" | sed 's/:/: /g' | fold -s
@@ -29,7 +30,7 @@ echo "$argv0: starting up with DISPLAY='$DISPLAY'"
 #
 #c=0
 #for i in "${@}"; do
-#	c=`expr ${c} + 1`
+#	c=$(expr ${c} + 1)
 #	echo "arg #${c}: \"${i}\""
 #done
 #if [ $c -eq 0 ]; then
@@ -111,20 +112,20 @@ fi
 #
 #	xrdb -quiet -cpp m4 -E -n | sed 1,2d
 #
-VENDORSTR="`xdpyinfo | sed -n 's/^vendor string:[ ]*\(.*\)$/\1/p;//q'`"
-SCREENDEPTH=`xdpyinfo | sed -n 's/^[ ]*depth of root window:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q'`
-SCREENSIZE=`xdpyinfo | sed -n 's/^[ ]*dimensions:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q'`
-SCREENDIM=`xdpyinfo | sed -n 's/^[ ]*dimensions:[ ]*[^ ][^ ]* [^ ]* (\(.*\))$/\1/p;//q'`
-SCREENDIMmm_X=`expr "$SCREENDIM" : '\([0-9]*\)x'`
-SCREENDIMmm_Y=`expr "$SCREENDIM" : '[0-9]*x\([0-9]*\)'`
-SCREENSIZE_X=`expr "$SCREENSIZE" : '\([0-9]*\)x'`
-SCREENSIZE_Y=`expr "$SCREENSIZE" : '[0-9]*x\([0-9]*\)'`
-SCREENDPI=`xdpyinfo | sed -n 's/^[ ]*resolution:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q'`
-SCREENDPI_X=`expr "$SCREENDPI" : '\([0-9]*\)x'`
-SCREENDPI_Y=`expr "$SCREENDPI" : '[0-9]*x\([0-9]*\)'`
+VENDORSTR="$(xdpyinfo | sed -n 's/^vendor string:[ ]*\(.*\)$/\1/p;//q')"
+SCREENDEPTH=$(xdpyinfo | sed -n 's/^[ ]*depth of root window:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q')
+SCREENSIZE=$(xdpyinfo | sed -n 's/^[ ]*dimensions:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q')
+SCREENDIM=$(xdpyinfo | sed -n 's/^[ ]*dimensions:[ ]*[^ ][^ ]* [^ ]* (\(.*\))$/\1/p;//q')
+SCREENDIMmm_X=$(expr "$SCREENDIM" : '\([0-9]*\)x')
+SCREENDIMmm_Y=$(expr "$SCREENDIM" : '[0-9]*x\([0-9]*\)')
+SCREENSIZE_X=$(expr "$SCREENSIZE" : '\([0-9]*\)x')
+SCREENSIZE_Y=$(expr "$SCREENSIZE" : '[0-9]*x\([0-9]*\)')
+SCREENDPI=$(xdpyinfo | sed -n 's/^[ ]*resolution:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q')
+SCREENDPI_X=$(expr "$SCREENDPI" : '\([0-9]*\)x')
+SCREENDPI_Y=$(expr "$SCREENDPI" : '[0-9]*x\([0-9]*\)')
 # use DPI to get inches....
-SCREENDIM_X=`expr "$SCREENSIZE_X" / "$SCREENDPI_X"`
-SCREENDIM_Y=`expr "$SCREENSIZE_Y" / "$SCREENDPI_Y"`
+SCREENDIM_X=$(expr "$SCREENSIZE_X" / "$SCREENDPI_X")
+SCREENDIM_Y=$(expr "$SCREENSIZE_Y" / "$SCREENDPI_Y")
 export VENDORSTR SCREENDEPTH SCREENSIZE SCREENDIM SCREENDPI
 export SCREENDIMmm_X SCREENDIMmm_Y SCREENSIZE_X SCREENSIZE_Y SCREENDPI_X SCREENDPI_Y SCREENDIM_X SCREENDIM_Y
 
@@ -200,8 +201,8 @@ DefaultFontSpec='-*-commitmono-medium-r-*-*-*-${DecentDeciPt}-${FontXDPI}-${Font
 DefaultFontSpecL1='-*-commitmono-medium-r-*-*-*-${DecentDeciPt}-${FontXDPI}-${FontYDPI}-m-*-iso8859-1'
 export DefaultFontSpec DefaultFontSpecL1
 #
-DecentFontSpec=`eval echo "${DefaultFontSpec}"`
-DecentFontSpecL1=`eval echo "${DefaultFontSpecL1}"`
+DecentFontSpec=$(eval echo "${DefaultFontSpec}")
+DecentFontSpecL1=$(eval echo "${DefaultFontSpecL1}")
 export DecentFontSpec DecentFontSpecL1
 #
 # For Xft we've set the Xft.dpi resource so this allows the physical font size
@@ -393,18 +394,18 @@ if [ "$SCREENDIM_X" -gt 12 ]; then
 else
 	ClockSize="1"
 fi
-ClockWidth=`expr ${SCREENDPI_X} \* ${ClockSize}`
-ClockHeight=`expr ${SCREENDPI_Y} \* ${ClockSize}`
+ClockWidth=$(expr ${SCREENDPI_X} \* ${ClockSize})
+ClockHeight=$(expr ${SCREENDPI_Y} \* ${ClockSize})
 ClockGeom=${ClockWidth}x${ClockHeight}-0+0
-ClockOff=`expr ${ClockWidth} + ${TDBorderWidth} + ${TDBorderWidth}`
-DClockHeight=`expr ${SCREENDPI_Y} / 4` # 1/4 inch should always suffice?
+ClockOff=$(expr ${ClockWidth} + ${TDBorderWidth} + ${TDBorderWidth})
+DClockHeight=$(expr ${SCREENDPI_Y} / 4) # 1/4 inch should always suffice?
 DClockGeom=${ClockWidth}x${DClockHeight}-0+${ClockOff}
 export ClockSize ClockWidth ClockHeight ClockGeom ClockOff DClockHeight DClockGeom
 
 # should this use floating point to get finer control???
 # note that m4 evals for ~/.ctwmrc use integer math too
-XloadWidth=`expr ${SCREENDPI_X} \* 1`
-XloadHeight=`expr ${SCREENDPI_Y} / 3`
+XloadWidth=$(expr ${SCREENDPI_X} \* 1)
+XloadHeight=$(expr ${SCREENDPI_Y} / 3)
 XloadGeom=${XloadWidth}x${XloadHeight}-${ClockOff}+0
 export XloadWidth XloadHeight XloadGeom
 
@@ -415,28 +416,28 @@ export XloadWidth XloadHeight XloadGeom
 # note that m4 evals for ~/.ctwmrc use integer math too
 #
 # define(WS_GEOM, eval(WIDTH / 30 * WS_COLS)[x]eval(HEIGHT / 30 * WS_ROWS))
-WSWidth=`expr ${SCREENSIZE_X} / 30 \* 3`
-WSHeight=`expr ${SCREENSIZE_Y} / 30 \* 4`
+WSWidth=$(expr ${SCREENSIZE_X} / 30 \* 3)
+WSHeight=$(expr ${SCREENSIZE_Y} / 30 \* 4)
 #
 # define(WS_OFF, eval(ClockWidth + XloadWidth + (2 * TDBORDERWIDTH)))
 #
 # XXX on a really wide screen, like the XDR, we might have two Xload columns
 #
-WSOff=`expr ${ClockOff} + ${XloadWidth} + ${TDBorderWidth} + ${TDBorderWidth}`
+WSOff=$(expr ${ClockOff} + ${XloadWidth} + ${TDBorderWidth} + ${TDBorderWidth})
 #
 export WSOff WSWidth WSHeight
 
-XconsoleWidth=`expr ${WSOff} + ${WSWidth}`
+XconsoleWidth=$(expr ${WSOff} + ${WSWidth})
 if [ $SCREENSIZE_Y -gt 3000 ]; then
-	XconsoleHeight=`expr ${SCREENDPI_Y} \* 2`
+	XconsoleHeight=$(expr ${SCREENDPI_Y} \* 2)
 elif [ $SCREENSIZE_Y -ge 1440 ]; then
 	# this should give 130 on the 27" iMac, matching my old pixel setting
-	XconsoleHeight=`expr ${SCREENDPI_Y} \* 12 / 10`
+	XconsoleHeight=$(expr ${SCREENDPI_Y} \* 12 / 10)
 else
-	XconsoleHeight=`expr ${SCREENDPI_Y} \* 1`
+	XconsoleHeight=$(expr ${SCREENDPI_Y} \* 1)
 fi
 # n.b. not sure why there's only one borderWidth involved!
-XconsoleVoff=`expr ${XconsoleHeight} + ${TitleHeight} + ${TDBorderWidth}`
+XconsoleVoff=$(expr ${XconsoleHeight} + ${TitleHeight} + ${TDBorderWidth})
 export XconsoleWidth XconsoleHeight XconsoleVoff
 
 ONCONSOLE=false
@@ -457,7 +458,7 @@ case "$DISPLAY" in
 	xconsole_args="-geometry ${XconsoleWidth}x${XconsoleHeight}-0-0"
 	xconsole_args=$xconsole_args" -saveLines 2000 -notify -verbose"
 	#
-	if [ `uname -s` = "Darwin" ]; then
+	if [ $(uname -s) = "Darwin" ]; then
 		# XXX
 		# XXX hmmmm.... what can we do to direct our output here????
 		# XXX (but maybe we don't need to with startx writing to /var/log/system.log)
@@ -593,7 +594,7 @@ esac
 #
 # xxx xhost tries to open a font for some unknown reason!
 #
-xhost +`hostname` +localhost +local: -
+xhost +$(hostname) +localhost +local: -
 
 # deprecated xhost crap
 #
@@ -623,7 +624,7 @@ export XTERM_OPTS
 # you'd rather run the majority of your X applications.  Normally
 # this will be the same server your home directory resides on....
 #
-if [ -n "$XDMHOST" -a "$XDMHOST" = "`echo $DISPLAY | sed 's/:.*$//'`" ] ; then
+if [ -n "$XDMHOST" -a "$XDMHOST" = "$(echo $DISPLAY | sed 's/:.*$//')" ] ; then
 	echo "$argv0: looks like '$XDMHOST' is running xdm for our display..."
 	case "$XDMHOST" in
 	almost.weird.com)
@@ -774,57 +775,57 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			# local server performance levels we want to be aware of
 			xloadoff="0"
 
-#			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+#			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 #			XloadGeomBuilding=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
 #			export XloadGeomBuilding
 #			onx11server -n building.local "xload -geometry ${XloadGeomBuilding -hl red" &
 
-			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 			XloadGeomMore=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
 			export XloadGeomMore
 			onx11server -n more.local "xload -geometry ${XloadGeomMore} -hl red" &
 
-			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 			XloadGeomCentral=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
 			export XloadGeomCentral
 # see below central	onx11server -n central.weird.com "xload -geometry ${XloadGeomCentral} -hl red" &
 
-#			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+#			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 #			XloadGeomFuture=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
 #			export XloadGeomFuture
 #			onx11server -n future.local "xload -geometry ${XloadGeomFuture} -hl red" &
 
-			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 			XloadGeomXenful=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
 			export XloadGeomXenful
 			onx11server -n xenful.local "xload -geometry ${XloadGeomXenful} -hl red" &
 
-			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 			XloadGeomXentastic=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
 			export XloadGeomXentastic
 			onx11server -n xentastic.local "xload -geometry ${XloadGeomXentastic} -hl red" &
 
-			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 			XloadGeomXentral="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
 			export XloadGeomXentral
 # see below for xentral	onx11server -nS xentral "xload -geometry ${XloadGeomXentral} -hl red" &
 
-#			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+#			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 #			XloadGeomOnce="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
 #			export XloadGeomOnce
 #			onx11server -n once.local "xload -geometry ${XloadGeomOnce} -hl red" &
 
-#			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+#			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 #			XloadGeomHistorically="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
 #			export XloadGeomHistorically
 #			onx11server -n historically.local "xload -geometry ${XloadGeomHistorically} -hl red: &
 
-			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 			XloadGeomB2="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
 			export XloadGeomB2
 # see below for b2	onx11server -n b2.local "xload -geometry ${XloadGeomB2} -hl red: &
 
-			xloadoff=`expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth}`
+			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 			XloadGeomFezzik="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
 			export XloadGeomFezzik
 			onx11server -nS fezzik.local "xload -geometry ${XloadGeomFezzik}" -hl red: &
@@ -885,6 +886,9 @@ if [ "$argv0" = ".xinitrc" ] ; then
 ### The trick is to figure out if/which $SHELL supports $ENV properly.
 ###
 ### Another trick is how to remove the temporary file at the right time.
+###
+### Or maybe they can just be prototype scripts, one per remote host, and so
+### they pre-exist and persist and don't have to be removed.
 			;;
 		esac
 		;;
@@ -1021,10 +1025,9 @@ very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.roboha
 		# apply properly to xmahjongg (except if it is exactly "+0+0")
 		#
 		# assume the tiles and bin directory are in related places
-		MP=`type xmahjongg`
-		MP=`expr "${MP}" : '^[^/]*\(/[^ )]*\)'`
-		MP=`dirname $MP`
-		MP=`dirname $MP`
+		MP=$(type xmahjongg)
+		MP=$(expr "${MP}" : '^[^/]*\(/[^ )]*\)')
+		MP=$(dirname $(dirname $MP))
 		#
 		# Bigger tiles for a high-res display: resize the tile images to
 		# 200% using mogrify, xv, etc.
@@ -1033,6 +1036,7 @@ very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.roboha
 			if [ -r $HOME/public_html/marble.gif ]; then
 				MB="--bg $HOME/public_html/marble.gif"
 			fi
+# XXX xmahjongg parses but does not correctly use offset info from -g (i.e. --geometry)
 #			xmahjongg -t real_x2 -g 2000x1500+2200+0 $MB &
 			xmahjongg -t real_x2 -g 2000x1500 $MB &
 		elif [ $SCREENDPI_Y -gt 110 ]; then
@@ -1043,7 +1047,7 @@ very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.roboha
 		fi
 	fi
 
-	uxterm -tn xterm-256color -geometry 80x25+`expr \( $SCREENDIM_X \* $SCREENDPI_X / 2 \) - \( 3 \* $SCREENDPI_X \)`-`expr $SCREENDPI_Y \* 2` -fs 9 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -fc 5 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor &
+	uxterm -tn xterm-256color -geometry 80x25+$(expr \( $SCREENDIM_X \* $SCREENDPI_X / 2 \) - \( 3 \* $SCREENDPI_X \))-$(expr $SCREENDPI_Y \* 2) -fs 9 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -fc 5 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor &
 
 	# All the normal emacs windows...
 	# oddly using 130x64 turns into 163x55 with the font change!
