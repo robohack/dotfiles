@@ -1,6 +1,6 @@
 ! -*- conf-xdefaults -*-
 !
-!#ident	"@(#)HOME:.Xdefaults	37.5	24/04/20 14:53:28 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.6	24/04/20 16:14:33 (woods)"
 !
 ! reload with:
 !
@@ -14,7 +14,7 @@
 !
 ! WARNING:  Do not use lone single quotes (e.g. for contractions) in comments!
 !
-! N.B.:  Every line that's not data should be a comment.  Don't use blank lines!
+! N.B.:  Every line that is not data should be a comment.  Do not use blank lines!
 !
 ! Note that although the M4 macros appear commented out in .Xdefaults syntax,
 ! they are still visible to m4.  Keeping them in comments help line counting.
@@ -49,7 +49,7 @@
 ! This is undocumented, but is clearly seen in the code:
 ! libXt/src/Initialize.c:CombineUserDefaults().  Since this file contains M4
 ! code but libXt does not implement the same '-cpp m4', this could cause
-! problems and confusion!  However that's very unlikely, and practically
+! problems and confusion!  However that is very unlikely, and practically
 ! impossible once this file has been processed by the xrdb(1) command(s) in
 ! ~/.xinitrc.  You can see the current properties for the root window with:
 !
@@ -193,7 +193,7 @@ Emacs.Font:		CommitMono:size=9
 *Font:				-misc-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-1
 *.Font:				-misc-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-1
 ! this next one is used by xfontsel, xconsole, etc., and may have been same as
-! "7x14"?, but that's way too big, so we shrink it down to be the same as "6x10"
+! "7x14"?, but that is way too big, so we shrink it down to be the same as "6x10"
 *font:				-misc-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-1
 *.font:				-misc-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-1
 *font*:				-misc-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-1
@@ -430,9 +430,9 @@ XFontSel*sampleTextUCS:	\
 !
 ! GhostView:
 !
-! N.B.:  See also ~/.gv, which is also an X11 resource file, however it doesn't
+! N.B.:  See also ~/.gv, which is also an X11 resource file, however it does not
 ! use CPP to process it, instead it reads it directly, so some resources have to
-! be here of they're conditional on any xrdb symbol values!
+! be here of they are conditional on any xrdb symbol values!
 !
 ! ifdef([COLOR], [], [
 GV.gsX11Device:		-sDEVICE=x11mono
