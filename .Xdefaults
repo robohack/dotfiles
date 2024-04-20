@@ -1,18 +1,67 @@
 ! -*- conf-xdefaults -*-
 !
-!#ident	"@(#)HOME:.Xdefaults	37.4	24/03/11 11:53:15 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.5	24/04/20 14:53:28 (woods)"
 !
 ! reload with:
 !
 !	xrdb -cpp m4 -override .Xdefaults
 !
-! N.B. WARNING:  This file must be processed with "xrdb -cpp m4"
-! (perhaps it should be renamed to .Xdefaults.m4?)
+! N.B. WARNING:  This file must be processed with "xrdb -cpp m4" with macros and
+! macro calls in the comments.  (perhaps it should be renamed to .Xdefaults.m4?)
 !
 ! Note that most(all?) programs, e.g. xterm, must be restarted to notice changes
 ! in their resources.
 !
 ! WARNING:  Do not use lone single quotes (e.g. for contractions) in comments!
+!
+! N.B.:  Every line that's not data should be a comment.  Don't use blank lines!
+!
+! Note that although the M4 macros appear commented out in .Xdefaults syntax,
+! they are still visible to m4.  Keeping them in comments help line counting.
+!
+! changequote([, ])
+!
+!
+! Notes about X Window "Resources":
+!
+! This file is intended to be loaded into the RESOURCE_MANAGER root window
+! property (or the SCREEN_RESOURCES root window property) of the X server by
+! xrdb(1).  See note below though!
+!
+! By default X client application programs first look in a file named by the
+! $XENVIRONMENT environment variable for X resources, if any.  This defaults to
+! $HOME/.Xdefaults-<hostname> (or ~$USER/ if $HOME is not set) where "hostname"
+! is the name of the host the client application is running on.  This file is
+! consulted each time an X application starts.
+!
+! Then the resources set in the RESOURCE_MANAGER root window property are merged in
+!
+! Further application-specific resource files are searched for via
+! $XUSERFILESEARCHPATH (or $XAPPLERESDIR), then $XFILESEARCHPATH (and if no
+! system app-defaults are found, then fallback_resources compiled into the app
+! are used).
+!
+! See X(7), though beware the order of merging of sources is poorly defined.
+!
+! N.B.:  if there is no RESOURCE_MANAGER root window proptery (i.e. if
+! XresourceManagerString() returns NULL), then this file, $HOME/.Xdefaults
+! (i.e. without "-<hostname>" appended), will be used directly as a fallback!
+! This is undocumented, but is clearly seen in the code:
+! libXt/src/Initialize.c:CombineUserDefaults().  Since this file contains M4
+! code but libXt does not implement the same '-cpp m4', this could cause
+! problems and confusion!  However that's very unlikely, and practically
+! impossible once this file has been processed by the xrdb(1) command(s) in
+! ~/.xinitrc.  You can see the current properties for the root window with:
+!
+!	xprop -root
+!
+!
+! Now, on with the show!
+!
+! Enable error messages for problems converting resource value strings to
+! internal representations:
+!
+*StringConversionWarnings: on
 !
 !	Work out the screen resolution in order to specify default Font DPIs
 !
@@ -21,11 +70,6 @@
 !
 ! XXX the next chunk should probably be an include file, shared with .ctwmrc
 ! (and .fonts/fonts.alias)
-!
-! Note that although these macros appear commented out in .Xdefaults syntax,
-! they are still visible to m4.  Keeping them in comments help line counting.
-!
-! changequote([, ])
 !
 ! define(HorizDPI, eval(((X_RESOLUTION * 100) / 3937) + ((((X_RESOLUTION * 1000) / 3937) % 10) >= 5)))
 ! define(VertDPI, eval(((Y_RESOLUTION * 100) / 3937) + ((((X_RESOLUTION * 1000) / 3937) % 10) >= 5)))
@@ -77,16 +121,17 @@
 ! in order to maintain constant text size on the display regardless of the pixel
 ! size.
 !
-! I have patches for Xfontsel that will allow it to give you the option of
-! choosing the actual resX and resY values for the very screen the widget is
-! displayed on, in which case it will then display the sample text accurately
-! scaled for that specific screen resolution (assuming of course that the screen
-! DPI was correctly configured in the X server, which for most this means
-! ensuring it gets accurate physical dimensions for the viewable area of the
-! monitor display and/or passing the value on the Xserver command line with
-! "-dpi" (though note the latter sets the resolution for all screens, and should
-! only be used when the server cannot determine the physical display size,
-! and/or it learns lies about it, e.g. as it does with Xquartz on XDR Pro).
+! I have patches for Xfontsel (now included in xfontsel-1.1.0 and newer) that
+! will allow it to give you the option of choosing the actual resX and resY
+! values for the very screen the widget is displayed on, in which case it will
+! then display the sample text accurately scaled for that specific screen
+! resolution (assuming of course that the screen DPI was correctly configured in
+! the X server, which for most this means ensuring it gets accurate physical
+! dimensions for the viewable area of the monitor display and/or passing the
+! value on the Xserver command line with "-dpi" (though note the latter sets the
+! resolution for all screens, and should only be used when the server cannot
+! determine the physical display size, and/or it learns lies about it, e.g. as
+! it does with Xquartz on XDR Pro).
 !
 *dpi:		VertDPI
 Xft.dpi:	FontYDPI
