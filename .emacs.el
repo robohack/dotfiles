@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.14	24/04/01 12:33:35 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.15	24/06/07 09:43:46 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v23.1 or newer (with Xft)
 ;;;;
@@ -3926,6 +3926,8 @@ current emacs server process..."
 ;; `tcl-mode'
 ;;
 (add-hook 'prog-mode-hook
+	  'my-prog-mode-setup-func)
+(add-hook 'markdown-mode-hook
 	  'my-prog-mode-setup-func)
 
 ;; conf-colon-mode-hook 	conf-javaprop-mode-hook 	conf-ppd-mode-hook
