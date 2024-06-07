@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.32	24/04/13 06:42:03 (woods)"
+#ident	"@(#)HOME:.shrc	37.33	24/06/07 09:42:52 (woods)"
 
 if [ -z "${SHELL}" ]; then
 	# likely plain old Bourne (heirloom) shell
@@ -2379,7 +2379,7 @@ signo ()
 #
 srcfgrep ()
 {
-	find . \( -type d \( -name CVS -or -name .git -or -name .svn -or -name build -or -name 'build-*' -or -name dist -or -name 'dist-*' -or -name autom4te.cache \) -prune \) -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -exec fgrep ${1+"${@}"} {} +
+	find . \( -type d \( -name CVS -or -name .git -or -name .svn -or -name build -or -name 'build-*' -or -name autom4te.cache \) -prune \) -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -exec fgrep ${1+"${@}"} {} +
 }
 
 trim ()
