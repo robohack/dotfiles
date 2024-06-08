@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.33	24/06/07 09:42:52 (woods)"
+#ident	"@(#)HOME:.shrc	37.34	24/06/08 16:03:00 (woods)"
 
 if [ -z "${SHELL}" ]; then
 	# likely plain old Bourne (heirloom) shell
@@ -732,6 +732,9 @@ archivedotfiles ()
 	(cd; pax -wzf ${HOME}/dotfiles.tar.gz < ${HOME}/dotfiles.list)
 	ssh ${CENTRAL_USER}@${CENTRAL_SERVER} rm -f dotfiles.list
 	scp ${HOME}/dotfiles.list ${HOME}/dotfiles.tar.gz ${CENTRAL_USER}@${CENTRAL_SERVER}:.
+	#
+	# publish via HTTP too -- xxx this is a bit wasteful, but simplest...
+	(cd $HOME/public_html; ./publish)
 }
 
 pushdotfiles ()
