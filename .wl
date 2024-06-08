@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	37.8	24/03/11 11:39:00 (woods)"
+;;;;#ident	"@(#)HOME:.wl	37.9	24/06/08 16:03:56 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -902,6 +902,39 @@ If ARG is non-nil, forget everything about the message."
 (require 'mel)
 (require 'mime-edit)
 (require 'mime-view)
+
+;; XXX a better URL regex:
+;;
+(if (elisp-file-in-loadpath-p "browse-url")
+    (progn
+      (require 'browse-url)
+      ;;
+      ;; hmmm.... should be a better/more-complete regex, but N.B.:
+      ;;
+      ;;    "This variable was introduced in version 27.1 of Emacs"
+      ;;
+      ;; N.B.:  Newer WL will have a fix as well....
+      ;;
+      (if (boundp 'browse-url-button-regexp)
+	  (setq mime-browse-url-regexp browse-url-button-regexp)
+	(setq mime-browse-url-regexp
+	      ;; stolen from the future.....
+	      (concat
+	       "\\b\\(\\(www\\.\\|\\(s?https?\\|ftp\\|file\\|gopher\\|gemini\\|"
+	       "nntp\\|news\\|telnet\\|wais\\|mailto\\|info\\):\\)"
+	       "\\(//[-a-z0-9_.]+:[0-9]*\\)?"
+	       (let ((chars "-a-z0-9_=#$@~%&*+\\/[:word:]")
+		     (punct "!?:;.,"))
+		 (concat
+		  "\\(?:"
+		  ;; Match paired parentheses, e.g. in Wikipedia URLs:
+		  ;; http://thread.gmane.org/47B4E3B2.3050402@gmail.com [dead link]
+		  "[" chars punct "]+" "(" "[" chars punct "]+" ")"
+		  "\\(?:" "[" chars punct "]+" "[" chars "]" "\\)?"
+		  "\\|"
+		  "[" chars punct "]+" "[" chars "]"
+		  "\\)"))
+	       "\\)")))))
 
 ;; Under Emacs 24.4 and later, you can force using `shr' (Emacs’ built-in HTML
 ;; formatter) with the following:
@@ -1950,12 +1983,36 @@ ENCODING must be string."
 	 ("Reply-To" . "")
 	 ("Organization" . "Planix, Inc."))
 	;; mailing list:  tuhs
+	;; List-Id: The Unix Heritage Society mailing list <tuhs.tuhs.org>
 	((string-match "^%INBOX/Lists-IN/tuhs"
 		       wl-draft-parent-folder)
 	 (pgp-sign . t)
          ("From" . "\"Greg A. Woods\" <woods@robohack.ca>")
 	 ("To" . "The Unix Heritage Society mailing list <tuhs@tuhs.org>")
 	 ("Reply-To" . "The Unix Heritage Society mailing list <tuhs@tuhs.org>")
+	 ("Organization" . "Planix, Inc."))
+	(reply
+	 "^List-Id: .*<tuhs.tuhs.org>"
+	 (pgp-sign . t)
+         ("From" . "\"Greg A. Woods\" <woods@robohack.ca>")
+	 ("To" . "The Unix Heritage Society mailing list <tuhs@tuhs.org>")
+	 ("Reply-To" . "The Unix Heritage Society mailing list <tuhs@tuhs.org>")
+	 ("Organization" . "Planix, Inc."))
+	;; mailing list:  lout-users
+	;; List-Id: "Users of the Lout document typesetting system." <lout-users.nongnu.org>
+	((string-match "^%INBOX/Lists-IN/lout-users"
+		       wl-draft-parent-folder)
+	 (pgp-sign . t)
+         ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 ("To" . "The Lout User's Mailing List <lout-users@nongnu.org>")
+	 ("Reply-To" . "The Lout User's Mailing List <lout-users@nongnu.org>")
+	 ("Organization" . "Planix, Inc."))
+	(reply
+	 "^List-Id: .*<lout-users.nongnu.org>"
+	 (pgp-sign . t)
+         ("From" . "\"Greg A. Woods\" <woods@planix.ca>")
+	 ("To" . "The Lout User's Mailing List <lout-users@nongnu.org>")
+	 ("Reply-To" . "The Lout User's Mailing List <lout-users@nongnu.org>")
 	 ("Organization" . "Planix, Inc."))
 	;; mailing list:  unbound-users
 	((string-match "^%INBOX/Lists-IN/unbound-users"
