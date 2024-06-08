@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.19	24/03/20 15:31:27 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.20	24/06/08 16:04:56 (woods)"
 #
 # N.B.:  To test find the temp file output from the most recent run with '-k'
 # and then do:
@@ -61,7 +61,6 @@ ifelse(eval(index(HOSTNAME, very-old.local) >= 0), 1, [define(AT_VERY_WEIRD, [@v
 ifdef([AT_VERY_WEIRD], [define(ON_OSX, [yes])])
 ifelse(eval(index(HOSTNAME, macbook.local) >= 0), 1, [define(ON_OSX, [yes])], [])
 ifelse(eval(index(HOSTNAME, macweird.local) >= 0), 1, [define(ON_OSX, [yes])], [])
-ifelse(eval(index(HOSTNAME, fezzik.local) >= 0), 1, [define(ON_OSX, [yes])], [])
 
 ifelse([SERVERHOST], [CLIENTHOST], [define(USE_X11SERVER, [yes])], [])
 
@@ -910,6 +909,7 @@ menu "consoles"
 	""			f.separator
 	CONSOLE_REP(xentastic)
 	CONSOLE_REP(nbtest)
+	CONSOLE_REP(nb10)
 	CONSOLE_REP(fezzik)
 	""			f.separator
 # powered off, but enabled in tserver
@@ -925,6 +925,9 @@ menu "consoles"
 #	CONSOLE_REP(historically)
 #	CONSOLE_REP(whats)
 #	CONSOLE_REP(flipping)
+# running under UTM on very, but with vga console
+#	CONSOLE_REP(nbt)
+#	CONSOLE_REP(nbt2)
   undefine(CONSOLE_REP)
 }
 
@@ -1473,10 +1476,12 @@ menu "xterms"
 #	"UXterm-big @once"	!". ./.shrc; onx11server -n once.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"UXterm @fezzik"	!". ./.shrc; onx11server -nS fezzik.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
 	"UXterm-big @fezzik"	!". ./.shrc; onx11server -nS fezzik.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-#	"UXterm @nbt"		!". ./.shrc; onx11server -n nbt.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-#	"UXterm-big @nbt"	!". ./.shrc; onx11server -n nbt.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-#	"UXterm @nbt2"		!". ./.shrc; onx11server -n nbt2.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-#	"UXterm-big @nbt2"	!". ./.shrc; onx11server -n nbt2.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @nb10"		!". ./.shrc; onx11server -n nb10.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @nb10"	!". ./.shrc; onx11server -n nb10.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @nbt"		!". ./.shrc; onx11server -n nbt.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @nbt"	!". ./.shrc; onx11server -n nbt.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @nbt2"		!". ./.shrc; onx11server -n nbt2.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @nbt2"	!". ./.shrc; onx11server -n nbt2.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"UXterm @nbtest"	!". ./.shrc; onx11server -n nbtest.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
 	"UXterm-big @nbtest"	!". ./.shrc; onx11server -n nbtest.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"UXterm @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
@@ -1559,9 +1564,13 @@ menu "xauth"
 	"Xauth to xenful"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server xenful.local 'xauth nmerge -' ) &"
 # currently mounts /more/home
 #	"Xauth to xentastic"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server xentastic.local 'xauth nmerge -' ) &"
+	"Xauth to nb10"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server nb10.local 'xauth nmerge -' ) &"
+	"Xauth to nbt"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server nbt.local 'xauth nmerge -' ) &"
+	"Xauth to nbt2"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server nbt.local 'xauth nmerge -' ) &"
 	"Xauth to nbtest"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server nbtest.local 'xauth nmerge -' ) &"
 	"Xauth to nbtcur"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server nbtcur.local 'xauth nmerge -' ) &"
 	"Xauth to fezzik"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server -S fezzik.local 'xauth nmerge -' ) &"
+	"Xauth to frodo"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server -S frodo.local 'xauth nmerge -' ) &"
 #	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server historically.local 'xauth nmerge -' ) &"
 #	"Xauth to once"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server once.local 'xauth nmerge -' ) &"
 	"Xauth to very-old"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server -S very-old.local 'xauth nmerge -' ) &"

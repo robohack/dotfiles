@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.20	24/04/20 11:39:05 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.21	24/06/08 16:04:46 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -759,9 +759,13 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server more.local 'xauth nmerge -'
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server xenful.local 'xauth nmerge -'
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server xentastic.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server nb10.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbt.local 'xauth nmerge -'
+#			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbt2.local 'xauth nmerge -'
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbtest.local 'xauth nmerge -'
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbtcur.local 'xauth nmerge -'
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server -S fezzik.local 'xauth nmerge -'
+#			xauth nextract - ${REMOTE_DISPLAY} | onx11server -S frodo.local 'xauth nmerge -'
 #			xauth nextract - ${REMOTE_DISPLAY} | onx11server historically.local 'xauth nmerge -'
 #			xauth nextract - ${REMOTE_DISPLAY} | onx11server once.local 'xauth nmerge -'
 			# next ones share a home dir mounted from more.local
@@ -835,6 +839,9 @@ if [ "$argv0" = ".xinitrc" ] ; then
 
 #			onx11server -n building.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 			onx11server -n more.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
+			onx11server -n nb10.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
+			onx11server -n nbt.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
+#			onx11server -n nbt2.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 			onx11server -n nbtest.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 			onx11server -n nbtcur.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 #			onx11server -n future.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
