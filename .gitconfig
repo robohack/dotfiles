@@ -2,7 +2,7 @@
 #
 #	.gitconfig - per-user Git setup
 #
-#ident	"@(#)HOME:.gitconfig	37.9	23/11/06 18:03:03 (woods)"
+#ident	"@(#)HOME:.gitconfig	37.10	24/06/12 15:05:44 (woods)"
 #
 # N.B.:  user.* could be set in GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL and those
 # should probably be set in ~/.localprofile, though Git is stupid and prefers
@@ -45,6 +45,9 @@
 	pager = "less -R"
 #
 [alias]
+	# this is what it should have been called!
+	annotate = blame
+	ann = blame
 	# this is what "git log" should probably do by default!
 	mylog = log --all --oneline --graph --decorate=full
 	# convert the date field from mymlog to ISO Week with:
