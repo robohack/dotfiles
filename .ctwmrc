@@ -8,12 +8,15 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.20	24/06/08 16:04:56 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.21	24/06/18 15:19:28 (woods)"
 #
-# N.B.:  To test find the temp file output from the most recent run with '-k'
-# and then do:
+# N.B.:  To test changes first find the temp file output from the most recent
+# run with '-k' and then do:
 #
 #	cat /var/tmp/ctwmrc.XXXXXX ~/.ctwmrc | m4 | less
+#
+# Note on macos temp files are in $(getconf DARWIN_USER_TEMP_DIR), and this
+# value is often also in $TMPDIR.
 #
 # Things that affect the operation of various menus, etc.:
 #
@@ -50,18 +53,24 @@
 changequote([, ])
 
 ifelse(eval(index(HOSTNAME, weird.com) >= 0), 1, [define(AT_WEIRD, [@weird.com])], [])
-ifelse(eval(index(HOSTNAME, local) >= 0), 1, [define(AT_WEIRD, [@local])], [])
 ifelse(eval(index(HOSTNAME, robohack.planix.com) >= 0), 1, [define(AT_WEIRD, [@robohack.planix.com])], [])
 
-ifelse(eval(index(HOSTNAME, very.local) >= 0), 1, [define(AT_VERY_WEIRD, [@very.local])], [])
-ifelse(eval(index(HOSTNAME, very-old.local) >= 0), 1, [define(AT_VERY_WEIRD, [@very-old.local])], [])
+ifelse(eval(index(HOSTNAME, local) >= 0), 1, [define(AT_LOCAL, [@local])], [])
 
-# XXX it is very unfortunate that nothing is provided to identify the host environment!
+# this was the old SS20 with a bw2 monitor running NetBSD
+ifelse(eval(index(HOSTNAME, very.weird.com) >= 0), 1, [define(AT_VERY_WEIRD, [@very.weird])], [])
+
+ifelse(eval(index(HOSTNAME, very.local) >= 0), 1, [define(AT_VERY_LOCAL, [@very.local])], [])
+ifelse(eval(index(HOSTNAME, very-old.local) >= 0), 1, [define(AT_VERY_LOCAL, [@very-old.local])], [])
+
+# XXX it is very unfortunate that nothing is provided to identify the host
+# environment (e.g. the `uname -s` value)!
 #
-ifdef([AT_VERY_WEIRD], [define(ON_OSX, [yes])])
+ifdef([AT_VERY_LOCAL], [define(ON_OSX, [yes])])
 ifelse(eval(index(HOSTNAME, macbook.local) >= 0), 1, [define(ON_OSX, [yes])], [])
 ifelse(eval(index(HOSTNAME, macweird.local) >= 0), 1, [define(ON_OSX, [yes])], [])
 
+# if ctwm is running on the server host then we want @X11SERVER menu choices...
 ifelse([SERVERHOST], [CLIENTHOST], [define(USE_X11SERVER, [yes])], [])
 
 # n.b.:  integer math is used, so these will only be approximate:
@@ -838,31 +847,29 @@ menu "quickies"
 	"WinDelete"		f.delete
 	"WinDelete or Destroy"	f.deleteordestroy
 	"Kill"			f.destroy
- ifdef([AT_WEIRD], [
 	""			f.separator
-	"Xauth to Weird.com..."	f.menu "xauth-to-weird"
- ])
+	"Xauth to..."		f.menu "xauths"
 	""			f.separator
 	"emacs @CLIENTHOST"	!"${MY_EMACS} -fh &"
- ifdef([AT_WEIRD], [
-  ifdef([USE_X11SERVER], [
+ ifdef([USE_X11SERVER], [
 	"emacs @X11SERVER"	!". ./.shrc; onx11server ${X11SERVER} \"${MY_EMACS} -fh\" &"
-  ])
+ ])
+ ifdef([AT_LOCAL], [
 	"emacs @more"		!". ./.shrc; onx11server more.local 'emacs -fh' &"
+ ])
 	"Emacs Everywhere..."	f.menu "emacs"
 	#
 	""			f.separator
 	"links -g @CLIENTHOST"	!"links -g &"
-  ifdef([USE_X11SERVER], [
+ ifdef([USE_X11SERVER], [
 	"links -g @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} 'links -g' &"
-  ])
+ ])
+ ifdef([AT_LOCAL], [
 	"links -g @more"	!". ./.shrc; onx11server -n more.local 'links -g' &"
+ ])
 	# xxx unfortunately duckduckgo.com isn't very usable with links
 	"DDG something"		!"links -g https://html.duckduckgo.com/html/ &"
 	"Google something"	!"links -g https://google.ca/ &"
-	""			f.separator
-	"Xauth..."		f.menu "xauth"
- ])
  ifelse([ON_OSX], [
 	""			f.separator
 	"Mac OS X Apps..."	f.menu "osx-apps"
@@ -880,8 +887,10 @@ menu "quickies"
 	"Xterm-big @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xterm OPT_XTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"UXterm-big @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
  ])
+ ifdef([AT_LOCAL], [
 	"UXterm @more"		!". ./.shrc; onx11server -n more.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
 	"UXterm-big @more"	!". ./.shrc; onx11server -n more.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+ ])
 	"Xterm's Everywhere..."	f.menu "xterms"
 	""			f.separator
 	"Console Server"	f.menu "consoles"
@@ -1020,10 +1029,9 @@ menu "wmops"
 	"Adopt Window"		f.adoptwindow
 	"Identify Window"	f.identify
 	""			f.separator
-	"Toggle workspace"	f.togglestate
 	"Refresh Screen"	f.refresh
 	"Refresh Window"	f.winrefresh
-	"Save"			f.saveyourself
+	"Save Window"		f.saveyourself
 	""			f.separator
 	"Restart TWM_TYPE"	f.restart
 	"About TWM_TYPE TWM_VERSION"	f.version
@@ -1191,14 +1199,8 @@ menu "exit"
 menu "applications"
 {
 	"Applications"			f.title
- ifdef([AT_WEIRD], [
-	"Xauth to Weird.com..."		f.menu "xauth-to-weird"
+	"Xauth to..."			f.menu "xauths"
 	""				f.separator
- ])
- ifdef([AT_WEIRD], [
-	"Xauth..."			f.menu "xauth"
-	""				f.separator
- ])
  ifdef([ON_OSX], [
 	"Mac OS X Apps..."		f.menu "osx-apps"
 	""				f.separator
@@ -1303,11 +1305,11 @@ menu "emacs"
 {
 	"Emacsen"		f.title
 				# XXX should this start a shell that sources .profile first?
-	"@localhost"		!"${MY_EMACS} -fh &"
+	"@CLIENTHOST"		!"${MY_EMACS} -fh &"
  ifdef([USE_X11SERVER], [
 	"@X11SERVER"		!". ./.shrc; onx11server -n ${X11SERVER} \"${MY_EMACS} -fh\" &"
  ])
- ifdef([AT_WEIRD], [
+ ifdef([AT_LOCAL], [
 	"@more"			!". ./.shrc; onx11server -n more.local \"emacs -fh\" &"
 	"@xenful"		!". ./.shrc; onx11server -n xenful.local \"emacs -fh\" &"
 	"@xentastic"		!". ./.shrc; onx11server -n xentastic.local \"emacs -fh\" &"
@@ -1337,10 +1339,10 @@ menu "monitors"
  ifdef([USE_X11SERVER], [
 	"xload @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xload -display ${REMOTE_DISPLAY} -geometry 120x40-200+48 -hl XLOAD_HL\" &"
  ])
- ifdef([AT_VERY_WEIRD], [
+ ifdef([AT_VERY_LOCAL], [
 	"air-traffic-monitor"	!"uxterm OPT_UXTERM_FA -tn xterm-256color -geometry 80x25+eval((WIDTH / 2) - ( 3 * HorizDPI))-eval(VertDPI * 2) -fs 9 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -fc 5 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor &"
  ])
- ifdef([AT_WEIRD], [
+ ifdef([AT_LOCAL], [
 #	"xload @building"	!". ./.shrc; onx11server -n building.local \"xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomBuilding} -hl red\" &"
 	"xload @more"		!". ./.shrc; onx11server -n more.local \"xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomMore} -hl red\" &"
 	"xload @central"	!"ssh -CY -n woods@central.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomCentral} -hl red\" &"
@@ -1354,19 +1356,12 @@ menu "monitors"
 	"xload @b2"		!"ssh -CY -n woods@b2.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomB2} -hl red\" &"
 	"xload @fezzik"		!". ./.shrc; onx11server -nS fezzik.local \"xload -geometry ${XloadGeomFezzik} -hl red\" &"
  ])
-	"xosview"		!"xosview -geometry 120x137-200+0 &"
  ifdef([USE_X11SERVER], [
 	"xosview @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xosview -display ${REMOTE_DISPLAY}\" &"
  ])
-	"xcpustate"		!"xcpustate -geometry 190x20-0+270 -shorten 1 -wait -cpu -disk &"
  ifdef([USE_X11SERVER], [
 	"xcpustate @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xcpustate -display ${REMOTE_DISPLAY} -geometry 190x20-0+300 -shorten 1 -wait -cpu -disk\" &"
  ])
-	"xuvmstat"		!"xuvmstat &"
-	""			f.separator
-	"xnetload localhost"	!"xnetload -hl grey90 -scale 0 -label 'local netload' localhost &"
-	"xnetload @xdmhost"	!"xnetload -hl grey90 -scale 0 -label ${XDMHOST}-net ${XDMHOST} &"
-	""			f.separator
 	"tkined"		!"tkined &"
 }
 
@@ -1449,9 +1444,9 @@ menu "samplegames"
 menu "xterms"
 {
 	"Xterms Everywhere"	f.title
-	"Xterm @localhost"	!"${X11BIN}/xterm OPT_XTERM_FA OPT_XTERM_TN ${XTERM_OPTS} OPT_XTERM_LOGIN &"
-	"UXterm @localhost"	!"${X11BIN}/uxterm OPT_UXTERM_FA OPT_XTERM_TN ${XTERM_OPTS} OPT_XTERM_LOGIN &"
- ifdef([AT_WEIRD], [
+	"Xterm @CLIENTHOST"	!"${X11BIN}/xterm OPT_XTERM_FA OPT_XTERM_TN ${XTERM_OPTS} OPT_XTERM_LOGIN &"
+	"UXterm @CLIENTHOST"	!"${X11BIN}/uxterm OPT_UXTERM_FA OPT_XTERM_TN ${XTERM_OPTS} OPT_XTERM_LOGIN &"
+ ifdef([AT_LOCAL], [
 # xxx this should use a macro!
 	"UXterm @xenful"	!". ./.shrc; onx11server -n xenful.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
 	"UXterm-big @xenful"	!". ./.shrc; onx11server -n xenful.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
@@ -1496,7 +1491,7 @@ menu "xterms"
 	"Slogin @xentral"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} -e 'slogin -C xentral.avoncote.ca' &"
 	"Slogin @central"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} -e 'slogin -C central.weird.com' &"
 	"Slogin @b2"		!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} -e 'slogin -C b2.avoncote.ca' &"
-  ifdef([AT_VERY_WEIRD], [], [
+  ifdef([AT_VERY_LOCAL], [], [
 	"Xterm @very"		!". ./.shrc; onx11server -n very.local \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
 	"Slogin @very"		!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} -e 'slogin -C very.local' &"
   ])
@@ -1535,13 +1530,13 @@ menu "xterms"
  ])
 }
 
-# for pushing our AUTH cookies over to the various target hosts in case they
+# for pushing our X11 AUTH cookies over to the various target hosts in case they
 # don't share $HOME with the local host...
 #
 #	xauth nextract - ${REMOTE_DISPLAY} | rsh $X11SERVER $X11BIN/xauth nmerge -
 #
 ifdef([AT_WEIRD], [
-menu "xauth-to-weird"
+menu "xauths"
 {
 	"Xauth pushes to Weird.com"	f.title
  ifdef([USE_X11SERVER], [
@@ -1556,8 +1551,8 @@ menu "xauth-to-weird"
 }
 ])
 
-ifdef([AT_WEIRD], [
-menu "xauth"
+ifdef([AT_LOCAL], [
+menu "xauths"
 {
 	"Xauth pushes"		f.title
 	"Xauth to more"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server more.local 'xauth nmerge -' ) &"
@@ -1576,6 +1571,7 @@ menu "xauth"
 	"Xauth to very-old"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server -S very-old.local 'xauth nmerge -' ) &"
 }
 ])
+
 ifdef([ON_OSX], [
 menu "osx-apps"
 {
