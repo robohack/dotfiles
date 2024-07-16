@@ -1,6 +1,6 @@
 ! -*- conf-xdefaults -*-
 !
-!#ident	"@(#)HOME:.Xdefaults	37.6	24/04/20 16:14:33 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.7	24/07/16 13:14:03 (woods)"
 !
 ! reload with:
 !
@@ -224,12 +224,21 @@ XtDefaultFontSet:		-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-
 *pointSizeList:			80, 90, 100, 110, 120, 140, 160, 170, 180, 200, 240, 250, 300, 350, 400
 !
 ! ifdef([COLOR], [
-! colors for xterm(?) and swisswatch (why the '-'?  I dunno!)
+!
+! Add colors for various apps, including Bitmap, Clock, Editres, Viewres, XCalc,
+! XClock, XLogo, Xterm, Xedit, Xgc, and Xmessage (and maybe some installed by
+! pkgsrc, such as swisswatch)
+!
+! This is the filename suffix appended to the program's app-default file:
+!
 *customization: 		-color
+!
 ! hmmm.... these are probably not necessary/good on >8bit displays any more??
 ! (we could in theory use (PLANES <= 8) here...)
+!
 !*installColormap:		Yes
 !*installCmap:			true
+!
 ! ], [])
 !
 ! cleaner looking Xaw (Athena Widget Set) scrollbar appearance
@@ -256,7 +265,7 @@ Xpdf.initialZoom:		page
 ! ifdef([COLOR], [
 ! (we could in theory also use (PLANES <= 8) here...)
 !Xpdf.installCmap:		true
-! ])
+! ], [])
 Xpdf.toolTipEnable:		false
 !
 ! also mainly for xpdf, but also other Motif things?
@@ -356,6 +365,95 @@ Xpdf.toolTipEnable:		false
 	Meta   <Key> Home:  scroll-to(begin) \n\
 	Meta   <Key> End:   scroll-to(end) \n
 !
+!
+! GhostView:
+!
+! N.B.:  See also ~/.gv, which is also an X11 resource file, however it does not
+! use CPP to process it, instead it reads it directly, so some resources have to
+! be here of they are conditional on any xrdb symbol values!
+!
+! ifdef([COLOR], [
+GV.gsX11Device:		-sDEVICE=x11mono
+GV.gsX11AlphaDevice:	-sDEVICE=x11mono -dTextAlphaBits=4 -dGraphicsAlphaBits=2 -dMaxBitmap=10000000 -dNOPLATFONTS
+
+! ], [])
+
+! XCalc:
+!
+! ifdef([COLOR], [
+!
+!	override XCalc-color a bit:
+!
+XCalc*ti.Command.foreground:            black
+!
+! "CE/C"
+XCalc*ti.button4.background:		rgb:e/b/9
+! "AC"
+XCalc*ti.button5.background:		rgb:f/7/7
+! "INV"
+XCalc*ti.button6.background:		rgb:c/d/f
+! "DRG"
+XCalc*ti.button10.background:		rgb:c/d/f
+! "pie"
+XCalc*ti.button11.background:		rgb:c/f/f
+! "ee"
+XCalc*ti.button12.background:		rgb:c/d/f
+! "trunc"
+XCalc*ti.button20.foreground:           black
+XCalc*ti.button20.background:		rgb:c/d/e
+! "pi"
+XCalc*ti.button21.background:		rgb:c/f/f
+! temp fix for bad number key backgrounds
+XCalc*ti.button22.background:           rgb:c/d/e
+XCalc*ti.button23.background:           rgb:c/d/e
+XCalc*ti.button24.background:           rgb:c/d/e
+! "base"
+XCalc*ti.button25.foreground:           black
+XCalc*ti.button25.background:		rgb:c/d/f
+! HEX keys
+XCalc*ti.button27.background:           gray90
+XCalc*ti.button28.background:           gray90
+XCalc*ti.button29.background:           gray90
+! "shr"
+XCalc*ti.button30.foreground:           black
+XCalc*ti.button30.background:		rgb:c/d/e
+! HEX keys
+XCalc*ti.button32.background:           gray90
+XCalc*ti.button33.background:           gray90
+XCalc*ti.button34.background:           gray90
+! "/"
+XCalc*ti.button35.foreground:           black
+! "STO"
+XCalc*ti.button36.background:           lightYellow
+! "*"
+XCalc*ti.button40.foreground:           black
+! "RCL"
+XCalc*ti.button41.background:           lightYellow
+! temp fix for bad number key backgrounds
+XCalc*ti.button42.background:           gray95
+XCalc*ti.button43.background:           gray95
+XCalc*ti.button44.background:           gray95
+! "-"
+XCalc*ti.button45.background:		rgb:e/d/c
+! "SUM"
+XCalc*ti.button46.background:           lightYellow
+! temp fix for bad number key backgrounds
+XCalc*ti.button47.background:           gray95
+XCalc*ti.button48.background:           gray95
+XCalc*ti.button49.background:           gray95
+! "+"
+XCalc*ti.button50.background:		rgb:e/d/c
+! "EXC"
+XCalc*ti.button51.background:           lightYellow
+! temp fix for bad number key backgrounds
+XCalc*ti.button52.background:           gray95
+XCalc*ti.button53.background:           gray95
+XCalc*ti.button54.background:           gray95
+! "="
+XCalc*ti.button55.background:		rgb:e/d/c
+! ], [])
+!
+!
 ! changequote()
 !
 ! XXX these would force "normal mode" cursor keys all the time:
@@ -426,16 +524,3 @@ XFontSel*sampleTextUCS:	\
 	胭脂淚 留人醉 幾時重, 自是人生長恨 水長東\n
 !
 ! changequote([, ])
-!
-!
-! GhostView:
-!
-! N.B.:  See also ~/.gv, which is also an X11 resource file, however it does not
-! use CPP to process it, instead it reads it directly, so some resources have to
-! be here of they are conditional on any xrdb symbol values!
-!
-! ifdef([COLOR], [], [
-GV.gsX11Device:		-sDEVICE=x11mono
-GV.gsX11AlphaDevice:	-sDEVICE=x11mono -dTextAlphaBits=4 -dGraphicsAlphaBits=2 -dMaxBitmap=10000000 -dNOPLATFONTS
-
-! ])
