@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.35	24/07/25 18:45:13 (woods)"
+#ident	"@(#)HOME:.shrc	37.36	24/07/25 23:17:04 (woods)"
 
 if [ -z "${SHELL}" ]; then
 	# likely plain old Bourne (heirloom) shell
@@ -1579,14 +1579,24 @@ if [ -n "$DISPLAY" ]; then
 	}
 	lxterm ()
 	{
-		# XXX for a true "login" window we should use "-e login -pf ${USER:-${LOGNAME}}"
+		if [ $# -ne 0 ]; then
+			_ARGS=${1+"$@"}
+		else
+			_ARGS="-e login -pf ${USER:-${LOGNAME}}"
+		fi
 		# alternatively:  unset LC_ALL; eval export `locale` ; unset LC_ALL
-		LANG=C LC_ALL=C xterm -ziconbeep 1 -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' -fs 9 -fbx -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME ${1+"$@"} &
+		LANG=C LC_ALL=C eval xterm $XTERM_OPTS -T $HOSTNAME $_ARGS &
+		unset _ARGS
 	}
 	luxterm ()
 	{
-		# XXX for a true "login" window we should use "-e login -pf ${USER:-${LOGNAME}}"
-		uxterm -ziconbeep 1 -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' -fs 9 -fbx -cn -rw -sb -si -sk -sl 2048 -ls -T $HOSTNAME ${1+"$@"} &
+		if [ $# -ne 0 ]; then
+			_ARGS=${1+"$@"}
+		else
+			_ARGS="-e login -pf ${USER:-${LOGNAME}}"
+		fi
+		eval uxterm $XTERM_OPTS -T $HOSTNAME $_ARGS &
+		unset _ARGS
 	}
 	rxauth ()
 	{
@@ -1599,13 +1609,27 @@ if [ -n "$DISPLAY" ]; then
 	{
 		_rhost=$1
 		shift
+		if [ $# -ne 0 ]; then
+			_ARGS=${1+"$@"}
+		else
+			_ARGS="-e login -pf ${USER:-${LOGNAME}}"
+		fi
+
 		# alternatively:  unset LC_ALL; eval export `locale` ; unset LC_ALL
-		onx11server ${1+"$@"} "LANG=C LC_ALL=C xterm -ziconbeep 1 -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' -fs 9 -cn -rw -sb -si -sk -sl 2048 -ls -T rsh:$_rhost $*" &
+		onx11server $_rhost "env LANG=C LC_ALL=C xterm $XTERM_OPTS -T rsh:$_rhost $_ARGS" < /dev/null &
+		unset _rhost _ARGS
 	}
 	ruxterm ()
 	{
+		_rhost=$1
 		shift
-		onx11server ${1+"$@"} "uxterm -ziconbeep 1 -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' -fs 9 -cn -rw -sb -si -sk -sl 2048 -ls -T rsh:$_rhost $*" &
+		if [ $# -ne 0 ]; then
+			_ARGS=${1+"$@"}
+		else
+			_ARGS="-e login -pf ${USER:-${LOGNAME}}"
+		fi
+		onx11server $_rhost "uxterm $XTERM_OPTS -T rsh:$_rhost $_ARGS" < /dev/null &
+		unset _rhost _ARGS
 	}
 fi
 
