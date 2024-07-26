@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.22	24/07/25 18:44:40 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.23	24/07/25 23:18:34 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -130,35 +130,47 @@ else
 	echo "$argv0: cannot force hi-res display without xrandr utility..."
 fi
 
-# XXX these should be a single AWK script (the shell can eval the AWK
-# output to set variables), and they should fetch only the values for
-# the screen number which matches the $DISPLAY value!!!
+# XXX these should be in a single AWK script (the shell can eval the AWK output
+# to set variables), and the script should fetch only the values for the screen
+# number which matches the $DISPLAY value!!!
 #
-#	xdpyinfo | sed -n '/^screen/,+2p'
+#	SCREEN_NUM=${DISPLAY##*:}
+#	xdpyinfo | sed -n "/^screen #${SCREEN_NUM}:/,+2p'
 #
 # for now this is only designed to work in single-screen environments.
 #
-# XXX this could also be a shell fragment with input fed to stdin and then spit
-# back out by:
+# XXX this could also be a shell fragment using xrdb's pre-defined symbols and
+# their values, with input fed to stdin and then spit back out and eval'ed from:
 #
-#	xrdb -quiet -cpp m4 -E -n | sed 1,2d
+#	xrdb -quiet -cpp m4 -E -n | sed 1d
+#
+# however xdpyinfo provides all values without need for calculations that might
+# suffer rounding, while xrdb only provides [XY]_RESOLUTION values in pixels per
+# metre for some stupid reason.
 #
 VENDORSTR="$(xdpyinfo | sed -n 's/^vendor string:[ ]*\(.*\)$/\1/p;//q')"
 SCREENDEPTH=$(xdpyinfo | sed -n 's/^[ ]*depth of root window:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q')
 SCREENSIZE=$(xdpyinfo | sed -n 's/^[ ]*dimensions:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q')
 SCREENDIM=$(xdpyinfo | sed -n 's/^[ ]*dimensions:[ ]*[^ ][^ ]* [^ ]* (\(.*\))$/\1/p;//q')
+SCREENDPI=$(xdpyinfo | sed -n 's/^[ ]*resolution:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q')
+# break out millimetre dimensions
 SCREENDIMmm_X=$(expr "$SCREENDIM" : '\([0-9]*\)x')
 SCREENDIMmm_Y=$(expr "$SCREENDIM" : '[0-9]*x\([0-9]*\)')
+# and in pixel dimensions
 SCREENSIZE_X=$(expr "$SCREENSIZE" : '\([0-9]*\)x')
 SCREENSIZE_Y=$(expr "$SCREENSIZE" : '[0-9]*x\([0-9]*\)')
-SCREENDPI=$(xdpyinfo | sed -n 's/^[ ]*resolution:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q')
 SCREENDPI_X=$(expr "$SCREENDPI" : '\([0-9]*\)x')
 SCREENDPI_Y=$(expr "$SCREENDPI" : '[0-9]*x\([0-9]*\)')
-# use DPI to get inches....
+# use DPI to get approximate inches....
 SCREENDIM_X=$(expr "$SCREENSIZE_X" / "$SCREENDPI_X")
 SCREENDIM_Y=$(expr "$SCREENSIZE_Y" / "$SCREENDPI_Y")
+#
+# xxx we only actually use SCREENDIM_[XY], SCREENDPI_[XY], and SCREENSIZE_Y (and
+# potentially VENDORSTR); and only within this file!
+#
 export VENDORSTR SCREENDEPTH SCREENSIZE SCREENDIM SCREENDPI
-export SCREENDIMmm_X SCREENDIMmm_Y SCREENSIZE_X SCREENSIZE_Y SCREENDPI_X SCREENDPI_Y SCREENDIM_X SCREENDIM_Y
+export SCREENDIMmm_X SCREENDIMmm_Y SCREENDIM_X SCREENDIM_Y
+export SCREENDPI_X SCREENDPI_Y SCREENSIZE_X SCREENSIZE_Y
 
 # N.B.:  If the true screen resolution is within 10% of 100DPI it makes the most
 # sense to claim exactly 100DPI to avoid font-scaling artifacts for bitmap fonts
