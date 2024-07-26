@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.21	24/06/08 16:04:46 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.22	24/07/25 18:44:40 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -85,11 +85,42 @@ fi
 #
 # On XQuartz/Darwin (and in general with the Xorg Xserver) the command-line
 # "-dpi" value is used to compute the frame buffer's width and height based on
-# the number of pixels each way, so there's no way to fetch this original
-# command-line parameter back except in the way xdpyinfo does, i.e. by getting
+# the number of pixels each way, but there's no way to fetch this original
+# command-line parameter back; except in the way xdpyinfo does, i.e. by getting
 # the pixel dimensions and the screen dimensions and re-computing the x/y DPI.
 # Due to rounding errors this may end up returning an off-by-one value for one
 # of the dimentions.
+#
+# Note that when in XQuartz is in full-screen mode you can get back to the macos
+# desktop with the "toggle full screen" keyboard shortcut (which is normally
+# <command><option><a>).  Then if you want to get back into X11 full-screen mode
+# again you can re-run the "xrandr -s" command again.  An easy way to do this is
+# to use the Shortcuts application to create a shortcut that can also be hooked
+# to the same key sequence (in the "Run with:" field in the shortcut editor
+# "Details" sub-panel) as this key sequence is almost never used in any other
+# macos app (that I use, anyway) [it doesn't work quite right from Mail though].
+#
+# Here's the script for the shortcut (with the resolution of my display
+# hard-coded here):
+#
+#	
+#	# XXX This gets terribly confused if there is more than one
+#	# ~/.serverauth.* file, obviously....
+#	#
+#	if [ -r $HOME/.serverauth.* ]; then
+#		#
+#		# xxx should check the owner process is running....
+#		# xxx if xauth complains, try removing ~/.serverauth.*
+#		# xxx if X is started manually a fake ~/.serverauth.* might
+#		# have to be created from the .Xauthority file using
+#		# "xauth add" (using the creds for the correct display)
+#		#
+#		/opt/X11/bin/xrandr -s 6016x3384 -display $(launchctl getenv DISPLAY)
+#		#
+#	else
+#		osascript -e 'display alert "Switch-To-X11" message "Just hit the X icon in the dock!"' > /dev/null
+#	fi
+#	
 #
 echo "$argv0: Getting ready to try xrandr stuff ...."
 if type xrandr >/dev/null 2>&1; then
