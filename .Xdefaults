@@ -1,23 +1,50 @@
 ! -*- conf-xdefaults -*-
 !
-!#ident	"@(#)HOME:.Xdefaults	37.7	24/07/16 13:14:03 (woods)"
-!
-! reload with:
-!
-!	xrdb -cpp m4 -override .Xdefaults
+!#ident	"@(#)HOME:.Xdefaults	37.8	24/07/25 23:17:36 (woods)"
 !
 ! N.B. WARNING:  This file must be processed with "xrdb -cpp m4" with macros and
 ! macro calls in the comments.  (perhaps it should be renamed to .Xdefaults.m4?)
+! (note also some desktop environments use "~/.Xresources" as their pref. name)
+! (maybe this should be converted to use cpp instead of m4 as some environments
+! do not allow any easy way to specify extra command-line arguments for how they
+! run xrdb (e.g. KDE Plasma), but keeping it as m4 allows easy cut&paste of
+! macros to/from ~/.ctwmrc, and those strange environments can be worked around
+! by running "mv .Xdefaults .Xdefaults.m4; xrdb -quiet -cpp m4 -E -n
+! .Xdefaults.m4 > .Xdefaults")
 !
-! Note that most(all?) programs, e.g. xterm, must be restarted to notice changes
-! in their resources.
+! So, reload with:
 !
-! WARNING:  Do not use lone single quotes (e.g. for contractions) in comments!
+!	xrdb -cpp m4 -load .Xdefaults
 !
-! N.B.:  Every line that is not data should be a comment.  Do not use blank lines!
+! Completely clear all resources, e.g. if you're removing one or changing the
+! spelling, etc., first run:
+!
+!	xrdb -remove -all; xrdb -load $X11PATH/lib/X11/Xdefaults
+!
+! You can see the processed resources with:
+!
+!	xrdb -quiet -cpp m4 -E -n .Xdefaults
+!
+! N.B.:  most(all?) programs, e.g. xterm, must be restarted to notice changes in
+! their resources.  Just log out / stop X and login again!
+!
+! N.B. WARNING:  DO NOT use lone single quotes (e.g. for contractions) in
+! comments!  (pairs are OK to quote example strings)
+!
+! N.B.:  Every line that is not data should be a comment.  Do not use blank
+! lines!
+!
+! Note about precedence:
+!
+!	Instance names (first char is lower case) take precedence over class
+!	names (capitalised).
+!
+!	Tight bindings ('.') take precedence over loose bindings ('*').
+!
+! Note MAXRESOURCES is defined as 400.
 !
 ! Note that although the M4 macros appear commented out in .Xdefaults syntax,
-! they are still visible to m4.  Keeping them in comments help line counting.
+! they are still visible to m4.  Keeping them in comments helps line counting.
 !
 ! changequote([, ])
 !
@@ -26,7 +53,7 @@
 !
 ! This file is intended to be loaded into the RESOURCE_MANAGER root window
 ! property (or the SCREEN_RESOURCES root window property) of the X server by
-! xrdb(1).  See note below though!
+! xrdb(1).  See the note below though!
 !
 ! By default X client application programs first look in a file named by the
 ! $XENVIRONMENT environment variable for X resources, if any.  This defaults to
@@ -34,7 +61,11 @@
 ! is the name of the host the client application is running on.  This file is
 ! consulted each time an X application starts.
 !
-! Then the resources set in the RESOURCE_MANAGER root window property are merged in
+! Following that the resources set in the RESOURCE_MANAGER root window property
+! are merged in.  As mentioned, xrdb(1) is normally used to load values into
+! this property, and the current accompanying ~/.xinitrc will load this file
+! (_after_ loading any system-wide Xdefaults file) and it does not try for a
+! file with "-<hostname>" appended.
 !
 ! Further application-specific resource files are searched for via
 ! $XUSERFILESEARCHPATH (or $XAPPLERESDIR), then $XFILESEARCHPATH (and if no
@@ -43,15 +74,17 @@
 !
 ! See X(7), though beware the order of merging of sources is poorly defined.
 !
-! N.B.:  if there is no RESOURCE_MANAGER root window proptery (i.e. if
+! N.B.:  if there is no RESOURCE_MANAGER root window property (i.e. if
 ! XresourceManagerString() returns NULL), then this file, $HOME/.Xdefaults
 ! (i.e. without "-<hostname>" appended), will be used directly as a fallback!
 ! This is undocumented, but is clearly seen in the code:
-! libXt/src/Initialize.c:CombineUserDefaults().  Since this file contains M4
-! code but libXt does not implement the same '-cpp m4', this could cause
-! problems and confusion!  However that is very unlikely, and practically
-! impossible once this file has been processed by the xrdb(1) command(s) in
-! ~/.xinitrc.  You can see the current properties for the root window with:
+! libXt/src/Initialize.c:CombineUserDefaults().
+!
+! Since this file contains M4 code but libXt does not implement preprocessing
+! with '-cpp m4', this could cause problems and confusion!  However that is very
+! unlikely (practically impossible) once this file has been processed and loaded
+! by the xrdb(1) command(s) in ~/.xinitrc.  You can see the current properties
+! for the root window with:
 !
 !	xprop -root
 !
@@ -65,28 +98,29 @@
 !
 !	Work out the screen resolution in order to specify default Font DPIs
 !
+! XXX the next chunk (all the defines()) should probably be an include file,
+! shared with .ctwmrc (and .fonts.alias.m4)
+!
 ! n.b.:  resolutions are in pixels per metre, for some stupid reason....
 ! so 4500 dpM (/39.37) is just over 110 dpi
-!
-! XXX the next chunk should probably be an include file, shared with .ctwmrc
-! (and .fonts/fonts.alias)
 !
 ! define(HorizDPI, eval(((X_RESOLUTION * 100) / 3937) + ((((X_RESOLUTION * 1000) / 3937) % 10) >= 5)))
 ! define(VertDPI, eval(((Y_RESOLUTION * 100) / 3937) + ((((X_RESOLUTION * 1000) / 3937) % 10) >= 5)))
 ! define(ScreenDimX, eval(WIDTH / HorizDPI))
 ! define(ScreenDimY, eval(HEIGHT / VertDPI))
 !
-! N.B.:  If true screen resolution is within 10% of 100DPI it could sense to
-! claim 100DPI to avoid font-scaling artifacts for bitmap fonts, but since we
-! already alias most font names that did refer to bitmap fonts into scalable
-! fonts anyway, there is not much to gain
+! N.B.:  If the true screen resolution is within 10% of 100DPI it could make
+! sense to use the 100DPI fonts to avoid font-scaling artifacts for bitmap
+! fonts, but since we already alias most font names that did refer to bitmap
+! fonts into scalable fonts anyway, there is not much to gain by sticking to
+! exactly 100DPI....
 !
 ! ifelse(eval((HorizDPI / 100 == 1) && (HorizDPI % 100 <= 10)), 1,
-!  [define(FontXDPI, HorizDPI)],
+!  [define(FontXDPI, 100)],
 !  [define(FontXDPI, HorizDPI)]
 ! )
 ! ifelse(eval((VertDPI / 100 == 1) && (VertDPI % 100 <= 10)), 1,
-!  [define(FontYDPI, VertDPI)],
+!  [define(FontYDPI, 100)],
 !  [define(FontYDPI, VertDPI)]
 ! )
 !
@@ -112,7 +146,7 @@
 ! -misc-liberation mono-medium-r-normal--0-0-0-0-m-0-iso10646-1
 ! -misc-liberation mono-medium-r-normal--0-0-100-100-m-0-iso10646-1
 !
-! $ xlsfonts -fn '-misc-commitmono-medium-r-*-*-0-0-*-*-m-0-iso10646-1'
+! $ xlsfonts -fn '-*-commitmono-medium-r-*-*-0-0-*-*-m-0-iso10646-1'
 ! -misc-commitmono-medium-r-normal--0-0-0-0-m-0-iso10646-1
 ! -misc-commitmono-medium-r-normal--0-0-100-100-m-0-iso10646-1
 !
@@ -168,7 +202,7 @@ Emacs.FontBackend: xft
 ! see also https://www.emacswiki.org/emacs/SetFonts
 !
 Emacs.Font:		CommitMono:size=9
-!Emacs.Font:		-misc-commitmono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-*-*
+!Emacs.Font:		-*-commitmono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-*-*
 !Emacs.Font:		-*-liberation mono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-*-*
 !
 ! Set a default font that should work for everyone.  Best looking is
@@ -188,32 +222,32 @@ Emacs.Font:		CommitMono:size=9
 ! normal XLFD specs for scalable fonts, but for others we might be better off
 ! passing a '*' instead, or maybe VertPix9pt as for Emacs?
 !
-! xxx hmmm.... which of these do what?
+! xxx hmmm.... which of these do what?  Are there any apps that still cannot use
+! scalable fonts?
 !
-*Font:				-misc-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-1
-*.Font:				-misc-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-1
+*Font:				-*-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-*
 ! this next one is used by xfontsel, xconsole, etc., and may have been same as
 ! "7x14"?, but that is way too big, so we shrink it down to be the same as "6x10"
-*font:				-misc-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-1
-*.font:				-misc-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-1
-*font*:				-misc-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-1
-*fontList:			-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-1
-*.fontList:			-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-1
+*font:				-*-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-*
+!
+*fontList:			-*-*-*-*-*--0-90-FontXDPI-FontYDPI-*-0-*-*
+! mentioned for Solaris CDE...
+*SystemFont:			-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+*UserFont:			-*-commitmono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-*
 !
 ! XXX is this right?  Does it do anything?  Some app-defaults files mention XtDefaultFont
 !
-! XXX some apps have really strange FontSet definitions, such as gv (which
-! currently complains that it cannot convert the following to a FontSet
-! structure despite the trailing '*' entry):
+! XXX some apps have really strange FontSet definitions, such as gv
 !
-!	"-efont-biwidth-medium-r-normal--16-*-*-*-*-*-iso10646-1,-gnu-unifont-medium-r-normal--16-*-*-*-*-*-iso10646-1,-adobe-helvetica-medium-r-normal--14-*-*-*-*-*-*-*,-jis-fixed-medium-r-*--16-*-*-*-*-*-jisx0208.1983-0,-*-*-medium-r-*--16-*-*-*-*-*-*-*,*"
-!
-xtDefaultFont:			-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-1
-xtDefaultFontSet:		-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-1
+xtDefaultFont:			-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+! e.g. viewres uses xtDefaultFontSet....
+xtDefaultFontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+! viewres also(only?)....
+*Tree*List*Font:		-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
 ! these are mentioned as the default values for font and fontSet resources for
 ! the Xt AsciiText widget
-XtDefaultFont:			-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-1
-XtDefaultFontSet:		-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-1
+XtDefaultFont:			-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+XtDefaultFontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
 !,-*-*-*-*-*--0-100-FontXDPI-FontYDPI-*-0-*-*
 !
 ! ], []) End (FontYDPI > 110)
@@ -229,7 +263,12 @@ XtDefaultFontSet:		-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-
 ! XClock, XLogo, Xterm, Xedit, Xgc, and Xmessage (and maybe some installed by
 ! pkgsrc, such as swisswatch)
 !
-! This is the filename suffix appended to the program's app-default file:
+!	"The customization string associated with [the] display."
+!
+!	"The primary motivation for this addition was separate monochrome and
+!	color application class defaults files."
+!
+! So, this is the filename suffix appended to the programs app-default file:
 !
 *customization: 		-color
 !
@@ -250,7 +289,7 @@ XtDefaultFontSet:		-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-
 ! The named pixmap is used to tile (or stipple) the "thumb" of the scrollbar.
 ! Set to "None" to disable tiling.
 !
-*Scrollbar.thumb: None
+*Scrollbar.thumb:		None
 !
 ! The width/height and minimum "length" should probably be more on a hi-res
 ! display....
@@ -260,7 +299,7 @@ XtDefaultFontSet:		-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-
 !
 ! Xpdf settings
 !
-Xpdf*fontList:			-*-courier-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-1
+Xpdf*fontList:			-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
 Xpdf.initialZoom:		page
 ! ifdef([COLOR], [
 ! (we could in theory also use (PLANES <= 8) here...)
@@ -272,8 +311,8 @@ Xpdf.toolTipEnable:		false
 ! (these use new aliases from ~/.fonts.alias.m4)
 !
 ! ifelse(eval(FontYDPI > 110), 1, [
-*.zoomComboBox*fontList:	variable
-*XmTextField.fontlist:		fixed
+*zoomComboBox*fontList:		variable
+*XmTextField*fontlist:		fixed
 !
 *buttonFontList:		varbold
 *defaultFontList:		fixed
@@ -291,42 +330,51 @@ Xpdf.toolTipEnable:		false
 *faceName:			CommitMono
 !
 *cursorBlink:			true
-*deleteIsDEL:			true
+! XXX hmmmm on some laptop keyboards we do not always want this...
+! (the default ("maybe") is probably best)
+!*deleteIsDEL:			true
 !
-*SimpleMenu*menuLabel.font:	-misc-commitmono-bold-r-normal--*-100-FontXDPI-FontYDPI-m-0-iso8859-*
-*SimpleMenu*Cursor: 		hand2
+! xxx these probably work for / affect other Xt apps too....
+*SimpleMenu*menuLabel.font:	-*-commitmono-bold-r-normal--*-100-FontXDPI-FontYDPI-m-0-iso8859-*
+*SimpleMenu*font:		-*-commitmono-bold-r-normal--*-80-FontXDPI-FontYDPI-m-0-iso8859-*
+*SimpleMenu*cursor: 		hand2
 !
-! "Default", size is overridden by command-line "-fs" ???
-!*VT100.font:		-misc-commitmono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-*
-!*VT100.utf8Fonts.font:	-misc-commitmono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso10646-1
-*VT100.faceSize:	9.0
+! xxx the *VT100[.*].font* values may be necessary if XTerm does not have Xft
+! support, but that is hopefully no longer a concern anywhere.
+! 
+! xxx there are separate files ofr UXTerm and XTerm in app-defaults
+!
+! "Default", size is overridden by command-line "-fs" ???  (also plain .font above ???)
+!*VT100.font:			-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+!*VT100.utf8Fonts.font:		-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.faceSize:	7.5
 ! Unreadable: (this is by default "nil2", but that is a bitmap font (in misc))
-!*VT100.font1:  		-misc-commitmono-medium-r-normal--0-50-FontXDPI-FontYDPI-m-0-iso8859-*
-!*VT100.utf8Fonts.font1:	-misc-commitmono-medium-r-normal--0-10-FontXDPI-FontYDPI-m-0-iso10646-1
+!*VT100.font1:  		-*-commitmono-medium-r-normal--0-50-FontXDPI-FontYDPI-m-0-iso8859-*
+!*VT100.utf8Fonts.font1:	-*-commitmono-medium-r-normal--0-50-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize1: 	0.5
 ! Tiny:
-!*VT100.font2:		-misc-commitmono-medium-r-normal--0-70-FontXDPI-FontYDPI-m-0-iso8859-*
-!*VT100.utf8Fonts.font2:	-misc-commitmono-medium-r-normal--0-70-FontXDPI-FontYDPI-m-0-iso10646-1
-*VT100.faceSize2:	7.0
+!*VT100.font2:			-*-commitmono-medium-r-normal--0-70-FontXDPI-FontYDPI-m-0-iso8859-*
+!*VT100.utf8Fonts.font2: 	-*-commitmono-medium-r-normal--0-70-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.faceSize2:	8.0
 ! Small:
-!*VT100.font3:		-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
-!*VT100.utf8Fonts.font3:	-misc-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso10646-1
+!*VT100.font3:			-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+!*VT100.utf8Fonts.font3: 	-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize3:	9.0
 ! Medium:
-!*VT100.font4:		-misc-commitmono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-*
-!*VT100.utf8Fonts.font4:	-misc-commitmono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso10646-1
+!*VT100.font4:			-*-commitmono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-*
+!*VT100.utf8Fonts.font4: 	-*-commitmono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize4:	10.0
 ! Large:
-!*VT100.font5:		-misc-commitmono-medium-r-normal--0-120-FontXDPI-FontYDPI-m-0-iso8859-*
-!*VT100.utf8Fonts.font5:	-misc-commitmono-medium-r-normal--0-120-FontXDPI-FontYDPI-m-0-iso10646-1
+!*VT100.font5:			-*-commitmono-medium-r-normal--0-120-FontXDPI-FontYDPI-m-0-iso8859-*
+!*VT100.utf8Fonts.font5: 	-*-commitmono-medium-r-normal--0-120-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize5:	12.0
 ! Huge:
-!*VT100.font6:		-misc-commitmono-medium-r-normal--0-180-FontXDPI-FontYDPI-m-0-iso8859-*
-!*VT100.utf8Fonts.font6:	-misc-commitmono-medium-r-normal--0-180-FontXDPI-FontYDPI-m-0-iso10646-1
+!*VT100.font6:			-*-commitmono-medium-r-normal--0-180-FontXDPI-FontYDPI-m-0-iso8859-*
+!*VT100.utf8Fonts.font6: 	-*-commitmono-medium-r-normal--0-180-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize6:	18.0
 ! Enormous:
-!*VT100.font7:		-misc-commitmono-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso8859-*
-!*VT100.utf8Fonts.font7:	-misc-commitmono-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso10646-1
+!*VT100.font7:			-*-commitmono-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso8859-*
+!*VT100.utf8Fonts.font7: 	-*-commitmono-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize7:	24.0
 !
 ! Even with Unicode it is still nice to type accented chars
@@ -375,8 +423,75 @@ Xpdf.toolTipEnable:		false
 ! ifdef([COLOR], [
 GV.gsX11Device:		-sDEVICE=x11mono
 GV.gsX11AlphaDevice:	-sDEVICE=x11mono -dTextAlphaBits=4 -dGraphicsAlphaBits=2 -dMaxBitmap=10000000 -dNOPLATFONTS
+! xxx from strings....
+GV*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*SmeBSB.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*Button.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV.?.processButton.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV.?.Label*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV.?.Button*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV.?.locator*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV.?.dateButton*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV.?.titleButton*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optiongvPopup*infoVerboseButton.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV.?.infoVerboseButton*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV.?.prevPage*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV.?.nextPage*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*newtoc.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*fileSel*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*fileSel*button1.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*fileSel*button2.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*fileSel*button3.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*fileSel*button4.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*fileSel*pathtext*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optionsetupPopup*Label*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optionsetupPopup*confirmButton.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optionsetupPopup*Switch*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optionsetupPopup*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optionsetupPopup*Button.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optiongvPopup*Label*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optiongvPopup*Switch*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optiongvPopup*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optiongvPopup*Button.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optionfsPopup*Label*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optionfsPopup*Switch*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optionfsPopup*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optionfsPopup*Button.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optiongsPopup*Label*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optiongsPopup*Switch*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optiongsPopup*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*optiongsPopup*Button.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*dialogPopup*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*dialogPopup*Button.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*dialogPopup*message*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*notePopup*Button.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*notePopup*message*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*confirmPopup*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*confirmPopup*Button.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*versionPopup*Label*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*versionPopup*versionTexta*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*versionPopup*versionTextb*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*infoPopup*Text*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
 
 ! ], [])
+
+! Xcb:  XXX not enough to fix it...
+Xcb*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-iso8859-1
+
+XCal.fontToday:		varbold
+XCal*Font:		variable
+XCal*info.Font:		fixed
+XCal*alarmText*Font:	12x24
+
+XAlarm*font:				variable
+XAlarm.Alarm!.alarm.message.font:	-*-commitmono-medium-r-normal--0-340-FontXDPI-FontYDPI-m-0-iso8859-1
+XAlarm.When?.when.confirm.value*font:	variable
+XAlarm.When?*value*font:                varbold
+
+! XScrabble:  xxx more other fixes needed....
+*setup*title.font:                      -*-bitstream charter-bold-r-*-*-*-100-FontXDPI-FontYDPI-*-*-iso8859-*
+XScrabble*font:				-*-*-medium-r-normal--0-0-FontXDPI-FontYDPI-m-0-iso8859-1
+
 
 ! XCalc:
 !
