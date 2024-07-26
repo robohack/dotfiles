@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.21	24/06/18 15:19:28 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.22	24/07/26 15:33:15 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -140,6 +140,7 @@ NoRaiseOnMove
 NoRaiseOnResize
 NoShowOccupyAll
 PackNewWindows
+RaiseOnClick		# xxx because "RaiseOnClickButton 1" doesn't seem to work...
 RestartPreviousState	# only useful when restarting the WM (saves to X11 server memory)
 ReallyMoveInWorkspaceManager
 #ReverseCurrentWorkspace
@@ -199,6 +200,8 @@ MaxWindowSize			"eval(WIDTH * 2)[x]eval(HEIGHT * 2)"	# not everyone plays fair..
 OpaqueMoveThreshold		100	# window % of screen size
 OpaqueResizeThreshold		100	# window % of screen size
 OpenWindowTimeout		15
+# XXX this doesn't seem to work...
+RaiseOnClickButton		1
 RandomPlacement			"on"	# I'm tired of dragging so many windows around!
 UsePPosition			"non-zero"
 XMoveGrid			1
