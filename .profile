@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.28	24/04/01 12:33:12 (woods)"
+#ident	"@(#)HOME:.profile	37.29	24/07/25 18:59:39 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -73,13 +73,15 @@
 #
 #	Login shells can be tested with:
 #
-#	    cd $HOME && env -i SHELL=/path/to/sh HOME=$HOME DISPLAY=$DISPLAY PATH=$PATH xterm $XTERM_OPTS -ls &
+#	    cd $HOME && env -i SHELL=/path/to/sh HOME=$HOME DISPLAY=$DISPLAY PATH=$PATH xterm $XTERM_OPTS &
 #
 #	Note the "cd $HOME" in the above test command.  Most shell manuals say
 #	something like "read the .profile file in the user's home directory
 #	($HOME)", or even more explicitly "read from $HOME/.profile", but in
 #	fact some expect to be started with their current working directory
 #	already in $HOME, e.g. NetBSD sh (and maybe older shells, but not dash).
+#
+#	N.B.:  $XTERM_OPTS is expected to contain '-ls'
 
 # ToDo:
 #
@@ -130,13 +132,13 @@ if [ "`echo ~`" = "${HOME}" -a ${RANDOM:-0} -eq ${RANDOM:-0} ]; then
 	#
 	# apparently a POSIX capable shell
 	#
-	: OK POSIX is good -- that is all for now...
+	: # OK POSIX is good -- that is all for now...
 	if [ -n "${KSH_VERSION}" ]; then
-		: ksh93t or newer, or PDKSH.
+		: # ksh93t or newer, or PDKSH.
 	## xxx it seems impossible to use the following without tripping up
 	## pdksh (which complains "ksh: : bad substitution")....  but...
 	##elif [ -n "${.sh.version}" ]; then
-	##	: ksh93 or newer
+	##	: # ksh93 or newer
 	fi
 fi
 
@@ -912,6 +914,9 @@ if ${ISATTY}; then
 	if [ -r "${HOME}/.stty" ]; then
 		. ${HOME}/.stty
 	else
+		# XXX the erase+intr bit should be terminal dependent instead of trying
+		# to see if we have to undo it based on terminal type later
+		#
 		stty erase '^h' intr '^?' kill '^u' -ixany echo echoe echok
 		# a separate command as it is a non-standard parameter
 		stty status '^t' 2>/dev/null || echo "Sorry, probably no SIGNIFO support on this system."
@@ -957,10 +962,14 @@ if ${ISATTY}; then
 	vt220*)
 		if [ ! -r ${HOME}/.stty ]; then
 			# real vt220 keyboards make this the best setup
-			# n.b.:  on *BSD this could be "stty dec"
+			# n.b.:  on *BSD (and Linux) this could be "stty dec"
 			stty intr '^C' erase '^?'
 		fi
 		;;
+	xterm*)
+		if [ ! -r ${HOME}/.stty ]; then
+			: # normally XTERM_OPTS will set tty modes with '-tm'
+		fi
 	esac
 
 	case `uname -s` in
@@ -973,7 +982,7 @@ if ${ISATTY}; then
 		if [ ! -r ${HOME}/.stty ]; then
 			# run it in the background as it can 'hang' for a while
 			# after a reboot....
-			( defaults -currentHost find modifiermapping 2>/dev/null | grep keyboard.modifiermapping > /dev/null || stty dec ) &
+			( defaults -currentHost find modifiermapping 2>/dev/null | grep keyboard.modifiermapping > /dev/null || { stty dec; echo "Note: stty dec"; } ) &
 		fi
 		#
 		# Developer tools and command-line toolchain programs are run
@@ -1049,7 +1058,7 @@ if ${ISATTY}; then
 	esac
 
 	# try setting up for X11 if possible....
-	# (XXX this may not be the right place for this)
+	#
 	case "${TERM}" in
 	xterm*|sun|pc3|ibmpc3)
 		# users will have to set their own $DISPLAY....
@@ -1061,8 +1070,7 @@ if ${ISATTY}; then
 		# N.B.:  once upon a time -ziconbeep was not universally available
 		#
 		if [ -z "$XTERM_OPTS" ]; then
-			# XXX try moving most/all of these to .Xdefaults
-			XTERM_OPTS="-fbx -bc -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1"
+			XTERM_OPTS="-tm 'erase ^h' -ie -fbx -bc -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1"
 		fi
 		export XTERM_OPTS
 		;;
