@@ -2,7 +2,10 @@
 !
 !	private fonts.alias -- must be first to have effect
 !
-!#ident	"@(#)HOME:.fonts.alias.m4	37.5	24/03/11 11:53:15 (woods)"
+!#ident	"@(#)HOME:.fonts.alias.m4	37.6	24/07/25 23:20:18 (woods)"
+!
+! N.B. WARNING:  DO NOT use lone single quotes (e.g. for contractions) in
+! comments!  (pairs are OK to quote example strings)
 !
 ! Reload with (this is done in ~/.xinitrc):
 !
@@ -21,6 +24,9 @@
 !
 !	Work out the screen resolution in order to specify default Font DPIs:
 !
+! XXX the next chunk (all the defines()) should probably be an include file,
+! shared with .ctwmrc (and .fonts.alias.m4)
+!
 ! n.b.:  [XY]_RESOLUTION values are in pixels per metre, for some stupid
 ! reason....  so 4500 dpM (/39.37) is just over 110 dpi
 !
@@ -29,18 +35,18 @@
 ! define(ScreenDimX, eval(WIDTH / HorizDPI))
 ! define(ScreenDimY, eval(HEIGHT / VertDPI))
 !
-! N.B.:  If true screen resolution is within 10% of 100DPI it could make the
-! most sense to simply claim 100DPI to avoid font-scaling artifacts for bitmap
+! N.B.:  If the true screen resolution is within 10% of 100DPI it could make
+! sense to use the 100DPI fonts to avoid font-scaling artifacts for bitmap
 ! fonts, but since we already alias most font names that did refer to bitmap
 ! fonts into scalable fonts anyway, there is not much to gain by sticking to
-! exactly 100DPI.
+! exactly 100DPI....
 !
 ! ifelse(eval((HorizDPI / 100 == 1) && (HorizDPI % 100 <= 10)), 1,
-!  [define(FontXDPI, HorizDPI)],
+!  [define(FontXDPI, 100)],
 !  [define(FontXDPI, HorizDPI)]
 ! )
 ! ifelse(eval((VertDPI / 100 == 1) && (VertDPI % 100 <= 10)), 1,
-!  [define(FontYDPI, VertDPI)],
+!  [define(FontYDPI, 100)],
 !  [define(FontYDPI, VertDPI)]
 ! )
 !
@@ -48,7 +54,7 @@
 ! ifelse(eval(FontYDPI > 110), 1, [
 !
 ! remap the "cursor" font to the scalable cursors font, with the monitor DPI
-! (the scaling for this one doesn't work right -- 16pts is too small on the
+! (the scaling for this one does not work right -- 16pts is too small on the
 ! iMac27, but is amply big on the XDR)
 !
 cursor       "-xfree86-cursor-medium-r-normal--0-160-FontXDPI-FontYDPI-p-0-adobe-fontspecific"
