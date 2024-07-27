@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.36	24/07/25 23:17:04 (woods)"
+#ident	"@(#)HOME:.shrc	37.37	24/07/26 17:23:37 (woods)"
 
 if [ -z "${SHELL}" ]; then
 	# likely plain old Bourne (heirloom) shell
@@ -1034,10 +1034,15 @@ lnotes ()
 #
 
 # Csh's repeat last command (from: Robert Elz <kre>)
-!! ()
-{
-	fc -s -1
-}
+#
+# xxx ksh 93U+ says (with or without "function"):  -ksh: !!: invalid function name
+#
+if ! is_attksh; then
+	!! ()
+	{
+		fc -s -1
+	}
+fi
 
 adjlinks ()
 {
