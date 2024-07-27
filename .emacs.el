@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.15	24/06/07 09:43:46 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.16	24/07/26 17:55:53 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v23.1 or newer (with Xft)
 ;;;;
@@ -1411,6 +1411,23 @@ be useful for scenarios where an emacs server runs in an xterm?)."
 ;; resX-resY parameters you pass (i.e. '*' or '0'), so long as you have set the
 ;; Xft.dpi resource correctly.
 ;;
+;; With full FreeType and fontconfig To find all the usable fonts with all their
+;; available styles:  (XXX for some reason "fc-match -s" does not find some of
+;; the best fonts such as "Liberation Mono" and "CommitMono" -- I am not sure
+;; why, or what the manual means by "best")
+;;
+;;	fc-list :scalable=true:spacing=100:lang=en: family style | sort
+;;
+;; See also the notes about good fonts at the top of "unicode-fonts.el":
+;;
+;;         http://users.teilar.gr/~g1951d/Symbola.zip
+;;         http://users.teilar.gr/~g1951d/Musica(.zip?)
+;;         http://www.quivira-font.com/files/Quivira.ttf   ; or Quivira.otf
+;;         http://sourceforge.net/projects/dejavu/files/dejavu/2.37/dejavu-fonts-ttf-2.37.tar.bz2
+;;         https://github.com/googlei18n/noto-fonts/raw/master/hinted/NotoSans-Regular.ttf
+;;         https://github.com/googlei18n/noto-fonts/raw/master/unhinted/NotoSansSymbols-Regular.ttf
+;;         https://ctan.org/tex-archive/fonts/Asana-Math?lang=en
+;;
 ;; CommitMono, an OTF, if installed and usable, is complete enough and is very
 ;; reasonable looking (get it from https://commitmono.com/):
 ;;(setq preferred-frame-font "-*-commitmono-medium-r-*-*-*-90-*-*-m-*-iso10646-1")
@@ -1737,23 +1754,38 @@ an existing and usable font."
 	(defvar unicode-fonts-setup-done)
 	(defvar unicode-fonts-skip-font-groups)
 	(defvar face-font-family-alternatives))
+      ;;
+      ;; XXX probably we should not do this if the hostname is "localhost" and
+      ;; $SSH_CLIENT is set in the environment, as it is extremely time
+      ;; consuming to run over a slower link.
+      ;;
       (if (elisp-file-in-loadpath-p "unicode-fonts")
 	  (progn
 	    (unless x-display-name
 	      (setq x-display-name (symbol-name window-system)))
+	    ;; note: in my environment at least the display number is never
+	    ;; really an indication of anything unique, and yet may not even
+	    ;; always be the same for a given client host
+	    (setq x-display-client (car (split-string x-display-name "\:")))
+	    (setq ssh-client-id (if (setq ssh-client (getenv "SSH_CLIENT"))
+				    (car (split-string ssh-client "\s"))
+				  ""))
+	    (setq client-id (concat (s-replace "/" "_" x-display-client)
+				    (if ssh-client "@" "")
+				    ssh-client-id))
 	    (require 'persistent-soft)
 	    (require 'font-utils)
 	    (require 'list-utils)
 	    (require 'ucs-utils)
-	    (setq ucs-utils-use-persistent-storage ; "ucs-utils")
+	    (setq ucs-utils-use-persistent-storage ; "ucs-utils"
 		  (concat ucs-utils-use-persistent-storage "-"
 			  emacs-version "-" ; xxx internally also caches ucs-utils version?
-			  (s-replace "/" "_" x-display-name))) ; xxx less than ideal!
+			  client-id))
 	    (require 'unicode-fonts)
-	    (setq unicode-fonts-use-persistent-storage ; "unicode-fonts")
+	    (setq unicode-fonts-use-persistent-storage ; "unicode-fonts"
 		  (concat unicode-fonts-use-persistent-storage "-"
 			  emacs-version "-" ; xxx internally also caches unicode-fonts version?
-			  (s-replace "/" "_" x-display-name))) ; xxx less than ideal!
+			  client-id))
 	    (if (not unicode-fonts-setup-done)
 		;;
 		;; N.B. WARNING:  the first run takes a very long time!!!  However
@@ -3901,6 +3933,8 @@ current emacs server process..."
   ;; re-setting some key bindings without regard to the global key map...
   (override-local-key-settings)
   (override-default-variable-settings)
+  (if (elisp-file-in-loadpath-p "flyspell")
+      (flyspell-prog-mode))
   (my-font-lock-keyword-setup))
 
 ;; `prog-mode' has an opening comment saying "All major modes for programming
