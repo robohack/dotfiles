@@ -1,6 +1,8 @@
 ! -*- conf-xdefaults -*-
 !
-!#ident	"@(#)HOME:.Xdefaults	37.8	24/07/25 23:17:36 (woods)"
+! changequote([, ])	note brackets will disappear from comments!
+!
+!#ident	"@(#)HOME:.Xdefaults	37.9	24/07/26 17:33:56 (woods)"
 !
 ! N.B. WARNING:  This file must be processed with "xrdb -cpp m4" with macros and
 ! macro calls in the comments.  (perhaps it should be renamed to .Xdefaults.m4?)
@@ -16,7 +18,7 @@
 !
 !	xrdb -cpp m4 -load .Xdefaults
 !
-! Completely clear all resources, e.g. if you're removing one or changing the
+! Completely clear all resources, e.g. if you are removing one or changing the
 ! spelling, etc., first run:
 !
 !	xrdb -remove -all; xrdb -load $X11PATH/lib/X11/Xdefaults
@@ -28,10 +30,10 @@
 ! N.B.:  most(all?) programs, e.g. xterm, must be restarted to notice changes in
 ! their resources.  Just log out / stop X and login again!
 !
-! N.B. WARNING:  DO NOT use lone single quotes (e.g. for contractions) in
-! comments!  (pairs are OK to quote example strings)
+! Note that although the M4 macros appear commented out in .Xdefaults syntax,
+! they are still visible to m4.  Keeping them in comments helps line counting.
 !
-! N.B.:  Every line that is not data should be a comment.  Do not use blank
+! N.B.:  So, every line that is not data should be a comment.  Do not use blank
 ! lines!
 !
 ! Note about precedence:
@@ -42,11 +44,6 @@
 !	Tight bindings ('.') take precedence over loose bindings ('*').
 !
 ! Note MAXRESOURCES is defined as 400.
-!
-! Note that although the M4 macros appear commented out in .Xdefaults syntax,
-! they are still visible to m4.  Keeping them in comments helps line counting.
-!
-! changequote([, ])
 !
 !
 ! Notes about X Window "Resources":
@@ -206,7 +203,8 @@ Emacs.Font:		CommitMono:size=9
 !Emacs.Font:		-*-liberation mono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-*-*
 !
 ! Set a default font that should work for everyone.  Best looking is
-! "commitmono", most complete is "liberation mono".
+! "commitmono", most complete is "DejaVu Sans Mono", but "Liberation Mono" might
+! look better in some areas.  "Hack" is fairly complete too, but ugly.
 !
 ! Possible alternative (even more glyphs than liberation mono, but no mark in
 ! the zero) (from the fonts/freefont-ttf package):
@@ -217,6 +215,21 @@ Emacs.Font:		CommitMono:size=9
 !
 ! -ibm-ibm plex mono-medium-*-*-*-0-*-218-218-m-0-iso10646-1
 ! -misc-cascadia mono-medium-*-*-*-0-*-218-218-m-0-iso10646-1
+!
+! When using Xft all possible usable mono-space fonts (for emacs and xterm,
+! etc.) can be found with the following command:
+!
+!	fc-list :scalable=true:spacing=100:lang=en: family
+!
+! To find all the usable fonts with all their available styles:  (XXX for some
+! reason "fc-match -s" does not find some of the best fonts such as "Liberation
+! Mono" and "CommitMono" -- I am not sure why, or what the manual means by
+! "best")
+!
+!	fc-list :scalable=true:spacing=100:lang=en: family style | sort
+!
+! (rule out those with the fewest styles, e.g. "CentSchbook Mono BT", Crystal,
+! "Consola Mono", "Oxygen Mono", "PT Mono", and "Quinze")
 !
 ! Note we want to pass a '0' for pixelSz for applications that will properly use
 ! normal XLFD specs for scalable fonts, but for others we might be better off
@@ -230,6 +243,7 @@ Emacs.Font:		CommitMono:size=9
 ! "7x14"?, but that is way too big, so we shrink it down to be the same as "6x10"
 *font:				-*-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-*
 !
+! xxx should this have '-m-' for monospace?
 *fontList:			-*-*-*-*-*--0-90-FontXDPI-FontYDPI-*-0-*-*
 ! mentioned for Solaris CDE...
 *SystemFont:			-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
@@ -339,42 +353,42 @@ Xpdf.toolTipEnable:		false
 *SimpleMenu*font:		-*-commitmono-bold-r-normal--*-80-FontXDPI-FontYDPI-m-0-iso8859-*
 *SimpleMenu*cursor: 		hand2
 !
-! xxx the *VT100[.*].font* values may be necessary if XTerm does not have Xft
+! xxx the *VT100(.*).font* values may be necessary if XTerm does not have Xft
 ! support, but that is hopefully no longer a concern anywhere.
 ! 
 ! xxx there are separate files ofr UXTerm and XTerm in app-defaults
 !
-! "Default", size is overridden by command-line "-fs" ???  (also plain .font above ???)
-!*VT100.font:			-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
-!*VT100.utf8Fonts.font:		-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso10646-1
+! "Default", .faceSize is overridden by command-line "-fs", ~/.ctwmrc uses 7.5 and 9.0
+*VT100.font:			-*-commitmono-medium-r-normal--0-75-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font:		-*-commitmono-medium-r-normal--0-75-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize:	7.5
-! Unreadable: (this is by default "nil2", but that is a bitmap font (in misc))
-!*VT100.font1:  		-*-commitmono-medium-r-normal--0-50-FontXDPI-FontYDPI-m-0-iso8859-*
-!*VT100.utf8Fonts.font1:	-*-commitmono-medium-r-normal--0-50-FontXDPI-FontYDPI-m-0-iso10646-1
+! Unreadable:
+*VT100.font1:			-*-commitmono-medium-r-normal--0-05-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font1: 	-*-commitmono-medium-r-normal--0-05-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize1: 	0.5
 ! Tiny:
-!*VT100.font2:			-*-commitmono-medium-r-normal--0-70-FontXDPI-FontYDPI-m-0-iso8859-*
-!*VT100.utf8Fonts.font2: 	-*-commitmono-medium-r-normal--0-70-FontXDPI-FontYDPI-m-0-iso10646-1
-*VT100.faceSize2:	8.0
+*VT100.font2:			-*-commitmono-medium-r-normal--0-60-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font2: 	-*-commitmono-medium-r-normal--0-60-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.faceSize2:	6.0
 ! Small:
-!*VT100.font3:			-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
-!*VT100.utf8Fonts.font3: 	-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso10646-1
-*VT100.faceSize3:	9.0
+*VT100.font3:			-*-commitmono-medium-r-normal--0-75-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font3: 	-*-commitmono-medium-r-normal--0-75-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.faceSize3:	7.5
 ! Medium:
-!*VT100.font4:			-*-commitmono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-*
-!*VT100.utf8Fonts.font4: 	-*-commitmono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso10646-1
-*VT100.faceSize4:	10.0
+*VT100.font4:			-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font4: 	-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.faceSize4:	9.0
 ! Large:
-!*VT100.font5:			-*-commitmono-medium-r-normal--0-120-FontXDPI-FontYDPI-m-0-iso8859-*
-!*VT100.utf8Fonts.font5: 	-*-commitmono-medium-r-normal--0-120-FontXDPI-FontYDPI-m-0-iso10646-1
-*VT100.faceSize5:	12.0
+*VT100.font5:			-*-commitmono-medium-r-normal--0-110-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font5: 	-*-commitmono-medium-r-normal--0-110-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.faceSize5:	11.0
 ! Huge:
-!*VT100.font6:			-*-commitmono-medium-r-normal--0-180-FontXDPI-FontYDPI-m-0-iso8859-*
-!*VT100.utf8Fonts.font6: 	-*-commitmono-medium-r-normal--0-180-FontXDPI-FontYDPI-m-0-iso10646-1
-*VT100.faceSize6:	18.0
+*VT100.font6:			-*-commitmono-medium-r-normal--0-160-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font6: 	-*-commitmono-medium-r-normal--0-160-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.faceSize6:	16.0
 ! Enormous:
-!*VT100.font7:			-*-commitmono-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso8859-*
-!*VT100.utf8Fonts.font7: 	-*-commitmono-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.font7:			-*-commitmono-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font7: 	-*-commitmono-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize7:	24.0
 !
 ! Even with Unicode it is still nice to type accented chars
@@ -385,8 +399,8 @@ Xpdf.toolTipEnable:		false
 !
 ! Unfortunately metaSendsEscape is not the correct default either as there seems
 ! to be a bug whereby it cannot be disabled when set to "true" here, so you have
-! to manually enable it for Emacs, and disable it again if you want to type
-! accented characters with "Meta" to any other program.
+! to manually enable it via the menu for Emacs, and disable it again if you want
+! to type accented characters with "Meta" to any other program.
 !
 !UXTerm*metaSendsEscape:	true
 !XTerm*metaSendsEscape:		true
@@ -413,6 +427,22 @@ Xpdf.toolTipEnable:		false
 	Meta   <Key> Home:  scroll-to(begin) \n\
 	Meta   <Key> End:   scroll-to(end) \n
 !
+! changequote(^?)	N.B.:  try to avoid m4 problems with the comment block below:
+!
+! XXX these would force "normal mode" cursor keys all the time:
+!
+!	~Shift <Key> Up:    string(\033[A) \n\
+!	~Shift <Key> Down:  string(\033[B) \n\
+!	~Shift <Key> Right: string(\033[C) \n\
+!	~Shift <Key> Left:  string(\033[D) \n\
+!	~Shift <Key> Home:  string(\033[H) \n\
+!	~Shift <Key> End:   string(\033[F) \n\
+!	~Shift <Key> Prior: string(\033[5~) \n\
+!	~Shift <Key> Next:  string(\033[6~) \n\
+!
+! changequote([, ])
+!
+! (end of Xterm stuff)
 !
 ! GhostView:
 !
@@ -569,19 +599,6 @@ XCalc*ti.button55.background:		rgb:e/d/c
 ! ], [])
 !
 !
-! changequote()
-!
-! XXX these would force "normal mode" cursor keys all the time:
-!
-!	~Shift <Key> Up:    string(\033[A) \n\
-!	~Shift <Key> Down:  string(\033[B) \n\
-!	~Shift <Key> Right: string(\033[C) \n\
-!	~Shift <Key> Left:  string(\033[D) \n\
-!	~Shift <Key> Home:  string(\033[H) \n\
-!	~Shift <Key> End:   string(\033[F) \n\
-!	~Shift <Key> Prior: string(\033[5~) \n\
-!	~Shift <Key> Next:  string(\033[6~) \n\
-!
 ! Now some sample text for xfontsel.  The first is assumed to be in iso8859-1.
 !
 ! The first line of each are chars that must all be easily distinguisable as
@@ -599,7 +616,9 @@ XCalc*ti.button55.background:		rgb:e/d/c
 ! Note that xrdb does not strip leading whitespace after a backslash (only after
 ! the colon), so all these lines start with an extra tab character.
 !
-XFontSel*sampleText:	\
+! changequote(	)	N.B.:  try to avoid m4 problems with the comment block below:
+!
+XFontSel*sampleText:\
 	`\264\250\047\0421lIi|\246\041¡/\3300Oo{[(<\253\273>)]},.;\072?\277\n\
 	\251\256a\2522\2623\263u\265pP\266#\244\243$\242\245\260.\267,\270\261+=\254~_\255-\n\
 	ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789\n\
@@ -613,7 +632,7 @@ XFontSel*sampleText:	\
 ! commonly used Unicode characters, adding first the Greek and Cyrillic
 ! alphabets, followed by a jumble of common/interesting Unicode characters.
 !
-XFontSel*sampleTextUCS:	\
+XFontSel*sampleTextUCS:\
 	~`´¨\'\"1lIi|¦\041¡/DØ0Oo{[(<«»>)]},.;\072?¿\n\
 	©®aª2²3³8BuµpP¶#¤£$¢¥°.·,¸±+=¬~_--\n\
 	ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789\n\
@@ -626,10 +645,10 @@ XFontSel*sampleTextUCS:	\
 	αβγδεζηθικλμνξοπρςτυφχψω\n\
 	АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ\n\
 	абвгдеёжзийклмнопрстуфхцчшщъыьэюя\n\
-	–―†‡•…‰™ᴂﬁœᴈŠŸž€ \n\
+	–―†‡•…‰™ᴂﬁœᴈŠŸž\n\
 	☺☹✝✚✡☥⎈☭☪∀∂∈ℝ∧∪∞π↑↗↨↻⇣┐┼╔╘►⑀₂ἠḂӥẄɐː⍎אԱა�\n\
 	⌈⌉⌊⌋∏∑∫⊕⊖⊗⊘⊙⊚⊛∙∘′″‴∼∂√≔ⁱ⁰₀₁₂∧∨∃⊦∅∈∉⊂⊃⊆⊇⊄⋂⋃\n\
-	※◆░▒␉␌␍␊␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥≮≯≠≈≡£₿₠∎\n\
+	※◆░▒␉␌␍␊␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥≮≯≠≈≡$¢£¤¥₿₠€∎\n\
 	‹›“”‘’„〖〗【】「」『』〈〉《》〔〕\n\
 	•◦‣✓●■◆○□◇★☆♠♣♥♦♤♧♡♢♩♪♫♬♭♮♯☰☱☲☳☴☵☶☷\n\
 	←→↑↓↔↖↗↙↘⇐⇒⇑⇓⇔⇗⇦⇨⇧⇩↞↠↟↡↺↻☞☜☝☟\n\
@@ -639,3 +658,4 @@ XFontSel*sampleTextUCS:	\
 	胭脂淚 留人醉 幾時重, 自是人生長恨 水長東\n
 !
 ! changequote([, ])
+!
