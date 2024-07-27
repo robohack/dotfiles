@@ -17,7 +17,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.37	24/07/26 17:23:37 (woods)"
+#ident	"@(#)HOME:.shrc	37.38	24/07/26 17:36:32 (woods)"
 
 if [ -z "${SHELL}" ]; then
 	# likely plain old Bourne (heirloom) shell
@@ -1037,12 +1037,14 @@ lnotes ()
 #
 # xxx ksh 93U+ says (with or without "function"):  -ksh: !!: invalid function name
 #
-if ! is_attksh; then
-	!! ()
-	{
-		fc -s -1
-	}
-fi
+# XXX even in an 'if' it complains:  ./.shrc: line 1045: `!!': not a valid identifier
+#
+#if ! is_attksh; then
+#	!! ()
+#	{
+#		fc -s -1
+#	}
+#fi
 
 adjlinks ()
 {
