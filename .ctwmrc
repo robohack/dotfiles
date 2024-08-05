@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.22	24/07/26 15:33:15 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.23	24/08/05 13:39:38 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -922,6 +922,7 @@ menu "consoles"
 	CONSOLE_REP(xentastic)
 	CONSOLE_REP(nbtest)
 	CONSOLE_REP(nb10)
+	CONSOLE_REP(nbday)
 	CONSOLE_REP(fezzik)
 	""			f.separator
 # powered off, but enabled in tserver
@@ -1358,6 +1359,10 @@ menu "monitors"
 #	"xload @historically"	!". ./.shrc; onx11server -n historically.local \"xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomHistorically} -hl red\" &"
 	"xload @b2"		!"ssh -CY -n woods@b2.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomB2} -hl red\" &"
 	"xload @fezzik"		!". ./.shrc; onx11server -nS fezzik.local \"xload -geometry ${XloadGeomFezzik} -hl red\" &"
+	"xload @nbtest"		!". ./.shrc; onx11server -nS nbtest.local \"xload -geometry ${XloadGeomNbtest} -hl red\" &"
+	"xload @nbtcur"		!". ./.shrc; onx11server -nS nbtcur.local \"xload -geometry ${XloadGeomNbtcur} -hl red\" &"
+	"xload @nb10"		!". ./.shrc; onx11server -nS nb10.local \"xload -geometry ${XloadGeomNb10} -hl red\" &"
+	"xload @nbday"		!". ./.shrc; onx11server -nS nbday.local \"xload -geometry ${XloadGeomNbday} -hl red\" &"
  ])
  ifdef([USE_X11SERVER], [
 	"xosview @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xosview -display ${REMOTE_DISPLAY}\" &"
@@ -1476,6 +1481,8 @@ menu "xterms"
 	"UXterm-big @fezzik"	!". ./.shrc; onx11server -nS fezzik.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"UXterm @nb10"		!". ./.shrc; onx11server -n nb10.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
 	"UXterm-big @nb10"	!". ./.shrc; onx11server -n nb10.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @nbday"		!". ./.shrc; onx11server -n nbday.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @nbday"	!". ./.shrc; onx11server -n nbday.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"UXterm @nbt"		!". ./.shrc; onx11server -n nbt.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
 	"UXterm-big @nbt"	!". ./.shrc; onx11server -n nbt.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"UXterm @nbt2"		!". ./.shrc; onx11server -n nbt2.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
@@ -1563,6 +1570,7 @@ menu "xauths"
 # currently mounts /more/home
 #	"Xauth to xentastic"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server xentastic.local 'xauth nmerge -' ) &"
 	"Xauth to nb10"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server nb10.local 'xauth nmerge -' ) &"
+	"Xauth to nbday"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server nbday.local 'xauth nmerge -' ) &"
 	"Xauth to nbt"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server nbt.local 'xauth nmerge -' ) &"
 	"Xauth to nbt2"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server nbt.local 'xauth nmerge -' ) &"
 	"Xauth to nbtest"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server nbtest.local 'xauth nmerge -' ) &"

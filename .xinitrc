@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.23	24/07/25 23:18:34 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.24	24/08/05 13:39:31 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -801,8 +801,10 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			#
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server more.local 'xauth nmerge -'
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server xenful.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server xentastic.local 'xauth nmerge -'
+# xentastic is currently using $HOME from more.local
+#			xauth nextract - ${REMOTE_DISPLAY} | onx11server xentastic.local 'xauth nmerge -'
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server nb10.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server -S nbday.local 'xauth nmerge -'
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbt.local 'xauth nmerge -'
 #			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbt2.local 'xauth nmerge -'
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbtest.local 'xauth nmerge -'
@@ -875,7 +877,31 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 			XloadGeomFezzik="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
 			export XloadGeomFezzik
-			onx11server -nS fezzik.local "xload -geometry ${XloadGeomFezzik}" -hl red: &
+			onx11server -nS fezzik.local "xload -geometry ${XloadGeomFezzik} -hl red" &
+
+			# these are under the workspace manager
+			#
+			xloadoff=$(expr ${WSHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+			#
+			XloadGeomNbtest="${XloadWidth}x${XloadHeight}-${WSOff}+${xloadoff}"
+			export XloadGeomNbtest
+			onx11server -n nbtest.local "xload -geometry ${XloadGeomNbtest} -hl red" &
+
+			xload2east=$(expr ${WSOff} + ${XloadWidth} + ${TDBorderWidth} + ${TDBorderWidth})
+
+			XloadGeomNbtcur="${XloadWidth}x${XloadHeight}-${xload2east}+${xloadoff}"
+			export XloadGeomNbtcur
+			onx11server -n nbtcur.local "xload -geometry ${XloadGeomNbtcur} -hl red" &
+
+			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+
+			XloadGeomNb10="${XloadWidth}x${XloadHeight}-${WSOff}+${xloadoff}"
+			export XloadGeomNb10
+			onx11server -n nb10.local "xload -geometry ${XloadGeomNb10} -hl red" &
+
+			XloadGeomNbday="${XloadWidth}x${XloadHeight}-${xload2east}+${xloadoff}"
+			export XloadGeomNbday
+			onx11server -nS nbday.local "xload -geometry ${XloadGeomNbday} -hl red" &
 
 # xxx these need a variable for "80x45" as it could be wider (e.g. 91x45, 95x50), or taller, or shorter....
 # (calculate based on character size and $XconsoleWidth and something related to IR_GEOM vs. $XconsoleHeight)
@@ -883,10 +909,12 @@ if [ "$argv0" = ".xinitrc" ] ; then
 #			onx11server -n building.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 			onx11server -n more.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 			onx11server -n nb10.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
+			onx11server -nS nbday.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 			onx11server -n nbt.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 #			onx11server -n nbt2.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 			onx11server -n nbtest.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 			onx11server -n nbtcur.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
+			onx11server -nS fezzik.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 #			onx11server -n future.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 #			onx11server -n historically.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 			onx11server -n xenful.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
