@@ -2,7 +2,7 @@
 !
 ! changequote([, ])	note brackets will disappear from comments!
 !
-!#ident	"@(#)HOME:.Xdefaults	37.9	24/07/26 17:33:56 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.10	24/08/05 13:35:20 (woods)"
 !
 ! N.B. WARNING:  This file must be processed with "xrdb -cpp m4" with macros and
 ! macro calls in the comments.  (perhaps it should be renamed to .Xdefaults.m4?)
@@ -184,8 +184,6 @@ Xft.minspace:			true
 !Xft.render			false
 !Xft.core			true
 !
-! ifelse(eval(FontYDPI > 110), 1, [
-!
 ! Emacs is "special" -- as in especially difficult to deal with
 !
 ! Emacs actually ignores the resolutions, and needs either a '*' or a non-zero
@@ -256,15 +254,24 @@ Emacs.Font:		CommitMono:size=9
 xtDefaultFont:			-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
 ! e.g. viewres uses xtDefaultFontSet....
 xtDefaultFontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-! viewres also(only?)....
-*Tree*List*Font:		-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
 ! these are mentioned as the default values for font and fontSet resources for
 ! the Xt AsciiText widget
 XtDefaultFont:			-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
 XtDefaultFontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
 !,-*-*-*-*-*--0-100-FontXDPI-FontYDPI-*-0-*-*
 !
-! ], []) End (FontYDPI > 110)
+! xxx these work for / affect various Xt apps....
+! viewres also(only?)....
+*Tree*List*Font:		-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+! editres...
+*mainViewport*resourceLabel.font:-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+*namesLabel.font:		-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+*constraintLabel.font:		-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+! xterm et al
+*setup*title.font:		-*-bitstream charter-bold-r-*-*-*-100-FontXDPI-FontYDPI-*-*-iso8859-*
+*SimpleMenu*menuLabel.font:	-*-commitmono-bold-r-normal--*-100-FontXDPI-FontYDPI-m-0-iso8859-*
+*SimpleMenu*font:		-*-commitmono-bold-r-normal--*-80-FontXDPI-FontYDPI-m-0-iso8859-*
+*SimpleMenu*cursor: 		hand2
 !
 ! really just for Xfontsel (with "-scaled"):
 !
@@ -324,7 +331,6 @@ Xpdf.toolTipEnable:		false
 ! also mainly for xpdf, but also other Motif things?
 ! (these use new aliases from ~/.fonts.alias.m4)
 !
-! ifelse(eval(FontYDPI > 110), 1, [
 *zoomComboBox*fontList:		variable
 *XmTextField*fontlist:		fixed
 !
@@ -335,7 +341,6 @@ Xpdf.toolTipEnable:		false
 *helpFont:			fixed
 *textFontList:			fixed
 *xrtGearFontListSelected:	bold
-! ], [])
 !
 ! Xterm settings:
 !
@@ -344,19 +349,35 @@ Xpdf.toolTipEnable:		false
 *faceName:			CommitMono
 !
 *cursorBlink:			true
-! XXX hmmmm on some laptop keyboards we do not always want this...
-! (the default ("maybe") is probably best)
-!*deleteIsDEL:			true
 !
-! xxx these probably work for / affect other Xt apps too....
-*SimpleMenu*menuLabel.font:	-*-commitmono-bold-r-normal--*-100-FontXDPI-FontYDPI-m-0-iso8859-*
-*SimpleMenu*font:		-*-commitmono-bold-r-normal--*-80-FontXDPI-FontYDPI-m-0-iso8859-*
-*SimpleMenu*cursor: 		hand2
+! The keyboard should always match the terminal description, as best as is
+! possible, except of course for erase (for which see environment $XTERM_OPTS).
+!
+! This should have the effect of causing the "delete" key to send DEL too, so
+! long as deleteIsDEL has its default value of "Maybe", at least according to
+! the manual.
+!
+! XXX However, keyboardType=tcap overrules deleteIsDEL entirely and disables the
+! menu toggle for it as well, so it is unworkable.
+!
+!UXTerm*keyboardType:			tcap
+!XTerm*keyboardType:			tcap
+!
+! XXX hmmmm on some laptop keyboards we do not always want deleteIsDEL set....
+! The default ("maybe") is probably best, but then it requires manually toggling
+! via the menu to enable it.
+!
+UXTerm*deleteIsDEL:			Maybe
+XTerm*deleteIsDEL:			Maybe
 !
 ! xxx the *VT100(.*).font* values may be necessary if XTerm does not have Xft
 ! support, but that is hopefully no longer a concern anywhere.
 ! 
-! xxx there are separate files ofr UXTerm and XTerm in app-defaults
+! xxx There are separate files for UXTerm and XTerm in app-defaults.  According
+! to comments in UXterm the "*VT100.font" can be a wide font (one with more than
+! 256 glyphs), but if it is not wide, then it loads "*VT100.utf8Fonts.font".  I
+! do not know if XTerm sets country-code when it is a wildcard though, but it
+! seems to work OK for iso8859-1 by default.
 !
 ! "Default", .faceSize is overridden by command-line "-fs", ~/.ctwmrc uses 7.5 and 9.0
 *VT100.font:			-*-commitmono-medium-r-normal--0-75-FontXDPI-FontYDPI-m-0-iso8859-*
@@ -516,10 +537,9 @@ XCal*alarmText*Font:	12x24
 XAlarm*font:				variable
 XAlarm.Alarm!.alarm.message.font:	-*-commitmono-medium-r-normal--0-340-FontXDPI-FontYDPI-m-0-iso8859-1
 XAlarm.When?.when.confirm.value*font:	variable
-XAlarm.When?*value*font:                varbold
+XAlarm.When?*value*font:		varbold
 
 ! XScrabble:  xxx more other fixes needed....
-*setup*title.font:                      -*-bitstream charter-bold-r-*-*-*-100-FontXDPI-FontYDPI-*-*-iso8859-*
 XScrabble*font:				-*-*-medium-r-normal--0-0-FontXDPI-FontYDPI-m-0-iso8859-1
 
 
@@ -529,7 +549,7 @@ XScrabble*font:				-*-*-medium-r-normal--0-0-FontXDPI-FontYDPI-m-0-iso8859-1
 !
 !	override XCalc-color a bit:
 !
-XCalc*ti.Command.foreground:            black
+XCalc*ti.Command.foreground:		black
 !
 ! "CE/C"
 XCalc*ti.button4.background:		rgb:e/b/9
@@ -544,56 +564,56 @@ XCalc*ti.button11.background:		rgb:c/f/f
 ! "ee"
 XCalc*ti.button12.background:		rgb:c/d/f
 ! "trunc"
-XCalc*ti.button20.foreground:           black
+XCalc*ti.button20.foreground:		black
 XCalc*ti.button20.background:		rgb:c/d/e
 ! "pi"
 XCalc*ti.button21.background:		rgb:c/f/f
 ! temp fix for bad number key backgrounds
-XCalc*ti.button22.background:           rgb:c/d/e
-XCalc*ti.button23.background:           rgb:c/d/e
-XCalc*ti.button24.background:           rgb:c/d/e
+XCalc*ti.button22.background:		rgb:c/d/e
+XCalc*ti.button23.background:		rgb:c/d/e
+XCalc*ti.button24.background:		rgb:c/d/e
 ! "base"
-XCalc*ti.button25.foreground:           black
+XCalc*ti.button25.foreground:		black
 XCalc*ti.button25.background:		rgb:c/d/f
 ! HEX keys
-XCalc*ti.button27.background:           gray90
-XCalc*ti.button28.background:           gray90
-XCalc*ti.button29.background:           gray90
+XCalc*ti.button27.background:		gray90
+XCalc*ti.button28.background:		gray90
+XCalc*ti.button29.background:		gray90
 ! "shr"
-XCalc*ti.button30.foreground:           black
+XCalc*ti.button30.foreground:		black
 XCalc*ti.button30.background:		rgb:c/d/e
 ! HEX keys
-XCalc*ti.button32.background:           gray90
-XCalc*ti.button33.background:           gray90
-XCalc*ti.button34.background:           gray90
+XCalc*ti.button32.background:		gray90
+XCalc*ti.button33.background:		gray90
+XCalc*ti.button34.background:		gray90
 ! "/"
-XCalc*ti.button35.foreground:           black
+XCalc*ti.button35.foreground:		black
 ! "STO"
-XCalc*ti.button36.background:           lightYellow
+XCalc*ti.button36.background:		lightYellow
 ! "*"
-XCalc*ti.button40.foreground:           black
+XCalc*ti.button40.foreground:		black
 ! "RCL"
-XCalc*ti.button41.background:           lightYellow
+XCalc*ti.button41.background:		lightYellow
 ! temp fix for bad number key backgrounds
-XCalc*ti.button42.background:           gray95
-XCalc*ti.button43.background:           gray95
-XCalc*ti.button44.background:           gray95
+XCalc*ti.button42.background:		gray95
+XCalc*ti.button43.background:		gray95
+XCalc*ti.button44.background:		gray95
 ! "-"
 XCalc*ti.button45.background:		rgb:e/d/c
 ! "SUM"
-XCalc*ti.button46.background:           lightYellow
+XCalc*ti.button46.background:		lightYellow
 ! temp fix for bad number key backgrounds
-XCalc*ti.button47.background:           gray95
-XCalc*ti.button48.background:           gray95
-XCalc*ti.button49.background:           gray95
+XCalc*ti.button47.background:		gray95
+XCalc*ti.button48.background:		gray95
+XCalc*ti.button49.background:		gray95
 ! "+"
 XCalc*ti.button50.background:		rgb:e/d/c
 ! "EXC"
-XCalc*ti.button51.background:           lightYellow
+XCalc*ti.button51.background:		lightYellow
 ! temp fix for bad number key backgrounds
-XCalc*ti.button52.background:           gray95
-XCalc*ti.button53.background:           gray95
-XCalc*ti.button54.background:           gray95
+XCalc*ti.button52.background:		gray95
+XCalc*ti.button53.background:		gray95
+XCalc*ti.button54.background:		gray95
 ! "="
 XCalc*ti.button55.background:		rgb:e/d/c
 ! ], [])
