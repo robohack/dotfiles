@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.16	24/07/26 17:55:53 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.17	24/08/05 13:32:45 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v23.1 or newer (with Xft)
 ;;;;
@@ -967,6 +967,7 @@ match `%s'. Connect anyway? " host))))))
 (defvar my-packages
   `(;ascii-table		; xxx was called "ascii"!!! (XXX currently only in melpa, not melpa-stable)
 ;    csv-mode			; XXX already requires 27.1!
+    dictionary			; n.b.: apparently included in 28.x
     diff-hl
     diffview
     diminish
@@ -2714,6 +2715,77 @@ bottom) just after being made then it is probably a
 
 
 ;;;; ----------
+;;;; some new derived modes
+
+(require 'conf-mode)
+
+(defvar conf-terminfo-mode-syntax-table
+  (let ((table (make-syntax-table conf-mode-syntax-table)))
+    ;; n.b.: comments are handled by the `syntax-propertize-function'
+    ;;(modify-syntax-entry ?\# "<" table)
+    (modify-syntax-entry ?\| "." table)
+    (modify-syntax-entry ?\, "." table)
+    (modify-syntax-entry ?\" "w" table)
+    (modify-syntax-entry ?! "w" table)
+    (modify-syntax-entry ?~ "w" table)
+    (modify-syntax-entry ?^ "w" table)
+    (modify-syntax-entry ?& "w" table)
+    (modify-syntax-entry ?% "w" table)
+    (modify-syntax-entry ?$ "w" table)
+    (modify-syntax-entry ?+ "w" table)
+    (modify-syntax-entry ?- "w" table)
+    (modify-syntax-entry ?/ "w" table)
+    (modify-syntax-entry ?\* "w" table)
+    (modify-syntax-entry ?\? "w" table)
+    (modify-syntax-entry ?< "w" table)
+    (modify-syntax-entry ?> "w" table)
+    (modify-syntax-entry ?\[ "w" table)
+    (modify-syntax-entry ?\] "w" table)
+    (modify-syntax-entry ?{ "w" table)
+    (modify-syntax-entry ?} "w" table)
+    (modify-syntax-entry ?\\ "w" table)
+    (modify-syntax-entry ?\: "w" table)
+    ;; override
+    (modify-syntax-entry ?\; "w" table)
+    (modify-syntax-entry ?\' "w" table)
+    table)
+  "Syntax table in use in terminfo style `conf-mode' buffers.")
+
+(define-derived-mode conf-terminfo-mode conf-mode "Conf[terminfo]"
+  "Conf Mode for terminfo files."
+  :syntax-table conf-terminfo-mode-syntax-table
+  (conf-mode-initialize "#")
+  ;; n.b.: `setq-local' is a subr.el macro new since 25.x (or 26.x?)
+  (setq-local conf-assignment-column 0)
+  (setq-local conf-assignment-space nil)
+  (setq-local conf-assignment-sign ?=)
+  (setq-local syntax-propertize-function
+	      (syntax-propertize-rules
+	       ;; comments must start in column 1
+	       ((rx line-start (group "#"))	(1 "<"))
+	       ((rx (group "\n"))		(1 ">"))
+	       ))
+  (my-prog-mode-setup-func)
+  (font-lock-add-keywords nil
+			  ;; N.B.:  the order of these expressions is critical!
+			  '(
+			    ;; capabilities start in column 2
+			    ("\\(^[ \t]\\|, *\\)\\.?\\([[:alnum:]]+\\)"
+			     (2 'font-lock-variable-name-face))
+			    ;; description
+			    ("|\\([^|,]+\\),$"
+			     (1 'font-lock-string-face))
+			    ;; first/primary name starts in column 1
+			    ("^\\([[:alnum:]][^|]+\\)"
+			     (1 'font-lock-keyword-face))
+			    ;; alternate name(s)
+			    ("|\\([^|]+\\)"
+			     (1 'font-lock-keyword-face))
+			    ))
+  )
+
+
+;;;; ----------
 ;;;; auto-mode-alist setup
 
 ;; assume files.el is already loaded?
@@ -2824,6 +2896,7 @@ mode according to start of the current buffer."
        '("\\.mail[^/]*\\'" . mail-mode)
        '("\\.wl\\'" . emacs-lisp-mode)		; WL init file
        '("\\.vm\\'" . emacs-lisp-mode)		; VM init file
+       '("terminfo\\|terminfo.src" . conf-terminfo-mode) ; see derived mode
        '("/tmp/[^/]*\\.ed[^/]*\\'" . indented-text-mode) ; mail edit buffer
        '("/tmp/[^/]*nf[^/]*\\'" . indented-text-mode))) ; notesfile compose buf
 
@@ -3834,6 +3907,14 @@ current emacs server process..."
 	       (lambda ()
 		 (setq ispell-filter-hook "deroff")
 		 (setq ispell-filter-hook-args '("-w"))))))))
+
+(if (elisp-file-in-loadpath-p "dictionary")
+    (progn
+      (define-key global-map "\M-#" 'dictionary-search)
+      ;; if we can connect to localhost#`dictionary-port'...
+      ;;(setq dictionary-server "localhost")
+      ;; and/or use ~.dict.conf!
+      ))
 
 ;;; unix "spell" knows to use "deroff", so only use this if you use a speller
 ;;; other than it.
