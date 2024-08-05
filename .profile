@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.29	24/07/25 18:59:39 (woods)"
+#ident	"@(#)HOME:.profile	37.30	24/08/05 13:40:16 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -1068,6 +1068,12 @@ if ${ISATTY}; then
 		# In case this is onx11server running an xterm via rsh/ssh
 		#
 		# N.B.:  once upon a time -ziconbeep was not universally available
+		#
+		# Note particularly the '-tm' and '-ie'.  We always want the
+		# erase character to be ^H, and we always want the backarrow key
+		# to send the erase(^h) character.  (We also always want the
+		# delete key to send DEL, but that is better handled via the
+		# .Xdefaults resources.)
 		#
 		if [ -z "$XTERM_OPTS" ]; then
 			XTERM_OPTS="-tm 'erase ^h' -ie -fbx -bc -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1"
