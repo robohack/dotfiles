@@ -2,7 +2,7 @@
 !
 ! changequote([, ])	note brackets will disappear from comments!
 !
-!#ident	"@(#)HOME:.Xdefaults	37.10	24/08/05 13:35:20 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.11	24/08/10 13:05:56 (woods)"
 !
 ! N.B. WARNING:  This file must be processed with "xrdb -cpp m4" with macros and
 ! macro calls in the comments.  (perhaps it should be renamed to .Xdefaults.m4?)
@@ -367,8 +367,9 @@ Xpdf.toolTipEnable:		false
 ! The default ("maybe") is probably best, but then it requires manually toggling
 ! via the menu to enable it.
 !
-UXTerm*deleteIsDEL:			Maybe
-XTerm*deleteIsDEL:			Maybe
+! XXX as mentioned the default is "Maybe", but you can't put that in a bool resource!
+!UXTerm*deleteIsDEL:			Maybe
+!XTerm*deleteIsDEL:			Maybe
 !
 ! xxx the *VT100(.*).font* values may be necessary if XTerm does not have Xft
 ! support, but that is hopefully no longer a concern anywhere.
