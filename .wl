@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	37.9	24/06/08 16:03:56 (woods)"
+;;;;#ident	"@(#)HOME:.wl	37.10	24/08/10 13:11:04 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -18,6 +18,12 @@
 ;; OpenSSL is also required (for "openssl s_client:)
 ;;
 ;; Some emacs packages listed in ~/.emacs.el will also be needed.
+;;
+;; Changing the following may require deletion of ~/elmo/cache/*
+;;
+;;	wl-message-sort-field-list
+;;	wl-message-ignored-field-list
+;;	elmo-msgdb-extra-fields
 
 ;; FixMe:
 ;;
@@ -27,10 +33,10 @@
 (if (boundp 'appt-display-diary)
     (setq appt-display-diary nil))
 
-;; Make the mouse/trackpad scroll the window more "smoothly"
+;; Try to make the mouse/trackpad scroll the window more "smoothly"
 ;;
 ;; DO NOT EVER move the cursor with scroll input (unless doing so to keep it
-;; within the current window.
+;; within the current window).
 ;;
 (eval-after-load "wl-summary"
   '(progn
@@ -38,6 +44,61 @@
      (define-key wl-summary-mode-map [mouse-5] 'mwheel-scroll)
      (define-key wl-summary-mode-map [S-mouse-4] 'mwheel-scroll)
      (define-key wl-summary-mode-map [S-mouse-5] 'mwheel-scroll)))
+
+(eval-after-load "wl-folder"
+  '(progn
+     (define-key wl-folder-mode-map [mouse-4] 'mwheel-scroll)
+     (define-key wl-folder-mode-map [mouse-5] 'mwheel-scroll)
+     (define-key wl-folder-mode-map [S-mouse-4] 'mwheel-scroll)
+     (define-key wl-folder-mode-map [S-mouse-5] 'mwheel-scroll)))
+
+;;; XXX This doesn't work right at all....  The resulting keymap looks like a
+;;; total mess with multiple bindings for [mouse-4] et al.
+;;;
+;;; maybe it's easier to redefine `wl-message-wheel-up' and
+;;;`wl-message-wheel-down'?
+;;;
+;;; alternatively one might redefine `wl-message-define-keymap' entirely instead
+;;;
+;(eval-after-load "wl-message"
+;  '(progn
+;     (define-key wl-message-button-map [mouse-4] 'mwheel-scroll)
+;     (define-key wl-message-button-map [mouse-5] 'mwheel-scroll)
+;     (define-key wl-message-button-map [S-mouse-4] 'mwheel-scroll)
+;     (define-key wl-message-button-map [S-mouse-5] 'mwheel-scroll)))
+;;;
+(eval-after-load "wl-message"
+'(defun wl-message-define-keymap ()
+  (let ((keymap (make-sparse-keymap)))
+    (define-key keymap "D" 'wl-message-delete-current-part)
+    (define-key keymap "l" 'wl-message-toggle-disp-summary)
+    (define-key keymap "\C-c:d" 'wl-message-decrypt-pgp-nonmime)
+    (define-key keymap "\C-c:v" 'wl-message-verify-pgp-nonmime)
+    (define-key keymap "w" 'wl-draft)
+  ;; XXX redefining the mouse wheel behaviour to do anything other than scroll
+  ;; by line is EVIL
+;    (define-key keymap [mouse-4] 'wl-message-wheel-down)
+;    (define-key keymap [mouse-5] 'wl-message-wheel-up)
+;    (define-key keymap [S-mouse-4] 'wl-message-wheel-down)
+;    (define-key keymap [S-mouse-5] 'wl-message-wheel-up)
+    (set-keymap-parent wl-message-button-map keymap)
+    (define-key wl-message-button-map
+      [mouse-2] 'wl-message-button-dispatcher)
+    keymap))
+)
+
+;; alternately, from Kzuhiro Ito <hzhr@d1.dion.ne.jp>, this should work:
+;
+;(advice-add 'wl-message-define-keymap
+;	    :around
+;	    (lambda (oldfun &rest r)
+;	      (let ((keymap (apply oldfun r)))
+;		(define-key keymap [mouse-4] 'mwheel-scroll)
+;		(define-key keymap [mouse-5] 'mwheel-scroll)
+;		(define-key keymap [S-mouse-4] 'mwheel-scroll)
+;		(define-key keymap [S-mouse-5] 'mwheel-scroll)
+;		keymap))
+;	    '((name . "Disable wl-message-wheel-* functions")))
 
 ;; same for mime-view, but maybe this doesn't work so well?
 ;; xxx maybe setting `mime-view-mode-default-map' doesn't work???
