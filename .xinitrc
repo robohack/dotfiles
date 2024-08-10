@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.24	24/08/05 13:39:31 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.25	24/08/10 13:10:24 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -801,8 +801,7 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			#
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server more.local 'xauth nmerge -'
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server xenful.local 'xauth nmerge -'
-# xentastic is currently using $HOME from more.local
-#			xauth nextract - ${REMOTE_DISPLAY} | onx11server xentastic.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server xentastic.local 'xauth nmerge -'
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server nb10.local 'xauth nmerge -'
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server -S nbday.local 'xauth nmerge -'
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbt.local 'xauth nmerge -'
@@ -812,7 +811,7 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			xauth nextract - ${REMOTE_DISPLAY} | onx11server -S fezzik.local 'xauth nmerge -'
 #			xauth nextract - ${REMOTE_DISPLAY} | onx11server -S frodo.local 'xauth nmerge -'
 #			xauth nextract - ${REMOTE_DISPLAY} | onx11server historically.local 'xauth nmerge -'
-#			xauth nextract - ${REMOTE_DISPLAY} | onx11server once.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server once.local 'xauth nmerge -'
 			# next ones share a home dir mounted from more.local
 			#xauth nextract - ${REMOTE_DISPLAY} | onx11server building.local 'xauth nmerge -'
 			#xauth nextract - ${REMOTE_DISPLAY} | onx11server future.local 'xauth nmerge -'
@@ -859,25 +858,25 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			export XloadGeomXentral
 # see below for xentral	onx11server -nS xentral "xload -geometry ${XloadGeomXentral} -hl red" &
 
-#			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-#			XloadGeomOnce="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
-#			export XloadGeomOnce
-#			onx11server -n once.local "xload -geometry ${XloadGeomOnce} -hl red" &
+			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+			XloadGeomOnce="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
+			export XloadGeomOnce
+			onx11server -n once.local "xload -geometry ${XloadGeomOnce} -hl red" &
 
 #			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 #			XloadGeomHistorically="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
 #			export XloadGeomHistorically
 #			onx11server -n historically.local "xload -geometry ${XloadGeomHistorically} -hl red: &
 
-			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-			XloadGeomB2="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
-			export XloadGeomB2
-# see below for b2	onx11server -n b2.local "xload -geometry ${XloadGeomB2} -hl red: &
-
-			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-			XloadGeomFezzik="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
+# under the clocks!	xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+			XloadGeomFezzik="${XloadWidth}x${XloadHeight}-0+${xloadoff}" # under the clocks!
 			export XloadGeomFezzik
 			onx11server -nS fezzik.local "xload -geometry ${XloadGeomFezzik} -hl red" &
+
+# under the clocks	xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+			XloadGeomB2="${XloadWidth}x${XloadHeight}-${XloadWidth}+${xloadoff}"
+			export XloadGeomB2
+# see below for b2	onx11server -n b2.local "xload -geometry ${XloadGeomB2} -hl red: &
 
 			# these are under the workspace manager
 			#
@@ -1089,13 +1088,14 @@ very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.roboha
 		${XCLOCK} -update 1 -geometry $ClockGeom &
 	fi
 
-	# All the small lower-right command terminals (starting with our own first one)
+	# our own small lower-right command terminal
+	#
+	# (the rest, for "remote" windows, are done in xinit/startx section)
+	#
 	uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -n OccupyAll -e login -pf ${USER:-$LOGNAME} &
-#	onx11server -n once.weird.com "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
 
-	# All the big main area terminals (starting with our own first one)
+	# our own big main area terminal
 	uxterm -tn xterm-256color -geometry 132x82+0+0 -fs 9 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -e login -pf ${USER:-$LOGNAME} &
-#	onx11server -n once.weird.com "uxterm -tn xterm -geometry 132x82+0+0 -fs 9 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS}" &
 
 	if type xmahjongg >/dev/null 2>&1; then
 		#
@@ -1120,21 +1120,13 @@ very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.roboha
 		elif [ $SCREENDPI_Y -gt 110 ]; then
 			echo "You might want to make a bigger tile set for XmahJongg."
 			xmahjongg -g +1000+0 &
+			onx11server -n more.local 'xmahjongg -t real_x2 -g 2000x1500 --bg $HOME/public_html/marble.gif &' &
 		else
 			xmahjongg -g +1000+0 &
 		fi
 	fi
 
 	uxterm -tn xterm-256color -geometry 80x25+$(expr \( $SCREENDIM_X \* $SCREENDPI_X / 2 \) - \( 3 \* $SCREENDPI_X \))-$(expr $SCREENDPI_Y \* 2) -fs 9 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -fc 5 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor &
-
-	# All the normal emacs windows...
-	# oddly using 130x64 turns into 163x55 with the font change!
-	# this one's supposed to go in virtualscreen "Mail"
-###	$RSH -n building.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -geometry 130x75+0+0" &
-	# this one's supposed to go in virtualscreen "Coding"
-###	$RSH -n building.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -i -geometry 130x75+0+0" &
-	# this one should go in the virtualscreen "News"
-###	$RSH -n whats.weird.com ". ./.localprofile; PATH=$PATH:/usr/pkg/bin:/usr/local/bin; export PATH; MAIL=/var/mail/$LOGNAME; export MAIL; exec /usr/pkg/bin/emacs -i -geometry 130x75+0+0" &
 	;;
 
 macweird.*:*|Gregs-MBP.*|*xquartz:*)
@@ -1173,9 +1165,6 @@ macweird.*:*|Gregs-MBP.*|*xquartz:*)
 	uxterm -tn xterm-256color -geometry 80x30-0-${XconsoleVoff} -fs 7.5 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -n OccupyAll -e login -pf ${USER:-$LOGNAME} &
 
 	# All the big main area terminals (starting with our own first one)
-	# XXX damn, the default "-font 7x14" is just a wee bit too wide at 132 chars!
-	# (but oddly not on the old macbook, only on the new macbook air!)
-	# the old 13" macbook can only handle 59 rows, but the 13" macbook air does 66
 	uxterm -tn xterm-256color -geometry 132x50+0+0 -fs 7.5 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -e login -pf ${USER:-$LOGNAME} &
 	;;
 
