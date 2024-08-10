@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.24	24/08/05 14:14:20 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.25	24/08/10 13:07:56 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -113,6 +113,12 @@ define(ClockWidth, eval(HorizDPI * ClockSize))
 define(ClockHeight, eval(VertDPI * ClockSize))
 define(ClockOff, eval(ClockWidth + (2 * TDBORDERWIDTH)))
 
+# hmmm.... maybe, some, xloads could be in a WindowBox:
+#
+#	 WindowBox "xloadbox" "320x100+0-0" {
+#	                   "xload"
+#	               }
+#
 define(XloadWidth, eval(HorizDPI * 1))
 define(XloadHeight, eval(VertDPI / 2))
 
@@ -258,6 +264,19 @@ Color {
 	IconManagerBackground	"blue4"
 	IconManagerForeground	"White"
 	IconManagerHighlight	"yellow"
+	# XXX hmmm....  the CHANGES file says:
+	#
+	#  * If there is neither MapWindowBackground, nor MapWindowForeground in the
+	#    config file,the window title colors are used for the small windows in the
+	#    workspace map.
+	#
+	# and the manual page concurs:
+	#
+	#	If there is neither MapWindowBackground, nor MapWindowForeground
+	#	the window title colors are used.
+	#
+	# by which I think it means CTWM's "TitleForeground" color is used....
+	#
 	MapWindowBackground	"LightSteelBlue" {
 		# XXX unfortunately the "root*" trick doesn't work very well
 		# since these colours are only assigned if the window name, at
@@ -269,6 +288,7 @@ Color {
 		"tkined" "red"
 	}
 	MapWindowForeground	"Black" {
+		# better contrast for these ones....
 		"xterm" "White"
 		"tkined" "White"
 	}
@@ -277,8 +297,8 @@ Color {
 	MenuTitleBackground	"DarkSeaGreen"
 	MenuTitleForeground	"White"
 	MenuShadowColor		"gray50"
-	TitleBackground		"blue"
-	TitleForeground		"White"
+	TitleBackground		"blue"	# default is white
+	TitleForeground		"White" # default is black
 }
 
 Monochrome {
@@ -305,14 +325,16 @@ define(OPT_XTERM_TN, [-tn xterm-256color])
 define(XLOAD_HL, [red])
 
 MapWindowCurrentWorkSpace {
-	"yellow"
-	"grey50"
-	"grey98"
+	"yellow"		# border
+	"grey50"		# background
+	"grey98"		# foreground
+	# bitmap
 }
 MapWindowDefaultWorkSpace {
-	"DarkGreen"
-	"grey98"
-	"grey50"
+	"DarkGreen"		# border
+	"grey98"		# background
+	"grey50"		# foreground
+	# bitmap
 }
 
 # Colours to be stored in the root window's _MIT_PRIORITY_COLORS
@@ -520,7 +542,7 @@ Cursors {
 # geometry in pixels, as given here.
 #
 # The first one is for the likes of "very" where there's room for the xloads.
-# The second is for the likes of an modern macbook.
+# The second is for the likes of a modern macbook.
 # The third is for the likes of an NCD HMX or 19c with room for a big clock.
 # The default is for small screens where there's only room for a small clock.
 #
@@ -559,21 +581,21 @@ WorkSpaces {
 }
 ], [
 WorkSpaces {
-	"Consoles"
-	"VMs"
+	"Desktop"
+	"Remote VMs"
 	"Mail"
 
 	"Home"
-	"Play"
+	"Xenful VMs"
 	"Central"
 
 	"Coding"
 	"Testing 1"
-	"Testing 2"
+	"FreeBSD"
 
 	"Work 1"
+	"Xentastic VMs"
 	"Work 2"
-	"Work 3"
 }
 ])
 
@@ -590,7 +612,7 @@ OccupyAll {
 	"Calculator"
 	"NCD User Services:  Console"
 	"NCD User Services:  Show Memory"
-	"OccupyAll"		# a trick used for starting xterms...
+	"OccupyAll"		# a trick used for starting xterms (that doesn't work???)...
 	"lmclock"
 	"oclock"
 	"swisswatch"
@@ -698,6 +720,11 @@ WarpCursor {
 	"xterm"
 	"xcalc"
 	"xmahjongg"
+}
+
+WindowGeometries {
+	# xmahjongg cannot handle standard geometry positioning (it does do size)
+	"xmahjongg"	"2000x1500+2200+0"
 }
 
 # These have an optional window list parameter
@@ -925,8 +952,8 @@ menu "consoles"
 	CONSOLE_REP(nbday)
 	CONSOLE_REP(fezzik)
 	""			f.separator
-# powered off, but enabled in tserver
 	CONSOLE_REP(once)
+# powered off, but enabled in tserver
 	CONSOLE_REP(isit)
 # not connected
 #	CONSOLE_REP(bbb-1)
@@ -1213,6 +1240,8 @@ menu "applications"
 	"Xterm's Everywhere..."		f.menu "xterms"
 	"Emacs Everywhere..."		f.menu "emacs"
 	""				f.separator
+	"Console Server"		f.menu "consoles"
+	""				f.separator
 	"Monitors..."			f.menu "monitors"
 	"Locks..."			f.menu "locks"
 	"Backgrounds..."		f.menu "backgrounds"
@@ -1354,7 +1383,7 @@ menu "monitors"
 	"xload @xenful"		!". ./.shrc; onx11server -n xenful.local \"xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomXenful} -hl red\" &"
 	"xload @xentastic"	!". ./.shrc; onx11server -n xentastic.local \"xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomXentastic} -hl red\" &"
 	"xload @xentral"	!"ssh -CY -n woods@xentral.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomXentral} -hl red\" &"
-#	"xload @once"		!". ./.shrc; onx11server -n once.local \"xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomOnce} -hl red\" &"
+	"xload @once"		!". ./.shrc; onx11server -n once.local \"xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomOnce} -hl red\" &"
 	#
 #	"xload @historically"	!". ./.shrc; onx11server -n historically.local \"xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomHistorically} -hl red\" &"
 	"xload @b2"		!"ssh -CY -n woods@b2.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomB2} -hl red\" &"
@@ -1475,8 +1504,8 @@ menu "xterms"
 #	"UXterm-big @rpi"	!". ./.shrc; onx11server -n rpi.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 #	"UXterm @historically"	!". ./.shrc; onx11server -n historically.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
 #	"UXterm-big @historically" !". ./.shrc; onx11server -n historically.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-#	"UXterm @once"		!". ./.shrc; onx11server -n once.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-#	"UXterm-big @once"	!". ./.shrc; onx11server -n once.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @once"		!". ./.shrc; onx11server -n once.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
+	"UXterm-big @once"	!". ./.shrc; onx11server -n once.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"UXterm @fezzik"	!". ./.shrc; onx11server -nS fezzik.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
 	"UXterm-big @fezzik"	!". ./.shrc; onx11server -nS fezzik.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
 	"UXterm @nb10"		!". ./.shrc; onx11server -n nb10.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
@@ -1567,8 +1596,7 @@ menu "xauths"
 	"Xauth pushes"		f.title
 	"Xauth to more"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server more.local 'xauth nmerge -' ) &"
 	"Xauth to xenful"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server xenful.local 'xauth nmerge -' ) &"
-# currently mounts /more/home
-#	"Xauth to xentastic"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server xentastic.local 'xauth nmerge -' ) &"
+	"Xauth to xentastic"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server xentastic.local 'xauth nmerge -' ) &"
 	"Xauth to nb10"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server nb10.local 'xauth nmerge -' ) &"
 	"Xauth to nbday"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server -S nbday.local 'xauth nmerge -' ) &"
 	"Xauth to nbt"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server nbt.local 'xauth nmerge -' ) &"
@@ -1578,7 +1606,7 @@ menu "xauths"
 	"Xauth to fezzik"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server -S fezzik.local 'xauth nmerge -' ) &"
 	"Xauth to frodo"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server -S frodo.local 'xauth nmerge -' ) &"
 #	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server historically.local 'xauth nmerge -' ) &"
-#	"Xauth to once"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server once.local 'xauth nmerge -' ) &"
+	"Xauth to once"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server once.local 'xauth nmerge -' ) &"
 	"Xauth to very-old"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server -S very-old.local 'xauth nmerge -' ) &"
 }
 ])
