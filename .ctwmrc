@@ -8,7 +8,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.25	24/08/10 13:07:56 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.26	24/08/20 13:01:49 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -969,6 +969,8 @@ menu "consoles"
 #	CONSOLE_REP(nbt)
 #	CONSOLE_REP(nbt2)
   undefine(CONSOLE_REP)
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 
 menu "termservers"
@@ -988,6 +990,8 @@ menu "termservers"
 	CONTROLLING_REP(07)
 	CONTROLLING_REP(08)
   undefine(CONTROLLING_REP)
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 
 menu "defops"
@@ -1127,6 +1131,8 @@ menu "iconmgr"
 	""			f.separator
 	"Left"			f.lefticonmgr
 	"Right"			f.righticonmgr
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 
 # "personal preference" adjustments
@@ -1180,6 +1186,8 @@ ifelse(COLOR, Yes,
 	"Delete red"		!"xstdcmap -delete red -verbose &"
 	"Delete green"		!"xstdcmap -delete green -verbose &"
 	"Delete blue"		!"xstdcmap -delete blue -verbose &"
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 ], [])
 
@@ -1219,6 +1227,8 @@ menu "leds"
 	"3 off"			!"xset -led 3"
 	"4 on"			!"xset led 4"
 	"4 off"			!"xset -led 4"
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 
 menu "exit"
@@ -1267,6 +1277,8 @@ menu "audios"
 	""				f.separator
 	"xcdplayer"			!"xcdplayer &"
 	"xmcd"				!"xmcd &"
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 
 menu "graphics"
@@ -1288,6 +1300,8 @@ menu "graphics"
 	"xcmap"				!"xcmap &"
 	"xwd > ~/tmp/win.xwd"		!"xwd > HOME/tmp/win.xwd"
 	"xwd -root > ~/tmp/root.xwd"	!"xwd -root > HOME/tmp/root.xwd"
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 
 menu "tools"
@@ -1298,6 +1312,8 @@ menu "tools"
 	"xfontsel"			!"xfontsel &"
 	"xkeycaps"			!"xkeycaps &"
 	"xdpr"				!"xdpr -device ps &"
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 
 menu "miscapps"
@@ -1332,6 +1348,8 @@ menu "miscapps"
 	"plan"				!"plan &"
 	"pan"				!"pan &"
 	"timekeeper"			!"timekeeper &"
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 
 menu "emacs"
@@ -1347,6 +1365,8 @@ menu "emacs"
 	"@xenful"		!". ./.shrc; onx11server -n xenful.local \"emacs -fh\" &"
 	"@xentastic"		!". ./.shrc; onx11server -n xentastic.local \"emacs -fh\" &"
 ])
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 
 menu "monitors"
@@ -1400,6 +1420,8 @@ menu "monitors"
 	"xcpustate @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xcpustate -display ${REMOTE_DISPLAY} -geometry 190x20-0+300 -shorten 1 -wait -cpu -disk\" &"
  ])
 	"tkined"		!"tkined &"
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 
 menu "locks"
@@ -1407,6 +1429,8 @@ menu "locks"
 	"Locks"			f.title
 	"xlock"			!"xlock -mode flame &"
 	"xlock remote"		!"xlock -remote -mode flame &"
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 
 menu "backgrounds"
@@ -1429,6 +1453,8 @@ menu "backgrounds"
 	"xphoon"		!"xphoon -t 10 &"
 	"xsetroot eschernknot"	!"xsetroot -bitmap ${X11PATH}/[include]/X11/bitmaps/escherknot"
 	"xsetroot xsnow"	!"xsetroot -bitmap ${X11PATH}/[include]/X11/bitmaps/xsnow"
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 
 menu "games"
@@ -1464,6 +1490,8 @@ menu "games"
 	"xworm"			!"xworm &"
 	""			f.separator
 	"X11 Sample Toys..."	f.menu "samplegames"
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 
 menu "samplegames"
@@ -1476,6 +1504,8 @@ menu "samplegames"
 	"ico"			!"ico &"
 	"maze"			!"maze &"
 	"puzzle"		!"puzzle &"
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 
 menu "xterms"
@@ -1567,6 +1597,8 @@ menu "xterms"
 	"Xterm @freely" 	!". ./.shrc; onx11server -n freely.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
   ])
  ])
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 
 # for pushing our X11 AUTH cookies over to the various target hosts in case they
@@ -1587,6 +1619,8 @@ menu "xauths"
 	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} historically.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
 	"Xauth to freely"	!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} freely.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
 	"Xauth to whats"	!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} whats.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 ])
 
@@ -1608,6 +1642,8 @@ menu "xauths"
 #	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server historically.local 'xauth nmerge -' ) &"
 	"Xauth to once"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server once.local 'xauth nmerge -' ) &"
 	"Xauth to very-old"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server -S very-old.local 'xauth nmerge -' ) &"
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 ])
 
@@ -1632,6 +1668,8 @@ menu "osx-apps"
 	"System Preferences"	!"open '/Applications/Utilities/System Preferences.app' &"
 	"System Profiler"	!"open '/Applications/Utilities/System Profiler.app' &"
 	"Terminal"		!"open /Applications/Utilities/Terminal.app &"
+	""			f.separator
+	"Pin this menu"		f.pin
 }
 ])
 
