@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.30	24/08/05 13:40:16 (woods)"
+#ident	"@(#)HOME:.profile	37.31	24/09/20 16:01:04 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -73,7 +73,7 @@
 #
 #	Login shells can be tested with:
 #
-#	    cd $HOME && env -i SHELL=/path/to/sh HOME=$HOME DISPLAY=$DISPLAY PATH=$PATH xterm $XTERM_OPTS &
+#	    cd $HOME && env -i SHELL=/path/to/sh HOME=$HOME DISPLAY=$DISPLAY PATH=$PATH uxterm $XTERM_OPTS &
 #
 #	Note the "cd $HOME" in the above test command.  Most shell manuals say
 #	something like "read the .profile file in the user's home directory
@@ -81,7 +81,7 @@
 #	fact some expect to be started with their current working directory
 #	already in $HOME, e.g. NetBSD sh (and maybe older shells, but not dash).
 #
-#	N.B.:  $XTERM_OPTS is expected to contain '-ls'
+#	N.B.:  $XTERM_OPTS is expected to contain '-ls' for such tests.
 
 # ToDo:
 #
