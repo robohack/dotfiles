@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.17	24/08/05 13:32:45 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.18	24/09/22 12:42:43 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v23.1 or newer (with Xft)
 ;;;;
@@ -1412,10 +1412,10 @@ be useful for scenarios where an emacs server runs in an xterm?)."
 ;; resX-resY parameters you pass (i.e. '*' or '0'), so long as you have set the
 ;; Xft.dpi resource correctly.
 ;;
-;; With full FreeType and fontconfig To find all the usable fonts with all their
-;; available styles:  (XXX for some reason "fc-match -s" does not find some of
-;; the best fonts such as "Liberation Mono" and "CommitMono" -- I am not sure
-;; why, or what the manual means by "best")
+;; With full FreeType and fontconfig we can find all the usable fonts with all
+;; their available styles:  (XXX for some reason "fc-match -s" does not always
+;; find some of the better fonts such as "Liberation Mono" and "CommitMono" -- I
+;; am not sure why, or what the manual means by "best")
 ;;
 ;;	fc-list :scalable=true:spacing=100:lang=en: family style | sort
 ;;
@@ -1430,18 +1430,22 @@ be useful for scenarios where an emacs server runs in an xterm?)."
 ;;         https://ctan.org/tex-archive/fonts/Asana-Math?lang=en
 ;;
 ;; CommitMono, an OTF, if installed and usable, is complete enough and is very
-;; reasonable looking (get it from https://commitmono.com/):
+;; reasonable looking (https://commitmono.com/, but note TTF is probably
+;; required for X11):
+;;
 ;;(setq preferred-frame-font "-*-commitmono-medium-r-*-*-*-90-*-*-m-*-iso10646-1")
 ;;(setq preferred-frame-font "commitmono:size=9")
 ;;
-;; Liberation Mono, a TTF, if installed and usable, is quite complete and
-;; very reasonable looking:
+;; Liberation Mono, a TTF, if usable (it is a default X11 font in X11R7(6?)), is
+;; reasonably complete and very reasonable looking:
+;;
 ;;(setq preferred-frame-font "-*-liberation mono-medium-r-*-*-*-90-*-*-m-*-iso10646-1")
 ;;
-;; DejaVu is often a bit heavier and larger and not as elegant.  However it is
-;; far more complete in Unicode chars, though given how Emacs makes up a
-;; complete charset from various other fonts as needed (much like Xterm, but in
-;; a different way), this doesn't matter so much.
+;; DejaVu Sans Mono, also a TTF, is often a bit heavier and larger and not as
+;; elegant.  However it is far more complete in Unicode chars, though given how
+;; Emacs makes up a complete charset from various other fonts as needed (much
+;; like Xterm, but in a different way), this doesn't matter so much.
+;;
 ;;(setq preferred-frame-font "-*-dejavu sans mono-medium-r-*-*-*-100-*-*-m-0-iso10646-1")
 ;;
 ;; There's also Cascadia Mono (kinda ugly), FreeMono (far too light, but nearly
@@ -1449,32 +1453,43 @@ be useful for scenarios where an emacs server runs in an xterm?)."
 ;; See `my-perferred-fonts' below.
 ;;
 ;; There may be one or more courier fonts available, but they are all ugly:
+;;
 ;;(setq preferred-frame-font "-*-courier-medium-r-*-*--100-*-*-m-*-iso10646-1")
 ;;(setq preferred-frame-font "-*-courier 10 pitch-medium-r-*-*--100-*-*-m-*-iso10646-1")
 ;;
 ;; Bitstream Vera line drawing characters may be too small (maybe they are
-;; invented/borrowed?)
+;; invented/borrowed?), and it is missing some characters.
+;;
 ;;(setq preferred-frame-font "-*-bitstream vera sans mono-medium-r-*-*-*-100-*-*-m-*-iso10646-1")
 ;;
 ;; Luxi Mono is missing many characters (though emacs can pull from other
-;; fonts), but it is also ugly, and with serifs
+;; fonts), but it is also ugly in some glyphs, and with serifs
+;;
 ;;(setq preferred-frame-font "-*-luxi mono-medium-r-*-*-*-100-*-*-m-*-iso10646-1")
 ;;
 ;; these probably don't work (unless strictly using bitmap fonts only):
+;;
 ;;(setq preferred-frame-font "-*-lucidatypewriter-medium-r-*-*-*-100-*-*-m-*-iso10646-1")
 ;;
 ;; a last ditch attempt:
+;;
 ;;(setq preferred-frame-font "-*-*mono*-medium-r-*-*-*-100-*-*-m-*-iso10646-1")
 ;;
 ;;(set-frame-face-to-preferred-frame-font (selected-frame))
 ;;(set-frame-face-to-preferred-frame-font (selected-frame) "font")
 ;;
 ;; update all frames:
-;; (mapc 'set-frame-face-to-preferred-frame-font (frames-on-display-list))
+;;(mapc 'set-frame-face-to-preferred-frame-font (frames-on-display-list))
+;;
+;; another way to update all frames:
+;;(set-face-attribute 'default nil :font FONT)
+;;(set-frame-font FONT nil t)
 ;;
 ;; (see also `modify-all-frames-parameters'...)
 ;;
 ;; (see also https://archive.casouri.cc/note/2021/fontset/)
+;;
+;; (see also https://www.emacswiki.org/emacs/SetFonts)
 ;;
 (eval-and-compile
   (defvar display-x-dpi nil
@@ -1485,8 +1500,8 @@ be useful for scenarios where an emacs server runs in an xterm?)."
     "Ideal (deci)point size for the current display.")
   (defvar probable-pixel-size nil
     "The calculated pixel height for `my-ideal-point-size'")
-  (defvar my-preferred-sans-fonts '("commitmono"
-				    "liberation mono" "dejavu sans mono"
+  (defvar my-preferred-sans-fonts '("dejavu sans mono" "commitmono"
+				    "liberation mono"
 				    "mensch" "pt mono" "andale mono" "consola mono"
 				    "cascadia mono" "freemono" "ubuntu mono"
 				    "courier" "courier 10 pitch")
@@ -1501,7 +1516,7 @@ default sans-serif monospace font, in order of preference.")
 default serif-ed monospace font, in order of preference.")
   (defvar preferred-frame-font nil
     "XLFD spec for the default/preferred frame font.")
-  ;; XXX or should it be an XftPattern font name (since 23.x)???
+  ;; XXX or should it be an XftPattern font name (since 23.1)???
   )
 
 ;;
@@ -1686,8 +1701,9 @@ Derived from an example on the EmacsWiki."
 (require 'frame)
 
 (defun preferred-font (fonts)
-  "Return the first string from the list of FONTS which matches
-an existing and usable font."
+  "Return the first string from the list of FONTS (i.e. font
+families, which in Emacs seems to mean a font with various styles
+and weights) which matches an existing and usable font."
   (let ((list fonts)
 	result)
     (while (and (null result)
@@ -1718,6 +1734,33 @@ an existing and usable font."
 	(setq list (cdr list))))
     result))
 
+(defun set-frame-face-to-preferred-frame-font (curframe &optional font)
+  "Set CURFRAME's faces to those for `preferred-frame-font'.
+This is a replacement of sorts for `set-frame-font' (formerly
+`set-default-font', obsolete since 23.1) which can be used as an
+`after-make-frame-functions' hook.  It is not just a wrapper but
+a re-implementation so that we can catch the error from
+`modify-frame-parameters' when our preferred font is not
+available (though sometimes a failure just crashes emacs?!?!?)."
+  (let ((orig-font (frame-parameter nil 'font))
+	(new-font (if font font preferred-frame-font)))
+    (condition-case nil
+	(modify-frame-parameters curframe
+				 (list (cons 'font new-font)))
+      (error (modify-frame-parameters curframe
+				    (list (cons 'font orig-font))))))
+  ;; xxx n.b. this does not set the default font...
+  (run-hooks 'after-setting-font-hook 'after-setting-font-hooks)
+  ;;
+  ;; Update faces that want a bold or italic version of the default font.
+  ;; unnecessary in 21.1 and newer.  Ignore the "no longer necessary" warning.
+  ;;
+  ;; XXX maybe there need to be condition-case catchers here too?
+  ;;
+  (if (and (fboundp 'frame-update-faces)
+	   (not (eq (get 'frame-update-faces 'byte-compile) 'byte-compile-obsolete)))
+      (frame-update-faces curframe)))
+
 ;; xxx this could/should be a `cond' if it were necessary to handle multiple
 ;; types of `window-system'
 ;;
@@ -1728,7 +1771,7 @@ an existing and usable font."
 (if (or (eq window-system 'x)
 	(eq window-system 'ns))		; i.e. nextstep, aka macOS native Cocoa
     (progn
-      ;; xxx there is also `standard-fontset-spec'
+      ;; xxx there is also `standard-fontset-spec' and `set-fontset-font'
       (setq orig-default-frame-font (frame-parameter nil 'font))
       (eval-when-compile
 	(defvar select-enable-clipboard)
@@ -1852,8 +1895,9 @@ an existing and usable font."
       ;; font spec doesn't seem to work with emacs (at least not with either of
       ;; the GTK+2.0 or Lucid toolkits) -- and there doesn't seem to be any
       ;; plain way to request a font with a given name and a physical point size
-      ;; of N.  None the less it sometimes seems to get things right somehow,
-      ;; though with Lucid it ends up doing scaling completely bass-ackwards.
+      ;; of N (xxx unless maybe the Xft format works, i.e. FONT:size=9).  None
+      ;; the less it sometimes seems to get things right somehow, though with
+      ;; Lucid it ends up doing scaling completely bass-ackwards.
       ;;
       ;; Just to be pedantic though I do specify the resolution, but in order to
       ;; get the right thing to work then either an '*' or a non-zero pixel size
@@ -1874,40 +1918,88 @@ an existing and usable font."
 			  display-x-dpi
 			  display-y-dpi))
 	  ;; else hope for the best using X11 XLFD wildcard matching!
+	  ;; xxx should this use "Monospace" and thus `face-font-family-alternatives'???
 	  (setq preferred-frame-font
 		(format "-*-*mono*-medium-r-*--%d-%d-%d-%d*-m-0-iso10646-1"
 			probable-pixel-size
 			my-ideal-point-size
 			display-x-dpi
 			display-y-dpi)))
-	;; fix fonts for the `fixed-pitch' and `fixed-pitch-serif' faces
 	;;
-	;; XXX N.B.:  This is does not actually seem to be used anywhere!!!!
-	;; 
+	;; src/xfaces.c says:
+	;;
+	;;   2. Setting face-font-family-alternatives allows the user to
+	;;   specify alternative font families to try if a family specified by a
+	;;   face doesn't exist.
+	;;
+	;;   3. Setting face-font-registry-alternatives allows the user to
+	;;   specify all alternative font registries to try for a face
+	;;   specifying a registry.
+	;;
+	;; N.B.:  by "family" and "registry", Emacs means the XLFD "family" and
+	;; "registry" fields, i.e. the font family name and charset name.
+	;;
+	;; So in the default (from lisp/faces.el) they have specified some
+	;; "invented" fonts, such as "Monospace" and "Sans Serif", etc., and
+	;; then for each they list actual fonts that exhibit such qualities.
+	;;
+	;; XXX So in some sense these may work like my `preferred-font' and
+	;; allow setting the default font, or any other font, to just the fake
+	;; name used in this list, such as "Monospace".  However finding out
+	;; which one is chosen using this list is (probably) impossible!
+	;;
 	;; n.b.: fixing these may enable use of:
 	;; https://github.com/cstby/fixed-pitch-mode/
 	;;
 	(setq face-font-family-alternatives
 	      (list (list "Monospace"
-			  best-sans-font "fixed")
-		    (list "Monospace  Serif"
-			  best-serif-font "courier" "fixed")
-		    (list "courier"	; "backward compatability"???
+			  best-sans-font
+			  "DejaVu Sans Mono"
+			  "commitmono" "liberation mono"
+			  "mensch" "pt mono" "andale mono" "consola mono"
+			  "cascadia mono" "freemono" "ubuntu mono"
+			  "fixed")
+		    (list "Monospace Serif"
+			  best-serif-font
+			  "inputserif" "nimbus mono l" "freemono"
+			  "rec mono casual" "luxi mono" "mmtimes"
+			  "linux libertine mono"
+			  "courier" "courier 10 pitch" "fixed")
+		    (list "courier"	; "This is present for backward compatibility."???
 			  "courier" "courier 10 pitch" "fixed")
 		    (list "Sans Serif"
 			  "DejaVu Sans" "Liberation Sans"
-			  "Bitstream Vera sans" "times")
+			  "Bitstream Vera sans" "helvetica")
 		    (list "Serif"
 			  "DejaVu Serif" "Liberation Serif" "Linux Libertine"
-			  "Bitstream Vera Serif" "helvetica")
-		    (list "helv"	; "backward compatability"???
+			  "Bitstream Vera Serif" "times")
+		    (list "helv"	; more "backward compatability"???
 			  "DejaVu Sans" "Liberation Sans"
-			  "Bitstream Vera sans" "times")))
+			  "Bitstream Vera sans" "helvetica")))
+	;;
+	;; xxx hmmm....
+	;;
+	;; Assuming can we trust `preferred-font' to have found one
+	;; that will reliably work reliably:
+	;;
+	(set-frame-font preferred-frame-font nil t)
+	;;
+	;; XXX otherwise we need to do:
+	;;(set-frame-face-to-preferred-frame-font nil)
+	;; xxx hmmm... if the above failed we shouldn't do these....
+	;;
+	(set-face-attribute 'default nil :font preferred-frame-font)
+	;;
+	;; fix fonts for the `fixed-pitch' and `fixed-pitch-serif' faces
+	;;
 	;; Now we need to reset the `fixed-pitch' and `fixed-pitch-serif'
 	;; faces (as faces.el has already been loaded long ago?)
 	;;
 	(face-spec-set 'fixed-pitch `((t :font ,best-sans-font)))
 	(face-spec-set 'fixed-pitch-serif `((t :font ,best-serif-font)))
+	;;
+	;; XXX unnecessary with the call to `set-face-attribute' above....
+	;(add-hook 'after-make-frame-functions 'set-frame-face-to-preferred-frame-font)
 	)
       )
   ;; else... presumably on a normal terminal
@@ -1917,44 +2009,15 @@ an existing and usable font."
     (if (boundp 'tty-setup-hook)
 	(add-hook 'tty-setup-hook 'my-terminal-config)
       (add-hook 'term-setup-hook 'my-terminal-config))
+    ;; xxx the default is real-white, which makes it look like the rest of text
+    ;; on a white background terminal, but this "white" is not real-white, so...
+    (set-face-attribute 'mode-line nil :background "white")
+    ;; xxx the default seems to be "white", so we need it darker
+    (set-face-attribute 'mode-line-inactive nil
+			:background "brightblack"
+			:foreground "black")
     )
   )
-
-(defun set-frame-face-to-preferred-frame-font (curframe &optional font)
-  "Set CURFRAME's faces to those for `preferred-frame-font'.
-This is a replacement for `set-frame-font' (formerly
-`set-default-font') which can be used as an
-`after-make-frame-functions' hook.  It is not just a wrapper but
-a re-implementation so that we can catch the error from
-`modify-frame-parameters' when our preferred font is not
-available (though sometimes a failure just crashes emacs?!?!?)."
-  (let ((orig-font (frame-parameter nil 'font)))
-    (condition-case nil
-	(modify-frame-parameters curframe
-				 (list (cons 'font
-					     (if font font preferred-frame-font))))
-      (error (modify-frame-parameters curframe
-				    (list (cons 'font orig-font))))))
-  (run-hooks 'after-setting-font-hook 'after-setting-font-hooks)
-  ;;
-  ;; Update faces that want a bold or italic version of the default font.
-  ;; unnecessary in 21.1 and newer.  Ignore the "no longer necessary" warning.
-  ;;
-  ;; XXX maybe there need to be condition-case catchers here too?
-  ;;
-  (if (and (fboundp 'frame-update-faces)
-	   (not (eq (get 'frame-update-faces 'byte-compile) 'byte-compile-obsolete)))
-      (frame-update-faces curframe)))
-
-;; XXX only needed for a `window-system'?
-(add-hook 'after-make-frame-functions 'set-frame-face-to-preferred-frame-font)
-
-;; this fixes up the current frame, which already exists, and already has its
-;; font parameter set....
-(set-frame-face-to-preferred-frame-font (selected-frame))
-
-;; XXX maybe we could/should also call `modify-all-frames-parameters', though
-;; normally we create new frames from existing frames, so they inherit params.
 
 ;; Something more detailed, like this, really should be the default!
 ;;
@@ -4875,9 +4938,14 @@ Optional arg REVISION is a revision to annotate from."
 ;;
 (eval-and-compile
   (defcustom vc-dir-local-dir-only nil
-    "If not nil then `vc-dir' et al should not descend into any sub-directories!
+    "If not nil then `vc-dir' et al should not descend into any
+    sub-directories!
 
-This is normally set by calling `vc-dir' with a negative prefix."
+This is normally set by calling `vc-dir' with a negative
+prefix (C-u - M-x vc-dir).
+
+Note to also prompt for a VC backend call with a double negative
+prefix (C-u - C-u M-x vc-dir)"
     :type 'boolean
     :group 'vc)
   (make-variable-buffer-local 'vc-dir-local-dir-only)
@@ -7163,7 +7231,7 @@ but it's seriously brain damaged so we re-define it as nothing."
 ;      (setq send-mail-function #'smtpmail-send-it)))
 
 ;; for now the initial default "per system" (really per $HOME) is for
-;; `send-mail-function' to be bound to `sendmail-query-once'.  This
+;; `send-mail-function' to be bound to `sendmail-query-once'.  This then
 ;; interactively sets up the right things and saves them with `customize'.
 
 
