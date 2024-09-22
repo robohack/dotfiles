@@ -2,30 +2,40 @@
 !
 ! changequote([, ])	note brackets will disappear from comments!
 !
-!#ident	"@(#)HOME:.Xdefaults	37.11	24/08/10 13:05:56 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.12	24/09/22 13:10:01 (woods)"
 !
 ! N.B. WARNING:  This file must be processed with "xrdb -cpp m4" with macros and
 ! macro calls in the comments.  (perhaps it should be renamed to .Xdefaults.m4?)
-! (note also some desktop environments use "~/.Xresources" as their pref. name)
-! (maybe this should be converted to use cpp instead of m4 as some environments
-! do not allow any easy way to specify extra command-line arguments for how they
-! run xrdb (e.g. KDE Plasma), but keeping it as m4 allows easy cut&paste of
-! macros to/from ~/.ctwmrc, and those strange environments can be worked around
-! by running "mv .Xdefaults .Xdefaults.m4; xrdb -quiet -cpp m4 -E -n
-! .Xdefaults.m4 > .Xdefaults")
 !
-! So, reload with:
+! N.B.:  There shall be no blank lines!  Every line herein should be an xrdb(1)
+! comment!
+!
+! Maybe this should be converted to use cpp instead of m4 as some environments
+! do not allow any easy way to specify extra command-line arguments for how they
+! run xrdb (e.g. KDE Plasma), but keeping it as m4 allows use of the shared
+! macro definitions in .X11-m4macros.mr for ~/.ctwmrc and .fonts.alias.m4.
+! Besides those strange environments can be worked around by running
+!
+!	mv .Xdefaults .Xdefaults.m4; xrdb -quiet -cpp m4 -E -n .Xdefaults.m4 > .Xdefaults
+!
+! (note also some desktop environments use "~/.Xresources" as their pref. name)
+!
+! Reload this file with (which is normally done in ~/.xinitrc):
 !
 !	xrdb -cpp m4 -load .Xdefaults
 !
-! Completely clear all resources, e.g. if you are removing one or changing the
-! spelling, etc., first run:
+! To completely clear all resources, e.g. if you are removing one or changing
+! the spelling, etc., first run:
 !
 !	xrdb -remove -all; xrdb -load $X11PATH/lib/X11/Xdefaults
 !
 ! You can see the processed resources with:
 !
 !	xrdb -quiet -cpp m4 -E -n .Xdefaults
+!
+! You can see the preprocessor macro values with "xrdb -symbols".
+!
+! include(.X11-m4macros.m4)
 !
 ! N.B.:  most(all?) programs, e.g. xterm, must be restarted to notice changes in
 ! their resources.  Just log out / stop X and login again!
@@ -87,50 +97,25 @@
 !
 !
 ! Now, on with the show!
+! ======================
 !
 ! Enable error messages for problems converting resource value strings to
 ! internal representations:
 !
 *StringConversionWarnings: on
 !
-!	Work out the screen resolution in order to specify default Font DPIs
 !
-! XXX the next chunk (all the defines()) should probably be an include file,
-! shared with .ctwmrc (and .fonts.alias.m4)
+! Xft setup:
+! ==========
 !
-! n.b.:  resolutions are in pixels per metre, for some stupid reason....
-! so 4500 dpM (/39.37) is just over 110 dpi
+! For Xft we force the Xft.dpi resource to be set to what we've worked out above
+! so this allows the physical font size to be specified, in points, (either with
+! a ":size=" attribute in the font spec (which can be abbreviated as "-POINTS"),
+! or with a command-line option to override that, e.g. with Xterm's "-fs"
+! option.  See fonts.conf(5).
 !
-! define(HorizDPI, eval(((X_RESOLUTION * 100) / 3937) + ((((X_RESOLUTION * 1000) / 3937) % 10) >= 5)))
-! define(VertDPI, eval(((Y_RESOLUTION * 100) / 3937) + ((((X_RESOLUTION * 1000) / 3937) % 10) >= 5)))
-! define(ScreenDimX, eval(WIDTH / HorizDPI))
-! define(ScreenDimY, eval(HEIGHT / VertDPI))
-!
-! N.B.:  If the true screen resolution is within 10% of 100DPI it could make
-! sense to use the 100DPI fonts to avoid font-scaling artifacts for bitmap
-! fonts, but since we already alias most font names that did refer to bitmap
-! fonts into scalable fonts anyway, there is not much to gain by sticking to
-! exactly 100DPI....
-!
-! ifelse(eval((HorizDPI / 100 == 1) && (HorizDPI % 100 <= 10)), 1,
-!  [define(FontXDPI, 100)],
-!  [define(FontXDPI, HorizDPI)]
-! )
-! ifelse(eval((VertDPI / 100 == 1) && (VertDPI % 100 <= 10)), 1,
-!  [define(FontYDPI, 100)],
-!  [define(FontYDPI, VertDPI)]
-! )
-!
-! XXX this is not really necessary, but an example of how to work out the number
-! of pixels for a given point size (9.0)
-! define(VertPix9pt, eval((VertDPI * (90000 / 720)) / 1000))
-!
-! avoid problems with square brackets in values below
-!
-! N.B.:  remember to turn quoting back on to use macros again!
-!
-! Note that Xft does not seem to initialize the default Xft.dpi setting properly -- it does
-! do the right computation:
+! Note that Xft does not seem to initialize the default Xft.dpi setting properly
+! -- it does do the right computation:
 !
 !	dpi = (((double) DisplayHeight (dpy, screen) * 25.4) /
 !		(double) DisplayHeightMM (dpy, screen));
@@ -184,50 +169,8 @@ Xft.minspace:			true
 !Xft.render			false
 !Xft.core			true
 !
-! Emacs is "special" -- as in especially difficult to deal with
 !
-! Emacs actually ignores the resolutions, and needs either a '*' or a non-zero
-! pixelSz value.
-!
-! this may not be necessary???  (only from 23.x(?) onwards)
-! https://www.emacswiki.org/emacs/XftGnuEmacs
-! `(frame-parameter nil 'font-backend)'
-Emacs.FontBackend: xft
-!
-! see also https://www.emacswiki.org/emacs/SetFonts
-!
-Emacs.Font:		CommitMono:size=9
-!Emacs.Font:		-*-commitmono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-*-*
-!Emacs.Font:		-*-liberation mono-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-*-*
-!
-! Set a default font that should work for everyone.  Best looking is
-! "commitmono", most complete is "DejaVu Sans Mono", but "Liberation Mono" might
-! look better in some areas.  "Hack" is fairly complete too, but ugly.
-!
-! Possible alternative (even more glyphs than liberation mono, but no mark in
-! the zero) (from the fonts/freefont-ttf package):
-!
-! -misc-freemono-medium-*-*-*-0-*-218-218-m-0-iso10646-1
-!
-! More alternatives (not quite as many glyphs):
-!
-! -ibm-ibm plex mono-medium-*-*-*-0-*-218-218-m-0-iso10646-1
-! -misc-cascadia mono-medium-*-*-*-0-*-218-218-m-0-iso10646-1
-!
-! When using Xft all possible usable mono-space fonts (for emacs and xterm,
-! etc.) can be found with the following command:
-!
-!	fc-list :scalable=true:spacing=100:lang=en: family
-!
-! To find all the usable fonts with all their available styles:  (XXX for some
-! reason "fc-match -s" does not find some of the best fonts such as "Liberation
-! Mono" and "CommitMono" -- I am not sure why, or what the manual means by
-! "best")
-!
-!	fc-list :scalable=true:spacing=100:lang=en: family style | sort
-!
-! (rule out those with the fewest styles, e.g. "CentSchbook Mono BT", Crystal,
-! "Consola Mono", "Oxygen Mono", "PT Mono", and "Quinze")
+! Set a default font that should work for everyone.
 !
 ! Note we want to pass a '0' for pixelSz for applications that will properly use
 ! normal XLFD specs for scalable fonts, but for others we might be better off
@@ -236,41 +179,44 @@ Emacs.Font:		CommitMono:size=9
 ! xxx hmmm.... which of these do what?  Are there any apps that still cannot use
 ! scalable fonts?
 !
-*Font:				-*-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-*
+*Font:				-*-DecentFont-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-*
 ! this next one is used by xfontsel, xconsole, etc., and may have been same as
 ! "7x14"?, but that is way too big, so we shrink it down to be the same as "6x10"
-*font:				-*-commitmono-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-*
+*font:				-*-DecentFont-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-*
 !
 ! xxx should this have '-m-' for monospace?
 *fontList:			-*-*-*-*-*--0-90-FontXDPI-FontYDPI-*-0-*-*
 ! mentioned for Solaris CDE...
-*SystemFont:			-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
-*UserFont:			-*-commitmono-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-*
+*SystemFont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+*UserFont:			-*-DecentFont-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-*
 !
 ! XXX is this right?  Does it do anything?  Some app-defaults files mention XtDefaultFont
 !
 ! XXX some apps have really strange FontSet definitions, such as gv
 !
-xtDefaultFont:			-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
-! e.g. viewres uses xtDefaultFontSet....
-xtDefaultFontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
 ! these are mentioned as the default values for font and fontSet resources for
 ! the Xt AsciiText widget
-XtDefaultFont:			-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+XtDefaultFont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+xtDefaultFont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+*xtDefaultFont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+!
+! e.g. viewres uses xtDefaultFontSet....
 XtDefaultFontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+xtDefaultFontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+*xtDefaultFontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
 !,-*-*-*-*-*--0-100-FontXDPI-FontYDPI-*-0-*-*
 !
 ! xxx these work for / affect various Xt apps....
 ! viewres also(only?)....
-*Tree*List*Font:		-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+*Tree*List*Font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
 ! editres...
-*mainViewport*resourceLabel.font:-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
-*namesLabel.font:		-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
-*constraintLabel.font:		-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+*mainViewport*resourceLabel.font:-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+*namesLabel.font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+*constraintLabel.font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
 ! xterm et al
 *setup*title.font:		-*-bitstream charter-bold-r-*-*-*-100-FontXDPI-FontYDPI-*-*-iso8859-*
-*SimpleMenu*menuLabel.font:	-*-commitmono-bold-r-normal--*-100-FontXDPI-FontYDPI-m-0-iso8859-*
-*SimpleMenu*font:		-*-commitmono-bold-r-normal--*-80-FontXDPI-FontYDPI-m-0-iso8859-*
+*SimpleMenu*menuLabel.font:	-*-DecentFont-bold-r-normal--*-100-FontXDPI-FontYDPI-m-0-iso8859-*
+*SimpleMenu*font:		-*-DecentFont-bold-r-normal--*-80-FontXDPI-FontYDPI-m-0-iso8859-*
 *SimpleMenu*cursor: 		hand2
 !
 ! really just for Xfontsel (with "-scaled"):
@@ -318,9 +264,26 @@ XtDefaultFontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
 !*Scrollbar.minimumThumb: 	???
 !
 !
+! Emacs is "special" -- as in especially difficult to deal with
+!
+! Setting the FontBackend may not be necessary???  (only from 23.x(?) onwards)
+! https://www.emacswiki.org/emacs/XftGnuEmacs
+! Try: `(frame-parameter nil 'font-backend)'
+Emacs.FontBackend: xft
+!
+! see also https://www.emacswiki.org/emacs/SetFonts
+!
+Emacs.Font:		DecentFont:size=9
+!
+! When using XLFD font-specs emacs actually ignores the resolutions, and needs
+! either a '*' or a non-zero pixelSz value!
+!
+!Emacs.Font:		-*-DecentFont-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-*-*
+!
+!
 ! Xpdf settings
 !
-Xpdf*fontList:			-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+Xpdf*fontList:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
 Xpdf.initialZoom:		page
 ! ifdef([COLOR], [
 ! (we could in theory also use (PLANES <= 8) here...)
@@ -346,30 +309,83 @@ Xpdf.toolTipEnable:		false
 !
 ! force TrueType (Xft) startup
 *renderFont:			true
-*faceName:			CommitMono
+*faceName:			DecentFont
 !
+! really any and all app's cursors should blink!
 *cursorBlink:			true
 !
 ! The keyboard should always match the terminal description, as best as is
-! possible, except of course for erase (for which see environment $XTERM_OPTS).
+! possible, except of course for "erase".  We always want the erase character to
+! be ^H, and we always want the backarrow key to send the erase(^h) character.
+! We also always want the delete key to send DEL.  This all matters primarily
+! for terminal based text editors, especially emacs and its clones where we want
+! things to work the same as they do on a real terminal, especially the VT100
+! (and we ignore the ugly VT220 keyboard defaults).
 !
-! This should have the effect of causing the "delete" key to send DEL too, so
-! long as deleteIsDEL has its default value of "Maybe", at least according to
-! the manual.
+! Setting keyboardType to "tcap" should have the effect of causing the "delete"
+! key to send DEL too, so long as deleteIsDEL has its default value of "Maybe",
+! at least according to the manual.
 !
 ! XXX However, keyboardType=tcap overrules deleteIsDEL entirely and disables the
-! menu toggle for it as well, so it is unworkable.
+! menu toggle for it as well, so it is entirely unworkable.
 !
-!UXTerm*keyboardType:			tcap
-!XTerm*keyboardType:			tcap
+!!UXTerm*keyboardType:		tcap
+!!XTerm*keyboardType:		tcap
 !
 ! XXX hmmmm on some laptop keyboards we do not always want deleteIsDEL set....
 ! The default ("maybe") is probably best, but then it requires manually toggling
 ! via the menu to enable it.
 !
 ! XXX as mentioned the default is "Maybe", but you can't put that in a bool resource!
-!UXTerm*deleteIsDEL:			Maybe
-!XTerm*deleteIsDEL:			Maybe
+!UXTerm*deleteIsDEL:		Maybe
+!XTerm*deleteIsDEL:		Maybe
+!
+! N.B.:  in any case we can set the TTY modes and tell Xterm to obey them and
+! solve this problem once and for all:
+!
+UXTerm*ttyModes:		erase ^h
+XTerm*ttyModes:			erase ^h
+!
+UXTerm*ptyInitialErase:		true
+XTerm*ptyInitialErase:		true
+!
+! More xterm settings to avoid having to have $XTERM_OPTS everywhere:
+!
+UXTerm*cutNewline:		false
+XTerm*cutNewline:		false
+!
+! xxx the default is false:
+UXTerm*forceBoxChars:		false
+XTerm*forceBoxChars:		false
+!
+! xxx this doesn't always do all the things, e.g. record the login session,
+! depending on compile-time options and system support....
+UXTerm*loginShell:		true
+XTerm*loginShell:		true
+!
+UXTerm*reverseWrap:		true
+XTerm*reverseWrap:		true
+!
+UXTerm*saveLines:		4096
+XTerm*saveLines:		4096
+!
+UXTerm*scrollBar:		true
+XTerm*scrollBar:		true
+!
+UXTerm*scrollKey:		true
+XTerm*scrollKey:		true
+!
+UXTerm*scrollTtyOutput:		false
+XTerm*scrollTtyOutput:		false
+!
+! ifelse(eval(PLANES >= 8), [
+! xxx assume this is in everyone's terminfo these days....
+UXTerm*termName:		xterm-256color
+XTerm*termName:			xterm-256color
+! ], [])
+!
+UXTerm*zIconBeep:		true
+XTerm*zIconBeep:		true
 !
 ! xxx the *VT100(.*).font* values may be necessary if XTerm does not have Xft
 ! support, but that is hopefully no longer a concern anywhere.
@@ -381,36 +397,36 @@ Xpdf.toolTipEnable:		false
 ! seems to work OK for iso8859-1 by default.
 !
 ! "Default", .faceSize is overridden by command-line "-fs", ~/.ctwmrc uses 7.5 and 9.0
-*VT100.font:			-*-commitmono-medium-r-normal--0-75-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font:		-*-commitmono-medium-r-normal--0-75-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.font:			-*-DecentFont-medium-r-normal--0-75-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font:		-*-DecentFont-medium-r-normal--0-75-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize:	7.5
 ! Unreadable:
-*VT100.font1:			-*-commitmono-medium-r-normal--0-05-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font1: 	-*-commitmono-medium-r-normal--0-05-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.font1:			-*-DecentFont-medium-r-normal--0-05-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font1: 	-*-DecentFont-medium-r-normal--0-05-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize1: 	0.5
 ! Tiny:
-*VT100.font2:			-*-commitmono-medium-r-normal--0-60-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font2: 	-*-commitmono-medium-r-normal--0-60-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.font2:			-*-DecentFont-medium-r-normal--0-60-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font2: 	-*-DecentFont-medium-r-normal--0-60-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize2:	6.0
 ! Small:
-*VT100.font3:			-*-commitmono-medium-r-normal--0-75-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font3: 	-*-commitmono-medium-r-normal--0-75-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.font3:			-*-DecentFont-medium-r-normal--0-75-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font3: 	-*-DecentFont-medium-r-normal--0-75-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize3:	7.5
 ! Medium:
-*VT100.font4:			-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font4: 	-*-commitmono-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.font4:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font4: 	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize4:	9.0
 ! Large:
-*VT100.font5:			-*-commitmono-medium-r-normal--0-110-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font5: 	-*-commitmono-medium-r-normal--0-110-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.font5:			-*-DecentFont-medium-r-normal--0-110-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font5: 	-*-DecentFont-medium-r-normal--0-110-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize5:	11.0
 ! Huge:
-*VT100.font6:			-*-commitmono-medium-r-normal--0-160-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font6: 	-*-commitmono-medium-r-normal--0-160-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.font6:			-*-DecentFont-medium-r-normal--0-160-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font6: 	-*-DecentFont-medium-r-normal--0-160-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize6:	16.0
 ! Enormous:
-*VT100.font7:			-*-commitmono-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font7: 	-*-commitmono-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.font7:			-*-DecentFont-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso8859-*
+*VT100.utf8Fonts.font7: 	-*-DecentFont-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso10646-1
 *VT100.faceSize7:	24.0
 !
 ! Even with Unicode it is still nice to type accented chars
@@ -470,11 +486,25 @@ Xpdf.toolTipEnable:		false
 !
 ! N.B.:  See also ~/.gv, which is also an X11 resource file, however it does not
 ! use CPP to process it, instead it reads it directly, so some resources have to
-! be here of they are conditional on any xrdb symbol values!
+! be here of they are conditional on any xrdb symbol values!  Also a default
+! DEVICE can be set with the GS_DEVICE environment variable.
+!
+! XXX in theory we should add -dNOPLATFONTS if FontYDPI is < 110, but I think
+! that probably doesn't matter any more if gs is using all scalable fonts.  In
+! any case it makes no difference on XQuartz on old macos on the 27" iMac with a
+! DPI of 109.
 !
 ! ifdef([COLOR], [
+GV.gsX11Device:		-sDEVICE=x11
+! xxx these may be the defaults???
+GV.gsX11AlphaDevice:	-sDEVICE=x11 -dTextAlphaBits=4 -dGraphicsAlphaBits=4
+GV.palette:		color
+! ], [
 GV.gsX11Device:		-sDEVICE=x11mono
-GV.gsX11AlphaDevice:	-sDEVICE=x11mono -dTextAlphaBits=4 -dGraphicsAlphaBits=2 -dMaxBitmap=10000000 -dNOPLATFONTS
+GV.gsX11AlphaDevice:	-sDEVICE=x11mono -dTextAlphaBits=4 -dGraphicsAlphaBits=4 -dMaxBitmap=10000000
+GV.palette:		grayscale
+! ])
+!
 ! xxx from strings....
 GV*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
 GV*SmeBSB.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
@@ -524,26 +554,23 @@ GV*versionPopup*Label*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
 GV*versionPopup*versionTexta*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
 GV*versionPopup*versionTextb*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
 GV*infoPopup*Text*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-
-! ], [])
-
+!
 ! Xcb:  XXX not enough to fix it...
 Xcb*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-iso8859-1
-
+!
 XCal.fontToday:		varbold
 XCal*Font:		variable
 XCal*info.Font:		fixed
 XCal*alarmText*Font:	12x24
-
+!
 XAlarm*font:				variable
-XAlarm.Alarm!.alarm.message.font:	-*-commitmono-medium-r-normal--0-340-FontXDPI-FontYDPI-m-0-iso8859-1
+XAlarm.Alarm!.alarm.message.font:	-*-DecentFont-medium-r-normal--0-340-FontXDPI-FontYDPI-m-0-iso8859-1
 XAlarm.When?.when.confirm.value*font:	variable
 XAlarm.When?*value*font:		varbold
-
+!
 ! XScrabble:  xxx more other fixes needed....
 XScrabble*font:				-*-*-medium-r-normal--0-0-FontXDPI-FontYDPI-m-0-iso8859-1
-
-
+!
 ! XCalc:
 !
 ! ifdef([COLOR], [

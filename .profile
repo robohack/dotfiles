@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.31	24/09/20 16:01:04 (woods)"
+#ident	"@(#)HOME:.profile	37.32	24/09/22 13:10:02 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -73,7 +73,11 @@
 #
 #	Login shells can be tested with:
 #
-#	    cd $HOME && env -i SHELL=/path/to/sh HOME=$HOME DISPLAY=$DISPLAY PATH=$PATH uxterm $XTERM_OPTS &
+#	    cd $HOME && env -i SHELL=/path/to/sh HOME=$HOME DISPLAY=$DISPLAY PATH=$PATH uxterm &
+#
+#	or (sometimes, iff the shell supports '-l' to make it a login shell):
+#
+#	    cd $HOME && env -i SHELL=/path/to/sh HOME=$HOME DISPLAY=$DISPLAY PATH=$PATH uxterm -e login -pf $USER /path/to/sh -l &
 #
 #	Note the "cd $HOME" in the above test command.  Most shell manuals say
 #	something like "read the .profile file in the user's home directory
@@ -1065,18 +1069,14 @@ if ${ISATTY}; then
 		dirappend PATH ${X11PATH}/bin
 		dirappend MANPATH ${X11PATH}/man
 		#
-		# In case this is onx11server running an xterm via rsh/ssh
+		# XTerm options which cannot seem to be set with resources...
+		# (xxx are there any left?)
 		#
-		# N.B.:  once upon a time -ziconbeep was not universally available
-		#
-		# Note particularly the '-tm' and '-ie'.  We always want the
-		# erase character to be ^H, and we always want the backarrow key
-		# to send the erase(^h) character.  (We also always want the
-		# delete key to send DEL, but that is better handled via the
-		# .Xdefaults resources.)
+		# n.b.:  this is also set in ~/.xinitrc, if not set first from
+		# here, and it can of course be overridden in ~/.localprofile
 		#
 		if [ -z "$XTERM_OPTS" ]; then
-			XTERM_OPTS="-tm 'erase ^h' -ie -fbx -bc -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1"
+			XTERM_OPTS=""
 		fi
 		export XTERM_OPTS
 		;;

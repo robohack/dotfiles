@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.25	24/08/10 13:10:24 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.26	24/09/22 13:10:02 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -16,6 +16,10 @@
 #	- the shell supports functions
 #	- the shell supports $(cmd) substitution
 #	- other assumptions made by ~/.profile
+#
+# ./.profile should provide proper path setup
+#
+# ./.shrc should provide a function "onx11server"
 
 # argv0 must be set before sourcing .profile, else we'll loop!
 #
@@ -68,8 +72,8 @@ echo "$argv0: using X11 in '$X11PATH'"
 
 # XXX for debugging
 #
-#DEBUG=true
 DEBUG=false
+#DEBUG=true
 if $DEBUG; then
 	echo "$argv0: Debugging enabled ...."
 	set -x
@@ -82,6 +86,8 @@ fi
 # XDR, which has approximately 218 DPI, this is done with:
 #
 #	defaults write org.xquartz.X11 dpi -int 218
+#
+# NOTE: MacBook Air 13-inch Retina is 227 dpi	(2880 x 1800)
 #
 # On XQuartz/Darwin (and in general with the Xorg Xserver) the command-line
 # "-dpi" value is used to compute the frame buffer's width and height based on
@@ -100,23 +106,19 @@ fi
 # "Details" sub-panel) as this key sequence is almost never used in any other
 # macos app (that I use, anyway) [it doesn't work quite right from Mail though].
 #
-# Here's the script for the shortcut (with the resolution of my display
-# hard-coded here):
+# Here's the script for the shortcut:
 #
 #	
+#	#!/bin/ksh
+#	#
 #	# XXX This gets terribly confused if there is more than one
 #	# ~/.serverauth.* file, obviously....
 #	#
 #	if [ -r $HOME/.serverauth.* ]; then
-#		#
-#		# xxx should check the owner process is running....
-#		# xxx if xauth complains, try removing ~/.serverauth.*
-#		# xxx if X is started manually a fake ~/.serverauth.* might
-#		# have to be created from the .Xauthority file using
-#		# "xauth add" (using the creds for the correct display)
-#		#
-#		/opt/X11/bin/xrandr -s 6016x3384 -display $(launchctl getenv DISPLAY)
-#		#
+#		DISPLAY=$(launchctl getenv DISPLAY)
+#		MAXRES=$(xrandr -display $DISPLAY -q 2>/dev/null | awk '/^Screen [0-9]+:/ {print $(NF-2) "x" $(NF)}')
+#		echo "Switch-To-X11: switching $DISPLAY to '$MAXRES'" 1>&2
+#		xrandr -display $DISPLAY -s "$MAXRES"
 #	else
 #		osascript -e 'display alert "Switch-To-X11" message "Just hit the X icon in the dock!"' > /dev/null
 #	fi
@@ -240,29 +242,43 @@ export DecentDeciPt DecentPt
 #
 # See also https://www.x.org/releases/X11R7.7/doc/xorg-docs/xlfd/xlfd.html
 #
-DefaultFontSpec='-*-commitmono-medium-r-*-*-*-${DecentDeciPt}-${FontXDPI}-${FontYDPI}-m-*-iso10646-1'
-DefaultFontSpecL1='-*-commitmono-medium-r-*-*-*-${DecentDeciPt}-${FontXDPI}-${FontYDPI}-m-*-iso8859-1'
+# Note: the *L1 (Latin-1) specs are not currently used.
+#
+DecentFont="DejaVu Sans Mono"
+
+DefaultFontSpec='-*-${DecentFont}-medium-r-*-*-*-${DecentDeciPt}-${FontXDPI}-${FontYDPI}-m-*-iso10646-1'
+DefaultFontSpecL1='-*-${DecentFont}-medium-r-*-*-*-${DecentDeciPt}-${FontXDPI}-${FontYDPI}-m-*-iso8859-1'
 export DefaultFontSpec DefaultFontSpecL1
 #
 DecentFontSpec=$(eval echo "${DefaultFontSpec}")
 DecentFontSpecL1=$(eval echo "${DefaultFontSpecL1}")
 export DecentFontSpec DecentFontSpecL1
 #
-# For Xft we've set the Xft.dpi resource so this allows the physical font size
-# to be specified (e.g. with Xterm's "-fs" option, using the following with it's
-# "-fa" option) and for a decent scalable font to be chosen:
+# For Xft .Xdefaults forces the Xft.dpi resource to be set to what we've worked
+# out above so this allows the physical font size to be specified, in points,
+# (either with a ":size=" attribute in the font spec (which can be abbreviated
+# as "-POINTS"), or with a command-line option to override that, e.g. with
+# Xterm's "-fs" option.  See fonts.conf(5).
 #
 # Note for Xft using fc-list(1) is probably the best way to fint Xft fonts...
+#
+#	fc-list :scalable=true:spacing=100:lang=en: family
 #
 # See "Font Name" in the following for how XftPatterns are specified:
 #
 #	https://fontconfig.pages.freedesktop.org/fontconfig/fontconfig-user.html
 #
-DefaultXftFontSpec="CommitMono"
-DefaultXftFontSpecL1="CommitMono"
-export DefaultXftFontSpec DefaultXftFontSpecL1
-
+# N.B.:  Xft does seem able to find fonts with the spaces removed from their
+# "fullname", e.g. "DejaVuSansMono" will find "DejaVu Sans Mono".  Phew!  (This
+# seems to be due to testing with a rule: "Equal(ignore blanks)")
 #
+# (xxx this probably isn't necessary as it is also specified in ~/.Xdefaults
+# with the wild-carded faceName resource)
+#
+DefaultXftFont=$(echo "${DecentFont} | sed 's/ //g'")
+DecentXftFontSpec="${DefaultXftFont}:size=9"
+export DefaultXftFont DecentXftFontSpec
+
 # For hi-res displays one critical entry should be in ~/.fonts/fonts.alias:
 #
 #	cursor -xfree86-cursor-medium-r-normal--0-160-218-218-p-0-adobe-fontspecific
@@ -281,7 +297,7 @@ export DefaultXftFontSpec DefaultXftFontSpecL1
 #
 # Non-packaged TrueType (TTF) fonts should be installed similarly in ~/.fonts:
 #
-# Note that OpenType (OTF) fonts don't work unless they are _also_ installed on
+# Note that OpenType (OTF) fonts don't work even if they are _also_ installed on
 # the client system.  They can be listed by xlsfonts, but not opened!  See:
 #
 #	https://stackoverflow.com/questions/57078805/xloadqueryfont-fails-on-font-found-with-xlistfonts
@@ -291,7 +307,7 @@ export DefaultXftFontSpec DefaultXftFontSpecL1
 #
 if [ ! -d ${HOME}/.fonts ]; then
 	echo "$argv0: making a new empty ~/.fonts directory!"
-	echo "$argv0: NOTICE: you may need to install some TTF fonts here (e.g. Liberation)!"
+	echo "$argv0: NOTICE: you may need to install some TTF fonts here (e.g. DejaVu)!"
 	mkdir ${HOME}/.fonts
 fi
 #
@@ -387,25 +403,31 @@ xset fp rehash
 fc-cache -v
 
 ##################
+#ls -lisa $HOME/.fonts
 #xlsfonts > $HOME/tmp/xlsfonts.out
 #xset q
 ## /Users/woods/.fonts/,/Users/woods/Library/Fonts,/opt/pkg/share/fonts/X11/TTF/,/opt/pkg/share/fonts/X11/intlfonts/TrueType,/opt/pkg/share/fonts/X11/intlfonts/Type1,/opt/X11/share/fonts/TTF/,/opt/X11/share/fonts/OTF/,/opt/X11/share/fonts/Type1/,/opt/X11/share/system_fonts/,/opt/X11/share/system_fonts/Supplemental
-#set -x
-#xlsfonts -fn "-misc-commitmono-medium-r-normal--0-86-218-218-m-0-iso8859-1"
-#xlsfonts -fn "-*-commitmono-medium-r-normal--0-86-218-218-m-0-iso8859-1"
+## /Users/woods/.fonts/,/opt/X11/share/fonts/TTF/,/opt/X11/share/fonts/OTF/,/opt/X11/share/fonts/Type1/,/opt/X11/share/system_fonts/,/opt/X11/share/system_fonts/Supplemental
+#if ! $DEBUG; then
+#	set -x
+#fi
+#xlsfonts -fn "-misc-dejavu sans mono-medium-r-normal--0-86-218-218-m-0-iso8859-1"
+#xlsfonts -fn "-*-dejavu sans mono-medium-r-normal--0-86-218-218-m-0-iso8859-1"
 #xlsfonts -fn "-*-*-medium-r-normal--0-86-218-218-m-0-iso8859-1"
-#xlsfonts -fn "-misc-commitmono-medium-r-normal--0-86-218-218-m-0-*-1"
-#xlsfonts -o -fn "-misc-commitmono-medium-r-normal--0-86-218-218-m-0-iso8859-1"
-#xlsfonts -o -fn "-*-commitmono-medium-r-normal--0-86-218-218-m-0-iso8859-1"
+#xlsfonts -fn "-misc-dejavu sans mono-medium-r-normal--0-86-218-218-m-0-*-1"
+#xlsfonts -o -fn "-misc-dejavu sans mono-medium-r-normal--0-86-218-218-m-0-iso8859-1"
+#xlsfonts -o -fn "-*-dejavu sans mono-medium-r-normal--0-86-218-218-m-0-iso8859-1"
 #xlsfonts -o -fn "-*-*-medium-r-normal--0-86-218-218-m-0-iso8859-1"
-#xlsfonts -o -fn "-misc-commitmono-medium-r-normal--0-86-218-218-m-0-*-1"
+#xlsfonts -o -fn "-misc-dejavu sans mono-medium-r-normal--0-86-218-218-m-0-*-1"
 #
 #xlsfonts -fn "-xfree86-cursor-medium-r-normal--0-160-218-218-p-0-adobe-fontspecific"
 #xlsfonts -o -fn "-xfree86-cursor-medium-r-normal--0-160-218-218-p-0-adobe-fontspecific"
 #xlsfonts -fn "cursor"
 #xlsfonts -o -fn "cursor"
 #
-#set +x
+#if ! $DEBUG; then
+#	set +x
+#fi
 ##################
 
 #
@@ -432,6 +454,8 @@ if [ $argv0 = ".xsession" -a -z "$XDMHOST" ] ; then
 	echo "$argv0: have set XDMHOST='$XDMHOST'"
 fi
 
+# N.B.:  These are repeated, as m4 expressions, in ~/.ctwmrc!
+#
 if [ "$SCREENDIM_X" -gt 12 ]; then
 	ClockSize="2"			# 2"x2" is OK on larger screens, but....
 else
@@ -440,13 +464,13 @@ fi
 ClockWidth=$(expr ${SCREENDPI_X} \* ${ClockSize})
 ClockHeight=$(expr ${SCREENDPI_Y} \* ${ClockSize})
 ClockGeom=${ClockWidth}x${ClockHeight}-0+0
-ClockOff=$(expr ${ClockWidth} + ${TDBorderWidth} + ${TDBorderWidth})
+# it's square!
+ClockOff=$(expr ${ClockHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 DClockHeight=$(expr ${SCREENDPI_Y} / 4) # 1/4 inch should always suffice?
 DClockGeom=${ClockWidth}x${DClockHeight}-0+${ClockOff}
 export ClockSize ClockWidth ClockHeight ClockGeom ClockOff DClockHeight DClockGeom
 
-# should this use floating point to get finer control???
-# note that m4 evals for ~/.ctwmrc use integer math too
+# xxx should this use floating point to get finer control???
 XloadWidth=$(expr ${SCREENDPI_X} \* 1)
 XloadHeight=$(expr ${SCREENDPI_Y} / 3)
 XloadGeom=${XloadWidth}x${XloadHeight}-${ClockOff}+0
@@ -469,6 +493,9 @@ WSHeight=$(expr ${SCREENSIZE_Y} / 30 \* 4)
 WSOff=$(expr ${ClockOff} + ${XloadWidth} + ${TDBorderWidth} + ${TDBorderWidth})
 #
 export WSOff WSWidth WSHeight
+
+XchronoGeom=-$(expr ${WSOff} + ${WSWidth} - 120)"+"$(expr ${WSHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+export XchronoGeom
 
 XconsoleWidth=$(expr ${WSOff} + ${WSWidth})
 if [ $SCREENSIZE_Y -gt 3000 ]; then
@@ -655,10 +682,54 @@ if [ -r $HOME/.xhosts ] ; then
 	done < $HOME/.xhosts
 fi
 
-# N.B.:  once upon a time -ziconbeep was not universally available
+# Notes:
+#
+# - setting -fs (faceSize) to 7.5 makes the TrueType font size most closely
+#   match the size of the default "fixed" bitmap font's size.
+#
+# - Unfortunately on both the iMac 27" (at 2560x1440) and the Retina 6K Pro
+#   there is not quite room enough horizontally for the three standard xterms
+#   (two at 132 cols, one at +80 cols) with a point size of 10 for the big ones,
+#   but 9pt is quite readable anyway.
+#
+if [ ${SCREENSIZE_X} -ge 6016 -a ${SCREENSIZE_Y} -ge 3384 ]; then
+	XTERM_BIG_OPTS="-geometry 132x100+0+0 -fs 9"
+elif [ ${SCREENSIZE_X} -ge 2560 -a ${SCREENSIZE_Y} -ge 1440 ]; then
+	XTERM_BIG_OPTS="-geometry 132x82+0+0 -fs 9"
+elif [ ${SCREENSIZE_X} -ge 1600 -a ${SCREENSIZE_Y} -ge 1280 ]; then
+	XTERM_BIG_OPTS="-geometry 117x82+0+0 -fs 9"
+elif [ ${SCREENSIZE_X} -ge 1280 -a ${SCREENSIZE_Y} -ge 1024 ]; then
+	XTERM_BIG_OPTS="-geometry 100x50+0+0 -fs 9"
+else
+	XTERM_BIG_OPTS="-geometry 80x40+0+0 -fs 7.5"
+fi
+export XTERM_BIG_OPTS
+
+# With CommitMono font this could be 51 high
+# With DejaVu Sans Mono this could be 45 high
+# With Liberation Mono this could be 47 high
+# With .sf ns mono (apple) this could be 49 high
+# With CommitMono and DejaVu Sans Mono fonts this could be 91 wide
+# With Liberation Mono and .sf ns mono (appl) this could be 92 wide
+#
+XTERM_LITTLE_OPTS="-geometry 91x47-0-${XconsoleVoff} -fs 7.5"
+export XTERM_LITTLE_OPTS
+
+# on OSX Xterm isn't configured to record logins properly with "-ls", but if we
+# start login(1) instead then it will record the login session.
+#
+if [ $(uname -s) = "Darwin" ]; then
+	XTERM_LOGIN_OPTS="-e login -pf ${USER:-$LOGNAME}"
+	export XTERM_LOGIN_OPTS
+fi
+
+# XTerm options which cannot seem to be set with resources...
+# (xxx are there any left?)
+#
+# n.b.:  this is also set in ~/.profile, and should be identical
 #
 if [ -z "$XTERM_OPTS" ]; then
-	XTERM_OPTS="-fbx -cn -rw -sb -si -sk -sl 2048 -ls -ziconbeep 1"
+	XTERM_OPTS=""
 fi
 export XTERM_OPTS
 
@@ -694,8 +765,8 @@ if [ -n "$XDMHOST" -a "$XDMHOST" = "$(echo $DISPLAY | sed 's/:.*$//')" ] ; then
 		xauth extract - $DISPLAY | onx11server historically.weird.com 'xauth merge -' &
 		# now start server programs we like for this scenario
 		onx11server -n $X11SERVER 'xload -geometry 120x40-200+48 -hl red' &
-		onx11server -n $X11SERVER "uxterm -tn xterm -geometry 132x82+0+0 -font 7x14 $XTERM_OPTS -n OccupyAll" &
-		onx11server -n $X11SERVER "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} $XTERM_OPTS -n OccupyAll" &
+		onx11server -n $X11SERVER "uxterm ${XTERM_BIG_OPTS} -font 7x14 ${XTERM_OPTS} -T OccupyAll" &
+		onx11server -n $X11SERVER "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
 		;;
 	*)
 		# not setting X11SERVER hopefully just makes the WM run all X11SERVER clients on
@@ -722,9 +793,9 @@ if [ -z "$WM" ] ; then
 		#
 		if [ ${SCREENDEPTH:-1} -eq 1 ] ; then
 			# the welcome screen on monochrome is silly and slow
-			WM="ctwm -k -W"
+			WM="ctwm -k -K $HOME/.ctwmrc.m4out -W"
 		else
-			WM="ctwm -k"
+			WM="ctwm -k -K $HOME/.ctwmrc.m4out"
 		fi
 	elif type tvtwm >/dev/null 2>&1; then
 		WM=tvtwm
@@ -905,19 +976,19 @@ if [ "$argv0" = ".xinitrc" ] ; then
 # xxx these need a variable for "80x45" as it could be wider (e.g. 91x45, 95x50), or taller, or shorter....
 # (calculate based on character size and $XconsoleWidth and something related to IR_GEOM vs. $XconsoleHeight)
 
-#			onx11server -n building.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
-			onx11server -n more.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
-			onx11server -n nb10.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
-			onx11server -nS nbday.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
-			onx11server -n nbt.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
-#			onx11server -n nbt2.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
-			onx11server -n nbtest.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
-			onx11server -n nbtcur.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
-			onx11server -nS fezzik.local "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
-#			onx11server -n future.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
-#			onx11server -n historically.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
-			onx11server -n xenful.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
-			onx11server -n xentastic.local "uxterm -tn xterm -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -n OccupyAll" &
+#			onx11server -n building.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -n more.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -n nb10.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -nS nbday.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -n nbt.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+#			onx11server -n nbt2.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -n nbtest.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -n nbtcur.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -nS fezzik.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+#			onx11server -n future.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+#			onx11server -n historically.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -n xenful.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -n xentastic.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
 			#
 			# SSH-only hosts... (hopefully with auto-xauth via -Y,
 			# but note the use of both '-f' and '&')
@@ -945,8 +1016,8 @@ if [ "$argv0" = ".xinitrc" ] ; then
 ### not ideal as it leaves us with no clue as to why a window
 ### disappears when the connection is dropped....
 ###
-###			ssh -Y -n central.weird.com ". ./.profile; exec uxterm -tn xterm-256color -geometry 132x82+0+0 -font 7x14 $XTERM_OPTS" &
-###			ssh -Y -n central.weird.com ". ./.profile; exec uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} $XTERM_OPTS -n OccupyAll" &
+###			ssh -Y -n central.weird.com ". ./.profile; exec uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}" &
+###			ssh -Y -n central.weird.com ". ./.profile; exec uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
 ###
 ### XXX what we really want is to stuff an "ssh -Y hostname" command
 ### into the xterm so that it would be the first command run by an
@@ -985,8 +1056,8 @@ if [ "$argv0" = ".xinitrc" ] ; then
 		xauth nextract - $DISPLAY | onx11server historically.weird.com 'xauth nmerge -'
 		# and then start some useful programs...
 		onx11server -n $X11SERVER 'xload -geometry 120x40-200+48 -hl red' &
-		onx11server -n $X11SERVER "uxterm -tn xterm-256color -geometry 132x100+0+0 -font 7x14 $XTERM_OPTS" &
-		onx11server -n $X11SERVER "uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} $XTERM_OPTS -n OccupyAll" &
+		onx11server -n $X11SERVER "uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}" &
+		onx11server -n $X11SERVER "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
 		;;
 	esac
 
@@ -1081,21 +1152,29 @@ very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.roboha
 	if [ -x ${PKG}/bin/xclock ]; then
 		XCLOCK=${PKG}/bin/xclock
 	fi
-	LC_CTYPE=C ${XCLOCK} -geometry $DClockGeom -face ${DefaultXftFontSpec}:size=10 -digital -update 1 -chime &
+	LC_CTYPE=C ${XCLOCK} -geometry $DClockGeom -face ${DecentXftFontSpec}:size=10 -digital -update 1 -chime &
 	if $HAVESWISSWATCH; then
 		swisswatch -name swissclock -geometry $ClockGeom &
 	else
 		${XCLOCK} -update 1 -geometry $ClockGeom &
+	fi
+	# xxx width here is based on what's left to the left of xloads on a
+	# high-res display, but there is no more space on a ~100dpi display so
+	# it collides anyway....  120 will suffice everywhere for now
+	XchronoOpts="-width 120 -rv -update 1 -local Kelowna -newyork -hawaii -tokyo -sydney -frankfurt"
+	export XchronoOpts
+	if type xchrono >/dev/null 2>&1; then
+		xchrono -geometry ${XchronoGeom} ${XchronoOpts} &
 	fi
 
 	# our own small lower-right command terminal
 	#
 	# (the rest, for "remote" windows, are done in xinit/startx section)
 	#
-	uxterm -tn xterm-256color -geometry 80x45-0-${XconsoleVoff} -fs 7.5 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -n OccupyAll -e login -pf ${USER:-$LOGNAME} &
+	eval uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll ${XTERM_LOGIN_OPTS} &
 
 	# our own big main area terminal
-	uxterm -tn xterm-256color -geometry 132x82+0+0 -fs 9 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -e login -pf ${USER:-$LOGNAME} &
+	eval uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &
 
 	if type xmahjongg >/dev/null 2>&1; then
 		#
@@ -1126,7 +1205,7 @@ very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.roboha
 		fi
 	fi
 
-	uxterm -tn xterm-256color -geometry 80x25+$(expr \( $SCREENDIM_X \* $SCREENDPI_X / 2 \) - \( 3 \* $SCREENDPI_X \))-$(expr $SCREENDPI_Y \* 2) -fs 9 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -fc 5 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor &
+	uxterm -tn xterm-256color -geometry 80x25+$(expr \( $SCREENDIM_X \* $SCREENDPI_X / 2 \) - \( 3 \* $SCREENDPI_X \))-$(expr $SCREENDPI_Y \* 2) -fs 9 -fa "${DecentXftFontSpec}" ${XTERM_OPTS} -fc 5 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor &
 	;;
 
 macweird.*:*|Gregs-MBP.*|*xquartz:*)
@@ -1162,10 +1241,10 @@ macweird.*:*|Gregs-MBP.*|*xquartz:*)
 		xclock -update 1 -geometry 190x190-0+0 &
 	fi
 	# All the small lower-right command terminals (starting with our own first one)
-	uxterm -tn xterm-256color -geometry 80x30-0-${XconsoleVoff} -fs 7.5 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -n OccupyAll -e login -pf ${USER:-$LOGNAME} &
+	eval uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll ${XTERM_LOGIN_OPTS} &
 
 	# All the big main area terminals (starting with our own first one)
-	uxterm -tn xterm-256color -geometry 132x50+0+0 -fs 7.5 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -e login -pf ${USER:-$LOGNAME} &
+	eval uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &
 	;;
 
 xceptionally*:*)
@@ -1196,7 +1275,7 @@ xceptionally*:*)
 #	$RSH -n always.weird.com exec /usr/X11R6/bin/xload -geometry 120x40-70+242 -hl grey90 &
 
 	# All the small lower-right command terminals (starting with our own first one)
-	xterm -geometry 80x42-0-${XconsoleVoff} $XTERM_OPTS -n OccupyAll &
+	xterm -geometry 80x42-0-${XconsoleVoff} $XTERM_OPTS -T OccupyAll &
 
 	# All the consoles:
 	# first column....
@@ -1240,7 +1319,7 @@ xtremely*:*)
 		xclock -norender -geometry 190x190-0+0 &
 	fi
 	# All the small lower-right command terminals (starting with our own first one)
-	uxterm -tn xterm -geometry 80x42-0-0 -fs 7.5 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -n OccupyAll &
+	uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll &
 
 	;;
 
@@ -1268,8 +1347,8 @@ xtremely*:*)
 	else
 		xclock -update 1 -geometry $ClockGeom &
 	fi
-	uxterm -tn xterm -geometry 100x50+0+0 -fs 7.5 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} &
-	uxterm -tn xterm -geometry 80x24+0-0 -fn 5x7 -fs 7.5 -fa "${DefaultXftFontSpec}" ${XTERM_OPTS} -n OccupyAll &
+	uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} &
+	uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll &
 	;;
 esac
 
@@ -1280,8 +1359,14 @@ exec $WM
 
 ### $WM || twm
 
-
 # and if that fails then we try a last-ditch "trick"
 #
-xterm -geometry 80x24+0+0 $XTERM_OPTS -n FailSafe
+if [ $? -ne 0 ]; then
+	xterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -n FailSafe
+fi
+echo "$0: we are going down!!!" 1>&2
+
+# XXX for supreme debugging of window-manager and xterm problems
+### sleep 100000000
+
 exit 1

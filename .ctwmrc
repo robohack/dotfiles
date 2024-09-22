@@ -1,14 +1,15 @@
 # -*-conf-*-
 #
-# conf mode works best with conf-space-mode, but that font-locks the
-# M4 statements weirdly.  Defining conf-space-keywords helps a bit.
+# conf mode works best with conf-space-mode, but that font-locks the M4
+# statements weirdly.  Defining conf-space-keywords (in the tail comment) helps
+# a bit.
 #
 # m4 mode is also helpful, but it doesn't properly honour matching of
 # curly braces, nor strings
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.26	24/08/20 13:01:49 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.27	24/09/22 13:10:02 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -19,6 +20,11 @@
 # value is often also in $TMPDIR.
 #
 # Things that affect the operation of various menus, etc.:
+#
+# Note from ctwm(1):
+#
+#	The only resource used by ctwm is bitmapFilePath for a colon-separated
+#	list of directories to search when looking for bitmap files.
 #
 # Private xbm icon collection goes in ~/lib/bitmaps
 # Private xpm icon collection goes in ~/lib/pixmaps
@@ -35,6 +41,16 @@
 # REMOTE_DISPLAY - suitable for local network access, with xauth sent
 # PATH		- sometimes included in one passed to remote hosts
 # AUDIOPLAYER	- program to invoke to play a sound file (eg. "auplay")
+# XTERM_OPTS	- it is usually empty, but is passed to all xterms
+# XTERM_LITTLE_OPTS - used to specify the geometry of the right-hand little xterms
+# XTERM_BIG_OPTS - used to specify the geometry of main working xterms
+# XTERM_LOGIN_OPTS - used for @CLIENTHOST xterms (for macos login session recording)
+# MY_EMACS	- the specific "emacs" to invoke
+#
+# Also:
+#
+# ClockGeom, DClockGeom, XchronoGeom
+# XloadGeom, XloadGeom*
 #
 # Note macros expanded by M4, e.g. HOME, must be used, as they are obviously
 # expanded first while environment variables are expanded at run/use time!  Thus
@@ -76,7 +92,8 @@ ifelse([SERVERHOST], [CLIENTHOST], [define(USE_X11SERVER, [yes])], [])
 # n.b.:  integer math is used, so these will only be approximate:
 #
 # XXX Too bad envrionment variables weren't also imported as macro definitions!
-# SOOOooo many of these values are also computed and used in ~/.xinitrc!
+# SOOOooo many of these values are also computed and used in ~/.xinitrc, and
+# these same dpi-related macros are also defined in ~/.X11-m4macros.m4
 #
 define(HorizDPI, eval(((X_RESOLUTION * 100) / 3937) + ((((X_RESOLUTION * 1000) / 3937) % 10) >= 5)))
 define(VertDPI, eval(((Y_RESOLUTION * 100) / 3937) + ((((X_RESOLUTION * 1000) / 3937) % 10) >= 5)))
@@ -105,13 +122,17 @@ ifelse(eval(X_RESOLUTION >= 8000 && Y_RESOLUTION >= 8000), 1,
  )]
 )
 
+# N.B.:  These are repeated, as shell expressions, in ~/.xinitrc!
+#
 ifelse(eval(ScreenDimX > 12), 1,
  [define(ClockSize, [2])],
  [define(ClockSize, [1])]
 )
+# N.B.: these are just for calculating WS_OFF (menus use env vars)
 define(ClockWidth, eval(HorizDPI * ClockSize))
 define(ClockHeight, eval(VertDPI * ClockSize))
-define(ClockOff, eval(ClockWidth + (2 * TDBORDERWIDTH)))
+# it's square!
+define(ClockOff, eval(ClockHeight + (2 * TDBORDERWIDTH)))
 
 # hmmm.... maybe, some, xloads could be in a WindowBox:
 #
@@ -172,8 +193,8 @@ ifelse(eval(PLANES > 8), 1, [UseThreeDWMap], [])	# this is way too wasteful of c
 # so 4500 dpM is just over 110 dpi
 #
 BorderWidth			BORDERWIDTH	# has no effect when UseThreeDBorders is on
-ifelse(eval(X_RESOLUTION >= 4500 && Y_RESOLUTION >= 4500), 1,
-[
+ ifelse(eval(X_RESOLUTION >= 4500 && Y_RESOLUTION >= 4500), 1,
+ [
 BorderShadowDepth		4	# should allow more on >8-bit displays
 TitleButtonShadowDepth		5
 TitleShadowDepth		5
@@ -184,7 +205,7 @@ MoveDelta			12
 MoveOffResistance		100
 MovePackResistance		100
 Zoom				16	# just for creation and destruction?
-], [
+ ], [
 BorderShadowDepth		2	# should allow more on >8-bit displays
 TitleButtonShadowDepth		3
 TitleShadowDepth		3
@@ -195,7 +216,7 @@ MoveDelta			4
 MoveOffResistance		50
 MovePackResistance		50
 Zoom				12
-])
+ ])
 ThreeDBorderWidth		TDBORDERWIDTH	# has no effect unless UseThreeDBorders is on])
 
 ConstrainedMoveTime		600	# 400 seems a tad too quick for a double-click
@@ -208,7 +229,13 @@ OpaqueResizeThreshold		100	# window % of screen size
 OpenWindowTimeout		15
 # XXX this doesn't seem to work...
 RaiseOnClickButton		1
-RandomPlacement			"on"	# I'm tired of dragging so many windows around!
+# I'm tired of dragging so many windows around!
+ ifelse(eval(FontYDPI > 110), 1,
+ [
+RandomPlacement			"on" +100+100
+ ], [
+RandomPlacement			"on"
+ ])
 UsePPosition			"non-zero"
 XMoveGrid			1
 YMoveGrid			1
@@ -217,27 +244,33 @@ YMoveGrid			1
 # Best is to arrange one's font-path to get the desired one first....
 #
 
-#TitleFont	"-*-helvetica-bold-r-*-*-*-100-HorizDPI-VertDPI-*-*-iso10646-1"
-TitleFont	"-*-liberation sans-bold-r-normal--*-100-FontXDPI-FontYDPI-p-0-iso10646-1"
+#TitleFont	"-*-helvetica-bold-r-*-*-*-100-FontXDPI-VertDPI-*-*-iso10646-1"
+TitleFont	"-*-dejavu serif-bold-r-normal--*-100-FontXDPI-FontYDPI-p-0-iso10646-1"
 
-#IconFont	"-*-helvetica-bold-r-*-*-*-80-HorizDPI-VertDPI-*-*-iso10646-1"
-IconFont	"-*-liberation sans-medium-r-normal--*-80-FontXDPI-FontYDPI-p-0-iso10646-1"
+#IconFont	"-*-helvetica-bold-r-*-*-*-80-FontXDPI-FontYDPI-*-*-iso10646-1"
+IconFont	"-*-dejavu sans-medium-r-normal--*-80-FontXDPI-FontYDPI-p-0-iso10646-1"
 
-#IconManagerFont "-*-helvetica-medium-r-*-*-*-80-HorizDPI-VertDPI-*-*-iso10646-1"
-IconManagerFont "-*-liberation sans-medium-r-normal--*-80-FontXDPI-FontYDPI-p-0-iso10646-1"
+#IconManagerFont "-*-helvetica-medium-r-*-*-*-80-FontXDPI-FontYDPI-*-*-iso10646-1"
+IconManagerFont "-*-dejavu sans-medium-r-normal--*-80-FontXDPI-FontYDPI-p-0-iso10646-1"
 
-#MenuFont	"-*-helvetica-medium-r-*-*-*-80-HorizDPI-VertDPI-*-*-iso10646-1"
-MenuFont	"-*-liberation sans-medium-r-normal--*-80-FontXDPI-FontYDPI-p-0-iso10646-1"
+#MenuFont	"-*-helvetica-medium-r-*-*-*-80-FontXDPI-FontYDPI-*-*-iso10646-1"
+MenuFont	"-*-dejavu sans-medium-r-normal--*-80-FontXDPI-FontYDPI-p-0-iso10646-1"
 
-#ResizeFont	"-*-courier-bold-r-*-*-*-240-HorizDPI-VertDPI-*-*-iso10646-1"
-ResizeFont	"-*-liberation mono-bold-r-normal--*-240-FontXDPI-FontYDPI-m-0-iso10646-1"
+# n.b.:  the resize "window" is a box sized for monospace numbers, so using a
+# proportional font leaves un-balanced black bars on the sides
+#ResizeFont	"-*-dejavu serif-bold-i-normal--*-300-FontXDPI-FontYDPI-*-0-iso10646-1"
+#ResizeFont	"-*-bitstream charter-bold-i-normal--*-300-FontXDPI-FontYDPI-p-0-iso10646-1"
+#
+#ResizeFont	"-*-courier-bold-i-normal--*-300-FontXDPI-FontYDPI-m-0-iso10646-1"
+# luxi mono (a serif font) has nice looking numbers
+ResizeFont	"-*-luxi mono-bold-o-normal--*-300-FontXDPI-FontYDPI-m-0-iso10646-1"
 
 #WorkSpaceFont	"-*-helvetica-*-r-*--10-*-*-*-*-*-*-*"
-WorkSpaceFont	"-*-liberation sans-medium-r-normal--*-70-FontXDPI-FontYDPI-p-0-iso10646-1"
+WorkSpaceFont	"-*-dejavu sans-medium-r-normal--*-70-FontXDPI-FontYDPI-p-0-iso10646-1"
 
-# XXX DefaultFont is not yet configurable (it should first use this, or else the "*font" resource, or lastly the compiled in font)
-#DefaultFont	"-*-courier-bold-r-*-*-*-100-HorizDPI-VertDPI-*-*-iso10646-1"
-#DefaultFont	"-*-liberation mono-medium-r-normal--*-100-FontXDPI-FontYDPI-m-0-iso10646-1"
+## XXX DefaultFont is not yet configurable (it should first use this, or else the "*font" resource, or lastly the compiled in font)
+##DefaultFont	"-*-courier-bold-r-*-*-*-100-FontXDPI-FontYDPI-*-*-iso10646-1"
+##DefaultFont	"-*-dejavu sans mono-medium-r-normal--*-100-FontXDPI-FontYDPI-m-0-iso10646-1"
 
 # Define some useful functions for motion-based actions.
 # These must come after fonts....
@@ -321,7 +354,6 @@ Monochrome {
 
 ifelse(COLOR, Yes, [
 
-define(OPT_XTERM_TN, [-tn xterm-256color])
 define(XLOAD_HL, [red])
 
 MapWindowCurrentWorkSpace {
@@ -368,7 +400,6 @@ MapWindowDefaultWorkSpace {
 ], [
 
 define(XLOAD_HL, [grey90])
-define(OPT_XTERM_TN, [])
 
 MapWindowCurrentWorkSpace {
 	"White"
@@ -396,48 +427,6 @@ MapWindowDefaultWorkSpace {
 #
 IconJustification		"right"
 
-# for Xterms we use two different macros to set the geometry of small
-# and large windows.  These macros are set based on the estimated size
-# of the screen.
-#
-#	5x8 == Tiny
-#	7x14 == Small
-#	8x13 == Medium
-#	9x15 == Large
-#
-# Notes:
-#
-# - setting -fs (faceSize) to 7.5 makes the TrueType font size most closely
-#   match the size of the default "fixed" bitmap font's size.
-#
-# - Unfortunately on the iMac 27" with 2560x1440 there is not quite room enough
-#   horizontally for the three standard xterms with a point size of 10 for the
-#   big ones.
-#
-ifelse(eval(WIDTH >= 6016 && HEIGHT >= 3384), 1, [define(OPT_BIG_XTERM, [-geometry 132x100+0+0 -fs 9])],
- [ifelse(eval(WIDTH >= 2560 && HEIGHT >= 1440), 1, [define(OPT_BIG_XTERM, [-geometry 132x82+0+0 -fs 9])],
-  [ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1280), 1, [define(OPT_BIG_XTERM, [-geometry 117x82+0+0 -fs 9])],
-   [ifelse(eval(WIDTH >= 1600 && HEIGHT >= 1200), 1, [define(OPT_BIG_XTERM, [-geometry 117x77+0+0 -fs 9])],
-    [ifelse(eval(WIDTH >= 1280 && HEIGHT >= 1024), 1, [define(OPT_BIG_XTERM, [-geometry 100x50+0+0 -fs 7.5])],
-     [define(OPT_BIG_XTERM, [-fs 7.5 -geometry 80x40+0+0])]
-    )]
-   )]
-  )]
- )]
-)
-# With CommitMono font this could be 50 high
-# With Liberation Mono and CommitMono font this could be 91 wide
-define(OPT_LITTLE_XTERM, [-fs 7.5 -geometry 80x45-0-${XconsoleVoff}])
-
-# Xterm fonts via Xft with '-fa' (assume all systems are "new" enough)
-#
-define(OPT_XTERM_FA, [-fa 'CommitMono'])
-define(OPT_UXTERM_FA, [-fa 'CommitMono'])
-
-# on OSX Xterm isn't configured to record logins properly with "-ls"
-#
-ifdef([ON_OSX], [define(OPT_XTERM_LOGIN, [-e login -pf USER])])
-
 # Can only be one directory!  Uses resource bitmapFilePath first...
 #
 IconDirectory	"~/lib/bitmaps"
@@ -455,6 +444,7 @@ IconManagerDontShow {
 	"WorkSpaceManager"
 	"xbiff"
 	"XBuffy"
+	"xchrono"
 	"xclock"
 	"xcpustate"
 	"xeyes"
@@ -612,7 +602,7 @@ OccupyAll {
 	"Calculator"
 	"NCD User Services:  Console"
 	"NCD User Services:  Show Memory"
-	"OccupyAll"		# a trick used for starting xterms (that doesn't work???)...
+	"OccupyAll"		# a trick for starting xterms in all workspaces (using "-T OccupyAll")
 	"lmclock"
 	"oclock"
 	"swisswatch"
@@ -621,6 +611,7 @@ OccupyAll {
 	"WorkSpaceManager"
 	"xbiff"
 	"xbuffy"		# only the main box window
+	"xchrono"
 	"xclock"
 	"xconsole"
 	"xcpustate"
@@ -682,6 +673,13 @@ ifelse(eval(X_RESOLUTION >= 8000 && Y_RESOLUTION >= 8000), 1,
 )
 IconRegion	"IR_GEOM" North East IR_GRID IR_GRID
 
+NoBorder {
+	"swisswatch"
+	"swissclock"
+	"xchrono"
+	"xeyes"
+}
+
 NoTitle {
 	"asclock"
 	"lmclock"
@@ -691,6 +689,7 @@ NoTitle {
 	"WorkSpaceManager"
 	"xbiff"
 	"xbuffy"		# only the main box window
+	"xchrono"
 	"xclock"
 	"xcpustate"
 	"xeyes"
@@ -711,6 +710,7 @@ NoTitle {
 NoHighlight {
 	"swisswatch"
 	"swissclock"
+	"xchrono"
 	"xeyes"
 }
 
@@ -723,8 +723,10 @@ WarpCursor {
 }
 
 WindowGeometries {
-	# xmahjongg cannot handle standard geometry positioning (it does do size)
+	# xmahjongg cannot handle standard geometry positioning params (it does do size)
+ ifelse(eval(FontYDPI > 110), 1, [
 	"xmahjongg"	"2000x1500+2200+0"
+ ], [])
 }
 
 # These have an optional window list parameter
@@ -866,7 +868,7 @@ menu "quickies"
 	""			f.separator
  ifdef([ON_OSX], [
 	""			f.separator
-	"Pasteboard Copy"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM -T 'Paste text to PasteBoard here' -e pbcopy &"
+	"Pasteboard Copy"	!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T 'Paste text to PasteBoard here' -e pbcopy &"
 	""			f.separator
  ])
 	"Toggle workspace"	f.togglestate
@@ -908,18 +910,18 @@ menu "quickies"
 	"Xclipboard"		!"xclipboard &"
  ])
 	""			f.separator
-	"UXterm @CLIENTHOST"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} OPT_XTERM_LOGIN &"
-	"UXterm-big @CLIENTHOST"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS} OPT_XTERM_LOGIN &"
+	"UXterm @CLIENTHOST"	!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
+	"UXterm-big @CLIENTHOST" !"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
 	#
  ifdef([USE_X11SERVER], [
-	"Xterm @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xterm OPT_XTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"Xterm-big @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xterm OPT_XTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"Xterm @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"Xterm-big @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
  ])
  ifdef([AT_LOCAL], [
-	"UXterm @more"		!". ./.shrc; onx11server -n more.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @more"	!". ./.shrc; onx11server -n more.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @more"		!". ./.shrc; onx11server -n more.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @more"	!". ./.shrc; onx11server -n more.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
  ])
 	"Xterm's Everywhere..."	f.menu "xterms"
 	""			f.separator
@@ -940,7 +942,7 @@ menu "consoles"
 {
 	"Console Server"	f.title
   define(CONSOLE_REP, [
-	"$1 []"			!"uxterm OPT_UXTERM_FA OPT_XTERM_TN -fg lightgreen -bg black -geometry 132x66 -fn 5x7 -fbx -cn -rw -sb -si -sk -sl 2048 -n $1 -T '\"$1 Virtual Console\"' -e console $1 &"
+	"$1 []"			!"uxterm -fg lightgreen -bg black -geometry 132x66 -fs 7.5 ${XTERM_OPTS} -n $1 -T '\"$1 Virtual Console\"' -e console $1 &"
   ])
 	CONSOLE_REP(xenful)
 	CONSOLE_REP(nbtcur)
@@ -976,10 +978,12 @@ menu "consoles"
 menu "termservers"
 {
 	"Term Srvr Telnets"	f.title
-	"telnet controlling"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN ${XTERM_OPTS} -n controlling -T 'controlling Virtual Console' -e telnet controlling.local 2000 &"
+	"telnet controlling"	!"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -n controlling -T 'controlling Virtual Console' -e telnet controlling.local 2000 &"
 	""			f.separator
   define(CONTROLLING_REP, [
-	"Controlling-20$1"	!"uxterm OPT_UXTERM_FA -geometry 132x66 -fn 5x7 OPT_XTERM_TN ${XTERM_OPTS} -n Ctrl20$1 -T 'Controlling-20$1' -e telnet controlling.local 20$1 &"
+# n.b.:  with DejaVuSansMono six of these will fit on the main area of the big
+# Retina 6K Pro screen
+	"Controlling-20$1"	!"uxterm -geometry 132x66 -fs 6 ${XTERM_OPTS} -n Ctrl20$1 -T 'Controlling-20$1' -e telnet controlling.local 20$1 &"
   ])
 ###	CONTROLLING_REP(01)	# this is the physical console
 	CONTROLLING_REP(02)
@@ -1377,9 +1381,10 @@ menu "monitors"
 	"xconsole x-errors-DISPLAY" !"xconsole -geometry 500x120-0-0 -notify -verbose -file HOME/.xsession-errors-`echo ${DISPLAY} | sed 's/\.[[0-9]]*$//'` &"
 	""			f.separator
 	"xclock"		!"xclock -geometry ${ClockGeom} &"
-	"xclock -digital"	!"xclock -geometry ${DClockGeom} -digital &"
+	"xclock -digital"	!"LC_CTYPE=C xclock -geometry ${DClockGeom} -face :size=10 -digital -update 1 -chime &"
 	"swissclock"		!"swisswatch -name swissclock -geometry ${ClockGeom} &"
-	"xchrono"		!"xchrono -local Toronto -tokyo &"
+	# n.b.:  "-local" doesn't give a timezone, just a name for the local time zone!
+	"xchrono"		!"xchrono -geometry ${XchronoGeom} ${XchronoOpts} &"
 	"asclock"		!"asclock -shape -position -200+234 &"
 	""			f.separator
 	"xbiff"			!"xbiff -rv -bw 0 &"
@@ -1390,22 +1395,22 @@ menu "monitors"
 	""			f.separator
 	"xload"			!"xload -geometry ${XloadGeom} -hl XLOAD_HL &"
  ifdef([USE_X11SERVER], [
-	"xload @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xload -display ${REMOTE_DISPLAY} -geometry 120x40-200+48 -hl XLOAD_HL\" &"
+	"xload @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xload -geometry 120x40-200+48 -hl XLOAD_HL\" &"
  ])
  ifdef([AT_VERY_LOCAL], [
-	"air-traffic-monitor"	!"uxterm OPT_UXTERM_FA -tn xterm-256color -geometry 80x25+eval((WIDTH / 2) - ( 3 * HorizDPI))-eval(VertDPI * 2) -fs 9 -fa \"${DefaultXftFontSpec}\" ${XTERM_OPTS} -fc 5 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor &"
+	"air-traffic-monitor"	!"uxterm -tn xterm-256color -geometry 80x25+eval((WIDTH / 2) - ( 3 * HorizDPI))-eval(VertDPI * 2) -fs 9 ${XTERM_OPTS} -fc 5 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor &"
  ])
  ifdef([AT_LOCAL], [
-#	"xload @building"	!". ./.shrc; onx11server -n building.local \"xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomBuilding} -hl red\" &"
-	"xload @more"		!". ./.shrc; onx11server -n more.local \"xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomMore} -hl red\" &"
+#	"xload @building"	!". ./.shrc; onx11server -n building.local \"xload -geometry ${XloadGeomBuilding} -hl red\" &"
+	"xload @more"		!". ./.shrc; onx11server -n more.local \"xload -geometry ${XloadGeomMore} -hl red\" &"
 	"xload @central"	!"ssh -CY -n woods@central.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomCentral} -hl red\" &"
-#	"xload @future"		!". ./.shrc; onx11server -n future.local \"xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomFuture} -hl red\" &"
-	"xload @xenful"		!". ./.shrc; onx11server -n xenful.local \"xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomXenful} -hl red\" &"
-	"xload @xentastic"	!". ./.shrc; onx11server -n xentastic.local \"xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomXentastic} -hl red\" &"
+#	"xload @future"		!". ./.shrc; onx11server -n future.local \"xload -geometry ${XloadGeomFuture} -hl red\" &"
+	"xload @xenful"		!". ./.shrc; onx11server -n xenful.local \"xload -geometry ${XloadGeomXenful} -hl red\" &"
+	"xload @xentastic"	!". ./.shrc; onx11server -n xentastic.local \"xload -geometry ${XloadGeomXentastic} -hl red\" &"
 	"xload @xentral"	!"ssh -CY -n woods@xentral.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomXentral} -hl red\" &"
-	"xload @once"		!". ./.shrc; onx11server -n once.local \"xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomOnce} -hl red\" &"
+	"xload @once"		!". ./.shrc; onx11server -n once.local \"xload -geometry ${XloadGeomOnce} -hl red\" &"
 	#
-#	"xload @historically"	!". ./.shrc; onx11server -n historically.local \"xload -display ${REMOTE_DISPLAY} -geometry ${XloadGeomHistorically} -hl red\" &"
+#	"xload @historically"	!". ./.shrc; onx11server -n historically.local \"xload -geometry ${XloadGeomHistorically} -hl red\" &"
 	"xload @b2"		!"ssh -CY -n woods@b2.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomB2} -hl red\" &"
 	"xload @fezzik"		!". ./.shrc; onx11server -nS fezzik.local \"xload -geometry ${XloadGeomFezzik} -hl red\" &"
 	"xload @nbtest"		!". ./.shrc; onx11server -n nbtest.local \"xload -geometry ${XloadGeomNbtest} -hl red\" &"
@@ -1414,10 +1419,10 @@ menu "monitors"
 	"xload @nbday"		!". ./.shrc; onx11server -nS nbday.local \"xload -geometry ${XloadGeomNbday} -hl red\" &"
  ])
  ifdef([USE_X11SERVER], [
-	"xosview @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xosview -display ${REMOTE_DISPLAY}\" &"
+	"xosview @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xosview\" &"
  ])
  ifdef([USE_X11SERVER], [
-	"xcpustate @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xcpustate -display ${REMOTE_DISPLAY} -geometry 190x20-0+300 -shorten 1 -wait -cpu -disk\" &"
+	"xcpustate @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xcpustate -geometry 190x20-0+300 -shorten 1 -wait -cpu -disk\" &"
  ])
 	"tkined"		!"tkined &"
 	""			f.separator
@@ -1511,90 +1516,90 @@ menu "samplegames"
 menu "xterms"
 {
 	"Xterms Everywhere"	f.title
-	"Xterm @CLIENTHOST"	!"${X11BIN}/xterm OPT_XTERM_FA OPT_XTERM_TN ${XTERM_OPTS} OPT_XTERM_LOGIN &"
-	"UXterm @CLIENTHOST"	!"${X11BIN}/uxterm OPT_UXTERM_FA OPT_XTERM_TN ${XTERM_OPTS} OPT_XTERM_LOGIN &"
+	"UXterm @CLIENTHOST"	!"${X11BIN}/uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
+	"UXterm-big @CLIENTHOST" !"${X11BIN}/uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
  ifdef([AT_LOCAL], [
 # xxx this should use a macro!
-	"UXterm @xenful"	!". ./.shrc; onx11server -n xenful.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @xenful"	!". ./.shrc; onx11server -n xenful.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-	"UXterm @xentastic"	!". ./.shrc; onx11server -n xentastic.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @xentastic"	!". ./.shrc; onx11server -n xentastic.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+	"UXterm @xenful"	!". ./.shrc; onx11server -n xenful.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @xenful"	!". ./.shrc; onx11server -n xenful.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @xentastic"	!". ./.shrc; onx11server -n xentastic.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @xentastic"	!". ./.shrc; onx11server -n xentastic.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
 	#
-#	"UXterm @building"	!". ./.shrc; onx11server -n building.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-#	"UXterm-big @building"	!". ./.shrc; onx11server -n building.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-	"UXterm @more"		!". ./.shrc; onx11server -n more.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @more"	!". ./.shrc; onx11server -n more.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-#	"UXterm @future"	!". ./.shrc; onx11server -n future.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-#	"UXterm-big @future"	!". ./.shrc; onx11server -n future.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-#	"UXterm @isit"		!". ./.shrc; onx11server -n isit.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-#	"UXterm-big @isit"	!". ./.shrc; onx11server -n isit.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-#	"UXterm @lilbit"	!". ./.shrc; onx11server -n lilbit.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-#	"UXterm-big @lilbit"	!". ./.shrc; onx11server -n lilbit.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-#	"UXterm @rpi"		!". ./.shrc; onx11server -n rpi.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-#	"UXterm-big @rpi"	!". ./.shrc; onx11server -n rpi.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-#	"UXterm @historically"	!". ./.shrc; onx11server -n historically.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-#	"UXterm-big @historically" !". ./.shrc; onx11server -n historically.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-	"UXterm @once"		!". ./.shrc; onx11server -n once.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @once"	!". ./.shrc; onx11server -n once.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-	"UXterm @fezzik"	!". ./.shrc; onx11server -nS fezzik.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @fezzik"	!". ./.shrc; onx11server -nS fezzik.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-	"UXterm @nb10"		!". ./.shrc; onx11server -n nb10.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @nb10"	!". ./.shrc; onx11server -n nb10.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-	"UXterm @nbday"		!". ./.shrc; onx11server -nS nbday.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @nbday"	!". ./.shrc; onx11server -nS nbday.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-	"UXterm @nbt"		!". ./.shrc; onx11server -n nbt.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @nbt"	!". ./.shrc; onx11server -n nbt.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-	"UXterm @nbt2"		!". ./.shrc; onx11server -n nbt2.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @nbt2"	!". ./.shrc; onx11server -n nbt2.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-	"UXterm @nbtest"	!". ./.shrc; onx11server -n nbtest.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @nbtest"	!". ./.shrc; onx11server -n nbtest.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-	"UXterm @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
-	"UXterm @very-old"	!". ./.shrc; onx11server -nS very-old.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS}\" &"
-	"UXterm-big @very-old"	!". ./.shrc; onx11server -nS very-old.local \"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_BIG_XTERM ${XTERM_OPTS}\" &"
+#	"UXterm @building"	!". ./.shrc; onx11server -n building.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm-big @building"	!". ./.shrc; onx11server -n building.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @more"		!". ./.shrc; onx11server -n more.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @more"	!". ./.shrc; onx11server -n more.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm @future"	!". ./.shrc; onx11server -n future.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm-big @future"	!". ./.shrc; onx11server -n future.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm @isit"		!". ./.shrc; onx11server -n isit.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm-big @isit"	!". ./.shrc; onx11server -n isit.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm @lilbit"	!". ./.shrc; onx11server -n lilbit.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm-big @lilbit"	!". ./.shrc; onx11server -n lilbit.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm @rpi"		!". ./.shrc; onx11server -n rpi.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm-big @rpi"	!". ./.shrc; onx11server -n rpi.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm @historically"	!". ./.shrc; onx11server -n historically.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm-big @historically" !". ./.shrc; onx11server -n historically.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @once"		!". ./.shrc; onx11server -n once.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @once"	!". ./.shrc; onx11server -n once.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @fezzik"	!". ./.shrc; onx11server -nS fezzik.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @fezzik"	!". ./.shrc; onx11server -nS fezzik.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @nb10"		!". ./.shrc; onx11server -n nb10.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @nb10"	!". ./.shrc; onx11server -n nb10.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @nbday"		!". ./.shrc; onx11server -nS nbday.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @nbday"	!". ./.shrc; onx11server -nS nbday.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @nbt"		!". ./.shrc; onx11server -n nbt.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @nbt"	!". ./.shrc; onx11server -n nbt.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @nbt2"		!". ./.shrc; onx11server -n nbt2.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @nbt2"	!". ./.shrc; onx11server -n nbt2.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @nbtest"	!". ./.shrc; onx11server -n nbtest.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @nbtest"	!". ./.shrc; onx11server -n nbtest.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @very-old"	!". ./.shrc; onx11server -nS very-old.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @very-old"	!". ./.shrc; onx11server -nS very-old.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
 	#
 	# xxx these are not so useful as if the SSH connection drops then the
 	# window simply disappears with no hint as to when or why!  See further
 	# discussion in ~/.xinitrc regarding running X11 via tunnels, etc.
 	#
-	"Slogin @xentral"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} -e 'slogin -C xentral.avoncote.ca' &"
-	"Slogin @central"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} -e 'slogin -C central.weird.com' &"
-	"Slogin @b2"		!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} -e 'slogin -C b2.avoncote.ca' &"
+	"Slogin @xentral"	!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -e 'slogin -CY xentral.avoncote.ca' &"
+	"Slogin @central"	!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -e 'slogin -CY central.weird.com' &"
+	"Slogin @b2"		!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -e 'slogin -CY b2.avoncote.ca' &"
   ifdef([AT_VERY_LOCAL], [], [
-	"Xterm @very"		!". ./.shrc; onx11server -n very.local \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
-	"Slogin @very"		!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM ${XTERM_OPTS} -e 'slogin -C very.local' &"
+	"Xterm @very"		!". ./.shrc; onx11server -n very.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"Slogin @very"		!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -e 'slogin -CY very.local' &"
   ])
  ])
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
-	"Xterm @most"		!". ./.shrc; onx11server -n most.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
+	"Xterm @most"		!". ./.shrc; onx11server -n most.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, historically.weird.com, [], [
-	"Xterm @historically"	!". ./.shrc; onx11server -n historically.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
+	"Xterm @historically"	!". ./.shrc; onx11server -n historically.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, building.weird.com, [], [
-	"Xterm @building" 	!". ./.shrc; onx11server -n building.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
+	"Xterm @building" 	!". ./.shrc; onx11server -n building.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, once.weird.com, [], [
-	"Xterm @once"		!". ./.shrc; onx11server -n once.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
+	"Xterm @once"		!". ./.shrc; onx11server -n once.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, very.weird.com, [], [
-	"Xterm @very"		!". ./.shrc; onx11server -n very.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
+	"Xterm @very"		!". ./.shrc; onx11server -n very.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, almost.weird.com, [], [
-	"Xterm @almost"		!". ./.shrc; onx11server -n almost.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
+	"Xterm @almost"		!". ./.shrc; onx11server -n almost.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, whats.weird.com, [], [
-	"Xterm @whats"		!". ./.shrc; onx11server -n whats.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
+	"Xterm @whats"		!". ./.shrc; onx11server -n whats.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, sometimes.weird.com, [], [
-	"Xterm @sometimes" 	!". ./.shrc; onx11server -n sometimes.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
+	"Xterm @sometimes" 	!". ./.shrc; onx11server -n sometimes.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, always.weird.com, [], [
-	"Xterm @always" 	!". ./.shrc; onx11server -n always.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
+	"Xterm @always" 	!". ./.shrc; onx11server -n always.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, freely.weird.com, [], [
-	"Xterm @freely" 	!". ./.shrc; onx11server -n freely.weird.com \"xterm OPT_XTERM_FA OPT_XTERM_TN -display ${REMOTE_DISPLAY} ${XTERM_OPTS}\" &"
+	"Xterm @freely" 	!". ./.shrc; onx11server -n freely.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
  ])
 	""			f.separator
@@ -1651,7 +1656,8 @@ ifdef([ON_OSX], [
 menu "osx-apps"
 {
 	"Mac OS X Applications"	f.title
-	"pasteboard copy"	!"uxterm OPT_UXTERM_FA OPT_XTERM_TN OPT_LITTLE_XTERM -T 'Paste text to PasteBoard here, end with EOF' -e pbcopy"
+	# xxx maybe not all XTERM_OPTS are needed, but will they hurt?
+	"pasteboard copy"	!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T 'Paste text to PasteBoard here, end with EOF' -e pbcopy"
 	""			f.separator
 	"Activity Monitor"	!"open '/Applications/Utilities/Activity Monitor.app' &"
 	"Console"		!"open /Applications/Utilities/Console.app &"
