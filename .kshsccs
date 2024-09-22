@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	37.4	22/02/22 22:27:23 (woods)"
+#ident	"@(#)HOME:.kshsccs	37.5	24/09/22 12:36:51 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -238,7 +238,22 @@ function vwproj
 alias vmksccs=mksccs
 function mksccs
 {
-	typeset USAGE="Usage: $0 [-dDEFBR] [-o] [-qQFLAG] [-rSID] [-tMTYPE] file ..."
+	typeset USAGE="Usage: $0 [-dDEFBR] [-h] [-o] [-qQFLAG] [-rSID] [-tMTYPE] file ..."
+	typeset HELP="$USAGE
+
+-dDEFBR		set DEFBR as the default delta (i.e. branch)
+-h		print this help message
+-o		this is a SCCS_SCHILY option only (ignored)
+-qQFLAG		set the user-defined keyword to QFLAG, (e.g. owner id) (for :Q:)
+		(defaults to \$USER)
+-rSID		set the release level to REL (defaults to current release level)
+-tMTYPE		set the module type to MTYPE (for :Y:)
+		(defaults to HOME if in home directory, else basename of \$PWD)
+
+$0 enters a new file into the SCCS repository for project $PROJECT.
+
+e.g.:  $0 -q\$USER -tHOME .newfile
+"
 	typeset DEFBR=""
 	typeset OFLAG=""
 	typeset QFLAG=""
@@ -248,12 +263,16 @@ function mksccs
 	if [ -n "$lastrel" ] ; then
 		REL="-r$lastrel"
 	fi
-	while getopts d:oq:r:t: OPTCH
+	while getopts d:hoq:r:t: OPTCH
 	do
 	  	case $OPTCH in
 		d)
 			# default delta (branch)
 			DEFBR="-fd${OPTARG}"
+			;;
+		h)
+			echo "$HELP"
+			return 2
 			;;
 		o)
 			# this is a SCCS_SCHILY option....
@@ -272,7 +291,7 @@ function mksccs
 			TFLAG="${OPTARG}"
 			;;
 		*)
-			echo $USAGE >&2
+			echo "$USAGE" >&2
 			return 2
 			;;
 		esac
