@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.26	24/09/22 13:10:02 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.27	24/09/26 13:32:27 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -510,6 +510,60 @@ fi
 XconsoleVoff=$(expr ${XconsoleHeight} + ${TitleHeight} + ${TDBorderWidth})
 export XconsoleWidth XconsoleHeight XconsoleVoff
 
+# XTerm options which cannot to be set with resources, (xxx are there any
+# left?), or which should not because they depend on other things in the
+# environment, such as which window manager is being used.
+#
+# n.b.:  this is also set in ~/.profile, and should be identical
+#
+if [ -z "$XTERM_OPTS" ]; then
+	XTERM_OPTS=""
+fi
+export XTERM_OPTS
+
+if [ -z "$WM" ] ; then
+	echo "$argv0: searching for a usable window manager..."
+	#
+	# XXX maybe it would be nice to have a window-manager-chooser
+	#
+	if type ctwm >/dev/null 2>&1; then
+		#
+		# N.B.:  in newer versions (>= 4.x) a new command-line syntax
+		# makes use of "-display $DISPLAY" break.  However since well
+		# before 3.8.2 the default is the $DISPLAY in the environment,
+		# so we can just avoid using it at all.
+		#
+		# also, don't bother with '-v' -- it's too much and slows things!
+		#
+		if [ ${SCREENDEPTH:-1} -eq 1 ] ; then
+			# the welcome screen on monochrome is silly and slow
+			WM="ctwm -k -K $HOME/.ctwmrc.m4out -W"
+		else
+			WM="ctwm -k -K $HOME/.ctwmrc.m4out"
+		fi
+		XTERM_OPTS="+ai ${XTERM_OPTS}"
+	elif type tvtwm >/dev/null 2>&1; then
+		WM=tvtwm
+	elif type wmx >/dev/null 2>&1; then
+		WM=wmx
+	elif type wm2 >/dev/null 2>&1; then
+		WM=wm2
+	elif type scwm >/dev/null 2>&1; then
+		WM=scwm
+	elif type wmaker >/dev/null 2>&1; then
+		WM=wmaker
+	elif type fvwm >/dev/null 2>&1; then
+		WM=fvwm
+	elif type twm >/dev/null 2>&1; then
+		WM=twm
+		XTERM_OPTS="+ai ${XTERM_OPTS}"
+	else
+		echo "$argv0: assuming 'xterm' is available in lieu of a known WM..."
+		WM=xterm
+	fi
+	export WM
+fi
+
 ONCONSOLE=false
 export ONCONSOLE
 case "$DISPLAY" in
@@ -723,16 +777,6 @@ if [ $(uname -s) = "Darwin" ]; then
 	export XTERM_LOGIN_OPTS
 fi
 
-# XTerm options which cannot seem to be set with resources...
-# (xxx are there any left?)
-#
-# n.b.:  this is also set in ~/.profile, and should be identical
-#
-if [ -z "$XTERM_OPTS" ]; then
-	XTERM_OPTS=""
-fi
-export XTERM_OPTS
-
 # If you're running on a diskless workstation that runs xdm itself
 # then you probably have a server that's more powerful and on which
 # you'd rather run the majority of your X applications.  Normally
@@ -775,47 +819,6 @@ if [ -n "$XDMHOST" -a "$XDMHOST" = "$(echo $DISPLAY | sed 's/:.*$//')" ] ; then
 		echo "$argv0: have unset X11SERVER; XDMHOST is $XDMHOST"
 		;;
 	esac
-fi
-
-if [ -z "$WM" ] ; then
-	echo "$argv0: searching for a usable window manager..."
-	#
-	# XXX maybe it would be nice to have a window-manager-chooser
-	#
-	if type ctwm >/dev/null 2>&1; then
-		#
-		# N.B.:  in newer versions (>= 4.x) a new command-line syntax
-		# makes use of "-display $DISPLAY" break.  However since well
-		# before 3.8.2 the default is the $DISPLAY in the environment,
-		# so we can just avoid using it at all.
-		#
-		# also, don't bother with '-v' -- it's too much and slows things!
-		#
-		if [ ${SCREENDEPTH:-1} -eq 1 ] ; then
-			# the welcome screen on monochrome is silly and slow
-			WM="ctwm -k -K $HOME/.ctwmrc.m4out -W"
-		else
-			WM="ctwm -k -K $HOME/.ctwmrc.m4out"
-		fi
-	elif type tvtwm >/dev/null 2>&1; then
-		WM=tvtwm
-	elif type wmx >/dev/null 2>&1; then
-		WM=wmx
-	elif type wm2 >/dev/null 2>&1; then
-		WM=wm2
-	elif type scwm >/dev/null 2>&1; then
-		WM=scwm
-	elif type wmaker >/dev/null 2>&1; then
-		WM=wmaker
-	elif type fvwm >/dev/null 2>&1; then
-		WM=fvwm
-	elif type twm >/dev/null 2>&1; then
-		WM=twm
-	else
-		echo "$argv0: assuming 'xterm' is available in lieu of a known WM..."
-		WM=xterm
-	fi
-	export WM
 fi
 
 HAVESWISSWATCH=false ; export HAVESWISSWATCH
