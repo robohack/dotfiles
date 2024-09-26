@@ -2,7 +2,7 @@
 !
 ! changequote([, ])	note brackets will disappear from comments!
 !
-!#ident	"@(#)HOME:.Xdefaults	37.12	24/09/22 13:10:01 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.13	24/09/26 13:31:17 (woods)"
 !
 ! N.B. WARNING:  This file must be processed with "xrdb -cpp m4" with macros and
 ! macro calls in the comments.  (perhaps it should be renamed to .Xdefaults.m4?)
@@ -351,6 +351,10 @@ XTerm*ptyInitialErase:		true
 !
 ! More xterm settings to avoid having to have $XTERM_OPTS everywhere:
 !
+! xxx activeIcon should only be set when using a compatible $WM
+!UXTerm*activeIcon:		true
+!XTerm*activeIcon:		true
+!
 UXTerm*cutNewline:		false
 XTerm*cutNewline:		false
 !
@@ -384,8 +388,10 @@ UXTerm*termName:		xterm-256color
 XTerm*termName:			xterm-256color
 ! ], [])
 !
-UXTerm*zIconBeep:		true
-XTerm*zIconBeep:		true
+! n.b.: zIconBeep is a percentage (presumably of change).  The manual says the
+! default is "false", but presumably it should say "0".
+UXTerm*zIconBeep:		1
+XTerm*zIconBeep:		1
 !
 ! xxx the *VT100(.*).font* values may be necessary if XTerm does not have Xft
 ! support, but that is hopefully no longer a concern anywhere.
