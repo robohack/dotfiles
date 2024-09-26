@@ -1,7 +1,7 @@
 #
 #	.ashrc - per-shell startup stuff for ash via $ENV
 #
-#ident	"@(#)HOME:.ashrc	37.5	22/03/02 13:36:44 (woods)"
+#ident	"@(#)HOME:.ashrc	37.6	24/09/26 13:38:53 (woods)"
 
 # Assumptions:
 #	- chdir must be synonymous with cd, and cd can be reset to a function
@@ -63,10 +63,10 @@ esac
 # interactive sub-shell, etc.
 #
 # It is assumed that ~/.profile, which would otherwise source ~/.shrc, is
-# sourced only by login shells, and by ~/.xinitrc or by a window manager, but
-# won't be sourced by default by a non-interactive shell or a "su" shell.  It is
-# also assumed of course that "zhead" is defined as a function in the desired
-# ~/.shrc file.
+# sourced only by login shells, and by ~/.xinitrc or by a (possibly remote)
+# window manager (e.g. using onx11server), but won't be sourced by default by a
+# non-interactive shell or a "su" shell.  It is also assumed of course that
+# "zhead" is defined as a function in the desired ~/.shrc file.
 #
 if ! type zhead >/dev/null 2>&1; then
 	# try to find a related .shrc, even when using "su" or a sub-shell
@@ -106,7 +106,7 @@ else
 	PS1='${UUNAME}'
 fi
 
-if ismpx || [ "$TERM" = "dmd-myx" ] ; then
+if ismpx -s || [ "$TERM" = "dmd-myx" ] ; then
 	unset -f cd
 	# NOTE:  may be re-defined in ~/.ashpwd
 	cd ()
