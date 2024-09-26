@@ -9,7 +9,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.27	24/09/22 13:10:02 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.28	24/09/26 13:31:53 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -315,15 +315,22 @@ Color {
 		# since these colours are only assigned if the window name, at
 		# the moment the window is created, matches; or if Ctwm is
 		# restarted, e.g. after one runs "su"...
-		"root*" "red"
-		"xterm" "SteelBlue"
-		"emacs"	"yellow"
-		"tkined" "red"
+		"root*"		"red"
+		# more for fun
+		"xterm"		"SteelBlue"
+		"emacs"		"yellow"
+		"tkined"	"goldenrod"
+		"Console"	"DarkGreen"
+		"AirTrafficMonitor" "LightSkyBlue"
+		"Links"		"maroon"
+		"xmahjongg"	"gold"
 	}
 	MapWindowForeground	"Black" {
 		# better contrast for these ones....
 		"xterm" "White"
 		"tkined" "White"
+		"Links" "White"
+		"AirTrafficMonitor" "Black"
 	}
 	MenuBackground		"DarkGreen"
 	MenuForeground		"White"
