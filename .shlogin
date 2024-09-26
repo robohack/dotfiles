@@ -1,7 +1,7 @@
 #
 #	.shlogin - login shell startup for plain Bourne Shell
 #
-#ident	"@(#)HOME:.shlogin	37.2	22/02/23 17:28:06 (woods)"
+#ident	"@(#)HOME:.shlogin	37.3	24/09/26 13:44:38 (woods)"
 
 _interactive=false
 case "$-" in
@@ -11,6 +11,10 @@ case "$-" in
 esac
 case "$0" in
 -*)
+	# xxx IIRC this is for Heirloom Bourne Shell which does not put "i" in
+	# $- when it is invoked with a leading '-' on argv[0], i.e. when it is a
+	# login shell...
+	#
 	_interactive=true
 	;;
 esac
@@ -37,20 +41,18 @@ if ${_interactive}; then
         # older shells ignore $ENV entirely)
         #
         ENV=$HOME/.shrc ; export ENV
+
+	if [ "$LOGNAME" = root ] ; then
+		PS1="[$TTYN]<$LOGNAME@$UUNAME> # "
+	else
+		PS1="[$TTYN]<$LOGNAME@$UUNAME> $ "
+	fi
 else
 	echo "$0: WARNING: .shlogin being sourced by a non-interactive shell!"
 fi
 unset _interactive
 
-# NOTE: ${HOME}/.profile will source $ENV if the file it names exists
-
 if [ -z "$LOGNAME" ] ; then
 	# some systems won't allow this...
 	LOGNAME=${USER} ; export LOGNAME
-fi
-
-if [ "$LOGNAME" = root ] ; then
-	PS1="[$TTYN]<$LOGNAME@$UUNAME> # "
-else
-	PS1="[$TTYN]<$LOGNAME@$UUNAME> $ "
 fi

@@ -1,9 +1,12 @@
 #
 #	.shrc - per-shell startup stuff for all shells
 #
+# This file is never used directly as $ENVFILE (i.e. $ENV), but it is shared and
+# sourced by all that are.
+#
 # Note:  Most of this should be compatible with some pre-POSIX shells.  Notably:
 #
-#	- mostly don't use $() for command expansion
+#	- don't use $() for command expansion (ever!)
 #	- don't use '!' in test expressions for flow-control statements
 #	- mostly no arithmetic expressions
 #	- mostly no suffix or prefix patterns
@@ -17,7 +20,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.38	24/07/26 17:36:32 (woods)"
+#ident	"@(#)HOME:.shrc	37.39	24/09/26 13:44:38 (woods)"
 
 if [ -z "${SHELL}" ]; then
 	# likely plain old Bourne (heirloom) shell
@@ -25,8 +28,55 @@ if [ -z "${SHELL}" ]; then
 	SHELL=`expr "$0" : '-*\(.*\)'`
 fi
 
-# This file sets D_PS1 once done to allow setaliases to avoid clobbering
+# Provide 'type' for shells (i.e. early ash) that don't have it.
+#
+# Note:  early ash reads $SHINIT at start, except if a login shell or called
+# with "sh file" (but this feature is not used -- early ash is too rare, and
+# besides we want to source .ashtype even if not interactive, e.g. if called by
+# onx11server).
+#
+# The I/O re-direction doesn't actually get rid of the "type: not found" message
+# from the old Ash implementation...  Perhaps it parses the whole line first?
+#
+# XXX but maybe it would if we redirected stderr within the subshell
+# too, as we must do for GNU Bash?
+#
+if ( type type > /dev/null 2>&1 ) > /dev/null 2>&1 ; then
+	:
+elif [ -r ${HOME}/.ashtype ]; then
+	. ${HOME}/.ashtype
+fi
+
+#	N.B.:  the rest of the file is for "interactive" shells only!
+#
+# Note this file is _always_ expected to be sourced with ".", which behaves kind
+# of like a function (without parameters, and so "return" is a/the valid way to
+# stop sourcing early.
+#
+case "$-" in
+*i*)
+	: is truly interactive!
+	;;
+*)
+	# shells sourcing ~/.profile are assumed to want interactive setup too
+	#
+	if [ -z "${FROM_DOT_PROFILE}" ]; then
+		return
+	fi
+	;;
+esac
+
+# do this early so everything else can use it if needed
+#
+HAVEX=false
+if type xinit >/dev/null 2>&1; then
+	HAVEX=true
+fi
+
+# This file sets D_PS1 at the end to allow setaliases to avoid clobbering
 # .kshrc's new value.
+#
+# XXX In a sense this is an include guard and maybe we could use it as such?
 #
 if [ -z "${D_PS1}" ]; then
 	# N.B.:  this will be possibly reset, then appended to....
@@ -1575,6 +1625,13 @@ if [ -n "$DISPLAY" ]; then
 
 		_X11server=$1
 
+		# note:  the remote shell is asked to explicitly source
+		# ~/.profile on the remote server so as to set up $PATH and
+		# other things since most X11 apps we start remotely are
+		# effectively interactive environments, especially if they are
+		# editors or media viewers or such.  Besides this is the easiest
+		# and most reliable way to find the remote server's $X11PATH!
+		#
 		echo "onx11server: starting $_REMSHELL $_nullopt $_X11server '. ./.profile; DISPLAY=${_RDISPLAY}; export DISPLAY; exec $2'"
 		# note:  do not run this in the background -- let the
 		# caller do that (unfortunately we must have a shell
@@ -1678,8 +1735,11 @@ do_first_time ()
 	lnotes
 }
 
+# we start with a default of true, but if tty fails, we set it to false
+#
+# $ISATTY is basically a "memoization" to optimize for executing tty(1)
+#
 ISATTY="true"
-# xxx && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] 
 TTY=`tty` || ISATTY="false"	# "not a tty" if not...
 if ${ISATTY}; then
 	TTYN=`basename $TTY`
@@ -2509,6 +2569,8 @@ zhead ()
 
 rm_alias_funcs ()
 {
+	type alias >/dev/null 2>&1 || return 0
+
 	# note: '-f' is only in modern sh as well as ksh and bash, but that's
 	# where this is used
 	#
@@ -2523,6 +2585,7 @@ rm_alias_funcs ()
 rm_func_aliases ()
 {
 	type alias >/dev/null 2>&1 || return 0
+
 	for _a in uufollow rsh blsqueeze blstrip ds e elc l la ll lli lla llia llr llir llra llira lr lra lsa nstty rstty wcvs; do
 		if alias ${_a} >/dev/null 2>&1; then
 			unalias ${_a}

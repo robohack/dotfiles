@@ -6,12 +6,12 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.32	24/09/22 13:10:02 (woods)"
+#ident	"@(#)HOME:.profile	37.33	24/09/26 13:44:38 (woods)"
 
 # Assumptions that may cause breakage:
 #
 #	- the shell is more or less POSIX compatible
-#		- but we don't use $() for command expansion
+#		- but we don't use $() for command expansion (ever!)
 #		- we don't use arithmetic expressions either
 #		- we don't use parameter expansion substring processing
 #		- we don't use ~ for pathname expansion (use $HOME)
@@ -56,7 +56,7 @@
 # Notes:
 #
 #	.ashlocal, .editor, .kshlocal, .localprofile, .stty, and .shell are not
-#	distributed.
+#	distributed (i.e. they are expected to be specific per $HOME).
 #
 #	.localprofile may set $PATH_IS_OKAY to "true" if it is so (and
 #	of course may also (re)set $PATH to make it so first.
@@ -67,9 +67,12 @@
 #	will do that when running interactively (but remember $PS1 et
 #	al must not be set for non-interactive shell processes!).
 #
-#	$ENV really shouldn't ever do anything for non-interactive
-#	shells, as anything it does can make nightmares for portable
-#	shell scripts (both the writing of, and the running of them).
+#	$ENV really shouldn't ever do anything for non-interactive shells, as
+#	anything it does can make nightmares for portable shell scripts (both
+#	the writing of, and the running of them).  On the other hand of course
+#	the utility of having non-interactive shells source $ENV does allow for
+#	selectively overriding built-ins that might not be fully POSIX
+#	compliant (e.g. to add new features).
 #
 #	Login shells can be tested with:
 #
@@ -85,7 +88,8 @@
 #	fact some expect to be started with their current working directory
 #	already in $HOME, e.g. NetBSD sh (and maybe older shells, but not dash).
 #
-#	N.B.:  $XTERM_OPTS is expected to contain '-ls' for such tests.
+#	N.B.:  $XTERM_OPTS is expected to contain '-ls', or the "*loginShell"
+#	X11 resource should be set, for such tests.
 
 # ToDo:
 #
@@ -96,16 +100,23 @@ umask 022
 echo "$0: startup PATH=$PATH" | sed 's/:/: /g' | fold -s
 OPATH=$PATH
 
-# every shell gets all the basic functions and variable settings....
+# every shell that sources ~/.profile gets all the basic functions and variable
+# settings, interactive or not!
 #
-# we assume ~/.profile is sourced only by login shells, and by
-# ~/.xinitrc or by a window manager
+# we assume ~/.profile is sourced only by login shells, and by ~/.xinitrc, and
+# perhaps by a call from a (possibly remote) window manager (e.g. using
+# onx11server) where the intent is to set up $PATH and other environment,
+# etc. typically desired and assumed for "interactive" commands, such as
+# editors, media viewers, etc.
 #
 # XXX probably should move all the HAVE* settings there too....
 #
+FROM_DOT_PROFILE=yes	# tell ~/.shrc this use is effectively "interactive"
 . ${HOME}/.shrc
 
-if ${ISATTY}; then		# XXX && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xinitrc" ] XXX and not yet in layers
+# XXX hmmmm.... these should be in their respective ~/.*login files????
+#
+if ${ISATTY}; then
 	if is_bash && [ -r ${HOME}/.bashlogout ]; then
 		trap '. ${HOME}/.bashlogout ; exit $?' EXIT
 	elif is_ksh && [ -r ${HOME}/.kshlogout ]; then
@@ -113,23 +124,6 @@ if ${ISATTY}; then		# XXX && [ "X$argv0" != "X.xsession" -a "X$argv0" != "X.xini
 	elif [ -r ${HOME}/.shlogout ]; then
 		trap '. ${HOME}/.shlogout ; exit $?' 0
 	fi
-fi
-
-# Note:  early ash reads SHINIT at start (except if a login shell or called with
-# "sh file")
-
-# the I/O re-direction doesn't actually get rid of the "type: not found" message
-# from the old Ash implementation...  Perhaps it parses the whole line first?
-#
-# XXX but maybe it would if we redirected stderr within the subshell
-# too, as we must do for GNU Bash?
-#
-if ( type type > /dev/null 2>&1 ) > /dev/null 2>&1 ; then
-	:
-elif [ -r ${HOME}/.ashtype ]; then
-	. ${HOME}/.ashtype
-	ENV=${HOME}/.ashrc
-	export ENV
 fi
 
 if [ "`echo ~`" = "${HOME}" -a ${RANDOM:-0} -eq ${RANDOM:-0} ]; then
@@ -506,7 +500,8 @@ if [ "X${HOME}" != "X/" ]; then
 	dirprepend PATH ${HOME}/go/bin
 	case "${PATH}" in
 	*:)
-		echo 'NOTICE: PATH already ends in a colon.' ;;
+		echo 'NOTICE: PATH already ends in a colon.'
+		;;
 	*)
 		PATH=${PATH}:
 		;;
@@ -995,10 +990,11 @@ if ${ISATTY}; then
 		# this cache is built any tool can have a significant
 		# multi-second startup overhead!
 		#
-		if [ ! -f $(xcrun --show-cache-path) ]; then
+		if [ ! -f `xcrun --show-cache-path` ]; then
 			echo "NOTICE:  will try to fully populate the xcodebuild cache in the background"
-			( for file in $(xcode-select --print-path)/usr/bin/*; do xcrun -n -find $(basename $file) > /dev/null; done;
-			  for file in $(dirname $(xcrun -n -find clang))/*; do xcrun -n -find $(basename $file) > /dev/null; done ) &
+			( _clangpath=`xcrun -n -find clang`
+			  for file in `xcode-select --print-path`/usr/bin/*; do xcrun -n -find `basename $file` > /dev/null; done;
+			  for file in `dirname $_clangpath`/*; do xcrun -n -find `basename $file` > /dev/null; done ) &
 		fi
 		;;
 	esac
@@ -1069,11 +1065,15 @@ if ${ISATTY}; then
 		dirappend PATH ${X11PATH}/bin
 		dirappend MANPATH ${X11PATH}/man
 		#
-		# XTerm options which cannot seem to be set with resources...
-		# (xxx are there any left?)
+		# XTerm options which cannot to be set with resources, (xxx are
+		# there any left?), or which should not because they depend on
+		# other things in the environment, such as which window manager
+		# is being used.
 		#
 		# n.b.:  this is also set in ~/.xinitrc, if not set first from
 		# here, and it can of course be overridden in ~/.localprofile
+		#
+		# It may also be appended to by ~/.xinitrc, depending on $WM.
 		#
 		if [ -z "$XTERM_OPTS" ]; then
 			XTERM_OPTS=""
@@ -1157,8 +1157,11 @@ elif is_bash ; then
 		. ${HOME}/.bashlogin
 	fi
 elif is_ash ; then
-	# this will only be modern ash(1) or a derivative of it
-	# (eg. from 4.4BSD or newer), or Schily Shell
+	# this will only be modern ash(1) or a derivative of it (eg. from 4.4BSD
+	# or newer), or Schily Shell (bosh)
+	#
+	# (xxx we could use is_schily_sh to separate it out, but for the most
+	# part it deals with ~/.ash* stuff OK)
 	#
 	if [ -r ${HOME}/.ashlogin ]; then
 		. ${HOME}/.ashlogin
@@ -1173,11 +1176,6 @@ else
 	else
 		PS1="login [${TTYN}]<${LOGNAME}@${UUNAME}> $ "
 	fi
-fi
-
-HAVEX=false
-if type xinit >/dev/null 2>&1; then
-	HAVEX=true
 fi
 
 if ${ISATTY} && ${HAVEX} && [ "X$DISPLAY" = "X" ]; then

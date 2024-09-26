@@ -1,15 +1,23 @@
 #
 #	.ashlogin - login shell startup for ash
 #
-#ident	"@(#)HOME:.ashlogin	37.2	22/02/23 17:30:59 (woods)"
+#ident	"@(#)HOME:.ashlogin	37.3	24/09/26 13:44:38 (woods)"
 
-# Schily Bourne Shell doesn't seem to fully set $- until late...
-if is_schily_sh; then
-	set -o ignoreeof
-fi
-
+_interactive=false
 case "$-" in
 *i*)
+	_interactive=true
+	;;
+esac
+case "$0" in
+-*)
+	# Schily Bourne Shell doesn't seem to fully set $- until late...
+	#
+	_interactive=true
+	;;
+esac
+
+if ${_interactive}; then
 	#
 	# Commands for interactive shells.
 	#
@@ -24,21 +32,22 @@ case "$-" in
 	if [ ! -f ~/.timelog ] ; then
 		touch ~/.timelog
 	fi
-	;;
-*)
+
+	export ENVFILE=$HOME/.ashrc
+	if [ -r "$ENVFILE" ] ; then
+		export ENV=$ENVFILE
+	fi
+
+	export HISTSIZE=2000
+else
 	echo "$0: WARNING: ~/.ashlogin being sourced by a non-interactive shell! (\$-=$-)"
-	;;
-esac
+fi
+unset _interactive
 
 # xxx NetBSD /bin/sh (and dash) does not support FPATH
-export FPATH=$HOME/lib/sh
-
-export ENVFILE=$HOME/.ashrc
-if [ -r "$ENVFILE" ] ; then
-	export ENV=$ENVFILE
+if [ -d $HOME/lib/sh ]; then
+	export FPATH=$HOME/lib/sh
 fi
-
-export HISTSIZE=2000
 
 if [ -z "$LOGNAME" ] ; then
 	# some systems won't allow this...
