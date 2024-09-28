@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	37.5	24/09/22 12:36:51 (woods)"
+#ident	"@(#)HOME:.kshsccs	37.6	24/09/28 11:20:12 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -249,6 +249,8 @@ function mksccs
 -rSID		set the release level to REL (defaults to current release level)
 -tMTYPE		set the module type to MTYPE (for :Y:)
 		(defaults to HOME if in home directory, else basename of \$PWD)
+-yADAYADA	set the initial comment to ADAYADA
+		(defaults to: 'date and time created YY/MM/DD HH:MM:SS by \$USER')
 
 $0 enters a new file into the SCCS repository for project $PROJECT.
 
@@ -263,7 +265,7 @@ e.g.:  $0 -q\$USER -tHOME .newfile
 	if [ -n "$lastrel" ] ; then
 		REL="-r$lastrel"
 	fi
-	while getopts d:hoq:r:t: OPTCH
+	while getopts d:hoq:r:t:y: OPTCH
 	do
 	  	case $OPTCH in
 		d)
@@ -289,6 +291,9 @@ e.g.:  $0 -q\$USER -tHOME .newfile
 		t)
 			# module type (:Y:)
 			TFLAG="${OPTARG}"
+			;;
+		y)
+			YOPT="-y${OPTARG}"
 			;;
 		*)
 			echo "$USAGE" >&2
@@ -334,7 +339,7 @@ e.g.:  $0 -q\$USER -tHOME .newfile
 	elif [ -z "$TFLAG" ]; then
 		TFLAG="$PROJECT"
 	fi
-	${SCCS} -p $PROJECT enter $OFLAG $REL $*
+	${SCCS} -p $PROJECT enter $OFLAG $REL "${YOPT}" $*
 	if [ $? -eq 0 ] ; then
 		${SCCS} -p $PROJECT admin $DEFBR -fb -fq"${QFLAG}" -ft"${TFLAG}" $*
 	else
