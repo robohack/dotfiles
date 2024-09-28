@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	37.6	24/09/28 11:20:12 (woods)"
+#ident	"@(#)HOME:.kshsccs	37.7	24/09/28 11:24:47 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -238,7 +238,7 @@ function vwproj
 alias vmksccs=mksccs
 function mksccs
 {
-	typeset USAGE="Usage: $0 [-dDEFBR] [-h] [-o] [-qQFLAG] [-rSID] [-tMTYPE] file ..."
+	typeset USAGE="Usage: $0 [-dDEFBR] [-h] [-o] [-qQFLAG] [-rSID] [-tMTYPE] [-yCOMMENT] file ..."
 	typeset HELP="$USAGE
 
 -dDEFBR		set DEFBR as the default delta (i.e. branch)
@@ -249,7 +249,7 @@ function mksccs
 -rSID		set the release level to REL (defaults to current release level)
 -tMTYPE		set the module type to MTYPE (for :Y:)
 		(defaults to HOME if in home directory, else basename of \$PWD)
--yADAYADA	set the initial comment to ADAYADA
+-yCOMMENT	set the initial comment to COMMENT
 		(defaults to: 'date and time created YY/MM/DD HH:MM:SS by \$USER')
 
 $0 enters a new file into the SCCS repository for project $PROJECT.
