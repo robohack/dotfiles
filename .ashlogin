@@ -1,31 +1,28 @@
 #
-#	.ashlogin - login shell startup for ash
+#	.ashlogin - login shell startup for ash, sourced by ~/.profile
 #
-#ident	"@(#)HOME:.ashlogin	37.3	24/09/26 13:44:38 (woods)"
+# N.B.:  this is very similar to ~/.shlogin!
+#
+#ident	"@(#)HOME:.ashlogin	37.4	24/09/28 11:22:54 (woods)"
 
-_interactive=false
-case "$-" in
-*i*)
-	_interactive=true
-	;;
-esac
-case "$0" in
--*)
-	# Schily Bourne Shell doesn't seem to fully set $- until late...
+if [ -r ${HOME}/.shinter ]; then
+	. ${HOME}/.shinter
+else
+	echo "$0: WARNING: ~/.shinter not found"
+fi
+
+if ${sh_is_login}; then
 	#
-	_interactive=true
-	;;
-esac
+	# Commands for login shells
+	#
+	set -o ignoreeof	# we only do this for our login shell....
+fi
 
-if ${_interactive}; then
+if ${sh_is_interactive}; then
 	#
 	# Commands for interactive shells.
 	#
-	# NOTE: This should _always_ be true for any shell sourcing this file!
-	#
 	echo "$0: setup for Almquist's Shell"
-
-	set -o ignoreeof	# we only do this for our login shell....
 
 	# for emacs timeclock.el
 	#
@@ -33,20 +30,32 @@ if ${_interactive}; then
 		touch ~/.timelog
 	fi
 
-	export ENVFILE=$HOME/.ashrc
-	if [ -r "$ENVFILE" ] ; then
-		export ENV=$ENVFILE
-	fi
-
 	export HISTSIZE=2000
 else
-	echo "$0: WARNING: ~/.ashlogin being sourced by a non-interactive shell! (\$-=$-)"
+	echo "$0: WARNING: ~/.ashlogin being sourced by a non-interactive shell! (\$-='$-')"
 fi
 unset _interactive
 
 # xxx NetBSD /bin/sh (and dash) does not support FPATH
 if [ -d $HOME/lib/sh ]; then
 	export FPATH=$HOME/lib/sh
+fi
+
+export ENVFILE=$HOME/.ashrc
+if [ -r "$ENVFILE" ] ; then
+	#
+	# N.B.:  since ash(1) and its earlier derivatives do not support
+	# arithmetic expressions (e.g. for the expansion of the contents of
+	# $ENV) the AT&T Ksh trick cannot be used so ~/.ashrc must include its
+	# own tests for an interactive shell and selectively do setup depending
+	# on the result.
+	#
+	# NetBSD sh(1), since 2016-03-31 and netbsd-8, i.e. since the
+	# introduction of $NETBSD_SHELL, always sources $ENV unless its "posix"
+	# option is set.  More recent versions also support arithmetic
+	# expressions in the expansion of $ENV, but still do no support arrays.
+	#
+	export ENV=$ENVFILE
 fi
 
 if [ -z "$LOGNAME" ] ; then

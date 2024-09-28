@@ -1,7 +1,7 @@
 #
 #	.ashrc - per-shell startup stuff for ash via $ENV
 #
-#ident	"@(#)HOME:.ashrc	37.6	24/09/26 13:38:53 (woods)"
+#ident	"@(#)HOME:.ashrc	37.7	24/09/28 11:22:54 (woods)"
 
 # Assumptions:
 #	- chdir must be synonymous with cd, and cd can be reset to a function
@@ -17,15 +17,41 @@
 #	$HOME/.ashlocal		- sourced, if it is readable, at the end
 #	$HOME/.ashpwd		- sourced, if it is readable
 #	$HOME/.kshsccs		- sourced, if "function" works and it is readable
-#	$HOME/.ashsccs		- sourced, if it is readable (and .kshsccs not read)
+#	$HOME/.ashsccs		- sourced, if it is readable and .kshsccs was not read
 #	$HOME/.kshlocal		- per $HOME local-only hacks
 
-case $- in *i*)
-# everything in this file is for interactive use only, but $ENV is set
-# to just the plain filename of this file because ash(1) doesn't have
-# arrays and so can't use the ksh(1) ${ENVFILE[]} trick.
+if [ -r ${HOME}/.shinter ]; then
+	. ${HOME}/.shinter
+else
+	echo "$0: WARNING: ~/.shinter not found"
+fi
 
-export PATH
+if ${sh_is_interactive}; then
+	: OK
+else
+	# Everything else in this file is for interactive use only, but $ENV is
+	# set to just the plain filename of this file because ash(1) and its
+	# derivatives do not have arrays and so cannot use the ksh(1)
+	# ${ENVFILE[]} trick, so we must exit now.
+	#
+	# Note this file is _always_ expected to be sourced with ".", which
+	# behaves kind of like a function (without parameters, and so "return"
+	# is a/the valid way to stop sourcing early.
+	#
+	return
+fi
+
+# xxx hmmm... how to tell other shells with this feature?
+#
+case $0 in
+*dash*)
+	set -o emacs
+	;;
+esac
+# xxx hmmm... what about older versions? (prior to 2016-03-31 and netbsd-8)
+if [ -n "${NETBSD_SHELL}" ]; then
+	set -o emacs
+fi
 
 # If I remember correctly SHLVL was not in early Ksh.... (and it's not in pdksh
 # nor its derivatives)
@@ -34,12 +60,10 @@ export PATH
 # to avoid presenting redundant useless information using a simple
 # ${LEV:+${LEV}} style of expansion.
 #
-case ${0} in
--*)
+if ${sh_is_login}; then
 	: this is a login shell
 	unset LEV
-	;;
-*)
+else
 	if [ ${SHLVL:-0} -eq 1 -o ${PPID:-0} -eq 1 -o ${PPID:-1} -eq ${LAYERSPID:-0} ] ; then
 		: this is still considered a "login" shell
 		unset LEV
@@ -56,50 +80,40 @@ case ${0} in
 		fi
 		export LEV
 	fi
-	;;
-esac
+fi
 
-# Handle the case of sourcing this file e.g. by a "su" shell user, or some other
-# interactive sub-shell, etc.
+# Get basic shell setup from a .shrc
 #
-# It is assumed that ~/.profile, which would otherwise source ~/.shrc, is
-# sourced only by login shells, and by ~/.xinitrc or by a (possibly remote)
-# window manager (e.g. using onx11server), but won't be sourced by default by a
-# non-interactive shell or a "su" shell.  It is also assumed of course that
-# "zhead" is defined as a function in the desired ~/.shrc file.
+# It is assumed of course that "zhead" is defined as a function in the desired
+# ~/.shrc file.
 #
 if ! type zhead >/dev/null 2>&1; then
 	# try to find a related .shrc, even when using "su" or a sub-shell
 	# the guts here could/should be a function, but it would be in .shrc!
-	if [ -n "${ENVFILE}" ]; then
-		. $(dirname ${ENVFILE})/.shrc
-		# also try to set MAILDOMAIN for .emacs.el if it was not set...
-		if [ -z "${MAILDOMAIN}" -a -r $(dirname ${ENVFILE})/.localprofile ]; then
-			. $(dirname ${ENVFILE})/.localprofile
-		fi
-	elif [ -r ${HOME}/.shrc ]; then
+	#
+	envhome=$(dirname ${ENVFILE})
+	# there's a bit of a chicken&egg situation w.r.t. LOGNAME (see ~/.shrc)
+	loghome=$(eval echo ~${LOGNAME})
+	if [ -n "${ENVFILE}" -a -f ${envhome}/.shrc ]; then
+		HOME=${envhome}
+	elif [ -r ${loghome}/.shrc ]; then
+		HOME=${loghome}
+	fi
+	unset envhome loghome
+	if [ -r ${HOME}/.shrc ]; then
 		. ${HOME}/.shrc
-		if [ -z "${MAILDOMAIN}" -a -r ${HOME}/.localprofile ]; then
+		# also try to set MAILDOMAIN for .emacs.el if it was not set...
+		if [ -r ${HOME}/.localprofile ]; then
 			. ${HOME}/.localprofile
 		fi
 	fi
-	if [ -n "${LOGNAME}" ]; then
-		eval shrc=~${LOGNAME}/.shrc
-		if [ -r ${shrc} ]; then
-			. ${shrc}
-		fi
-		eval lprof=~${LOGNAME}/.localprofile
-		if [ -z "${MAILDOMAIN}" -a -r ${lprof} ]; then
-			. ${lprof}
-		fi
-		unset shrc lprof
-	fi
+	# finally we can clean up unnecessary functions
 	if type rm_alias_funcs >/dev/null 2>&1; then
 		rm_alias_funcs
 	fi
 fi
 
-# note this will be appended to.... (and variables must be used with single quotes)
+# note this will be appended to.... (and variables must be quoted with single quotes)
 if [ -n "${ToD}" ]; then
 	PS1='${ToD%:*}'
 else
@@ -154,7 +168,7 @@ fi
 if type function >/dev/null 2>&1 && [ -r $HOME/.kshsccs ] ; then
 	. $HOME/.kshsccs
 elif [ -r $HOME/.ashsccs ]; then
-	. $HOME/.ashsccs	# xxx not yet translated...  (maybe automatic?)
+	. $HOME/.ashsccs	# xxx not yet translated...  (maybe automatic, eval'ed?)
 fi
 if type setban >/dev/null 2>&1 && [ -r $HOME/.ashpwd ] ; then
 	. $HOME/.ashpwd
@@ -185,6 +199,3 @@ fi
 if [ -r $HOME/.ashlocal ] ; then
 	. $HOME/.ashlocal
 fi
-
-# End of interactive-ony code
-esac

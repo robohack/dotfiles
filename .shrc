@@ -20,7 +20,7 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.39	24/09/26 13:44:38 (woods)"
+#ident	"@(#)HOME:.shrc	37.40	24/09/28 11:22:54 (woods)"
 
 if [ -z "${SHELL}" ]; then
 	# likely plain old Bourne (heirloom) shell
@@ -47,24 +47,30 @@ elif [ -r ${HOME}/.ashtype ]; then
 	. ${HOME}/.ashtype
 fi
 
+#
 #	N.B.:  the rest of the file is for "interactive" shells only!
 #
-# Note this file is _always_ expected to be sourced with ".", which behaves kind
-# of like a function (without parameters, and so "return" is a/the valid way to
-# stop sourcing early.
-#
-case "$-" in
-*i*)
-	: is truly interactive!
-	;;
-*)
-	# shells sourcing ~/.profile are assumed to want interactive setup too
+
+if [ -r ${HOME}/.shinter ]; then
+	. ${HOME}/.shinter
+else
+	echo "$0: WARNING: ~/.shinter not found"
+fi
+
+if ${sh_is_interactive} || ${FROM_DOT_PROFILE:-false}; then
+	: OK
+else
+	# Everything in this file is for interactive (or explicitly chosen) use
+	# only, but $ENV is set to just the plain filename of this file because
+	# ash(1) and its derivatives do not have arrays and so cannot use the
+	# ksh(1) ${ENVFILE[]} trick, so we must exit now.
 	#
-	if [ -z "${FROM_DOT_PROFILE}" ]; then
-		return
-	fi
-	;;
-esac
+	# Note this file is _always_ expected to be sourced with ".", which
+	# behaves kind of like a function (without parameters, and so "return"
+	# is a/the valid way to stop sourcing early.
+	#
+	return
+fi
 
 # do this early so everything else can use it if needed
 #
@@ -73,8 +79,17 @@ if type xinit >/dev/null 2>&1; then
 	HAVEX=true
 fi
 
+# we start with a default of true, but if tty fails, we set it to false
+#
+# $ISATTY is basically a "memoization" to optimize for executing tty(1)
+#
+# xxx Hmmmm.... "test -t" also works all the way back to v7.
+#
+ISATTY="true"
+TTY=`tty` || ISATTY="false"	# "not a tty" if not...
+
 # This file sets D_PS1 at the end to allow setaliases to avoid clobbering
-# .kshrc's new value.
+# .*shrc's new value.
 #
 # XXX In a sense this is an include guard and maybe we could use it as such?
 #
@@ -557,11 +572,11 @@ xpglast ()
 	dirappend PATH /usr/xpg6/bin /usr/xpg4/bin ${PKG}/heirloom-xpg4/bin
 }
 
-# every truly POSIX-compliant shell implements the built-in
-# command 'local', but then there's ksh (even #93!)
+# every truly POSIX-compliant shell implements the built-in command 'local', but
+# then there's ksh (even #93!)
 #
 # AT&T Ksh is (still, as of ksh93u+) the only shell I know of which has
-# functions, and which has a 'typset' command, but which does not have a 'local'
+# functions and which has a 'typset' command but which does not have a 'local'
 # command to declare function-scope variables, nor a "built-in" alias for it
 # either.  Sigh.
 #
@@ -1735,12 +1750,6 @@ do_first_time ()
 	lnotes
 }
 
-# we start with a default of true, but if tty fails, we set it to false
-#
-# $ISATTY is basically a "memoization" to optimize for executing tty(1)
-#
-ISATTY="true"
-TTY=`tty` || ISATTY="false"	# "not a tty" if not...
 if ${ISATTY}; then
 	TTYN=`basename $TTY`
 else
@@ -2554,6 +2563,9 @@ typeof ()
 	egrep -i "$1" $LLIBDIR/llib-l*
 }
 
+# N.B.:  this definition is used by ~/.*shrc files to test if this file should
+# be sourced....  Do not remove it without updating them!
+#
 zhead ()
 {
 	zcat ${1+"${@}"} | head

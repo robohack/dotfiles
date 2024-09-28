@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	37.11	24/03/20 14:43:06 (woods)"
+#ident	"@(#)HOME:.kshrc	37.12	24/09/28 11:22:54 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -26,12 +26,13 @@
 #	$HOME/.kshdir		- dir autoload aliases set, if it is readable
 #	$HOME/.kshlocal		- per $HOME local-only hacks
 
+set -o nolog		# no functions in $HISTFILE (xxx not supported by BASH)
+
 if [ -n "${BASH}" ]; then
 	# note this is the "history number", matching the numbers as shown by
 	# 'fc -l' vs. the so-called "command number" ('\#')
 	_c='\!'
 else
-	set -o nolog		# no functions in $HISTFILE
 	_c='!'
 fi
 
@@ -68,26 +69,17 @@ case ${0} in
 	;;
 esac
 
-# Handle the case of sourcing this file e.g. by a "su" shell user, or some other
-# interactive sub-shell (which sourced $ENV(FILE)), etc.  Forcibly resets HOME
-# to the location of the first discovered .shrc.
+# Get basic shell setup from a .shrc
 #
-# WARNING:  This could be a major security problem for 'su' users if their
-# $ENVFILE value is hacked, but then again Ksh is already sourcing this via
-# $ENV regardless so be careful!
-#
-# It is assumed that ~/.profile, which will always also source ~/.shrc, is
-# sourced only by login shells, and by ~/.xinitrc or by a window manager, but
-# won't be sourced by default by a non-interactive shell or a "su" shell, or any
-# interactive sub-shell.
-#
-# It is also assumed of course that "zhead" is defined as a function in the
-# desired ~/.shrc file.
+# It is assumed of course that "zhead" is defined as a function in the desired
+# ~/.shrc file.
 #
 if ! typeset -f zhead >/dev/null ; then
+	# try to find a related .shrc, even when using "su" or a sub-shell
+	#
 	envhome=$(dirname ${ENVFILE})
 	# there's a bit of a chicken&egg situation w.r.t. LOGNAME (see ~/.shrc)
-	loghome=$(eval echo ~$LOGNAME)
+	loghome=$(eval print ~${LOGNAME})
 	if [ -n "${ENVFILE}" -a -f ${envhome}/.shrc ]; then
 		HOME=${envhome}
 	elif [ -r ${loghome}/.shrc ]; then
@@ -97,10 +89,11 @@ if ! typeset -f zhead >/dev/null ; then
 	if [ -r ${HOME}/.shrc ]; then
 		. ${HOME}/.shrc
 		# also try to set MAILDOMAIN for .emacs.el if it was not set...
-		if [ -z "${MAILDOMAIN}" -a -r ${HOME}/.localprofile ]; then
+		if [ -r ${HOME}/.localprofile ]; then
 			. ${HOME}/.localprofile
 		fi
 	fi
+	# finally we can clean up unnecessary functions
 	if typeset -f rm_alias_funcs >/dev/null ; then
 		rm_alias_funcs
 	fi
@@ -188,7 +181,7 @@ else
 	_time='${_x[(_m=_mm)==(_h=_hh)]}$(printf "%02d:%02d" ${_h##0} ${_m##0})'
 fi
 
-# note this will be appended to.... (and _time must be used with double quotes)
+# note this will be appended to.... (here _time must be quoted with double quotes)
 PS1="${_time} "
 
 if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then

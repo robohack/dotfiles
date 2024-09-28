@@ -1,34 +1,57 @@
 #
-#	.kshlogin - login shell startup for ksh
+#	.kshlogin - login shell startup for ksh, sourced by ~/.profile
 #
-#ident	"@(#)HOME:.kshlogin	37.3	23/11/24 12:52:06 (woods)"
+#ident	"@(#)HOME:.kshlogin	37.4	24/09/28 11:22:54 (woods)"
 
+# Note I allow for /etc/profile to be explicitly sourced by non-interactive
+# shells, e.g. this is done in onx11server (defined in ~/.shrc), so here we're
+# testing to see if a shell is truly a login shell or an interactive shell so we
+# can determine what additional setup we want for such shells, such as setting
+# $ENV and exporting it.
+
+case "$0" in
+-*)
+	#
+	# Commands for login shells
+	#
+	set -o ignoreeof
+
+	# NOTE:  many implementations have HISTFILE inter-locking bugs!
+	#
+	HISTFILE=$HOME/.ksh_history
+	;;
+esac
+
+# n.b.: it is expected all ksh-like shells add 'i' to $- if they are interactive
+# and do so before sourcing ~/.profile!  If not see, and use, ~/.shinter.
+#
 case "$-" in
 *i*)
 	#
 	# Commands for interactive shells.
 	#
-	# NOTE: This should _always_ be true for any shell sourcing this file!
-	#
 	echo "$0: setup for Korn Shell"
 
-	set -o ignoreeof	# we only do this for our login shell....
+	export FCEDIT="$(whence ed)"
 
 	# for emacs timeclock.el
 	#
 	if [ ! -f ~/.timelog ] ; then
 		touch ~/.timelog
 	fi
+
+	export HISTSIZE=2000
+
 	;;
 *)
-	echo "$0: WARNING: .kshlogin being sourced by a non-interactive shell!"
+	echo "$0: WARNING: .kshlogin being sourced by a non-interactive shell! (\$-='$-')"
 	;;
 esac
 
 export FPATH=$HOME/lib/ksh
 
-export FCEDIT="$(whence ed)"
-
+# Setup for global $ENV
+#
 export ENVFILE=$HOME/.kshrc
 
 if [ -n "$ENVFILE" -a -r "$ENVFILE" ] ; then
@@ -145,15 +168,6 @@ if [ -n "$ENVFILE" -a -r "$ENVFILE" ] ; then
 	#
 	# Remember class, the test is tomorrow!
 fi
-
-export HISTSIZE=2000
-
-# we could set HISTFILE if we wanted persistent history, but we may
-# only want it for login shells, not all interactive shells....
-#
-# NOTE:  many implementations have HISTFILE inter-locking bugs!
-#
-#HISTFILE=$HOME/.ksh_history
 
 if [ -z "$LOGNAME" ] ; then
 	# some systems won't allow this...

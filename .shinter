@@ -1,0 +1,69 @@
+#
+#	.shinter - test if the shell is interactive or not
+#
+#ident	"@(#)HOME:.shinter	37.1	24/09/28 11:23:27 (woods)"
+
+sh_is_interactive=false
+sh_is_login=false
+case "$-" in
+*i*)
+	sh_is_interactive=true
+	;;
+esac
+case "$0" in
+-*)
+	#
+	# Commands for login shells
+	#
+	# This is for (Schily) Bourne Shell which does not put "i" in $- until
+	# after ~/.profile has been sourced.
+	#
+	# N.B.:  This presumes that login shells are, by definition,
+	# interactive; and this test is necessary because the following test
+	# will fail for login shells which have a leading hyphen prepended to
+	# their $0.
+	#
+	# Note I allow for /etc/profile to be explicitly sourced by
+	# non-interactive shells, e.g. this is done in onx11server (defined in
+	# ~/.shrc), so here we're testing to see if a shell is truly an
+	# interactive login shell so we can determine what additional setup we
+	# want for such shells, such as setting $ENV and exporting it.
+	#
+	sh_is_interactive=true
+	sh_is_login=true
+	;;
+esac
+
+# Note: $_interactive is still not a reliable definition.  POSIX(Issue 7) says:
+#
+#	If the -i option is present, or if there are no operands and the shell's
+#	standard input and standard error are attached to a terminal, the shell
+#	is considered to be interactive.
+#
+# Many implementations also add the caveat:  "and the -c option is not present".
+# This is more or less covered by the "and there are no operands" part, but....
+#
+# POSIX(Issue 8) does now add to the definition of "$-":
+#
+#	It is unspecified whether the -c and -s options are included in the
+#	expansion of "$-".  The -i option shall be included in "$-" if the shell
+#	is interactive, regardless of whether it was specified on invocation.
+#
+# So, for shells that don't add 'i' to $- the tests above are inadequate.
+#
+# However since most shells don't add "c" we need another way to test for it.
+# The best way is to compare $0 with the basename of $SHELL, since the first
+# parameter of -s should be used as $0.  Testing $# may be unreliable for those
+# shells that use the more limited -c rule.
+#
+# XXX NetBSD sh(1), and presumably most other ash(1) derivatives, have tested if
+# stdin and _stdout_ are ttys to determine their interactactive-ness.  This was
+# fixed in NetBSD sh as of 2017-07-24 and netbsd-8 (unfortunately after the
+# introduction of $NETBSD_SHELL though).  However since normally both stdout and
+# stderr will both be ttys for truly interactive shells we can pretend this
+# slip-up doesn't matter.  Who would ever redirect stderr to a file on an
+# interactive shell anyway!?!?!?
+#
+if [ -t 0 -a -t 2 -a "$0" = "$SHELL" ]; then
+	sh_is_interactive=true
+fi

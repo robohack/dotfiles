@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.33	24/09/26 13:44:38 (woods)"
+#ident	"@(#)HOME:.profile	37.34	24/09/28 11:22:54 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -100,10 +100,10 @@ umask 022
 echo "$0: startup PATH=$PATH" | sed 's/:/: /g' | fold -s
 OPATH=$PATH
 
-# every shell that sources ~/.profile gets all the basic functions and variable
+# Every shell that sources ~/.profile gets all the basic functions and variable
 # settings, interactive or not!
 #
-# we assume ~/.profile is sourced only by login shells, and by ~/.xinitrc, and
+# We assume ~/.profile is sourced only by login shells, and by ~/.xinitrc, and
 # perhaps by a call from a (possibly remote) window manager (e.g. using
 # onx11server) where the intent is to set up $PATH and other environment,
 # etc. typically desired and assumed for "interactive" commands, such as
@@ -111,7 +111,7 @@ OPATH=$PATH
 #
 # XXX probably should move all the HAVE* settings there too....
 #
-FROM_DOT_PROFILE=yes	# tell ~/.shrc this use is effectively "interactive"
+FROM_DOT_PROFILE=true	# tell ~/.shrc this use is effectively "interactive"
 . ${HOME}/.shrc
 
 # XXX hmmmm.... these should be in their respective ~/.*login files????
