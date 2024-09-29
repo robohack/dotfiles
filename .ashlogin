@@ -3,7 +3,7 @@
 #
 # N.B.:  this is very similar to ~/.shlogin!
 #
-#ident	"@(#)HOME:.ashlogin	37.4	24/09/28 11:22:54 (woods)"
+#ident	"@(#)HOME:.ashlogin	37.5	24/09/29 14:04:24 (woods)"
 
 if [ -r ${HOME}/.shinter ]; then
 	. ${HOME}/.shinter
@@ -30,9 +30,12 @@ if ${sh_is_interactive}; then
 		touch ~/.timelog
 	fi
 
+	export ENVFILE=$HOME/.ashrc
+
+	# NetBSD sh(1) will in netbsd-11 support HISTFILE, but not in a manner
+	# that's really useful between multiple interactive shells....
+	#
 	export HISTSIZE=2000
-else
-	echo "$0: WARNING: ~/.ashlogin being sourced by a non-interactive shell! (\$-='$-')"
 fi
 unset _interactive
 
@@ -41,7 +44,6 @@ if [ -d $HOME/lib/sh ]; then
 	export FPATH=$HOME/lib/sh
 fi
 
-export ENVFILE=$HOME/.ashrc
 if [ -r "$ENVFILE" ] ; then
 	#
 	# N.B.:  since ash(1) and its earlier derivatives do not support
