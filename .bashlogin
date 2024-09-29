@@ -1,21 +1,37 @@
 #
 #	.bashlogin - login shell startup for bash
 #
-#ident	"@(#)HOME:.bashlogin	37.2	23/11/09 11:28:08 (woods)"
+#ident	"@(#)HOME:.bashlogin	37.3	24/09/29 14:05:33 (woods)"
+
+# Note I allow for /etc/profile to be explicitly sourced by non-interactive
+# shells, e.g. this is done from remote invocations of onx11server (defined in
+# ~/.shrc), so here we're testing to see if a shell is truly a login shell or an
+# interactive shell so we can determine what additional setup we want for such
+# shells, such as setting $ENV and exporting it.
+
+if shopt -q login_shell; then
+	#
+	# Commands for login shells
+	#
+	set -o ignoreeof
+fi
 
 case "$-" in
 *i*)
 	echo "$0: setup for BASH ($0)"
-	set -o ignoreeof	# we only do this for our login shell....
+
 	# for emacs timeclock.el
 	#
 	if [ ! -f ~/.timelog ] ; then
 		touch ~/.timelog
 	fi
+
+	HISTFILE=$HOME/.bash_history
+	HISTSIZE=2000
+
+	export ENVFILE=$HOME/.bashrc
 	;;
 esac
-
-export ENVFILE=$HOME/.bashrc
 
 if [ -n "$ENVFILE" -a -r "$ENVFILE" ] ; then
 	# see ~/.kshlogin for an explanation
@@ -26,7 +42,7 @@ if [ -n "$ENVFILE" -a -r "$ENVFILE" ] ; then
 fi
 
 export FCEDIT=$(type -path ed)
-export HISTSIZE=2000
+
 if [ "$TTY" != "not a tty" ] ; then
 	echo "Trying to fix TTY..."
 	TTY=$(tty)
