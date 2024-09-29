@@ -9,7 +9,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.28	24/09/26 13:31:53 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.29	24/09/29 13:55:40 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -891,20 +891,20 @@ menu "quickies"
 	""			f.separator
 	"emacs @CLIENTHOST"	!"${MY_EMACS} -fh &"
  ifdef([USE_X11SERVER], [
-	"emacs @X11SERVER"	!". ./.shrc; onx11server ${X11SERVER} \"${MY_EMACS} -fh\" &"
+	"emacs @X11SERVER"	!"set -i; . ./.shrc; onx11server ${X11SERVER} \"${MY_EMACS} -fh\" &"
  ])
  ifdef([AT_LOCAL], [
-	"emacs @more"		!". ./.shrc; onx11server more.local 'emacs -fh' &"
+	"emacs @more"		!"set -i; . ./.shrc; onx11server more.local 'emacs -fh' &"
  ])
 	"Emacs Everywhere..."	f.menu "emacs"
 	#
 	""			f.separator
 	"links -g @CLIENTHOST"	!"links -g &"
  ifdef([USE_X11SERVER], [
-	"links -g @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} 'links -g' &"
+	"links -g @X11SERVER"	!"set -i; . ./.shrc; onx11server -n ${X11SERVER} 'links -g' &"
  ])
  ifdef([AT_LOCAL], [
-	"links -g @more"	!". ./.shrc; onx11server -n more.local 'links -g' &"
+	"links -g @more"	!"set -i; . ./.shrc; onx11server -n more.local 'links -g' &"
  ])
 	# xxx unfortunately duckduckgo.com isn't very usable with links
 	"DDG something"		!"links -g https://html.duckduckgo.com/html/ &"
@@ -921,14 +921,14 @@ menu "quickies"
 	"UXterm-big @CLIENTHOST" !"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
 	#
  ifdef([USE_X11SERVER], [
-	"Xterm @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"Xterm-big @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm-big @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"Xterm @X11SERVER"	!"set -i; . ./.shrc; onx11server -n ${X11SERVER} \"xterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @X11SERVER"	!"set -i; . ./.shrc; onx11server -n ${X11SERVER} \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"Xterm-big @X11SERVER"	!"set -i; . ./.shrc; onx11server -n ${X11SERVER} \"xterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @X11SERVER"	!"set -i; . ./.shrc; onx11server -n ${X11SERVER} \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
  ])
  ifdef([AT_LOCAL], [
-	"UXterm @more"		!". ./.shrc; onx11server -n more.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm-big @more"	!". ./.shrc; onx11server -n more.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @more"		!"set -i; . ./.shrc; onx11server -n more.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @more"	!"set -i; . ./.shrc; onx11server -n more.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
  ])
 	"Xterm's Everywhere..."	f.menu "xterms"
 	""			f.separator
@@ -1369,12 +1369,12 @@ menu "emacs"
 				# XXX should this start a shell that sources .profile first?
 	"@CLIENTHOST"		!"${MY_EMACS} -fh &"
  ifdef([USE_X11SERVER], [
-	"@X11SERVER"		!". ./.shrc; onx11server -n ${X11SERVER} \"${MY_EMACS} -fh\" &"
+	"@X11SERVER"		!"set -i; . ./.shrc; onx11server -n ${X11SERVER} \"${MY_EMACS} -fh\" &"
  ])
  ifdef([AT_LOCAL], [
-	"@more"			!". ./.shrc; onx11server -n more.local \"emacs -fh\" &"
-	"@xenful"		!". ./.shrc; onx11server -n xenful.local \"emacs -fh\" &"
-	"@xentastic"		!". ./.shrc; onx11server -n xentastic.local \"emacs -fh\" &"
+	"@more"			!"set -i; . ./.shrc; onx11server -n more.local \"emacs -fh\" &"
+	"@xenful"		!"set -i; . ./.shrc; onx11server -n xenful.local \"emacs -fh\" &"
+	"@xentastic"		!"set -i; . ./.shrc; onx11server -n xentastic.local \"emacs -fh\" &"
 ])
 	""			f.separator
 	"Pin this menu"		f.pin
@@ -1402,34 +1402,34 @@ menu "monitors"
 	""			f.separator
 	"xload"			!"xload -geometry ${XloadGeom} -hl XLOAD_HL &"
  ifdef([USE_X11SERVER], [
-	"xload @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xload -geometry 120x40-200+48 -hl XLOAD_HL\" &"
+	"xload @X11SERVER"	!"set -i; . ./.shrc; onx11server -n ${X11SERVER} \"xload -geometry 120x40-200+48 -hl XLOAD_HL\" &"
  ])
  ifdef([AT_VERY_LOCAL], [
 	"air-traffic-monitor"	!"uxterm -tn xterm-256color -geometry 80x25+eval((WIDTH / 2) - ( 3 * HorizDPI))-eval(VertDPI * 2) -fs 9 ${XTERM_OPTS} -fc 5 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor &"
  ])
  ifdef([AT_LOCAL], [
-#	"xload @building"	!". ./.shrc; onx11server -n building.local \"xload -geometry ${XloadGeomBuilding} -hl red\" &"
-	"xload @more"		!". ./.shrc; onx11server -n more.local \"xload -geometry ${XloadGeomMore} -hl red\" &"
+#	"xload @building"	!"set -i; . ./.shrc; onx11server -n building.local \"xload -geometry ${XloadGeomBuilding} -hl red\" &"
+	"xload @more"		!"set -i; . ./.shrc; onx11server -n more.local \"xload -geometry ${XloadGeomMore} -hl red\" &"
 	"xload @central"	!"ssh -CY -n woods@central.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomCentral} -hl red\" &"
-#	"xload @future"		!". ./.shrc; onx11server -n future.local \"xload -geometry ${XloadGeomFuture} -hl red\" &"
-	"xload @xenful"		!". ./.shrc; onx11server -n xenful.local \"xload -geometry ${XloadGeomXenful} -hl red\" &"
-	"xload @xentastic"	!". ./.shrc; onx11server -n xentastic.local \"xload -geometry ${XloadGeomXentastic} -hl red\" &"
+#	"xload @future"		!"set -i; . ./.shrc; onx11server -n future.local \"xload -geometry ${XloadGeomFuture} -hl red\" &"
+	"xload @xenful"		!"set -i; . ./.shrc; onx11server -n xenful.local \"xload -geometry ${XloadGeomXenful} -hl red\" &"
+	"xload @xentastic"	!"set -i; . ./.shrc; onx11server -n xentastic.local \"xload -geometry ${XloadGeomXentastic} -hl red\" &"
 	"xload @xentral"	!"ssh -CY -n woods@xentral.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomXentral} -hl red\" &"
-	"xload @once"		!". ./.shrc; onx11server -n once.local \"xload -geometry ${XloadGeomOnce} -hl red\" &"
+	"xload @once"		!"set -i; . ./.shrc; onx11server -n once.local \"xload -geometry ${XloadGeomOnce} -hl red\" &"
 	#
-#	"xload @historically"	!". ./.shrc; onx11server -n historically.local \"xload -geometry ${XloadGeomHistorically} -hl red\" &"
+#	"xload @historically"	!"set -i; . ./.shrc; onx11server -n historically.local \"xload -geometry ${XloadGeomHistorically} -hl red\" &"
 	"xload @b2"		!"ssh -CY -n woods@b2.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomB2} -hl red\" &"
-	"xload @fezzik"		!". ./.shrc; onx11server -nS fezzik.local \"xload -geometry ${XloadGeomFezzik} -hl red\" &"
-	"xload @nbtest"		!". ./.shrc; onx11server -n nbtest.local \"xload -geometry ${XloadGeomNbtest} -hl red\" &"
-	"xload @nbtcur"		!". ./.shrc; onx11server -n nbtcur.local \"xload -geometry ${XloadGeomNbtcur} -hl red\" &"
-	"xload @nb10"		!". ./.shrc; onx11server -n nb10.local \"xload -geometry ${XloadGeomNb10} -hl red\" &"
-	"xload @nbday"		!". ./.shrc; onx11server -nS nbday.local \"xload -geometry ${XloadGeomNbday} -hl red\" &"
+	"xload @fezzik"		!"set -i; . ./.shrc; onx11server -nS fezzik.local \"xload -geometry ${XloadGeomFezzik} -hl red\" &"
+	"xload @nbtest"		!"set -i; . ./.shrc; onx11server -n nbtest.local \"xload -geometry ${XloadGeomNbtest} -hl red\" &"
+	"xload @nbtcur"		!"set -i; . ./.shrc; onx11server -n nbtcur.local \"xload -geometry ${XloadGeomNbtcur} -hl red\" &"
+	"xload @nb10"		!"set -i; . ./.shrc; onx11server -n nb10.local \"xload -geometry ${XloadGeomNb10} -hl red\" &"
+	"xload @nbday"		!"set -i; . ./.shrc; onx11server -nS nbday.local \"xload -geometry ${XloadGeomNbday} -hl red\" &"
  ])
  ifdef([USE_X11SERVER], [
-	"xosview @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xosview\" &"
+	"xosview @X11SERVER"	!"set -i; . ./.shrc; onx11server -n ${X11SERVER} \"xosview\" &"
  ])
  ifdef([USE_X11SERVER], [
-	"xcpustate @X11SERVER"	!". ./.shrc; onx11server -n ${X11SERVER} \"xcpustate -geometry 190x20-0+300 -shorten 1 -wait -cpu -disk\" &"
+	"xcpustate @X11SERVER"	!"set -i; . ./.shrc; onx11server -n ${X11SERVER} \"xcpustate -geometry 190x20-0+300 -shorten 1 -wait -cpu -disk\" &"
  ])
 	"tkined"		!"tkined &"
 	""			f.separator
@@ -1527,43 +1527,43 @@ menu "xterms"
 	"UXterm-big @CLIENTHOST" !"${X11BIN}/uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
  ifdef([AT_LOCAL], [
 # xxx this should use a macro!
-	"UXterm @xenful"	!". ./.shrc; onx11server -n xenful.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm-big @xenful"	!". ./.shrc; onx11server -n xenful.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm @xentastic"	!". ./.shrc; onx11server -n xentastic.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm-big @xentastic"	!". ./.shrc; onx11server -n xentastic.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @xenful"	!"set -i; . ./.shrc; onx11server -n xenful.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @xenful"	!"set -i; . ./.shrc; onx11server -n xenful.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @xentastic"	!"set -i; . ./.shrc; onx11server -n xentastic.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @xentastic"	!"set -i; . ./.shrc; onx11server -n xentastic.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
 	#
-#	"UXterm @building"	!". ./.shrc; onx11server -n building.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-#	"UXterm-big @building"	!". ./.shrc; onx11server -n building.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm @more"		!". ./.shrc; onx11server -n more.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm-big @more"	!". ./.shrc; onx11server -n more.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-#	"UXterm @future"	!". ./.shrc; onx11server -n future.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-#	"UXterm-big @future"	!". ./.shrc; onx11server -n future.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-#	"UXterm @isit"		!". ./.shrc; onx11server -n isit.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-#	"UXterm-big @isit"	!". ./.shrc; onx11server -n isit.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-#	"UXterm @lilbit"	!". ./.shrc; onx11server -n lilbit.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-#	"UXterm-big @lilbit"	!". ./.shrc; onx11server -n lilbit.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-#	"UXterm @rpi"		!". ./.shrc; onx11server -n rpi.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-#	"UXterm-big @rpi"	!". ./.shrc; onx11server -n rpi.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-#	"UXterm @historically"	!". ./.shrc; onx11server -n historically.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-#	"UXterm-big @historically" !". ./.shrc; onx11server -n historically.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm @once"		!". ./.shrc; onx11server -n once.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm-big @once"	!". ./.shrc; onx11server -n once.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm @fezzik"	!". ./.shrc; onx11server -nS fezzik.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm-big @fezzik"	!". ./.shrc; onx11server -nS fezzik.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm @nb10"		!". ./.shrc; onx11server -n nb10.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm-big @nb10"	!". ./.shrc; onx11server -n nb10.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm @nbday"		!". ./.shrc; onx11server -nS nbday.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm-big @nbday"	!". ./.shrc; onx11server -nS nbday.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm @nbt"		!". ./.shrc; onx11server -n nbt.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm-big @nbt"	!". ./.shrc; onx11server -n nbt.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm @nbt2"		!". ./.shrc; onx11server -n nbt2.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm-big @nbt2"	!". ./.shrc; onx11server -n nbt2.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm @nbtest"	!". ./.shrc; onx11server -n nbtest.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm-big @nbtest"	!". ./.shrc; onx11server -n nbtest.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm-big @nbtcur"	!". ./.shrc; onx11server -n nbtcur.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm @very-old"	!". ./.shrc; onx11server -nS very-old.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm-big @very-old"	!". ./.shrc; onx11server -nS very-old.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm @building"	!"set -i; . ./.shrc; onx11server -n building.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm-big @building"	!"set -i; . ./.shrc; onx11server -n building.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @more"		!"set -i; . ./.shrc; onx11server -n more.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @more"	!"set -i; . ./.shrc; onx11server -n more.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm @future"	!"set -i; . ./.shrc; onx11server -n future.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm-big @future"	!"set -i; . ./.shrc; onx11server -n future.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm @isit"		!"set -i; . ./.shrc; onx11server -n isit.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm-big @isit"	!"set -i; . ./.shrc; onx11server -n isit.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm @lilbit"	!"set -i; . ./.shrc; onx11server -n lilbit.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm-big @lilbit"	!"set -i; . ./.shrc; onx11server -n lilbit.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm @rpi"		!"set -i; . ./.shrc; onx11server -n rpi.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm-big @rpi"	!"set -i; . ./.shrc; onx11server -n rpi.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm @historically"	!"set -i; . ./.shrc; onx11server -n historically.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+#	"UXterm-big @historically" !"set -i; . ./.shrc; onx11server -n historically.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @once"		!"set -i; . ./.shrc; onx11server -n once.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @once"	!"set -i; . ./.shrc; onx11server -n once.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @fezzik"	!"set -i; . ./.shrc; onx11server -nS fezzik.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @fezzik"	!"set -i; . ./.shrc; onx11server -nS fezzik.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @nb10"		!"set -i; . ./.shrc; onx11server -n nb10.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @nb10"	!"set -i; . ./.shrc; onx11server -n nb10.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @nbday"		!"set -i; . ./.shrc; onx11server -nS nbday.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @nbday"	!"set -i; . ./.shrc; onx11server -nS nbday.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @nbt"		!"set -i; . ./.shrc; onx11server -n nbt.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @nbt"	!"set -i; . ./.shrc; onx11server -n nbt.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @nbt2"		!"set -i; . ./.shrc; onx11server -n nbt2.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @nbt2"	!"set -i; . ./.shrc; onx11server -n nbt2.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @nbtest"	!"set -i; . ./.shrc; onx11server -n nbtest.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @nbtest"	!"set -i; . ./.shrc; onx11server -n nbtest.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @nbtcur"	!"set -i; . ./.shrc; onx11server -n nbtcur.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @nbtcur"	!"set -i; . ./.shrc; onx11server -n nbtcur.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @very-old"	!"set -i; . ./.shrc; onx11server -nS very-old.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @very-old"	!"set -i; . ./.shrc; onx11server -nS very-old.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
 	#
 	# xxx these are not so useful as if the SSH connection drops then the
 	# window simply disappears with no hint as to when or why!  See further
@@ -1573,40 +1573,40 @@ menu "xterms"
 	"Slogin @central"	!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -e 'slogin -CY central.weird.com' &"
 	"Slogin @b2"		!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -e 'slogin -CY b2.avoncote.ca' &"
   ifdef([AT_VERY_LOCAL], [], [
-	"Xterm @very"		!". ./.shrc; onx11server -n very.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"Xterm @very"		!"set -i; . ./.shrc; onx11server -n very.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
 	"Slogin @very"		!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -e 'slogin -CY very.local' &"
   ])
  ])
  ifdef([AT_WEIRD], [
   ifelse(HOSTNAME, most.weird.com, [], [
-	"Xterm @most"		!". ./.shrc; onx11server -n most.weird.com \"xterm ${XTERM_OPTS}\" &"
+	"Xterm @most"		!"set -i; . ./.shrc; onx11server -n most.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, historically.weird.com, [], [
-	"Xterm @historically"	!". ./.shrc; onx11server -n historically.weird.com \"xterm ${XTERM_OPTS}\" &"
+	"Xterm @historically"	!"set -i; . ./.shrc; onx11server -n historically.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, building.weird.com, [], [
-	"Xterm @building" 	!". ./.shrc; onx11server -n building.weird.com \"xterm ${XTERM_OPTS}\" &"
+	"Xterm @building" 	!"set -i; . ./.shrc; onx11server -n building.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, once.weird.com, [], [
-	"Xterm @once"		!". ./.shrc; onx11server -n once.weird.com \"xterm ${XTERM_OPTS}\" &"
+	"Xterm @once"		!"set -i; . ./.shrc; onx11server -n once.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, very.weird.com, [], [
-	"Xterm @very"		!". ./.shrc; onx11server -n very.weird.com \"xterm ${XTERM_OPTS}\" &"
+	"Xterm @very"		!"set -i; . ./.shrc; onx11server -n very.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, almost.weird.com, [], [
-	"Xterm @almost"		!". ./.shrc; onx11server -n almost.weird.com \"xterm ${XTERM_OPTS}\" &"
+	"Xterm @almost"		!"set -i; . ./.shrc; onx11server -n almost.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, whats.weird.com, [], [
-	"Xterm @whats"		!". ./.shrc; onx11server -n whats.weird.com \"xterm ${XTERM_OPTS}\" &"
+	"Xterm @whats"		!"set -i; . ./.shrc; onx11server -n whats.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, sometimes.weird.com, [], [
-	"Xterm @sometimes" 	!". ./.shrc; onx11server -n sometimes.weird.com \"xterm ${XTERM_OPTS}\" &"
+	"Xterm @sometimes" 	!"set -i; . ./.shrc; onx11server -n sometimes.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, always.weird.com, [], [
-	"Xterm @always" 	!". ./.shrc; onx11server -n always.weird.com \"xterm ${XTERM_OPTS}\" &"
+	"Xterm @always" 	!"set -i; . ./.shrc; onx11server -n always.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
   ifelse(HOSTNAME, freely.weird.com, [], [
-	"Xterm @freely" 	!". ./.shrc; onx11server -n freely.weird.com \"xterm ${XTERM_OPTS}\" &"
+	"Xterm @freely" 	!"set -i; . ./.shrc; onx11server -n freely.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
  ])
 	""			f.separator
@@ -1623,7 +1623,7 @@ menu "xauths"
 {
 	"Xauth pushes to Weird.com"	f.title
  ifdef([USE_X11SERVER], [
-	"Xauth to X11SERVER"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server ${X11SERVER} 'xauth nmerge -' ) &"
+	"Xauth to X11SERVER"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server ${X11SERVER} 'xauth nmerge -' ) &"
  ])
 	"Xauth to most"		!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} most.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
 	"Xauth to isit"		!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} isit.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
@@ -1640,20 +1640,20 @@ ifdef([AT_LOCAL], [
 menu "xauths"
 {
 	"Xauth pushes"		f.title
-	"Xauth to more"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server more.local 'xauth nmerge -' ) &"
-	"Xauth to xenful"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server xenful.local 'xauth nmerge -' ) &"
-	"Xauth to xentastic"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server xentastic.local 'xauth nmerge -' ) &"
-	"Xauth to nb10"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server nb10.local 'xauth nmerge -' ) &"
-	"Xauth to nbday"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server -S nbday.local 'xauth nmerge -' ) &"
-	"Xauth to nbt"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server nbt.local 'xauth nmerge -' ) &"
-	"Xauth to nbt2"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server nbt2.local 'xauth nmerge -' ) &"
-	"Xauth to nbtest"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server nbtest.local 'xauth nmerge -' ) &"
-	"Xauth to nbtcur"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server nbtcur.local 'xauth nmerge -' ) &"
-	"Xauth to fezzik"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server -S fezzik.local 'xauth nmerge -' ) &"
-	"Xauth to frodo"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server -S frodo.local 'xauth nmerge -' ) &"
-#	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server historically.local 'xauth nmerge -' ) &"
-	"Xauth to once"		!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server once.local 'xauth nmerge -' ) &"
-	"Xauth to very-old"	!"xauth nextract - ${REMOTE_DISPLAY} | (. ./.shrc; onx11server -S very-old.local 'xauth nmerge -' ) &"
+	"Xauth to more"		!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server more.local 'xauth nmerge -' ) &"
+	"Xauth to xenful"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server xenful.local 'xauth nmerge -' ) &"
+	"Xauth to xentastic"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server xentastic.local 'xauth nmerge -' ) &"
+	"Xauth to nb10"		!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server nb10.local 'xauth nmerge -' ) &"
+	"Xauth to nbday"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -S nbday.local 'xauth nmerge -' ) &"
+	"Xauth to nbt"		!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server nbt.local 'xauth nmerge -' ) &"
+	"Xauth to nbt2"		!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server nbt2.local 'xauth nmerge -' ) &"
+	"Xauth to nbtest"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server nbtest.local 'xauth nmerge -' ) &"
+	"Xauth to nbtcur"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server nbtcur.local 'xauth nmerge -' ) &"
+	"Xauth to fezzik"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -S fezzik.local 'xauth nmerge -' ) &"
+	"Xauth to frodo"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -S frodo.local 'xauth nmerge -' ) &"
+#	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server historically.local 'xauth nmerge -' ) &"
+	"Xauth to once"		!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server once.local 'xauth nmerge -' ) &"
+	"Xauth to very-old"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -S very-old.local 'xauth nmerge -' ) &"
 	""			f.separator
 	"Pin this menu"		f.pin
 }
