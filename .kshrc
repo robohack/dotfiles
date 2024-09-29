@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	37.12	24/09/28 11:22:54 (woods)"
+#ident	"@(#)HOME:.kshrc	37.13	24/09/29 13:04:27 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -16,6 +16,7 @@
 #
 # Files referenced:
 #
+#	$HOME/.shintr		- sourced for interactive shell test
 #	$HOME/.shrc		- sourced for common funcs, if needed & readable
 #	$HOME/.localprofile	- may be sourced (mostly for MAILDOMAIN)
 #	$HOME/.shaliases	- sourced, if it is readable
@@ -25,6 +26,27 @@
 #	$HOME/.kshedit		- sourced, if it is readable else gmacs editing set
 #	$HOME/.kshdir		- dir autoload aliases set, if it is readable
 #	$HOME/.kshlocal		- per $HOME local-only hacks
+
+if [ -r ${HOME}/.shinter ]; then
+	. ${HOME}/.shinter
+else
+	echo "$0: WARNING: ~/.shinter not found"
+fi
+
+if ${sh_is_interactive}; then
+	: OK
+else
+	# Everything else in this file is for interactive use only, and since
+	# most ksh versions default to ENV=~/.kshrc if ENV is not set and so
+	# will source this file for non-interactive remote shells, we must exit
+	# now.
+	#
+	# Note this file is _always_ expected to be sourced with ".", which
+	# behaves kind of like a function (without parameters, and so "return"
+	# is a/the valid way to stop sourcing early.
+	#
+	return
+fi
 
 set -o nolog		# no functions in $HISTFILE (xxx not supported by BASH)
 
@@ -74,17 +96,22 @@ esac
 # It is assumed of course that "zhead" is defined as a function in the desired
 # ~/.shrc file.
 #
+# note:  this code is duplicated in ~/.ashrc
+#
 if ! typeset -f zhead >/dev/null ; then
 	# try to find a related .shrc, even when using "su" or a sub-shell
 	#
-	envhome=$(dirname ${ENVFILE})
+	if [ -n "${ENVFILE:-ENV}" ]; then
+		envhome=$(dirname ${ENVFILE:-ENV})
+	fi
 	# there's a bit of a chicken&egg situation w.r.t. LOGNAME (see ~/.shrc)
 	loghome=$(eval print ~${LOGNAME})
-	if [ -n "${ENVFILE}" -a -f ${envhome}/.shrc ]; then
+	if [ -n "${ENVFILE:-ENV}" -a -f ${envhome}/.shrc ]; then
 		HOME=${envhome}
 	elif [ -r ${loghome}/.shrc ]; then
 		HOME=${loghome}
 	fi
+	# else HOME stays unchanged...
 	unset envhome loghome
 	if [ -r ${HOME}/.shrc ]; then
 		. ${HOME}/.shrc
@@ -184,7 +211,7 @@ fi
 # note this will be appended to.... (here _time must be quoted with double quotes)
 PS1="${_time} "
 
-if [ "$(ismpx)" = yes -o "$TERM" = "dmd-myx" ] ; then
+if [ "$(ismpx)" = "yes" -o "$TERM" = "dmd-myx" ] ; then
 	unset -f cd || true
 	alias cd='_cd'
 	# NOTE:  may be re-defined in ~/.kshpwd
