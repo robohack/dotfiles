@@ -1,7 +1,7 @@
 #
 #	.ashrc - per-shell startup stuff for ash via $ENV
 #
-#ident	"@(#)HOME:.ashrc	37.7	24/09/28 11:22:54 (woods)"
+#ident	"@(#)HOME:.ashrc	37.8	24/09/29 13:05:00 (woods)"
 
 # Assumptions:
 #	- chdir must be synonymous with cd, and cd can be reset to a function
@@ -13,12 +13,12 @@
 #	~${LOGNAME}/.shrc       - sourced for common functs, if still needed
 #	~${LOGNAME}/.localprofile - sourced for $MAILDOMAIN, if needed & avail.
 #	$HOME/.shaliases	- sourced, if it is readable
+#	$HOME/.shintr		- sourced for interactive shell test
 #	$HOME/.ashedit		- sourced, if it is readable else emacs editing set
 #	$HOME/.ashlocal		- sourced, if it is readable, at the end
 #	$HOME/.ashpwd		- sourced, if it is readable
 #	$HOME/.kshsccs		- sourced, if "function" works and it is readable
 #	$HOME/.ashsccs		- sourced, if it is readable and .kshsccs was not read
-#	$HOME/.kshlocal		- per $HOME local-only hacks
 
 if [ -r ${HOME}/.shinter ]; then
 	. ${HOME}/.shinter
@@ -87,18 +87,23 @@ fi
 # It is assumed of course that "zhead" is defined as a function in the desired
 # ~/.shrc file.
 #
+# note:  this code is duplicated in ~/.kshrc
+#
 if ! type zhead >/dev/null 2>&1; then
 	# try to find a related .shrc, even when using "su" or a sub-shell
 	# the guts here could/should be a function, but it would be in .shrc!
 	#
-	envhome=$(dirname ${ENVFILE})
+	if [ -n "${ENVFILE:-ENV}" ]; then
+		envhome=$(dirname ${ENVFILE:-ENV})
+	fi
 	# there's a bit of a chicken&egg situation w.r.t. LOGNAME (see ~/.shrc)
 	loghome=$(eval echo ~${LOGNAME})
-	if [ -n "${ENVFILE}" -a -f ${envhome}/.shrc ]; then
+	if [ -n "${ENVFILE:-ENV}" -a -f ${envhome}/.shrc ]; then
 		HOME=${envhome}
 	elif [ -r ${loghome}/.shrc ]; then
 		HOME=${loghome}
 	fi
+	# else HOME stays unchanged...
 	unset envhome loghome
 	if [ -r ${HOME}/.shrc ]; then
 		. ${HOME}/.shrc
