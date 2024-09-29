@@ -1,13 +1,13 @@
 #
 #	.kshlogin - login shell startup for ksh, sourced by ~/.profile
 #
-#ident	"@(#)HOME:.kshlogin	37.4	24/09/28 11:22:54 (woods)"
+#ident	"@(#)HOME:.kshlogin	37.5	24/09/29 14:06:04 (woods)"
 
 # Note I allow for /etc/profile to be explicitly sourced by non-interactive
-# shells, e.g. this is done in onx11server (defined in ~/.shrc), so here we're
-# testing to see if a shell is truly a login shell or an interactive shell so we
-# can determine what additional setup we want for such shells, such as setting
-# $ENV and exporting it.
+# shells, e.g. this is done from remote invocations of onx11server (defined in
+# ~/.shrc), so here we're testing to see if a shell is truly a login shell or an
+# interactive shell so we can determine what additional setup we want for such
+# shells, such as setting $ENV and exporting it.
 
 case "$0" in
 -*)
@@ -15,10 +15,6 @@ case "$0" in
 	# Commands for login shells
 	#
 	set -o ignoreeof
-
-	# NOTE:  many implementations have HISTFILE inter-locking bugs!
-	#
-	HISTFILE=$HOME/.ksh_history
 	;;
 esac
 
@@ -40,11 +36,30 @@ case "$-" in
 		touch ~/.timelog
 	fi
 
-	export HISTSIZE=2000
+	# Keep them separated!
+	#
+	# NOTE: many implementations have HISTFILE inter-locking bugs amongst
+	# themselves!
+	#
+	case "${KSH_VERSION}" in
+	*PD KSH*)
+		 KSHTYPE=pdksh
+		 ;;
+	*MIRBSD*)
+		 KSHTYPE=mksh
+		 ;;
+	Version*)
+		 KSHTYPE=attksh
+		 ;;
+	*)
+		 KSHTYPE=ksh
+		 ;;
+	esac
 
-	;;
-*)
-	echo "$0: WARNING: .kshlogin being sourced by a non-interactive shell! (\$-='$-')"
+	HISTFILE=$HOME/.${KSHTYPE}_history
+	HISTSIZE=2000
+
+	export ENVFILE=$HOME/.kshrc
 	;;
 esac
 
@@ -52,8 +67,6 @@ export FPATH=$HOME/lib/ksh
 
 # Setup for global $ENV
 #
-export ENVFILE=$HOME/.kshrc
-
 if [ -n "$ENVFILE" -a -r "$ENVFILE" ] ; then
 	#
 	# This magic expression prevents a non-interactive Ksh
