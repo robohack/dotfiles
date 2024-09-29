@@ -1,7 +1,7 @@
 #
 #	.shinter - test if the shell is interactive or not
 #
-#ident	"@(#)HOME:.shinter	37.1	24/09/28 11:23:27 (woods)"
+#ident	"@(#)HOME:.shinter	37.2	24/09/29 13:36:26 (woods)"
 
 sh_is_interactive=false
 sh_is_login=false
@@ -22,12 +22,6 @@ case "$0" in
 	# interactive; and this test is necessary because the following test
 	# will fail for login shells which have a leading hyphen prepended to
 	# their $0.
-	#
-	# Note I allow for /etc/profile to be explicitly sourced by
-	# non-interactive shells, e.g. this is done in onx11server (defined in
-	# ~/.shrc), so here we're testing to see if a shell is truly an
-	# interactive login shell so we can determine what additional setup we
-	# want for such shells, such as setting $ENV and exporting it.
 	#
 	sh_is_interactive=true
 	sh_is_login=true
