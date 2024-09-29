@@ -20,7 +20,13 @@
 # that are only used by functions here, e.g. as was done with MAILLOG
 # (e.g. $PAGER).
 #
-#ident	"@(#)HOME:.shrc	37.40	24/09/28 11:22:54 (woods)"
+# Files referenced:
+#
+#	$HOME/.ashtype		- sourced if no "type" command, if it is readable
+#	$HOME/.shintr		- sourced for interactive shell test
+#	$HOME/.shpwd		- sourced, if it is readable
+#
+#ident	"@(#)HOME:.shrc	37.41	24/09/29 13:05:37 (woods)"
 
 if [ -z "${SHELL}" ]; then
 	# likely plain old Bourne (heirloom) shell
@@ -50,6 +56,12 @@ fi
 #
 #	N.B.:  the rest of the file is for "interactive" shells only!
 #
+
+# XXX Hmmmm.... should we do this?  Should we do it before $sh_is_interactive?
+#
+#if [ -r /etc/shrc ]; then
+#	. /etc/shrc
+#fi
 
 if [ -r ${HOME}/.shinter ]; then
 	. ${HOME}/.shinter
