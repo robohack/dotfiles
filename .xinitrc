@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.27	24/09/26 13:32:27 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.28	24/10/03 12:39:57 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -51,6 +51,7 @@ if [ -r /etc/profile ] ; then
 else
 	echo "$argv0: no /etc/profile on this host!"
 fi
+# XXX /etc/shrc ???  or should ~/.profile or ~/.shrc do that?
 if [ -r $HOME/.profile ] ; then
 	echo "$argv0: sourcing $HOME/.profile"
 	. $HOME/.profile < /dev/null
@@ -275,7 +276,8 @@ export DecentFontSpec DecentFontSpecL1
 # (xxx this probably isn't necessary as it is also specified in ~/.Xdefaults
 # with the wild-carded faceName resource)
 #
-DefaultXftFont=$(echo "${DecentFont} | sed 's/ //g'")
+DefaultXftFont=$(echo "${DecentFont}" | sed 's/ //g')
+# note: ":size=N" can be replaced by "-N" but this form is more explicit
 DecentXftFontSpec="${DefaultXftFont}:size=9"
 export DefaultXftFont DecentXftFontSpec
 
@@ -347,17 +349,18 @@ fpappend X11FONTPATH "${PKG}/share/fonts/X11/intlfonts/TrueType" "${PKG}/share/f
 #
 fpappend X11FONTPATH "${X11FONTDIR}/TTF/" "${X11FONTDIR}/OTF/"
 #
-# N.B.:  If you've set the "cursor" alias above then this is where it is from!
+# N.B.:  If you've set the "cursor" alias then this is where it is from!
 #
 fpappend X11FONTPATH "${X11FONTDIR}/Type1/"
 #
-# The next three are of course just for OS X:
+# The next is of course just for OS X:
 #
 # (see /opt/X11/bin/font_cache)
 #
-# this may have been a fiction of faulty cut&paste....
-fpappend X11FONTPATH "${X11PATH}/share/fonts/system_fonts/" "${X11PATH}/share/fonts/system_fonts/Supplemental"
-fpappend X11FONTPATH "${X11PATH}/share/system_fonts/" "${X11PATH}/share/system_fonts/Supplemental"
+# XXX these are not usable on older macos, e.g. 10.13.... hmmmm....  maybe we
+# just leave these to fontconfig?
+#
+#fpappend X11FONTPATH "${X11PATH}/share/system_fonts/" "${X11PATH}/share/system_fonts/Supplemental"
 #
 # Don't bother with unscalable fonts on high-res systems...
 #
@@ -390,8 +393,11 @@ if [ $SCREENDPI_Y -lt 110 ]; then
 	fpappend X11FONTPATH "${X11FONTDIR}/misc/:unscaled"
 fi
 #
+if xset q | sed -n '/^Font/ {n;p;}' | fgrep built-ins 2>&1 >/dev/null; then
+	X11FONTPATH="${X11FONTPATH},built-ins"
+fi
 #
-#echo "$argv0: final FONTPATH='$FONTPATH'" | sed 's/:/: /g' | fold -s
+echo "$argv0: final X11FONTPATH='$X11FONTPATH'" | sed 's/:/: /g' | fold -s
 export X11FONTPATH
 
 #
@@ -489,12 +495,13 @@ WSHeight=$(expr ${SCREENSIZE_Y} / 30 \* 4)
 # define(WS_OFF, eval(ClockWidth + XloadWidth + (2 * TDBORDERWIDTH)))
 #
 # XXX on a really wide screen, like the XDR, we might have two Xload columns
+# (and still be able to have two 132-column emacs windows)
 #
 WSOff=$(expr ${ClockOff} + ${XloadWidth} + ${TDBorderWidth} + ${TDBorderWidth})
 #
 export WSOff WSWidth WSHeight
 
-XchronoGeom=-$(expr ${WSOff} + ${WSWidth} - 120)"+"$(expr ${WSHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+XchronoGeom="-"$(expr ${WSOff} + ${WSWidth} - 120)"+"$(expr ${WSHeight} + \( 2 \* ${TDBorderWidth} \) )
 export XchronoGeom
 
 XconsoleWidth=$(expr ${WSOff} + ${WSWidth})
@@ -580,6 +587,9 @@ case "$DISPLAY" in
 	# (i.e. unless XDM ran the GiveConsole script)
 	#
 	xconsole_args="-geometry ${XconsoleWidth}x${XconsoleHeight}-0-0"
+	#
+	# XXX add '-fn "$(eval echo \"$DecentFontSpec\" | sed s/-80-/-60-/)' for small laptop screens
+	#
 	xconsole_args=$xconsole_args" -saveLines 2000 -notify -verbose"
 	#
 	if [ $(uname -s) = "Darwin" ]; then
@@ -746,6 +756,10 @@ fi
 #   (two at 132 cols, one at +80 cols) with a point size of 10 for the big ones,
 #   but 9pt is quite readable anyway.
 #
+# XXX this really should depend on $SCREENDIM* not SCREENSIZE*
+#
+# XXX with a laptop in the range of 300mmx200mm we want no more than 60x132 -fs 7.5
+#
 if [ ${SCREENSIZE_X} -ge 6016 -a ${SCREENSIZE_Y} -ge 3384 ]; then
 	XTERM_BIG_OPTS="-geometry 132x100+0+0 -fs 9"
 elif [ ${SCREENSIZE_X} -ge 2560 -a ${SCREENSIZE_Y} -ge 1440 ]; then
@@ -765,6 +779,10 @@ export XTERM_BIG_OPTS
 # With .sf ns mono (apple) this could be 49 high
 # With CommitMono and DejaVu Sans Mono fonts this could be 91 wide
 # With Liberation Mono and .sf ns mono (appl) this could be 92 wide
+#
+# XXX this should depend on $SCREENDIM*
+#
+# XXX with a laptop in the range of 300mmx200mm we want no more than 40x80 -fs 6
 #
 XTERM_LITTLE_OPTS="-geometry 91x47-0-${XconsoleVoff} -fs 7.5"
 export XTERM_LITTLE_OPTS
@@ -792,9 +810,9 @@ if [ -n "$XDMHOST" -a "$XDMHOST" = "$(echo $DISPLAY | sed 's/:.*$//')" ] ; then
 		# now move our AUTH cookies over to the server in case it
 		# doesn't have a shared $HOME...
 		# (note: don't run this in the background!)
-		xauth extract - $DISPLAY | onx11server $X11SERVER 'xauth merge -'
+		xauth extract - $DISPLAY | onx11server -X \"${X11SERVER}\" 'xauth merge -'
 		# now start server programs we like for this scenario
-		onx11server -n $X11SERVER 'xload -geometry 120x40-200+48 -hl grey90' &
+		onx11server -n -X \"${X11SERVER}\" 'xload -geometry 120x40-200+48 -hl grey90' &
 		;;
 	very.weird.com|very.robohack.planix.com)
 		X11SERVER=${X11SERVER:-"once.weird.com"}
@@ -802,15 +820,15 @@ if [ -n "$XDMHOST" -a "$XDMHOST" = "$(echo $DISPLAY | sed 's/:.*$//')" ] ; then
 		echo "$argv0: have set X11SERVER='$X11SERVER'"
 		# now move our AUTH cookies over to the server in case it
 		# doesn't have a shared $HOME...
-		xauth extract - $DISPLAY | onx11server $X11SERVER 'xauth merge -'
+		xauth extract - $DISPLAY | onx11server -X \"${X11SERVER}\" 'xauth merge -'
 		# we run these ones in the background because the hosts might not be up
-		xauth extract - $DISPLAY | onx11server most.weird.com 'xauth merge -' &
-		xauth extract - $DISPLAY | onx11server isit.weird.com 'xauth merge -' &
-		xauth extract - $DISPLAY | onx11server historically.weird.com 'xauth merge -' &
+		xauth extract - $DISPLAY | onx11server -X most.weird.com 'xauth merge -' &
+		xauth extract - $DISPLAY | onx11server -X isit.weird.com 'xauth merge -' &
+		xauth extract - $DISPLAY | onx11server -X historically.weird.com 'xauth merge -' &
 		# now start server programs we like for this scenario
-		onx11server -n $X11SERVER 'xload -geometry 120x40-200+48 -hl red' &
-		onx11server -n $X11SERVER "uxterm ${XTERM_BIG_OPTS} -font 7x14 ${XTERM_OPTS} -T OccupyAll" &
-		onx11server -n $X11SERVER "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+		onx11server -n -X \"${X11SERVER}\" 'xload -geometry 120x40-200+48 -hl red' &
+		onx11server -n -X \"${X11SERVER}\" "uxterm ${XTERM_BIG_OPTS} -font 7x14 ${XTERM_OPTS} -T OccupyAll" &
+		onx11server -n -X \"${X11SERVER}\" "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
 		;;
 	*)
 		# not setting X11SERVER hopefully just makes the WM run all X11SERVER clients on
@@ -873,22 +891,22 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			#
 			# probably available hosts...
 			#
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server more.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server xenful.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server xentastic.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server nb10.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server -S nbday.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbt.local 'xauth nmerge -'
-#			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbt2.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbtest.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server nbtcur.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server -S fezzik.local 'xauth nmerge -'
-#			xauth nextract - ${REMOTE_DISPLAY} | onx11server -S frodo.local 'xauth nmerge -'
-#			xauth nextract - ${REMOTE_DISPLAY} | onx11server historically.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server once.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X more.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X xenful.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X xentastic.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X nb10.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server -S -X nbday.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X nbt.local 'xauth nmerge -'
+#			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X nbt2.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X nbtest.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X nbtcur.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server -S -X fezzik.local 'xauth nmerge -'
+#			xauth nextract - ${REMOTE_DISPLAY} | onx11server -S -X frodo.local 'xauth nmerge -'
+#			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X historically.local 'xauth nmerge -'
+			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X once.local 'xauth nmerge -'
 			# next ones share a home dir mounted from more.local
-			#xauth nextract - ${REMOTE_DISPLAY} | onx11server building.local 'xauth nmerge -'
-			#xauth nextract - ${REMOTE_DISPLAY} | onx11server future.local 'xauth nmerge -'
+			#xauth nextract - ${REMOTE_DISPLAY} | onx11server -X building.local 'xauth nmerge -'
+			#xauth nextract - ${REMOTE_DISPLAY} | onx11server -X future.local 'xauth nmerge -'
 			#
 			# XXX for starting windows it would be ideal if we could
 			# tell the window manager to do these using its existing
@@ -900,57 +918,57 @@ if [ "$argv0" = ".xinitrc" ] ; then
 #			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 #			XloadGeomBuilding=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
 #			export XloadGeomBuilding
-#			onx11server -n building.local "xload -geometry ${XloadGeomBuilding -hl red" &
+#			onx11server -n -X building.local "xload -geometry ${XloadGeomBuilding -hl red" &
 
 			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 			XloadGeomMore=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
 			export XloadGeomMore
-			onx11server -n more.local "xload -geometry ${XloadGeomMore} -hl red" &
+			onx11server -n -X more.local "xload -geometry ${XloadGeomMore} -hl red" &
 
 			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 			XloadGeomCentral=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
 			export XloadGeomCentral
-# see below central	onx11server -n central.weird.com "xload -geometry ${XloadGeomCentral} -hl red" &
+# see below central	onx11server -n -X central.weird.com "xload -geometry ${XloadGeomCentral} -hl red" &
 
 #			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 #			XloadGeomFuture=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
 #			export XloadGeomFuture
-#			onx11server -n future.local "xload -geometry ${XloadGeomFuture} -hl red" &
+#			onx11server -n -X future.local "xload -geometry ${XloadGeomFuture} -hl red" &
 
 			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 			XloadGeomXenful=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
 			export XloadGeomXenful
-			onx11server -n xenful.local "xload -geometry ${XloadGeomXenful} -hl red" &
+			onx11server -n -X xenful.local "xload -geometry ${XloadGeomXenful} -hl red" &
 
 			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 			XloadGeomXentastic=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
 			export XloadGeomXentastic
-			onx11server -n xentastic.local "xload -geometry ${XloadGeomXentastic} -hl red" &
+			onx11server -n -X xentastic.local "xload -geometry ${XloadGeomXentastic} -hl red" &
 
 			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 			XloadGeomXentral="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
 			export XloadGeomXentral
-# see below for xentral	onx11server -nS xentral "xload -geometry ${XloadGeomXentral} -hl red" &
+# see below for xentral	onx11server -fS -X xentral "xload -geometry ${XloadGeomXentral} -hl red" &
 
 			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 			XloadGeomOnce="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
 			export XloadGeomOnce
-			onx11server -n once.local "xload -geometry ${XloadGeomOnce} -hl red" &
+			onx11server -n -X once.local "xload -geometry ${XloadGeomOnce} -hl red" &
 
 #			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 #			XloadGeomHistorically="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
 #			export XloadGeomHistorically
-#			onx11server -n historically.local "xload -geometry ${XloadGeomHistorically} -hl red: &
+#			onx11server -n -X historically.local "xload -geometry ${XloadGeomHistorically} -hl red: &
 
 # under the clocks!	xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 			XloadGeomFezzik="${XloadWidth}x${XloadHeight}-0+${xloadoff}" # under the clocks!
 			export XloadGeomFezzik
-			onx11server -nS fezzik.local "xload -geometry ${XloadGeomFezzik} -hl red" &
+			onx11server -fS -X fezzik.local "xload -geometry ${XloadGeomFezzik} -hl red" &
 
 # under the clocks	xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 			XloadGeomB2="${XloadWidth}x${XloadHeight}-${XloadWidth}+${xloadoff}"
 			export XloadGeomB2
-# see below for b2	onx11server -n b2.local "xload -geometry ${XloadGeomB2} -hl red: &
+# see below for b2	onx11server -n -X b2.local "xload -geometry ${XloadGeomB2} -hl red: &
 
 			# these are under the workspace manager
 			#
@@ -958,40 +976,40 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			#
 			XloadGeomNbtest="${XloadWidth}x${XloadHeight}-${WSOff}+${xloadoff}"
 			export XloadGeomNbtest
-			onx11server -n nbtest.local "xload -geometry ${XloadGeomNbtest} -hl red" &
+			onx11server -n -X nbtest.local "xload -geometry ${XloadGeomNbtest} -hl red" &
 
 			xload2east=$(expr ${WSOff} + ${XloadWidth} + ${TDBorderWidth} + ${TDBorderWidth})
 
 			XloadGeomNbtcur="${XloadWidth}x${XloadHeight}-${xload2east}+${xloadoff}"
 			export XloadGeomNbtcur
-			onx11server -n nbtcur.local "xload -geometry ${XloadGeomNbtcur} -hl red" &
+			onx11server -n -X nbtcur.local "xload -geometry ${XloadGeomNbtcur} -hl red" &
 
 			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 
 			XloadGeomNb10="${XloadWidth}x${XloadHeight}-${WSOff}+${xloadoff}"
 			export XloadGeomNb10
-			onx11server -n nb10.local "xload -geometry ${XloadGeomNb10} -hl red" &
+			onx11server -n -X nb10.local "xload -geometry ${XloadGeomNb10} -hl red" &
 
 			XloadGeomNbday="${XloadWidth}x${XloadHeight}-${xload2east}+${xloadoff}"
 			export XloadGeomNbday
-			onx11server -nS nbday.local "xload -geometry ${XloadGeomNbday} -hl red" &
+			onx11server -fS -X nbday.local "xload -geometry ${XloadGeomNbday} -hl red" &
 
 # xxx these need a variable for "80x45" as it could be wider (e.g. 91x45, 95x50), or taller, or shorter....
 # (calculate based on character size and $XconsoleWidth and something related to IR_GEOM vs. $XconsoleHeight)
 
-#			onx11server -n building.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -n more.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -n nb10.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -nS nbday.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -n nbt.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-#			onx11server -n nbt2.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -n nbtest.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -n nbtcur.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -nS fezzik.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-#			onx11server -n future.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-#			onx11server -n historically.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -n xenful.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -n xentastic.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+#			onx11server -n -X building.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -n -X more.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -n -X nb10.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -fS -X nbday.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -n -X nbt.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+#			onx11server -n -X nbt2.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -n -X nbtest.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -n -X nbtcur.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -fS -X fezzik.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+#			onx11server -n -X future.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+#			onx11server -n -X historically.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -n -X xenful.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+			onx11server -n -X xentastic.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
 			#
 			# SSH-only hosts... (hopefully with auto-xauth via -Y,
 			# but note the use of both '-f' and '&')
@@ -1007,11 +1025,12 @@ if [ "$argv0" = ".xinitrc" ] ; then
 			# sub-shell for host each...
 			#
 #			(
-#				xauth nextract - ${REMOTE_DISPLAY} | onx11server isit.local 'xauth nmerge -'
-#				onx11server -n isit.local 'xload -geometry 120x40-70+240 -hl red' &
+#				xauth nextract - ${REMOTE_DISPLAY} | onx11server -X isit.local 'xauth nmerge -'
+#				onx11server -n -X isit.local 'xload -geometry 120x40-70+240 -hl red' &
 #			) &
 #			(
-#				xauth nextract - ${REMOTE_DISPLAY} | onx11server lilbit.local 'xauth nmerge -'
+#				xauth nextract - ${REMOTE_DISPLAY} | onx11server -X lilbit.local 'xauth nmerge -'
+#				onx11server -n -X lilbit.local 'xload -geometry 120x40-70+280 -hl red' &
 #			) &
 ###
 ### XXX these launch a terminal running on the remote host, sending
@@ -1052,15 +1071,15 @@ if [ "$argv0" = ".xinitrc" ] ; then
 		echo "$argv0: have set X11SERVER='$X11SERVER'"
 		# now move our AUTH cookies over to the server in case it
 		# doesn't have a shared $HOME...
-		xauth nextract - $DISPLAY | onx11server $X11SERVER 'xauth nmerge -'
+		xauth nextract - $DISPLAY | onx11server -X \"${X11SERVER}\" 'xauth nmerge -'
 		# we could/should run these ones in the background because the hosts might not be up
-		xauth nextract - $DISPLAY | onx11server most.weird.com 'xauth nmerge -'
-		xauth nextract - $DISPLAY | onx11server isit.weird.com 'xauth nmerge -'
-		xauth nextract - $DISPLAY | onx11server historically.weird.com 'xauth nmerge -'
+		xauth nextract - $DISPLAY | onx11server -X most.weird.com 'xauth nmerge -' &
+		xauth nextract - $DISPLAY | onx11server -X isit.weird.com 'xauth nmerge -' &
+		xauth nextract - $DISPLAY | onx11server -X historically.weird.com 'xauth nmerge -' &
 		# and then start some useful programs...
-		onx11server -n $X11SERVER 'xload -geometry 120x40-200+48 -hl red' &
-		onx11server -n $X11SERVER "uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}" &
-		onx11server -n $X11SERVER "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
+		onx11server -n -X \"${X11SERVER}\" 'xload -geometry 120x40-200+48 -hl red' &
+		onx11server -n -X \"${X11SERVER}\" "uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}" &
+		onx11server -n -X \"${X11SERVER}\" "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
 		;;
 	esac
 
@@ -1155,7 +1174,7 @@ very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.roboha
 	if [ -x ${PKG}/bin/xclock ]; then
 		XCLOCK=${PKG}/bin/xclock
 	fi
-	LC_CTYPE=C ${XCLOCK} -geometry $DClockGeom -face ${DecentXftFontSpec}:size=10 -digital -update 1 -chime &
+	LC_CTYPE=C ${XCLOCK} -geometry $DClockGeom -face ${DefaultXftFont}:size=10 -digital -update 1 -chime &
 	if $HAVESWISSWATCH; then
 		swisswatch -name swissclock -geometry $ClockGeom &
 	else
@@ -1202,13 +1221,17 @@ very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.roboha
 		elif [ $SCREENDPI_Y -gt 110 ]; then
 			echo "You might want to make a bigger tile set for XmahJongg."
 			xmahjongg -g +1000+0 &
-			onx11server -n more.local 'xmahjongg -t real_x2 -g 2000x1500 --bg $HOME/public_html/marble.gif &' &
+			onx11server -n -X more.local 'xmahjongg -t real_x2 -g 2000x1500 --bg $HOME/public_html/marble.gif' &
 		else
 			xmahjongg -g +1000+0 &
 		fi
 	fi
 
-	uxterm -tn xterm-256color -geometry 80x25+$(expr \( $SCREENDIM_X \* $SCREENDPI_X / 2 \) - \( 3 \* $SCREENDPI_X \))-$(expr $SCREENDPI_Y \* 2) -fs 9 -fa "${DecentXftFontSpec}" ${XTERM_OPTS} -fc 5 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor &
+	# xxx so many ways to choose a font size -- the -fs sets the default,
+	# but the -fc selects what is given in the "*VT100.font5" resource
+	# (normally this will be 11.0)
+	#
+	uxterm -tn xterm-256color -geometry 80x25+$(expr \( $SCREENDIM_X \* $SCREENDPI_X / 2 \) - \( 3 \* $SCREENDPI_X \))-$(expr $SCREENDPI_Y \* 2) -fs 9 -fa "${DefaultXftFont}" ${XTERM_OPTS} -fc 5 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor &
 	;;
 
 macweird.*:*|Gregs-MBP.*|*xquartz:*)

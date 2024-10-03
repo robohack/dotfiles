@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	37.2	22/02/23 18:04:37 (woods)"
+#ident	"@(#)HOME:.twmrc	37.3	24/10/03 12:39:57 (woods)"
 #
 
 AutoRelativeResize
@@ -25,11 +25,13 @@ IconDirectory	"~/lib/bitmaps"
 
 Zoom 12
 
-TitleFont	"-*-courier-bold-o-normal-*-*-100-100-100-*-*-*-*"
-ResizeFont	"-*-courier-bold-r-normal-*-*-180-100-100-*-*-*-*"
-MenuFont	"-*-clean-bold-r-normal-*-*-90-100-100-*-*-*-*"
-IconFont	"-*-courier-bold-o-normal-*-*-80-100-100-*-*-*-*"
-IconManagerFont	"-*-helvetica-bold-r-normal-*-*-80-100-100-*-*-*-*"
+# xxx better to let .fonts.alias remap the defaults to the right resolution
+#
+#TitleFont	"-*-courier-bold-o-normal-*-*-100-*-*-*-*-*-*"
+#ResizeFont	"-*-courier-bold-r-normal-*-*-180-*-*-*-*-*-*"
+#MenuFont	"-*-clean-bold-r-normal-*-*-90-*-*-*-*-*-*"
+#IconFont	"-*-courier-bold-o-normal-*-*-80-*-*-*-*-*-*"
+#IconManagerFont	"-*-helvetica-bold-r-normal-*-*-80-*-*-*-*-*-*"
 
 # DefaultFunction must come after fonts....
 DefaultFunction f.beep
@@ -95,30 +97,34 @@ Color {
 }
 
 IconManagers	{
-	"XTerm" "=305x100-320+4" 1
-	"UXTerm" "=310x100-0+230" 1
+	"xterm" "=305x100-320+4" 1
 }
 
 IconifyByUnmapping {
-	"XTerm"
-	"UXTerm"
+	"xterm"
 }
 
-IconManagerDontShow {
-	"oclock"
-	"xclock"
-	"swisswatch"
-	"swissclock"
-	"xcpustate"
-	"xeyes"
-	"xload"
-	"xnetload"
-	"xlogo"
-	"xbiff"
-	"xbuffy"
-	"XSysStats"
-	"xosview"
+IconManagerShow {
+	"xterm"
 }
+
+# xxx hmmm... this must be just a boolean, with IconManagerShow?
+IconManagerDontShow
+# {
+#	"oclock"
+#	"xclock"
+#	"swisswatch"
+#	"swissclock"
+#	"xcpustate"
+#	"xeyes"
+#	"xload"
+#	"xnetload"
+#	"xlogo"
+#	"xbiff"
+#	"xbuffy"
+#	"XSysStats"
+#	"xosview"
+#}
 
 UnknownIcon "star"
 
@@ -143,37 +149,45 @@ Cursors {
 }
 
 NoTitle {
+	"asclock"
+	"lmclock"
 	"oclock"
-	"xclock"
-	"swisswatch"
 	"swissclock"
+	"swisswatch"
+	"xbiff"
+	"xbuffy"
+	"xclock"
 	"xcpustate"
 	"xeyes"
 	"xload"
-	"xnetload"
 	"xlogo"
-	"xbiff"
-	"xbuffy"
-	"XSysStats"
+	"xnetload"
 	"xosview"
+	"XSysStats"
+	"xv"
+	"xwud"
 }
 
 NoHighlight {
-	"xclock"
-	"swisswatch"
 	"swissclock"
-	"xeyes"
-	"xload"
-	"xnetload"
-	"xlogo"
+	"swisswatch"
 	"xbiff"
 	"xbuffy"
-	"XSysStats"
+	"xchrono"
+	"xclock"
+	"xeyes"
+	"xload"
+	"xlogo"
+	"xnetload"
 	"xosview"
+	"XSysStats"
 }
 
 WarpCursor {
 	"emacs"		# damn thing gets a resource name based on argv[0]!
+	"Links"
+	"xcalc"
+	"xmahjongg"
 	"xterm"
 }
 
@@ -211,30 +225,30 @@ Button3 = : iconmgr : f.lower
 #	for xterms menus
 #
 function "start-local-xterm" {
-	f.exec "$X11BIN/xterm -fbx -cn -rw -sb -si -sk -sl 2048 -ls -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso8859-1' &"
+	f.exec "${X11BIN}/xterm ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
 }
 
 function "start-local-uxterm" {
-	f.exec "$X11BIN/uxterm -fbx -cn -rw -sb -si -sk -sl 2048 -ls -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' &"
+	f.exec "${X11BIN}/uxterm ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
 }
 
 function "start-x11server-xterm" {
-	f.exec ". ./.shrc; onx11server -n $X11SERVER $X11BIN/xterm -display $DISPLAY -fbx -cn -rw -sb -si -sk -sl 2048 -ls -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso8859-1' &"
+	f.exec "set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"xterm ${XTERM_OPTS} ${XTERM_LOGIN_OPTS}\" &"
 }
 
-function "start-x11server-xterm" {
-	f.exec ". ./.shrc; onx11server -n $X11SERVER $X11BIN/xterm -display $DISPLAY -fbx -cn -rw -sb -si -sk -sl 2048 -ls -fa '-*-*-medium-r-normal-*-*-*-*-*-m-0-iso10646-1' &"
+function "start-x11server-uxterm" {
+	f.exec "set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"uxterm ${XTERM_OPTS} ${XTERM_LOGIN_OPTS}\" &"
 }
 
 
 #	for xv menu
 #
 function "start-local-xv" {
-	f.exec "$X11BIN/xv &"
+	f.exec "${X11BIN}/xv &"
 }
 
 function "start-x11server-xv" {
-	f.exec ". ./.shrc; onx11server -n $X11SERVER $X11BIN/xv -display $DISPLAY &"
+	f.exec "set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" xv &"
 }
 
 #       for emacs menu
@@ -244,17 +258,17 @@ function "start-local-emacs" {
 }
 
 function "start-x11server-emacs" {
-	f.exec ". ./.shrc; onx11server $X11SERVER '${MY_EMACS}' &"
+	f.exec "set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" ${MY_EMACS} &"
 }
 
 #	for ghostviews menu
 #
 function "start-local-ghostview" {
-	f.exec "$X11BIN/ghostview -d $DISPLAY &"
+	f.exec "${X11BIN}/ghostview &"
 }
 
 function "start-x11server-ghostview" {
-	f.exec ". ./.shrc; onx11server -n $X11SERVER env PATH=$PATH DISPLAY=$DISPLAY $GNU/bin/ghostview &"
+	f.exec "set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" ghostview &"
 }
 
 #	for WWW menu
@@ -268,41 +282,41 @@ function "start-local-mosaic-mono" {
 }
 
 function "start-x11server-mosaic" {
-	f.exec ". ./.shrc; onx11server -n $X11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic &"
+	f.exec "set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" Mosaic &"
 }
 
 function "start-x11server-mosaic-mono" {
-	f.exec ". ./.shrc; onx11server -n $X11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/Mosaic -mono &"
+	f.exec "set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" Mosaic -mono &"
 }
 
 #	for www-netscape menu
 #
 function "start-local-netscape" {
-	f.exec "$LOCAL/bin/netscape -display $DISPLAY &"
+	f.exec "$LOCAL/bin/netscape &"
 }
 
 function "start-x11server-netscape" {
-	f.exec ". ./.shrc; onx11server -n $X11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -display $DISPLAY &"
+	f.exec "set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" netscape &"
 }
 
 #	for www-netscape-96 menu
 #
 function "start-local-netscape-96" {
-	f.exec "$LOCAL/bin/netscape -ncol 96 -display $DISPLAY &"
+	f.exec "$LOCAL/bin/netscape -ncol 96 &"
 }
 
 function "start-x11server-netscape-96" {
-	f.exec ". ./.shrc; onx11server -n $X11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -ncol 96 -display $DISPLAY &"
+	f.exec "set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" netscape -ncol 96 &"
 }
 
 #	for www-netscape-cmap menu
 #
 function "start-local-netscape-cmap" {
-	f.exec "$LOCAL/bin/netscape -install -display $DISPLAY &"
+	f.exec "$LOCAL/bin/netscape -install &"
 }
 
 function "start-x11server-netscape-cmap" {
-	f.exec ". ./.shrc; onx11server -n $X11SERVER env PATH=$PATH DISPLAY=$DISPLAY /local/bin/netscape -install -display $DISPLAY &"
+	f.exec "set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" netscape -install &"
 }
 
 #
@@ -324,6 +338,7 @@ menu "quickies"
 	"Xterm @x11server"	f.function "start-x11server-xterm"
 	"UXterm"		f.function "start-local-uxterm"
 	"UXterm @x11server"	f.function "start-x11server-uxterm"
+	""			f.nop
 	"Xtalk"			!"xtalk &"
 	"Xalarm"		!"alarm &"
 	""			f.nop
@@ -385,8 +400,9 @@ menu "wmops"
 	"Refresh"		f.refresh
 	""			f.nop
 	"Restart"		f.restart
+	"Start CTWM"		f.startwm "ctwm"
 	""			f.nop
-	"Version"		f.version
+	"Version"		f.version	# note: not documented!
 }
 
 menu "zooms"
@@ -440,9 +456,9 @@ menu "preferences"
 	"Bug Compat On"		!"xset bc"
 	"Bug Compat Off"	!"xset -bc"
 	"ReHash FP"		!"xset fp rehash"
-	"Reset FP Default"	!"xset fp default"
-	"Prefer 75dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/75dpi/,/usr/lib/X11/fonts/100dpi/"
-	"Prefer 100dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/100dpi/,/usr/lib/X11/fonts/75dpi/"
+##	"Reset FP Default"	!"xset fp default"
+##	"Prefer 75dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/75dpi/,/usr/lib/X11/fonts/100dpi/"
+##	"Prefer 100dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/100dpi/,/usr/lib/X11/fonts/75dpi/"
 ##	"Video Inverse"		!"xset p 1 0"
 ##	"Video Normal"		!"xset p 0 1"
 	"Colour Map Ctl..."	f.menu "cmap"
@@ -463,12 +479,12 @@ menu "cmap"
 	"Set Green"		!"xstdcmap -green -verbose &"
 	"Set Blue"		!"xstdcmap -blue -verbose &"
 	""			f.nop
-	"Delete default"	!"xstdcmap -delete default -verbose &"	
-	"Delete best"		!"xstdcmap -delete best -verbose &"	
-	"Delete grey"		!"xstdcmap -delete gray -verbose &"	
-	"Delete red"		!"xstdcmap -delete red -verbose &"	
-	"Delete green"		!"xstdcmap -delete green -verbose &"	
-	"Delete blue"		!"xstdcmap -delete blue -verbose &"	
+	"Delete default"	!"xstdcmap -delete default -verbose &"
+	"Delete best"		!"xstdcmap -delete best -verbose &"
+	"Delete grey"		!"xstdcmap -delete gray -verbose &"
+	"Delete red"		!"xstdcmap -delete red -verbose &"
+	"Delete green"		!"xstdcmap -delete green -verbose &"
+	"Delete blue"		!"xstdcmap -delete blue -verbose &"
 }
 
 menu "screensaver"
@@ -602,25 +618,24 @@ menu "monitors"
 	"swissclock"			!"swisswatch -name swissclock -geometry 190x190-4+4 &"
 	""				f.nop
 	"xbiff"				!"xbiff -rv -bw 0 &"
-	"xbiff @x11server"		!". ./.shrc; onx11server -n $X11SERVER $X11BIN/xbiff -rv -bw 0 -display $DISPLAY &"
+	"xbiff @x11server"		!"set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"xbiff -rv -bw 0\" &"
 	"xlbiff"			!"xlbiff &"
 	"xbuffy"			!"xbuffy -geometry 90x30-4+260 -shortnames -header 5 &"
-	"xbuffy @x11server"		!". ./.shrc; onx11server -n $X11SERVER $X11BIN/xbuffy -mail $MAILPATH -display $DISPLAY -geometry 90x30-4+260 -shortnames -header 5 &"
-	"xmailwatcher"			!"xmailwatcher -geometry 300x100-4+240 -iconic -icongeometry -4+235 -iconic -mailbox $MAILPATH &"
-	"xmailwatcher @x11server"	!". ./.shrc; onx11server -n $X11SERVER $X11BIN/xmailwatcher -display $DISPLAY -geometry 300x100-4+235 -iconic -icongeometry -4+235 -iconic -mailbox $MAILPATH &"
+	"xbuffy @x11server"		!"set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"xbuffy -mail $MAIL -geometry 90x30-4+260 -shortnames -header 5\" &"
+	"xmailwatcher"			!"xmailwatcher -geometry 300x100-4+240 -iconic -icongeometry -4+235 -iconic -mailbox $MAIL &"
+	"xmailwatcher @x11server"	!"set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"xmailwatcher -geometry 300x100-4+235 -iconic -icongeometry -4+235 -iconic -mailbox $MAIL\" &"
 	""				f.nop
 	"xload"				!"xload -geometry 120x137-205+4 -hl grey90 &"
-	"xload @x11server"		!". ./.shrc; onx11server -n $X11SERVER $X11BIN/xload -display $DISPLAY -geometry 120x137-205+150 -hl grey90 &"
+	"xload @x11server"		!"set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"xload -geometry 120x137-205+150 -hl grey90\" &"
 	"xosview"			!"xosview -geometry 120x137-205+4 &"
-	"xosview @x11server"		!". ./.shrc; onx11server -n $X11SERVER $X11BIN/xosview -display $DISPLAY -hl grey90 &"
+	"xosview @x11server"		!"set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"xosview -hl grey90\" &"
 	"xcpustate"			!"xcpustate -geometry 190x20-4+230 -shorten 1 -wait -cpu -disk &"
-	"xcpustate @x11server"		!". ./.shrc; onx11server -n $X11SERVER $X11BIN/xcpustate -display $DISPLAY -geometry 190x20-4+230 -shorten 1 -wait -cpu -disk &"
+	"xcpustate @x11server"		!"set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"xcpustate -geometry 190x20-4+230 -shorten 1 -wait -cpu -disk\" &"
 	""				f.nop
 	"xnetload localhost"		!"xnetload -hl grey90 -scale 0 -label 'local netload' localhost &"
-	"xnetload @xdmhost"		!"xnetload -hl grey90 -scale 0 -label ${XDMHOST}-net $XDMHOST &"
+	"xnetload @xdmhost"		!"xnetload -hl grey90 -scale 0 -label ${XDMHOST}-net ${XDMHOST} &"
 	""				f.nop
 	"tkined"			!"tkined &"
-	"tkined in /local/monitor"	!"cd $LOCAL/monitor ; tkined &"
 }
 
 menu "locks"
@@ -645,8 +660,8 @@ menu "backgrounds"
 	"xearth on greyscale"		!"xearth -gamma 1.6 -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth on mono"		!"xearth -mono -night 15 -bigstars 10 -pos fixed,43.36,-79.40 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xphoon"			!"xphoon -t 10 &"
-	"xsetroot eschernknot"		!"xsetroot -bitmap $X11PATH/include/X11/bitmaps/escherknot"
-	"xsetroot xsnow"		!"xsetroot -bitmap $X11PATH/include/X11/bitmaps/xsnow"
+	"xsetroot eschernknot"		!"xsetroot -bitmap ${X11PATH}/include/X11/bitmaps/escherknot"
+	"xsetroot xsnow"		!"xsetroot -bitmap ${X11PATH}/include/X11/bitmaps/xsnow"
 }
 
 menu "ghostviews"
@@ -730,5 +745,7 @@ menu "xterm"
 {
 	"Xterm's Everywhere"		f.title
 	"Xterm @localhost"		f.function "start-local-xterm"
+	"UXterm @localhost"		f.function "start-local-uxterm"
 	"Xterm @x11server"		f.function "start-x11server-xterm"
+	"UXterm @x11server"		f.function "start-x11server-uxterm"
 }
