@@ -3,12 +3,12 @@
 #
 # N.B.:  this is very similar to ~/.ashlogin!
 #
-#ident	"@(#)HOME:.shlogin	37.4	24/09/28 11:22:54 (woods)"
+#ident	"@(#)HOME:.shlogin	37.5	24/10/03 10:33:41 (woods)"
 
 if [ -r ${HOME}/.shinter ]; then
 	. ${HOME}/.shinter
-else
-	echo "$0: WARNING: ~/.shinter not found"
+elif [ -z "${sh_is_interactive}" ]; then
+	echo "$0:.shlogin: WARNING: ${HOME}/.shinter not found"
 fi
 
 if ${sh_is_interactive}; then
