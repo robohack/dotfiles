@@ -1,7 +1,7 @@
 #
 #	.ashrc - per-shell startup stuff for ash via $ENV
 #
-#ident	"@(#)HOME:.ashrc	37.8	24/09/29 13:05:00 (woods)"
+#ident	"@(#)HOME:.ashrc	37.9	24/10/03 10:32:36 (woods)"
 
 # Assumptions:
 #	- chdir must be synonymous with cd, and cd can be reset to a function
@@ -20,10 +20,27 @@
 #	$HOME/.kshsccs		- sourced, if "function" works and it is readable
 #	$HOME/.ashsccs		- sourced, if it is readable and .kshsccs was not read
 
+# try to find a related dotfiles, even when using "su" or a sub-shell the guts
+#
+# note:  this code is duplicated in ~/.kshrc
+#
+if [ -n "${ENVFILE:-ENV}" ]; then
+	envhome=$(dirname ${ENVFILE:-ENV})
+fi
+# there's a bit of a chicken&egg situation w.r.t. LOGNAME (see ~/.shrc)
+loghome=$(eval echo ~${LOGNAME})
+if [ -n "${ENVFILE:-ENV}" -a -f ${envhome}/.shrc ]; then
+	HOME=${envhome}
+elif [ -r ${loghome}/.shrc ]; then
+	HOME=${loghome}
+fi
+# else HOME stays unchanged...
+unset envhome loghome
+
 if [ -r ${HOME}/.shinter ]; then
 	. ${HOME}/.shinter
-else
-	echo "$0: WARNING: ~/.shinter not found"
+elif [ -z "${sh_is_interactive}" ]; then
+	echo "$0:.ashrc: WARNING: ${HOME}/.shinter not found"
 fi
 
 if ${sh_is_interactive}; then
@@ -90,21 +107,6 @@ fi
 # note:  this code is duplicated in ~/.kshrc
 #
 if ! type zhead >/dev/null 2>&1; then
-	# try to find a related .shrc, even when using "su" or a sub-shell
-	# the guts here could/should be a function, but it would be in .shrc!
-	#
-	if [ -n "${ENVFILE:-ENV}" ]; then
-		envhome=$(dirname ${ENVFILE:-ENV})
-	fi
-	# there's a bit of a chicken&egg situation w.r.t. LOGNAME (see ~/.shrc)
-	loghome=$(eval echo ~${LOGNAME})
-	if [ -n "${ENVFILE:-ENV}" -a -f ${envhome}/.shrc ]; then
-		HOME=${envhome}
-	elif [ -r ${loghome}/.shrc ]; then
-		HOME=${loghome}
-	fi
-	# else HOME stays unchanged...
-	unset envhome loghome
 	if [ -r ${HOME}/.shrc ]; then
 		. ${HOME}/.shrc
 		# also try to set MAILDOMAIN for .emacs.el if it was not set...

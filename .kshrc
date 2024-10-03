@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	37.13	24/09/29 13:04:27 (woods)"
+#ident	"@(#)HOME:.kshrc	37.14	24/10/03 10:32:36 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -27,10 +27,27 @@
 #	$HOME/.kshdir		- dir autoload aliases set, if it is readable
 #	$HOME/.kshlocal		- per $HOME local-only hacks
 
+# try to find a related dotfiles, even when using "su" or a sub-shell
+#
+# note:  this code is duplicated in ~/.ashrc
+#
+if [ -n "${ENVFILE:-ENV}" ]; then
+	envhome=$(dirname ${ENVFILE:-ENV})
+fi
+# there's a bit of a chicken&egg situation w.r.t. LOGNAME (see ~/.shrc)
+loghome=$(eval print ~${LOGNAME})
+if [ -n "${ENVFILE:-ENV}" -a -f ${envhome}/.shrc ]; then
+	HOME=${envhome}
+elif [ -r ${loghome}/.shrc ]; then
+	HOME=${loghome}
+fi
+# else HOME stays unchanged...
+unset envhome loghome
+
 if [ -r ${HOME}/.shinter ]; then
 	. ${HOME}/.shinter
-else
-	echo "$0: WARNING: ~/.shinter not found"
+elif [ -z "${sh_is_interactive}" ]; then
+	echo "$0:.kshrc: WARNING: ${HOME}/.shinter not found"
 fi
 
 if ${sh_is_interactive}; then
@@ -59,7 +76,7 @@ else
 fi
 
 # If I remember correctly SHLVL was not in early Ksh.... (and it's not in pdksh
-# nor its derivatives)
+# nor its derivatives).  It counts from one and is exported in the environment.
 #
 # Also, LEV counts (effectively) from zero, and is not set at level zero so as
 # to avoid presenting redundant useless information using a simple
@@ -99,20 +116,6 @@ esac
 # note:  this code is duplicated in ~/.ashrc
 #
 if ! typeset -f zhead >/dev/null ; then
-	# try to find a related .shrc, even when using "su" or a sub-shell
-	#
-	if [ -n "${ENVFILE:-ENV}" ]; then
-		envhome=$(dirname ${ENVFILE:-ENV})
-	fi
-	# there's a bit of a chicken&egg situation w.r.t. LOGNAME (see ~/.shrc)
-	loghome=$(eval print ~${LOGNAME})
-	if [ -n "${ENVFILE:-ENV}" -a -f ${envhome}/.shrc ]; then
-		HOME=${envhome}
-	elif [ -r ${loghome}/.shrc ]; then
-		HOME=${loghome}
-	fi
-	# else HOME stays unchanged...
-	unset envhome loghome
 	if [ -r ${HOME}/.shrc ]; then
 		. ${HOME}/.shrc
 		# also try to set MAILDOMAIN for .emacs.el if it was not set...
@@ -236,7 +239,7 @@ xterm*)
 	function _cd
 	{
 		# Ksh doesn't have "chdir"
-		\cd "$@"
+		\cd "${@}"
 		BANNER_PWD=${PWD}
 		setban
 	}
