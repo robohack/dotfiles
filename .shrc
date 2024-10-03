@@ -26,7 +26,7 @@
 #	$HOME/.shintr		- sourced for interactive shell test
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.41	24/09/29 13:05:37 (woods)"
+#ident	"@(#)HOME:.shrc	37.42	24/10/03 10:46:26 (woods)"
 
 if [ -z "${SHELL}" ]; then
 	# likely plain old Bourne (heirloom) shell
@@ -65,8 +65,8 @@ fi
 
 if [ -r ${HOME}/.shinter ]; then
 	. ${HOME}/.shinter
-else
-	echo "$0: WARNING: ~/.shinter not found"
+elif [ -z "${sh_is_interactive}" ]; then
+	echo "$0:.shrc: WARNING: ${HOME}/.shinter not found"
 fi
 
 if ${sh_is_interactive} || ${FROM_DOT_PROFILE:-false}; then
@@ -97,7 +97,7 @@ fi
 #
 # xxx Hmmmm.... "test -t" also works all the way back to v7.
 #
-ISATTY="true"
+ISATTY="test -t"
 TTY=`tty` || ISATTY="false"	# "not a tty" if not...
 
 # This file sets D_PS1 at the end to allow setaliases to avoid clobbering
@@ -244,7 +244,7 @@ elif ${HAVEPRINTF} ; then
 	portable_echo ()
 	{
 		[ "$1" = -n ] && { shift; FMT="%s"; } || FMT="%s\n"
-		printf "$FMT" ${1+"${@}"}
+		printf "$FMT" ${1+"$@"}
 	}
 else
 	# NOTE:  Assume if "echo" is builtin that it is OK and do not prefer an
@@ -382,7 +382,7 @@ pathvarrm ()
 	#	for dir in ${!pathvar}; do
 	#
 	set -- `IFS=":"; eval echo '$'${pathvar}`
-	for dir in "$@"; do
+	for dir in ${1+"$@"}; do
 		if [ "${dir}" != "${opath}" ] ; then
 			newpath=${newpath:+${newpath}:}${dir}
 		fi
@@ -452,7 +452,7 @@ fpappend ()
 	varname=${1}
 	shift
 	while [ $# -gt 0 ] ; do
-		if [ -d "${1}" -a -r "${1}"/fonts.dir ]; then
+		if [ -d "${1}" -a -r "${1}"/fonts.dir -a -r "${1}"/fonts.scale ]; then
 			eval varvalue='${'${varname}'}'
 			if in_fppathvar_p ${varname} "${1}" ; then
 				:
@@ -478,7 +478,7 @@ fpprepend ()
 	varname=${1}
 	shift
 	while [ $# -gt 0 ] ; do
-		if [ -d "${1}" -a -r "${1}"/fonts.dir ]; then
+		if [ -d "${1}" -a -r "${1}"/fonts.dir -a -r "${1}"/fonts.scale ]; then
 			eval varvalue='${'${varname}'}'
 			if in_fppathvar_p ${varname} "${1}" ; then
 				:
@@ -1089,7 +1089,7 @@ dfgit ()
 		echo "dfgit: in 'magit' mode!  Run magit2dfgit" >&2
 		return 2
 	fi
-	git --git-dir=$HOME/.dotfiles-git/ ${1+"${@}"}
+	git --git-dir=$HOME/.dotfiles-git/ ${1+"$@"}
 }
 
 lnotes ()
@@ -1456,7 +1456,7 @@ repfirst ()
 reverse_word_order ()
 {
 	_result=""
-	for _word in $@; do
+	for _word in ${1+"$@"}; do
 		_result="$_word $_result"
 	done
 	echo "$_result"
@@ -1620,15 +1620,24 @@ if [ -n "$DISPLAY" ]; then
 		_RDISPLAY=${REMOTE_DISPLAY:-${DISPLAY}}
 		_REMSHELL=${RSH:-rsh}
 		# note: $argv0 will have been set by .xinitrc, but....
-		_USAGE="onx11server: Usage: onx11server [-n[S]|-[f]S] [-D REMOTE_DISPLAY] X11SERVERNAME 'command string'"
+		_USAGE="onx11server: Usage: onx11server -[fnSY] [-D REMOTE_DISPLAY] -X X11SERVERNAME command [args ...]'"
 		_nullopt=""
+		_tunopt=""
+		_X11server=""
 		OPTIND="1"
-		while getopts "fnD:S" OPTCH
+		while getopts "fnD:SX:Y" OPTCH
 		do
 			case ${OPTCH} in
 			n|f)
-				# for ssh '-f' puts itself into the
-				# background and implies '-n'
+				# The OpenSSH ssh(1) manual says:
+				#
+				#    The recommended way to start X11 programs
+				#    at a remote site is with something like:
+				#    "ssh -f host xterm".
+				#
+				# for ssh '-f' puts itself into the background
+				# and implies '-n'
+				#
 				_nullopt="-${OPTCH}"
 				;;
 			D)
@@ -1636,6 +1645,12 @@ if [ -n "$DISPLAY" ]; then
 				;;
 			S)
 				_REMSHELL=${SSH:-ssh}
+				;;
+			X)
+				_X11server=${OPTARG}
+				;;
+			Y)
+				_tunopt="-CY"
 				;;
 			*)
 				echo "$_USAGE" >&2
@@ -1645,28 +1660,36 @@ if [ -n "$DISPLAY" ]; then
 		done
 		shift `expr $OPTIND - 1`
 
-		if [ $# -ne 2 -o -z "$1" ]; then
+		# XXX this isn't really useful to catch quoting problems as
+		# there will almost always be another parameter, the command,
+		# which will end up as the X11SERVERNAME when quoting isn't
+		# used....
+		#
+		if [ -z "$_X11server" ]; then
+			echo "$0: -X X11SERVERNAME not set!" >&2
 			echo "$_USAGE" >&2
 			return 2
 		fi
 
-		_X11server=$1
-
-		# note:  the remote shell is asked to explicitly source
+		# Note:  the remote shell is asked to explicitly source
 		# ~/.profile on the remote server so as to set up $PATH and
 		# other things since most X11 apps we start remotely are
 		# effectively interactive environments, especially if they are
 		# editors or media viewers or such.  Besides this is the easiest
-		# and most reliable way to find the remote server's $X11PATH!
+		# and most reliable way to find the remote server's $X11PATH.
+		# Note though that the remote shell will not be an interactive
+		# shell, nor a login shell.
 		#
-		echo "onx11server: starting $_REMSHELL $_nullopt $_X11server '. ./.profile; DISPLAY=${_RDISPLAY}; export DISPLAY; exec $2'"
-		# note:  do not run this in the background -- let the
-		# caller do that (unfortunately we must have a shell
-		# waiting for the rsh/ssh to keep the connection open
-		# so that the remote process will continue running.
-		$_REMSHELL $_nullopt $_X11server ". ./.profile; DISPLAY=${_RDISPLAY}; export DISPLAY; exec $2"
+		echo "onx11server: starting $_REMSHELL $_nullopt $_tunopt $_X11server . ./.profile\; DISPLAY=${_RDISPLAY}\; export DISPLAY\; ${1+\"$@\"}"
 
-		unset _RDISPLAY _REMSHELL _USAGE _nullopt _X11server OPTCH
+		# Note:  The command is not run in the background here -- let
+		# the caller do that (unfortunately we must have a shell waiting
+		# for the rsh/ssh to keep the connection open so that the remote
+		# process will continue running anyway).
+		#
+		$_REMSHELL $_nullopt $_tunopt $_X11server . ./.profile\; DISPLAY=${_RDISPLAY}\; export DISPLAY\; ${1+"$@"}
+
+		unset _RDISPLAY _REMSHELL _USAGE _nullopt _tunopt _X11server OPTCH
 	}
 	lxterm ()
 	{
@@ -1691,10 +1714,13 @@ if [ -n "$DISPLAY" ]; then
 	}
 	rxauth ()
 	{
+		# xxx this is a bit ugly -- for ssh you have to pass the -S after the rhost
+		_rhost=$1
+		shift
 		_RDISP=${REMOTE_DISPLAY:-${DISPLAY}}
 
-		xauth nextract - ${_RDISP} | onx11server ${1+"$@"} 'xauth nmerge -'
-		unset _RDISP
+		xauth nextract - ${_RDISP} | onx11server -X $_rhost ${1+"$@"} 'xauth nmerge -'
+		unset _rhost _RDISP
 	}
 	rxterm ()
 	{
@@ -1706,8 +1732,7 @@ if [ -n "$DISPLAY" ]; then
 			_ARGS="-e login -pf ${USER:-${LOGNAME}}"
 		fi
 
-		# alternatively:  unset LC_ALL; eval export `locale` ; unset LC_ALL
-		onx11server $_rhost "env LANG=C LC_ALL=C xterm $XTERM_OPTS -T rsh:$_rhost $_ARGS" < /dev/null &
+		onx11server -X "${_rhost}" unset LC_ALL\; eval export `locale`\; unset LC_ALL\; xterm $XTERM_OPTS -T rsh:$_rhost $_ARGS < /dev/null &
 		unset _rhost _ARGS
 	}
 	ruxterm ()
@@ -1719,7 +1744,7 @@ if [ -n "$DISPLAY" ]; then
 		else
 			_ARGS="-e login -pf ${USER:-${LOGNAME}}"
 		fi
-		onx11server $_rhost "uxterm $XTERM_OPTS -T rsh:$_rhost $_ARGS" < /dev/null &
+		onx11server -X "${_rhost}" uxterm $XTERM_OPTS -T rsh:$_rhost $_ARGS < /dev/null &
 		unset _rhost _ARGS
 	}
 fi
@@ -1765,7 +1790,7 @@ do_first_time ()
 if ${ISATTY}; then
 	TTYN=`basename $TTY`
 else
-	TTYN="not-tty"
+	TTYN="not-a-tty"
 fi
 
 if type ismpx >/dev/null 2>&1; then
@@ -1809,7 +1834,7 @@ if ismpx -s || [ "$TERM" = "dmd-myx" ] ; then
 			OWBANNER=${WBANNER}
 			# no trailing space -- usually just used to
 			# set alternate shell name
-			WBANNER="$@"
+			WBANNER="${1+\"$@\"}"
 		fi
 		if [ -z "$BANNER_PWD" ]; then
 			BANNER_PWD=`pwd | sed -e "s;^$HOME;~;" -e 's;^.*/work.d/;work.d/;' -e 's;.*/home.*/\([^/][^/]*\)$;\~\1;'`
@@ -1851,7 +1876,7 @@ case "$TERM" in
 			OWBANNER=${WBANNER}
 			# no trailing space -- usually just used to
 			# set alternate shell name
-			WBANNER=${1+"${@}"}
+			WBANNER="${1+\"$@\"}"
 		fi
 		if [ -z "$BANNER_PWD" ]; then
 			# only if needed (it's expensive), would be done by 'cd'
@@ -1952,7 +1977,7 @@ if type setban >/dev/null 2>&1; then
 			WBANNER="GNU Emacs @ $UUNAME"
 			setban
 			mesg n || true
-			$EMACS "$@"
+			$EMACS ${1+"$@"}
 			clearban
 			mesg $msg || true
 			trap 1 2 3 15
@@ -1973,10 +1998,10 @@ if type setban >/dev/null 2>&1; then
 				trap "trap 1 2 3 15; clearban; mesg $msg || true" 1 2 3 15
 			fi
 			OWBANNER=${WBANNER}
-			WBANNER="cu $*"
+			WBANNER="cu ${1+\"$@\"}"
 			setban
 			mesg n || true
-			$CU "$@"
+			$CU ${1+"$@"}
 			clearban
 			mesg $msg || true
 			trap 1 2 3 15
@@ -1997,10 +2022,10 @@ if type setban >/dev/null 2>&1; then
 				trap "trap 1 2 3 15; clearban; mesg $msg || true" 1 2 3 15
 			fi
 			OWBANNER=${WBANNER}
-			WBANNER="C-Kermit $*"
+			WBANNER="C-Kermit ${1+\"$@\"}"
 			setban
 			mesg n || true
-			$CKERMIT "$@"
+			$CKERMIT ${1+"$@"}
 			clearban
 			mesg $msg || true
 			trap 1 2 3 15
@@ -2016,10 +2041,10 @@ if type setban >/dev/null 2>&1; then
 			if mesg >/dev/null 2>&1 ; then msg=y; fi
 			trap "trap 1 2 3 15; clearban; mesg $msg || true" 1 2 3 15
 			OWBANNER=${WBANNER}
-			WBANNER="slogin $*"
+			WBANNER="slogin ${1+\"$@\"}"
 			setban
 			mesg n || true
-			$SLOGIN "$@"
+			$SLOGIN ${1+"$@"}
 			clearban
 			mesg $msg || true
 			trap 1 2 3 15
@@ -2035,10 +2060,10 @@ if type setban >/dev/null 2>&1; then
 			if mesg >/dev/null 2>&1 ; then msg=y; fi
 			trap "trap 1 2 3 15; clearban; mesg $msg || true" 1 2 3 15
 			OWBANNER=${WBANNER}
-			WBANNER="rlogin $*"
+			WBANNER="rlogin ${1+\"$@\"}"
 			setban
 			mesg n || true
-			$RLOGIN "$@"
+			$RLOGIN ${1+"$@"}
 			clearban
 			mesg $msg || true
 			trap 1 2 3 15
@@ -2059,10 +2084,10 @@ if type setban >/dev/null 2>&1; then
 				trap "trap 1 2 3 15; clearban; mesg $msg || true" 1 2 3 15
 			fi
 			OWBANNER=${WBANNER}
-			WBANNER="telnet $*"
+			WBANNER="telnet ${1+\"$@\"}"
 			setban
 			mesg n || true
-			$TELNET "$@"
+			$TELNET ${1+"$@"}
 			clearban
 			mesg $msg || true
 			trap 1 2 3 15
@@ -2078,10 +2103,10 @@ if type setban >/dev/null 2>&1; then
 			if mesg >/dev/null 2>&1 ; then msg=y; fi
 			trap "trap 1 2 3 15; clearban; mesg $msg || true" 1 2 3 15
 			OWBANNER=${WBANNER}
-			WBANNER="MUSH $*"
+			WBANNER="MUSH ${1+\"$@\"}"
 			setban
 			mesg n || true
-			$MUSH -C "$@"
+			$MUSH -C ${1+"$@"}
 			clearban
 			mesg $msg || true
 			trap 1 2 3 15
@@ -2105,7 +2130,7 @@ if type setban >/dev/null 2>&1; then
 			WBANNER="NetHack"
 			setban
 			mesg n || true
-			$NETHACK "$@"
+			$NETHACK ${1+"$@"}
 			clearban
 			mesg $msg || true
 			trap 1 2 3 15
@@ -2128,10 +2153,10 @@ if type setban >/dev/null 2>&1; then
 		if mesg >/dev/null 2>&1 ; then msg=y; fi
 		trap "trap 1 2 3 15; clearban; mesg $msg || true" 1 2 3 15
 		OWBANNER=${WBANNER}
-		WBANNER="SU ${*-root}"
+		WBANNER="SU \"${*-root}\""
 		setban
 		mesg n || true
-		$SU "$@"
+		$SU ${1+"$@"}
 		clearban
 		mesg $msg || true
 		trap 1 2 3 15
@@ -2363,7 +2388,7 @@ if [ "$uid" -eq 0 ] ; then
 	# I don't know if this is right, or not, but let's try for now...
 	cd
 	OWBANNER=${WBANNER}
-	WBANNER="SU `basename ${SHELL}`"
+	WBANNER="SU root `basename ${SHELL}`"
 	setban
 elif [ "$user" != "$LOGNAME" ] ; then
 	if ismpx -s || [ "$TERM" = "dmd-myx" ] ; then
@@ -2438,7 +2463,7 @@ maillog ()
 	# parameter.  (xxx otherwise I would also include words like "core",
 	# "signal", and "trace")
 	#
-	$PAGER -enM -p ": \[[0-9]+\] (\[.+\] )?((remote[A-Z ]*:)|remote ..LO: (rejected: inv[^:]*:|refusing) )|^.*kill.*" +G $MAILLOG ${!+"$@"}
+	$PAGER -enM -p ": \[[0-9]+\] (\[.+\] )?((remote[A-Z ]*:)|remote ..LO: (rejected: inv[^:]*:|refusing) )|^.*kill.*" +G $MAILLOG ${1+"$@"}
 }
 
 malias ()
@@ -2500,7 +2525,17 @@ signo ()
 #
 srcfgrep ()
 {
-	find . \( -type d \( -name CVS -or -name .git -or -name .svn -or -name build -or -name 'build-*' -or -name autom4te.cache \) -prune \) -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -exec fgrep ${1+"${@}"} {} +
+	find . \( -type d \( -name CVS -or -name .git -or -name .svn -or -name build -or -name 'build-*' -or -name autom4te.cache \) -prune \) -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -exec fgrep ${1+"$@"} {} +
+}
+
+sshsendkey ()
+{
+	# not all systems have ssh-copy-id(1)
+	cat ${HOME}/.ssh/id_rsa.pub | ssh $1 '
+		mkdir -pm 700 $HOME/.ssh
+		cat >> $HOME/.ssh/authorized_keys
+		chmod 600 $HOME/.ssh/authorized_keys
+	'
 }
 
 trim ()
@@ -2580,7 +2615,7 @@ typeof ()
 #
 zhead ()
 {
-	zcat ${1+"${@}"} | head
+	zcat ${1+"$@"} | head
 }
 
 #
@@ -2610,6 +2645,8 @@ rm_func_aliases ()
 {
 	type alias >/dev/null 2>&1 || return 0
 
+#	unalias uufollow rsh blsqueeze blstrip ds e elc l la ll lli lla llia llr llir llra llira lr lra lsa nstty rstty wcvs
+# xxx dunno why I broke this out into separate commands....
 	for _a in uufollow rsh blsqueeze blstrip ds e elc l la ll lli lla llia llr llir llra llira lr lra lsa nstty rstty wcvs; do
 		if alias ${_a} >/dev/null 2>&1; then
 			unalias ${_a}
@@ -2620,8 +2657,13 @@ rm_func_aliases ()
 
 # .... and in case we are sourcing this file for a second time....
 #
+# XXX but this still doesn't work for AT&T ksh93 -- it seems to do all the
+# parsing while sourcing and so the unalias doesn't happen soon enough....
+#
 rm_alias_funcs
 rm_func_aliases
+
+# N.B.: every function below must be listed in both rm_alias_funcs and rm_func_aliases
 
 if [ -n "$UUCPSPOOLDIR" ]; then
 	uufollow ()
@@ -2718,15 +2760,6 @@ rstty ()
 {
 	stty $SANE
 	echo "(use 'tput reset', and/or 'tabs -8' to reset tabs, etc.)"
-}
-sshsendkey ()
-{
-	# not all systems have ssh-copy-id(1)
-	cat ${HOME}/.ssh/id_rsa.pub | ssh $1 '
-		mkdir -pm 700 $HOME/.ssh
-		cat >> $HOME/.ssh/authorized_keys
-		chmod 600 $HOME/.ssh/authorized_keys
-	'
 }
 wcvs ()
 {
