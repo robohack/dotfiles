@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.34	24/09/28 11:22:54 (woods)"
+#ident	"@(#)HOME:.profile	37.35	24/10/05 16:51:28 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -109,7 +109,8 @@ OPATH=$PATH
 # etc. typically desired and assumed for "interactive" commands, such as
 # editors, media viewers, etc.
 #
-# XXX probably should move all the HAVE* settings there too....
+# XXX probably should move all the HAVE* settings there too as they are not
+# exported to the environment.... (and any other similar unexported vars)
 #
 FROM_DOT_PROFILE=true	# tell ~/.shrc this use is effectively "interactive"
 . ${HOME}/.shrc
@@ -117,9 +118,7 @@ FROM_DOT_PROFILE=true	# tell ~/.shrc this use is effectively "interactive"
 # XXX hmmmm.... these should be in their respective ~/.*login files????
 #
 if ${ISATTY}; then
-	if is_bash && [ -r ${HOME}/.bashlogout ]; then
-		trap '. ${HOME}/.bashlogout ; exit $?' EXIT
-	elif is_ksh && [ -r ${HOME}/.kshlogout ]; then
+	if is_ksh || is_bash && [ -r ${HOME}/.kshlogout ]; then
 		trap '. ${HOME}/.kshlogout ; exit $?' EXIT
 	elif [ -r ${HOME}/.shlogout ]; then
 		trap '. ${HOME}/.shlogout ; exit $?' 0
