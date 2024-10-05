@@ -1,7 +1,7 @@
 #
 #	.kshlogout - logout script for ksh
 #
-#ident	"@(#)HOME:.kshlogout	37.2	24/01/07 17:30:06 (woods)"
+#ident	"@(#)HOME:.kshlogout	37.3	24/10/05 16:50:09 (woods)"
 
 trap "" 1 2 3 4 5 6 7 8 9 10 12 13 14 15
 trap "" 0
@@ -12,13 +12,6 @@ if [ -r $HOME/.xinitrc -a ! -x $HOME/.xinitrc ] ; then
 	chmod +x $HOME/.xinitrc
 	printf "| WARNING:  ~/.xinitrc was not executable!  Fixed."
 fi
-
-# for emacs timeclock.el
-#
-if [ ! -f ~/.timelog ] ; then
-	touch ~/.timelog
-fi
-
 if expr $(tty) : "/dev/tty[ab0]" >/dev/null; then
 	sleep 2
 	tput clear
