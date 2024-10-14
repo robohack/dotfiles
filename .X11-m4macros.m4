@@ -2,7 +2,7 @@
 !
 !	.X11-m4macros.m4 - shared M4 macros for xrdb uses
 !
-!#ident	"@(#)HOME:.X11-m4macros.m4	37.1	24/09/22 12:37:03 (woods)"
+!#ident	"@(#)HOME:.X11-m4macros.m4	37.2	24/10/14 15:02:04 (woods)"
 !
 ! N.B.:  it is assumed quoting has been changed to square brackets!!!
 ! n.b.:  brackets will disappear from comments!
@@ -25,10 +25,10 @@
 ! Work out the screen resolution in order to specify default Font DPIs.
 !
 ! n.b.:  resolutions are in pixels per metre, for some stupid reason....
-! so 4500 dpM (/39.37) is just over 110 dpi
+! so 4500 dpM (/39.37) is just over 110 dpi (8594 dpM is 218 dpi)
 !
 ! define(HorizDPI, eval(((X_RESOLUTION * 100) / 3937) + ((((X_RESOLUTION * 1000) / 3937) % 10) >= 5)))
-! define(VertDPI, eval(((Y_RESOLUTION * 100) / 3937) + ((((X_RESOLUTION * 1000) / 3937) % 10) >= 5)))
+! define(VertDPI, eval(((Y_RESOLUTION * 100) / 3937) + ((((Y_RESOLUTION * 1000) / 3937) % 10) >= 5)))
 ! define(ScreenDimX, eval(WIDTH / HorizDPI))
 ! define(ScreenDimY, eval(HEIGHT / VertDPI))
 !
@@ -55,8 +55,6 @@
 !
 ! Font Names and Specifications:
 ! ==============================
-!
-! (xxx this next hunk could also be in an include file for shared use)
 !
 ! Note for Xft using fc-list(1) is probably the best way to fint Xft fonts...
 !
