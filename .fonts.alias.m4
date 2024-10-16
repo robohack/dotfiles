@@ -2,7 +2,7 @@
 !
 !	private fonts.alias -- must be first to have effect
 !
-!#ident	"@(#)HOME:.fonts.alias.m4	37.7	24/09/22 13:10:02 (woods)"
+!#ident	"@(#)HOME:.fonts.alias.m4	37.8	24/10/16 14:16:16 (woods)"
 !
 ! changequote([, ])	n.b.:  brackets will disappear from comments!
 !
@@ -48,7 +48,7 @@ cursor       "-xfree86-cursor-medium-r-normal--0-160-FontXDPI-FontYDPI-p-0-adobe
 ! for their actual size on a 75dpi screen.  This seems to match:  pix/75*72*.75
 !
 fixed        "-*-DecentFont-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-1"
-variable     "-*-DecenFontSans-medium-r-normal--0-100-FontXDPI-FontYDPI-p-0-iso8859-1"
+variable     "-*-DecentFontSans-medium-r-normal--0-100-FontXDPI-FontYDPI-p-0-iso8859-1"
 !
 ! add some new simple names to be used in ~/.Xdefaults
 !
@@ -56,9 +56,9 @@ bold         "-*-DecentFont-bold-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-1
 italic       "-*-DecentFont-medium-i-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-1"
 bolditalic   "-*-DecentFont-bold-i-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-1"
 !
-varbold      "-*-DecenFontSans-bold-r-normal--0-100-FontXDPI-FontYDPI-p-0-iso8859-1"
-varitalic    "-*-DecenFontSans-medium-i-normal--0-100-FontXDPI-FontYDPI-p-0-iso8859-1"
-varbolditalic "-*-DecenFontSans-bold-i-normal--0-100-FontXDPI-FontYDPI-p-0-iso8859-1"
+varbold      "-*-DecentFontSans-bold-r-normal--0-100-FontXDPI-FontYDPI-p-0-iso8859-1"
+varitalic    "-*-DecentFontSans-medium-i-normal--0-100-FontXDPI-FontYDPI-p-0-iso8859-1"
+varbolditalic "-*-DecentFontSans-bold-i-normal--0-100-FontXDPI-FontYDPI-p-0-iso8859-1"
 !
 5x7          "-*-DecentFont-medium-r-normal--0-55-FontXDPI-FontYDPI-m-0-iso8859-1"
 5x7bold      "-*-DecentFont-bold-r-normal--0-55-FontXDPI-FontYDPI-m-0-iso8859-1"
@@ -127,9 +127,9 @@ varbolditalic "-*-DecenFontSans-bold-i-normal--0-100-FontXDPI-FontYDPI-p-0-iso88
 ! size) Luckily something below, probably the "-*-fixed-*" entries, "fixes" it
 ! again, properly.
 !
-"-*-times-bold-i-normal--20-*-*-*-*-*-iso8859-1"	"-*-DecenFontSerif-bold-i-normal--0-100-FontXDPI-FontYDPI-p-0-iso8859-1"
-"-*-times-medium-r-normal--16-*-*-*-*-*-iso8859-1"	"-*-DecenFontSerif-medium-r-normal--0-90-FontXDPI-FontYDPI-p-0-iso8859-1"
-"-*-times-medium-r-normal--16-*-*-*-*-*-*-*"		"-*-DecenFontSerif-medium-r-normal--0-90-FontXDPI-FontYDPI-p-0-*-*"
+"-*-times-bold-i-normal--20-*-*-*-*-*-iso8859-1"	"-*-DecentFontSerif-bold-i-normal--0-100-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-times-medium-r-normal--16-*-*-*-*-*-iso8859-1"	"-*-DecentFontSerif-medium-r-normal--0-90-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-times-medium-r-normal--16-*-*-*-*-*-*-*"		"-*-DecentFontSerif-medium-r-normal--0-90-FontXDPI-FontYDPI-p-0-*-*"
 !
 "-*-*-medium-r-normal--16-*-*-*-*-*-*-*"		"-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-*-*"
 !
@@ -147,18 +147,18 @@ varbolditalic "-*-DecenFontSans-bold-i-normal--0-100-FontXDPI-FontYDPI-p-0-iso88
 ! Explicit aliases for default resources in xpdf
 ! xxx something else still gets too-big fonts for menus and some buttons
 !
-"-*-helvetica-medium-r-normal--12-*-*-*-*-*-iso8859-1"	"-*-DecenFontSans-medium-r-normal--0-100-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-helvetica-medium-r-normal--12-*-*-*-*-*-iso8859-1"	"-*-DecentFontSans-medium-r-normal--0-100-FontXDPI-FontYDPI-p-0-iso8859-1"
 "-*-courier-medium-r-normal--12-*-*-*-*-*-iso8859-1"	"-*-DecentFont-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-1"
-"-*-times-bold-i-normal--20-*-*-*-*-*-iso8859-1"	"-*-DecenFontSerif-bold-i-normal--0-120-FontXDPI-FontYDPI-p-0-iso8859-1"
-"-*-times-medium-r-normal--16-*-*-*-*-*-iso8859-1"	"-*-DecenFontSerif-medium-r-normal--0-110-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-times-bold-i-normal--20-*-*-*-*-*-iso8859-1"	"-*-DecentFontSerif-bold-i-normal--0-120-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-times-medium-r-normal--16-*-*-*-*-*-iso8859-1"	"-*-DecentFontSerif-medium-r-normal--0-110-FontXDPI-FontYDPI-p-0-iso8859-1"
 !
 ! xv -- still tiny, but usable....
 !
 "-misc-fixed-medium-r-normal-*-13-*"			"-*-DecentFont-medium-r-normal--0-70-FontXDPI-FontYDPI-m-0-iso8859-1"
 "-*-courier-medium-r-*-*-12-*"				"-*-DecentFont-medium-r-normal--0-70-FontXDPI-FontYDPI-m-0-iso8859-1"
-"-*-lucida-medium-r-*-*-12-*-*-*-*-*-*-*"		"-*-DecenFontSerif-medium-r-normal--0-70-FontXDPI-FontYDPI-p-0-iso8859-1"
-"-*-helvetica-medium-r-*-*-12-*-*-*-*-*-*-*"		"-*-DecenFontSans-medium-r-normal--0-70-FontXDPI-FontYDPI-p-0-iso8859-1"
-"-*-helvetica-medium-r-*-*-11-*-*-*-*-*-*-*"		"-*-DecenFontSans-medium-r-normal--0-65-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-lucida-medium-r-*-*-12-*-*-*-*-*-*-*"		"-*-DecentFontSerif-medium-r-normal--0-70-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-helvetica-medium-r-*-*-12-*-*-*-*-*-*-*"		"-*-DecentFontSans-medium-r-normal--0-70-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-helvetica-medium-r-*-*-11-*-*-*-*-*-*-*"		"-*-DecentFontSans-medium-r-normal--0-65-FontXDPI-FontYDPI-p-0-iso8859-1"
 !
 ! try some generic aliases -- these seem to help Ctwm with its "default" font
 !
@@ -167,30 +167,30 @@ varbolditalic "-*-DecenFontSans-bold-i-normal--0-100-FontXDPI-FontYDPI-p-0-iso88
 "-*-fixed-medium-i-normal--*-*-*-*-*-*-iso8859-1"	"-*-DecentFont-medium-i-normal--0-*-FontXDPI-FontYDPI-m-0-iso8859-1"
 "-*-fixed-bold-i-normal--*-*-*-*-*-*-iso8859-1"		"-*-DecentFont-bold-i-normal--0-*-FontXDPI-FontYDPI-m-0-iso8859-1"
 !
-"-*-times-medium-r-normal--*-*-*-*-*-*-iso8859-1"	"-*-DecenFontSerif-medium-r-normal--0-*-FontXDPI-FontYDPI-p-0-iso8859-1"
-"-*-times-bold-r-normal--*-*-*-*-*-*-iso8859-1"		"-*-DecenFontSerif-bold-r-normal--0-*-FontXDPI-FontYDPI-p-0-iso8859-1"
-"-*-times-medium-i-normal--*-*-*-*-*-*-iso8859-1"	"-*-DecenFontSerif-medium-i-normal--0-*-FontXDPI-FontYDPI-p-0-iso8859-1"
-"-*-times-bold-i-normal--*-*-*-*-*-*-iso8859-1"		"-*-DecenFontSerif-bold-i-normal--0-*-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-times-medium-r-normal--*-*-*-*-*-*-iso8859-1"	"-*-DecentFontSerif-medium-r-normal--0-*-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-times-bold-r-normal--*-*-*-*-*-*-iso8859-1"		"-*-DecentFontSerif-bold-r-normal--0-*-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-times-medium-i-normal--*-*-*-*-*-*-iso8859-1"	"-*-DecentFontSerif-medium-i-normal--0-*-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-times-bold-i-normal--*-*-*-*-*-*-iso8859-1"		"-*-DecentFontSerif-bold-i-normal--0-*-FontXDPI-FontYDPI-p-0-iso8859-1"
 !
-"-*-helvetica-medium-r-normal--*-*-*-*-*-*-iso8859-1"	"-*-DecenFontSans-medium-r-normal--0-*-FontXDPI-FontYDPI-p-0-iso8859-1"
-"-*-helvetica-bold-r-normal--*-*-*-*-*-*-iso8859-1"	"-*-DecenFontSans-bold-r-normal--0-*-FontXDPI-FontYDPI-p-0-iso8859-1"
-"-*-helvetica-medium-i-normal--*-*-*-*-*-*-iso8859-1"	"-*-DecenFontSans-medium-i-normal--0-*-FontXDPI-FontYDPI-p-0-iso8859-1"
-"-*-helvetica-bold-i-normal--*-*-*-*-*-*-iso8859-1"	"-*-DecenFontSans-bold-i-normal--0-*-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-helvetica-medium-r-normal--*-*-*-*-*-*-iso8859-1"	"-*-DecentFontSans-medium-r-normal--0-*-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-helvetica-bold-r-normal--*-*-*-*-*-*-iso8859-1"	"-*-DecentFontSans-bold-r-normal--0-*-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-helvetica-medium-i-normal--*-*-*-*-*-*-iso8859-1"	"-*-DecentFontSans-medium-i-normal--0-*-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-helvetica-bold-i-normal--*-*-*-*-*-*-iso8859-1"	"-*-DecentFontSans-bold-i-normal--0-*-FontXDPI-FontYDPI-p-0-iso8859-1"
 !
 ! specific fonts wanted by gv:
 !
-"-*-Helvetica-Medium-R-Normal--*-140-*-*-P-*-ISO8859-1"	"-*-DecenFontSans-medium-r-normal--0-140-FontXDPI-FontYDPI-p-0-iso8859-1"
-"-*-Helvetica-Medium-R-Normal--*-120-*-*-P-*-ISO8859-1"	"-*-DecenFontSans-medium-r-normal--0-120-FontXDPI-FontYDPI-p-0-iso8859-1"
-"-*-Helvetica-Medium-R-Normal--*-100-*-*-P-*-ISO8859-1"	"-*-DecenFontSans-medium-r-normal--0-100-FontXDPI-FontYDPI-p-0-iso8859-1"
-"-*-Helvetica-Bold-R-Normal--*-120-*-*-P-*-ISO8859-1"	"-*-DecenFontSans-bold-r-normal--0-120-FontXDPI-FontYDPI-p-0-iso8859-1"
-"-*-Helvetica-Bold-R-Normal--*-180-*-*-P-*-ISO8859-1"	"-*-DecenFontSans-bold-r-normal--0-180-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-Helvetica-Medium-R-Normal--*-140-*-*-P-*-ISO8859-1"	"-*-DecentFontSans-medium-r-normal--0-140-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-Helvetica-Medium-R-Normal--*-120-*-*-P-*-ISO8859-1"	"-*-DecentFontSans-medium-r-normal--0-120-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-Helvetica-Medium-R-Normal--*-100-*-*-P-*-ISO8859-1"	"-*-DecentFontSans-medium-r-normal--0-100-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-Helvetica-Bold-R-Normal--*-120-*-*-P-*-ISO8859-1"	"-*-DecentFontSans-bold-r-normal--0-120-FontXDPI-FontYDPI-p-0-iso8859-1"
+"-*-Helvetica-Bold-R-Normal--*-180-*-*-P-*-ISO8859-1"	"-*-DecentFontSans-bold-r-normal--0-180-FontXDPI-FontYDPI-p-0-iso8859-1"
 !
 ! These are in some library(ies):
 !
 "-*-*-*-R-*-*-*-120-*-*-*-*-ISO8859-*"	"-*-DecentFont-*-r-normal--0-120-FontXDPI-FontYDPI-m-0-iso8859-*"
 !
-"-*-times-*-*-*--*-*-*-*-*-*-*-*"		"-*-DecenFontSerif-*-*-*--0-*-FontXDPI-FontYDPI-*-0-*-*"
-"-*-helvetica-*-*-*--*-*-*-*-*-*-*-*"		"-*-DecenFontSans-*-*-*--0-*-FontXDPI-FontYDPI-*-0-*-*"
+"-*-times-*-*-*--*-*-*-*-*-*-*-*"		"-*-DecentFontSerif-*-*-*--0-*-FontXDPI-FontYDPI-*-0-*-*"
+"-*-helvetica-*-*-*--*-*-*-*-*-*-*-*"		"-*-DecentFontSans-*-*-*--0-*-FontXDPI-FontYDPI-*-0-*-*"
 !
 ! xxx this one is actually a part of a fontset, with the second appended, so it
 ! is last -- aliases do not seem to be powerful enough to manage this transform
