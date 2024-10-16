@@ -3,7 +3,7 @@
 #
 # Written by Greg A. Woods <woods@robohack.{UUCP,ca}> <woods@planix.{com,ca}>
 #
-#ident	"@(#)HOME:.kshsccs	37.7	24/09/28 11:24:47 (woods)"
+#ident	"@(#)HOME:.kshsccs	37.8	24/10/16 16:43:02 (woods)"
 #
 # Copyright (c) 2001 Greg A. Woods
 # 
@@ -114,16 +114,11 @@ alias vdelta='${SCCS} -p $PROJECT delta'
 alias vdiff='${SCCS} -p $PROJECT diffs'
 alias vedit='${SCCS} -p $PROJECT edit'
 alias vfix='${SCCS} -p $PROJECT fix'
-alias vget='${SCCS} -p $PROJECT get'
 alias vgeted='${SCCS} -p $PROJECT edit'
 alias vgetedit='${SCCS} -p $PROJECT edit'
 alias vhelp='${SCCS} help'
 alias vinfo='${SCCS} -p $PROJECT info'
-alias vlog='${SCCS} -p $PROJECT prs'
 alias vnoproj='unset PROJECTDIR; vproj SCCS'
-alias vprint='${SCCS} -p $PROJECT print'
-alias vprs='${SCCS} -p $PROJECT prs'
-alias vprt='${SCCS} -p $PROJECT prt'
 alias vrdiff='${SCCS} -p $PROJECT sccsdiff'
 alias vrmdel='${SCCS} -p $PROJECT rmdel'
 alias vsccsdiff='${SCCS} -p $PROJECT sccsdiff'
@@ -249,6 +244,7 @@ function mksccs
 -rSID		set the release level to REL (defaults to current release level)
 -tMTYPE		set the module type to MTYPE (for :Y:)
 		(defaults to HOME if in home directory, else basename of \$PWD)
+-DDESCR		set the file description to DESCR (default is none)
 -yCOMMENT	set the initial comment to COMMENT
 		(defaults to: 'date and time created YY/MM/DD HH:MM:SS by \$USER')
 
@@ -257,17 +253,30 @@ $0 enters a new file into the SCCS repository for project $PROJECT.
 e.g.:  $0 -q\$USER -tHOME .newfile
 "
 	typeset DEFBR=""
+	typeset DESCR=""
 	typeset OFLAG=""
 	typeset QFLAG=""
 	typeset REL=""
 	typeset TFLAG=""
-	typeset lastrel=$(vlastrel 2>/dev/null)
-	if [ -n "$lastrel" ] ; then
-		REL="-r$lastrel"
+	typeset TMPFILE=""
+	typeset currentrel=$(vcurrentrel 2>/dev/null)
+	if [ -n "${currentrel}" ] ; then
+		REL="-r${currentrel}"
 	fi
-	while getopts d:hoq:r:t:y: OPTCH
+	while getopts D:d:hoq:r:t:y: OPTCH
 	do
 	  	case $OPTCH in
+		D)
+			TMPFILE=`mktemp -t ${0##*/}`
+			if [ $? -ne 0 ]; then
+				echo "$0: Cannot create a temporary file for the description, exiting..."
+				return 1
+			fi
+			# n.b. at least for pdksh EXIT doesn't fire for functions...
+			trap "rm -f ${TMPFILE}" EXIT HUP INT TERM
+			printf "%s\n" "${OPTARG}" > ${TMPFILE}
+			DESCR="-t${TMPFILE}"
+			;;
 		d)
 			# default delta (branch)
 			DEFBR="-fd${OPTARG}"
@@ -339,23 +348,33 @@ e.g.:  $0 -q\$USER -tHOME .newfile
 	elif [ -z "$TFLAG" ]; then
 		TFLAG="$PROJECT"
 	fi
-	${SCCS} -p $PROJECT enter $OFLAG $REL "${YOPT}" $*
+	typeset file=""
+	${SCCS} -p $PROJECT enter $OFLAG $REL ${YOPT:+"${YOPT}"} $@
 	if [ $? -eq 0 ] ; then
-		${SCCS} -p $PROJECT admin $DEFBR -fb -fq"${QFLAG}" -ft"${TFLAG}" $*
+		# xxx hmmmm.... '-fn' too ???
+		${SCCS} -p $PROJECT admin $DEFBR -fb -fq"${QFLAG}" -ft"${TFLAG}" ${DESCR:+"${DESCR}"} $@
 	else
 		return 1
 	fi
-
 	typeset rc=$?
 
-	if ${SCCS} -p $PROJECT val $* ; then
-		: # It's OK Jim....
-	else
-		echo "$0: failed to enter one or more files (try vval...)" >&2
-		return 1
+	if [ -n "${TMPFILE}" ]; then
+		rm -f ${TMPFILE}
 	fi
 
-	${SCCS} -p $PROJECT get $*
+	if [ $rc -eq 0 ] && ${SCCS} -p $PROJECT val $@ ; then
+		: # It's all OK Jim....
+	else
+		echo "$0: failed to enter one or more files (try vval...)" >&2
+	fi
+
+	for file in $@; do
+		if [ -x $file ]; then
+			chmod +x $PROJECT/$file
+		fi
+	done
+
+	${SCCS} -p $PROJECT get $@
 
 	rc=$(( $rc + $? ))
 
@@ -379,9 +398,112 @@ function venter
 	trap 2
 	case "$yn" in
 	[yY]*)
-		${SCCS} -p $PROJECT enter ${1+"$@"}
+		${SCCS} -p $PROJECT enter $@
+		${SCCS} -p $PROJECT get $@
 		;;
 	esac
+}
+
+#
+#	vget - get a file, or all the files
+#
+# n.b.:  if one wants to supply options _and_ get all the files then one must
+# supply '$(vwproj)' as the last argument.
+#
+# XXX we should pass any '-rREL' to vrmempty !!!
+#
+function vget
+{
+	if [ $# -eq 0 ] ; then
+		${SCCS} -p $PROJECT get $(vwproj)
+	else
+		${SCCS} -p $PROJECT get $@
+	fi
+	vrmempty
+}
+
+#
+#	vlog - get the log files (i.e. in l.FILE)
+#
+# N.B.:  Schily SCCS hasa a "sccs log" command producing a ChangeLog
+#
+function vlog
+{
+	if [ $# -eq 0 ] ; then
+		${SCCS} -p $PROJECT get -l -s -p $(vwproj) > /dev/null
+	else
+		${SCCS} -p $PROJECT get -l -s -p $@ > /dev/null
+	fi
+}
+
+function vprint
+{
+	if [ $# -eq 0 ] ; then
+		${SCCS} -p $PROJECT print $(vwproj)
+	else
+		${SCCS} -p $PROJECT print $@
+	fi
+}
+
+function vprs
+{
+	if [ $# -eq 0 ] ; then
+		${SCCS} -p $PROJECT prs $(vwproj)
+	else
+		${SCCS} -p $PROJECT prs $@
+	fi
+}
+
+function vprt
+{
+	if [ $# -eq 0 ] ; then
+		${SCCS} -p $PROJECT prt $(vwproj)
+	else
+		${SCCS} -p $PROJECT prt $@
+	fi
+}
+
+#
+#	vrm - remove a file from the project
+#
+# Note: Schily SCCS has a "sccs remove" command, but it is actually still
+# "unimplemented" (just boilerplate).  It is documented as a form of "staging"
+# or preparation operation that will "mark the file for removal with the next
+# commit" (and there's a proposed but unimplemented "sccs commit" command as
+# well).  (Similarly there's a proposed but unimplemented "sccs rename", and
+# this is apparently all to be tied together with "changeset" support as
+# documented in sccschangeset(5).)
+#
+# For now we will simply check in an empty file and the new SID to the list of
+# locked releases.
+#
+function vrm
+{
+	if [ $# -ne 1 ]; then
+		echo "Usage: $0 file" >&2
+		return 2
+	fi
+	# XXX perhaps this should look through the list from vtell?
+	typeset sdir=$(vwproj)
+	if [ ! -s ${sdir}/p.$1 ]; then
+		vgeted $1
+		>$1
+	elif [ -s $1 ]; then
+		echo "$0: file '$1' should be empty!" >&2
+		return 1
+	fi
+#XXX#
+#XXX# the idea here was to lock the SID for the removal delta, but one can only
+#XXX# lock whole releases.  we will have to rely on vrmempty instead for now....
+#XXX#
+#XXX#	# xxx the next should use 'vsact', but that's not yet implemented in CSSC's sccs(1)!
+#XXX#	typeset rmsid=$(awk '{print $2}' < ${sdir}/p.$1)
+	vdelta -y"file is now removed" $1
+#XXX#	typeset lsids=$(vprs -d:LK: $1)
+#XXX#	if [ ${lsids} = "none" ]; then
+#XXX#		lsids=""
+#XXX#	fi
+#XXX#	vadmin -fl"${lsids:+${lsids},}${rmsid}" $1
 }
 
 #
@@ -390,19 +512,25 @@ function venter
 function vverify
 {
 	typeset sdir="$(vwproj)"
-	typeset sfilepath
-	for sfilepath in ${sdir}/s.* ; do
-		typeset sfile=$(basename ${sfilepath})
+	typeset sfile
+	typeset rc=0
+	for sfile in $(vprs -d:F: $(vwproj)) ; do
 		typeset file=${sfile##s.}
 		if [ ! -r "${file}" ] ; then
-			echo "${file}: missing (needs vget?)!"
+			if [ -z "$(${SCCS} get -sp ${file} 2>/dev/null)" ]; then
+				: OK, removed
+			else
+				echo "${file}: missing (needs vget?)!" >&2
+				: $((rc++))
+			fi
         	fi
 		if [ -w "${file}" -a ! -f "${sdir}/p.${file}" ] ; then
-			echo "${file}: writable but not being edited!"
+			echo "${file}: writable but not being edited!" >&2
+			: $((rc++))
 		fi
 	done
+	return $rc
 }
-
 
 #
 #	vlist - print interesting info about s-files
@@ -426,7 +554,7 @@ function vlist
 #
 function vls
 {
-	ls $* $(vwproj)
+	ls $@ $(vwproj)
 }
 
 #
@@ -434,6 +562,10 @@ function vls
 #
 function vfiles
 {
+	if [ $# -ne 0 ] ; then
+		echo "Usage: $0" >&2
+		return 2
+	fi
 	ls $(vwproj) | awk '/^s\./{print substr($1, 3)}'
 }
 
@@ -447,18 +579,20 @@ function vwhat
 		return 2
 	fi
 
-	what $* | awk 'NF > 1 {print $0}' | sort -u
+	what $@ | awk 'NF > 1 {print $0}' | sort -u
 }
 
 #
-#	vsact - wrapper for sact (you probably want vinfo instead!)
+#	vsact - wrapper for sact
+#
+# Note: without any args you probably want to discard stderr...
 #
 function vsact
 {
 	if [ $# -eq 0 ] ; then
-		${SCCS} -p $PROJECT sact $(vwproj)/s.*
+		${SCCS} -p $PROJECT sact $(vwproj)
 	else
-		${SCCS} -p $PROJECT sact $*
+		${SCCS} -p $PROJECT sact $@
 	fi
 }
 
@@ -468,28 +602,87 @@ function vsact
 function vcommitters
 {
 	if [ $# -eq 0 ] ; then
-		${SCCS} -p $PROJECT prs -e -d:P: $(vwproj)/s.*
+		${SCCS} -p $PROJECT prs -e -d:P: $(vwproj)
 	else
-		${SCCS} -p $PROJECT prs -e -d:P: $*
+		${SCCS} -p $PROJECT prs -e -d:P: $@
 	fi | sort -u
 }
 
 #
-#	vlastrel - guess last release
+#	vcurrentrel - find the current release level
 #
-# XXX this is a mis-nomer -- it's actually the "current" release
+# Note the new '-r' edit level when vnewrel is run is/will-be the "next"
+# release.
 #
-function vlastrel
+function vcurrentrel
 {
 	if [ $# -ne 0 ] ; then
 		echo "Usage: $0" >&2
 		return 2
 	fi
-	typeset somefile=$(ls -f $(vwproj) | awk '/^s\./{print substr($1, 3); exit}')
-	if [ -n "$somefile" ] ; then
-		vprs -d:R: $somefile
-	else
-		echo "1"
+	vprs -d:R: $(vwproj) | sort -nu | tail -1
+}
+
+#
+#	vremoved - list the removed files
+#
+function vremoved
+{
+	typeset RELOPT=""
+	typeset USAGE="Usage: $0 [-rREL]"
+	while getopts r: OPTCH
+	do
+	  	case $OPTCH in
+		r)
+			RELOPT="-r${OPTARG}"
+			;;
+		*)
+			echo "$USAGE" >&2
+			return 2
+			;;
+		esac
+	done
+	shift $(( $OPTIND - 1 ))
+	if [ $# -ne 0 ] ; then
+		echo "$USAGE" >&2
+		return 2
+	fi
+	# list empty tracked files
+	for sfile in $(vprs -d:F: $(vwproj)) ; do
+		typeset file=${sfile##s.}
+		if [ -z "$(${SCCS} get ${RELOPT:+"${RELOPT}"} -sp ${file} 2>/dev/null)" ]; then
+			echo ${file}
+		fi
+	done
+}
+
+#
+#	vrmempty - clean out empty (i.e. removed) g-files
+#
+function vrmempty
+{
+	typeset RELOPT=""
+	typeset USAGE="Usage: $0 [-rREL]"
+	while getopts r: OPTCH
+	do
+	  	case $OPTCH in
+		r)
+			RELOPT="-r${OPTARG}"
+			;;
+		*)
+			echo "$USAGE" >&2
+			return 2
+			;;
+		esac
+	done
+	shift $(( $OPTIND - 1 ))
+	if [ $# -ne 0 ] ; then
+		echo "$USAGE" >&2
+		return 2
+	fi
+	typeset removed=$(vremoved ${RELOPT:+"${RELOPT}"})
+	if [ -n "${removed}" ]; then
+		rm -f ${removed}
 	fi
 }
 
@@ -497,44 +690,51 @@ function vlastrel
 #	vnewrel - start a new release
 #
 # Make an archive of your source files first, then run this to begin
-# the next release...
+# the NEXT release...
 #
 # (i.e. roll up the release number on all files in the project)
 #
 # WARNING:  Note there's no "module" locking here!
 #
-# NOTE:  If you do this accidentally before you wrapped up the last
-# release, then you can go back easily enough with "vgetprev"
+# NOTE:  If you do this accidentally before you wrapped up the last release,
+# then you can go back easily enough with "vgetprev", then use "vget" to return
+# to this next/new release
 #
 function vnewrel
 {
 	typeset USAGE="Usage: $0 [RELEASE]"
-	if [ -n "$(vtell)" ] ; then
-		echo "$0: files still being edited!." >&2
+	vcheck || {
+		echo "$0: files are still being edited!" >&2
 		return 1
-	fi
+	}
 	typeset REL
 	if [ $# -eq 1 ] ; then
 		REL=$1
 		# XXX error check that it's an integer?
 	elif [ $# -eq 0 ] ; then
-		REL=$(( $(vlastrel) + 1 ))
+		REL=$(( $(vcurrentrel) + 1 ))
 	else
 		echo "$USAGE" >&2
 		return 2
 	fi
-	vinfo
-	typeset ans
-	echo "Is this OK? [y] \c"
-	read ans
-	case "$ans" in
-	[nN]*)
-		return 1
-		;;
-	esac
-	# XXX abort if anything is being edited!
 	vedit -r$REL $PROJECT
+	# un-edit empty files -- don't give them a new release level!
+	typeset sdir="$(vwproj)"
+	for sfile in $(vprs -d:F: $(vwproj)) ; do
+		typeset file=${sfile##s.}
+		if [ -s ${file} ]; then
+			: OK
+		else
+			vunedit ${file}
+		fi
+	done
 	vdelget -y"START RELEASE $REL" $PROJECT
+
+	# xxx vdelget may not get everything/anything when run on the whole
+	# $PROJECT directory, and it does not deal with removed files (vget also
+	# calls vrmempty)
+	#
+	vget
 }
 
 alias vmkrel='vnewrel'
@@ -542,72 +742,28 @@ alias vmkrel='vnewrel'
 #
 #	vgetprev - check out a previous release
 #
+# Use vget to return to the working versions
+#
 function vgetprev
 {
 	typeset USAGE="Usage: $0 [RELEASE]"
-	if [ -n "$(vtell)" ] ; then
-		echo "$0: files still being edited!." >&2
+	vcheck || {
+		echo "$0: files still being edited!" >&2
 		return 1
-	fi
+	}
 	typeset REL
 	if [ $# -eq 1 ] ; then
 		REL=$1
 		# XXX error check that it's an integer?
 	elif [ $# -eq 0 ] ; then
-		REL=$(( $(vlastrel) - 1 ))
+		REL=$(( $(vcurrentrel) - 1 ))
 	else
 		echo "$USAGE" >&2
 		return 2
 	fi
-	vget -r$REL $PROJECT
+	# vget also calls vrmempty, so we don't want to use it here!
+	${SCCS} get -r$REL $PROJECT
+	vrmempty -r$REL
 }
 
-alias vgetcur='vgetprev $(vlastrel)'
-
-#
-#	vreldotfiles - special hack for $HOME
-#
-vreldotfiles ()
-{
-	case ${HOSTNAME} in
-	${CENTRAL_SERVER})
-		echo "publishdotfiles: not useful when run on server host!" 1>&2
-		return 2
-		;;
-	more*|building*)
-		echo "releasedotfiles: this host needs upgrading!" 1>&2
-		return 2
-		;;
-	future*)
-		cd ${HOME}
-
-		# make the new release
-		#
-		vnewrel
-		# XXX sometimes this is needed???
-		# vgeted ${PROJECT}
-
-		# update the FTP files
-		#
-		typeset REL
-		REL=$(vlastrel)
-		scp dotfiles.list ${CENTRAL_USER}@${CENTRAL_SERVER}:\~ftp/pub/local/dotfiles-v$REL.list
-		scp dotfiles.tar.gz ${CENTRAL_USER}@${CENTRAL_SERVER}:\~ftp/pub/local/dotfiles-v$REL.tar.gz
-		ssh ${CENTRAL_USER}@${CENTRAL_SERVER} ln -fhs dotfiles-v${REL}.list \~ftp/pub/local/dotfiles.list
-		ssh ${CENTRAL_USER}@${CENTRAL_SERVER} ln -fhs dotfiles-v${REL}.tar.gz \~ftp/pub/local/dotfiles.tar.gz
-
-		# update github
-		#
-		( cd && git-sccsimport --move-date=2010/11/5T00:00:00 --move-offset=3 --expand-kw --maildomain=robohack.ca --git-dir="$HOME/work/home" --dirs SCCS && cd $HOME/work/home && git push --mirror )
-
-		# update central:$HOME
-		#
-		rsync -v -lptHS --stats --files-from=$HOME/dotfiles.list $HOME ${CENTRAL_USER}@${CENTRAL_SERVER}:.
-
-		# update dotfiles.tar.gz and dotfiles.list
-		# (function is from .shrc)
-		#
-		archivedotfiles
-		;;
-	esac
-}
+alias vgetcur='vgetprev $(vcurrentrel)'
