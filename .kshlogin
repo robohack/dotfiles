@@ -1,33 +1,34 @@
 #
 #	.kshlogin - login shell startup for ksh, sourced by ~/.profile
 #
-#ident	"@(#)HOME:.kshlogin	37.6	24/09/29 14:07:23 (woods)"
+#ident	"@(#)HOME:.kshlogin	37.7	24/10/16 17:01:42 (woods)"
 
-# Note I allow for /etc/profile to be explicitly sourced by non-interactive
-# shells, e.g. this is done from remote invocations of onx11server (defined in
-# ~/.shrc), so here we're testing to see if a shell is truly a login shell or an
-# interactive shell so we can determine what additional setup we want for such
-# shells, such as setting $ENV and exporting it.
+# Note I allow for /etc/profile to be explicitly sourced by non-interactive,
+# non-login shells, e.g. in ~/.xinitrc and from remote invocations of
+# onx11server (defined in ~/.shrc), so here we're testing to see if a shell is
+# truly a login shell or an interactive shell so we can determine what
+# additional setup we want for such shells, such as setting $ENV and exporting
+# it.
 
-case "$0" in
--*)
+# ~/.shrc, source early by ~/.profile, which sources this file, did the tests
+# for interactive/login shells
+#
+if ${sh_is_login}; then
 	#
 	# Commands for login shells
 	#
+	echo "$0: setup for Korn Shell (${KSH_VERSION})"
+
 	set -o ignoreeof
-	;;
-esac
+fi
 
 # n.b.: it is expected all ksh-like shells add 'i' to $- if they are interactive
-# and do so before sourcing ~/.profile!  If not see, and use, ~/.shinter.
+# and do so before sourcing ~/.profile, but we'll use the ~/.shrc tests anyway.
 #
-case "$-" in
-*i*)
+if ${sh_is_interactive} || ${sh_is_login}; then
 	#
 	# Commands for interactive shells.
 	#
-	echo "$0: setup for Korn Shell"
-
 	export FCEDIT="$(whence ed)"
 
 	# for emacs timeclock.el
@@ -39,35 +40,42 @@ case "$-" in
 	# Keep them separated!
 	#
 	# NOTE: many implementations have HISTFILE inter-locking bugs amongst
-	# themselves!
+	# themselves!  Some only read on startup and write on exit.
 	#
 	case "${KSH_VERSION}" in
 	*PD*KSH*)
-		 KSHTYPE=pdksh
-		 ;;
+		case ${SHELL} in
+		*oksh)
+			# xxx OpenBSD is special!
+			KSHTYPE=oksh
+			;;
+		*)
+			KSHTYPE=pdksh
+			;;
+		esac
+		;;
 	*MIRBSD*)
-		 KSHTYPE=mksh
-		 ;;
+		KSHTYPE=mksh
+		;;
 	Version*)
-		 KSHTYPE=attksh
-		 ;;
+		KSHTYPE=attksh	# defaults to ~/.sh_history!
+		;;
 	*)
-		 KSHTYPE=ksh
-		 ;;
+		KSHTYPE=ksh
+		;;
 	esac
 
-	HISTFILE=$HOME/.${KSHTYPE}_history
+	HISTFILE=${HOME}/.${KSHTYPE}_history
 	HISTSIZE=2000
 
-	export ENVFILE=$HOME/.kshrc
-	;;
-esac
+	export ENVFILE=${HOME}/.kshrc
+fi
 
 export FPATH=$HOME/lib/ksh
 
 # Setup for global $ENV
 #
-if [ -n "$ENVFILE" -a -r "$ENVFILE" ] ; then
+if [ -n "${ENVFILE}" -a -r "${ENVFILE}" ] ; then
 	#
 	# This magic expression prevents a non-interactive Ksh
 	# instance from ever even trying to open and read any file.
@@ -86,8 +94,14 @@ if [ -n "$ENVFILE" -a -r "$ENVFILE" ] ; then
 	# expression as well, but I may simply have read Jon's post.
 	#
 	# It does work with almost all of the versions of Ksh I've run across,
-	# including ksh-85 and the one AIX-3.2, as well as pdksh, but not
-	# MKsh since mksh-R56c (main.c:1.344:2017-10-13).
+	# including ksh-85 and the one AIX-3.2, the most recent ksh93, as well
+	# as pdksh, but not MKsh since mksh-R56c (main.c:1.344:2017-10-13).  As
+	# of mksh-R59 2020/05/16 it only seems to process $ENV for interactive
+	# shells anyway.
+	#
+	# Note that since ksh-93 (as of 12/28/93) $ENV is only processed for
+	# interactive shell invocations, making this trick now redundant for
+	# AT&T Ksh.
 	#
 	export ENV='${ENVFILE[(_$-=1)+(_=0)-(_$-!=_${-%%*i*})]}'
 

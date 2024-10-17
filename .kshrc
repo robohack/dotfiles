@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	37.14	24/10/03 10:32:36 (woods)"
+#ident	"@(#)HOME:.kshrc	37.15	24/10/16 17:01:42 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -16,9 +16,7 @@
 #
 # Files referenced:
 #
-#	$HOME/.shintr		- sourced for interactive shell test
 #	$HOME/.shrc		- sourced for common funcs, if needed & readable
-#	$HOME/.localprofile	- may be sourced (mostly for MAILDOMAIN)
 #	$HOME/.shaliases	- sourced, if it is readable
 #	$HOME/.kshsccs		- sourced, if it is readable
 #	$HOME/.kshpwd		- sourced, if it is readable
@@ -27,16 +25,18 @@
 #	$HOME/.kshdir		- dir autoload aliases set, if it is readable
 #	$HOME/.kshlocal		- per $HOME local-only hacks
 
+#echo "$0: in ~/.kshrc ...."
+
 # try to find a related dotfiles, even when using "su" or a sub-shell
 #
 # note:  this code is duplicated in ~/.ashrc
 #
-if [ -n "${ENVFILE:-ENV}" ]; then
-	envhome=$(dirname ${ENVFILE:-ENV})
+if [ -n "${ENVFILE:-${ENV}}" ]; then
+	envhome=$(dirname ${ENVFILE:-${ENV}})
 fi
 # there's a bit of a chicken&egg situation w.r.t. LOGNAME (see ~/.shrc)
 loghome=$(eval print ~${LOGNAME})
-if [ -n "${ENVFILE:-ENV}" -a -f ${envhome}/.shrc ]; then
+if [ -n "${ENVFILE:-${ENV}}" -a -f ${envhome}/.shrc ]; then
 	HOME=${envhome}
 elif [ -r ${loghome}/.shrc ]; then
 	HOME=${loghome}
@@ -44,23 +44,30 @@ fi
 # else HOME stays unchanged...
 unset envhome loghome
 
-if [ -r ${HOME}/.shinter ]; then
-	. ${HOME}/.shinter
-elif [ -z "${sh_is_interactive}" ]; then
-	echo "$0:.kshrc: WARNING: ${HOME}/.shinter not found"
+# Get basic shell setup from a .shrc
+#
+# It is assumed of course that "zhead" is defined as a function in the desired
+# ~/.shrc file, and only there.
+#
+# note:  this code is duplicated in ~/.ashrc
+#
+if ! typeset -f zhead >/dev/null 2>&1 ; then
+	if [ -r ${HOME}/.shrc ]; then
+		. ${HOME}/.shrc
+	fi
 fi
 
-if ${sh_is_interactive}; then
+# ~/.shrc also does the tests for interactive/login shells and will also have
+# returned "early" if neither (except if $FROM_DOT_PROFILE).
+#
+if ${sh_is_interactive} || ${sh_is_login}; then
 	: OK
 else
 	# Everything else in this file is for interactive use only, and since
-	# most ksh versions default to ENV=~/.kshrc if ENV is not set and so
-	# will source this file for non-interactive remote shells, we must exit
-	# now.
-	#
-	# Note this file is _always_ expected to be sourced with ".", which
-	# behaves kind of like a function (without parameters, and so "return"
-	# is a/the valid way to stop sourcing early.
+	# most ksh versions default to ENV=~/.kshrc if ENV is not set, and since
+	# most older versions, including pdksh and most of its derivatives
+	# (except mksh(1) and oksh(1)) will source this file for non-interactive
+	# shells, we must exit now.
 	#
 	return
 fi
@@ -107,27 +114,6 @@ case ${0} in
 	fi
 	;;
 esac
-
-# Get basic shell setup from a .shrc
-#
-# It is assumed of course that "zhead" is defined as a function in the desired
-# ~/.shrc file.
-#
-# note:  this code is duplicated in ~/.ashrc
-#
-if ! typeset -f zhead >/dev/null ; then
-	if [ -r ${HOME}/.shrc ]; then
-		. ${HOME}/.shrc
-		# also try to set MAILDOMAIN for .emacs.el if it was not set...
-		if [ -r ${HOME}/.localprofile ]; then
-			. ${HOME}/.localprofile
-		fi
-	fi
-	# finally we can clean up unnecessary functions
-	if typeset -f rm_alias_funcs >/dev/null ; then
-		rm_alias_funcs
-	fi
-fi
 
 # initialize SECONDS to the number of seconds since the last
 # local wall-clock midnight hour
@@ -259,6 +245,10 @@ PS1="${PS1} ${PSc} "
 if [ -r $HOME/.shaliases ] ; then
 	. $HOME/.shaliases
 fi
+# finally we can clean up unnecessary functions
+if typeset -f rm_alias_funcs >/dev/null 2>&1 ; then
+	rm_alias_funcs
+fi
 if [ -r $HOME/.kshsccs ] ; then
 	. $HOME/.kshsccs
 fi
@@ -302,6 +292,7 @@ trap '
 		EMSG=""
 	fi;
 	print "${0#-}: exit code: $rc$EMSG"
+	unset rc EMSG
 ' ERR
 
 # NOTE: some versions of some shells complain here if not connected to a tty

@@ -1,49 +1,75 @@
 #
 #	.bashlogin - login shell startup for bash
 #
-#ident	"@(#)HOME:.bashlogin	37.3	24/09/29 14:05:33 (woods)"
+#ident	"@(#)HOME:.bashlogin	37.4	24/10/16 17:01:42 (woods)"
 
-# Note I allow for /etc/profile to be explicitly sourced by non-interactive
-# shells, e.g. this is done from remote invocations of onx11server (defined in
-# ~/.shrc), so here we're testing to see if a shell is truly a login shell or an
-# interactive shell so we can determine what additional setup we want for such
-# shells, such as setting $ENV and exporting it.
+# Note I allow for /etc/profile to be explicitly sourced by non-interactive,
+# non-login shells, e.g. in ~/.xinitrc and from remote invocations of
+# onx11server (defined in ~/.shrc), so here we're testing to see if a shell is
+# truly a login shell or an interactive shell so we can determine what
+# additional setup we want for such shells, such as setting $ENV and exporting
+# it.
 
 if shopt -q login_shell; then
 	#
 	# Commands for login shells
 	#
+	echo "$0: setup for BASH (${BASH_VERSION})"
+
 	set -o ignoreeof
 fi
 
 case "$-" in
 *i*)
-	echo "$0: setup for BASH ($0)"
-
 	# for emacs timeclock.el
 	#
 	if [ ! -f ~/.timelog ] ; then
 		touch ~/.timelog
 	fi
 
-	HISTFILE=$HOME/.bash_history
+	HISTFILE=${HOME}/.bash_history
 	HISTSIZE=2000
 
-	export ENVFILE=$HOME/.bashrc
+	# XXX bash(1) apparently supports non-interactive login shells, but only
+	# if invoked with "--login" (or "-l"?) (i.e. also without '-i') but for
+	# now we'll pretend all login shells are also interactive.  Maybe we
+	# don't want $ENVFILE for them, but if we did we could duplicate this
+	# above in the "shopt -q login_shell" test block above.
+	#
+	export ENVFILE=${HOME}/.bashrc
 	;;
 esac
 
-if [ -n "$ENVFILE" -a -r "$ENVFILE" ] ; then
-	# see ~/.kshlogin for an explanation
+if [ -n "${ENVFILE}" -a -r "${ENVFILE}" ] ; then
+	#
+	# We will set $BASH_ENV to allow use of ~/.bashrc for non-interactive
+	# shells too, as there are some fixups we might need in all shells.
+	#
+	# see ~/.kshlogin for an explanation of the magic array expansion
+	#
 	export BASH_ENV='${ENVFILE[(_$-=1)+(_=0)-(_$-!=_${-%%*i*})]}'
-	# Bash is stupid.  $BASH_ENV only works automatically if it's
-	# already set in the environment!
-	. $ENVFILE
+	#
+	# Bash(1) only uses $ENV if invoked as "sh", or when invoked in "posix"
+	# mode, otherwise it explicitly uses "~/.bashrc" (unless the "--rcfile"
+	# command-line option is used to change that name).  It should only use
+	# $ENV if interactive and not a login shell, so no need for the magic
+	# array expansion.
+	#
+	export ENV=${ENVFILE}
+	#
+	# Bash is stupid and weird.  $BASH_ENV is only sourced automatically if
+	# it is already set in the environment at invocation, and only for
+	# non-interactive shells; and when defaulting to the hard-coded
+	# "~/.bashrc" it only uses that for non-login interactive shells
+	# (including ones on network connections)!  So, since ~/.bashlogin is an
+	# interactive login shell we need to directly source it here:
+	#
+	. ${ENVFILE}
 fi
 
 export FCEDIT=$(type -path ed)
 
-if [ "$TTY" != "not a tty" ] ; then
+if [ "${TTY}" != "not a tty" ] ; then
 	echo "Trying to fix TTY..."
 	TTY=$(tty)
 	TTYN=$(basename $TTY)
@@ -54,5 +80,5 @@ if [ -z "$LOGNAME" ] ; then
 	export LOGNAME=${HOME##*/}
 fi
 
-export PWD=$HOME
-export OLDPWD=$HOME
+export PWD=${HOME}
+export OLDPWD=${HOME}

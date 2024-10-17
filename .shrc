@@ -1,12 +1,13 @@
 #
 #	.shrc - per-shell startup stuff for all shells
 #
-# This file is never used directly as $ENVFILE (i.e. $ENV), but it is shared and
-# sourced by all that are.
+# This file is only used directly by bosh(1) IFF $ENV is not set, but never used
+# otherwise used as $ENVFILE (i.e. $ENV).  However it is shared and sourced by
+# all that are (including ~/.ashrc normally set as $ENV for bosh(1) et al).
 #
 # Note:  Most of this should be compatible with some pre-POSIX shells.  Notably:
 #
-#	- don't use $() for command expansion (ever!)
+#	- don't use $() for command expansion (ever!) (unless in quotes?)
 #	- don't use '!' in test expressions for flow-control statements
 #	- mostly no arithmetic expressions
 #	- mostly no suffix or prefix patterns
@@ -23,14 +24,18 @@
 # Files referenced:
 #
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
-#	$HOME/.shintr		- sourced for interactive shell test
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.42	24/10/03 10:46:26 (woods)"
+#ident	"@(#)HOME:.shrc	37.43	24/10/16 17:01:42 (woods)"
+
+#echo $0: in $HOME/.shrc!
 
 if [ -z "${SHELL}" ]; then
-	# likely plain old Bourne (heirloom) shell
+	#
+	# The current shell is likely plain old Bourne (Heirloom) shell
+	#
 	# XXX too bad we can't get the true full pathname
+	#
 	SHELL=`expr "$0" : '-*\(.*\)'`
 fi
 
@@ -44,8 +49,8 @@ fi
 # The I/O re-direction doesn't actually get rid of the "type: not found" message
 # from the old Ash implementation...  Perhaps it parses the whole line first?
 #
-# XXX but maybe it would if we redirected stderr within the subshell
-# too, as we must do for GNU Bash?
+# XXX but maybe it would if we redirected stderr within the subshell too, as we
+# must do for GNU Bash?  Can't test without an old ash(1) any more though!
 #
 if ( type type > /dev/null 2>&1 ) > /dev/null 2>&1 ; then
 	:
@@ -54,22 +59,103 @@ elif [ -r ${HOME}/.ashtype ]; then
 fi
 
 #
-#	N.B.:  the rest of the file is for "interactive" shells only!
+#	N.B.:  the rest of the file is for "interactive" and login shells only!
 #
 
-# XXX Hmmmm.... should we do this?  Should we do it before $sh_is_interactive?
+sh_is_interactive=false
+sh_is_login=false
+case "$-" in
+*i*)
+	sh_is_interactive=true
+	;;
+esac
+case "$0" in
+-`basename $SHELL`)
+	# Also setting $sh_is_interactive is really just for (Schily and
+	# Heirloom) Bourne Shell which does not put "i" in $- until after
+	# ~/.profile has been sourced, not that they read $ENV by themselves!
+	#
+	# N.B.:  This presumes of course that login shells are, by definition,
+	# interactive.
+	#
+	# XXX this can be fooled with:  SHELL=/bin/sh sh -c 'echo $0' -sh foo!
+	#
+	sh_is_interactive=true
+	sh_is_login=true
+	;;
+esac
+case "$-" in
+*l*)
+	# Some shells can be invoked as login shells with '-l' (pdksh, bash).
+	#
+	sh_is_interactive=true
+	sh_is_login=true
+	;;
+esac
+
+# Note: $sh_is_interactive is still not a reliable definition for older shells.
 #
-#if [ -r /etc/shrc ]; then
-#	. /etc/shrc
-#fi
+# POSIX(Issue 7 and Issue 8) says:
+#
+#	If the -i option is present, or if there are no operands and the shell's
+#	standard input and standard error are attached to a terminal, the shell
+#	is considered to be interactive.
+#
+# Many implementations also add the caveat:  "and the -c option is not present".
+# This is more or less covered by the "and there are no operands" part, but....
+#
+# POSIX(Issue 8) does now add to the definition of "$-":
+#
+#	It is unspecified whether the -c and -s options are included in the
+#	expansion of "$-".  The -i option shall be included in "$-" if the shell
+#	is interactive, regardless of whether it was specified on invocation.
+#
+# So, for shells that don't add 'i' to $- the tests above are inadequate.
+#
+# If we could reliably test if the shell was reading commands from stdin
+# (e.g. acting as if '-s' was given and there was on '-c'), then if stdin and
+# stderr are terminals we would know the shell is in interactive mode.  However
+# NetBSD sh(1), and presumably most other ash(1) derivatives, along with the
+# original Bourne Shell and its derivatives, have tested if stdin and _stdout_
+# are TTYs to determine their interactactive-ness.  Ksh introduced the change to
+# test _stderr_ some time before ksh88e as it allows "sh | tee x" to behave the
+# same as "sh".  This was fixed in NetBSD sh(1) as of 2017-07-24 and netbsd-8
+# (unfortunately after the introduction of $NETBSD_SHELL though).
+#
+# However since most shells also don't add either "c" or "s" to $- this is not
+# possible.  Worse yet the original Bourne Shell and its derivatives, including
+# even the latest ksh93, add "s" to $- even when they shouldn't (but only when
+# there are no further "positional" arguments):
+#
+#	 sh -c 'echo $0:  \$-=\"$-\"'
+#
+# Note that '-c' is a plain flag ("c" in getopts, i.e. no parameter) which
+# simply declares how remaining arguments are to be treated after any remaining
+# option arguments are processed.  The first remaining argument is treated as a
+# string to be parsed as a script, and the next of any more remaining arguments
+# is set as $0, with the rest set as positional parameters in $@ (i.e. as if
+# 'set -- args ..." were executed) for that script's use.
+#
+# N.B.  This all really doesn't matter in the real world though -- we can (for
+# now) assume all shells that support $ENV will stick 'i' in $- if they are
+# interactive (even when -i is not given as an argument), and furthermore shells
+# which expand and source $ENV even when not interactive are the only ones we
+# really care about anyway.  That said, pdksh and its derivatives, including
+# NetBSD ksh(1), (which all do source $ENV all the time) can use the old AT&T
+# Ksh array trick as they support arrays, so even they don't need any internal
+# tests.  This is all really for NetBSD sh(1) (when it is not in POSIX mode) and
+# other older Ash variants (not dash).
 
-if [ -r ${HOME}/.shinter ]; then
-	. ${HOME}/.shinter
-elif [ -z "${sh_is_interactive}" ]; then
-	echo "$0:.shrc: WARNING: ${HOME}/.shinter not found"
-fi
-
-if ${sh_is_interactive} || ${FROM_DOT_PROFILE:-false}; then
+# note:  $FROM_DOT_PROFILE is for non-interactive, non-login, uses such as
+# directly sourcing ~/.profile e.g. in ~/.xinitrc and from a remotely invoked
+# command-line, as is done in onx11server, and getting the definition of
+# onx11server, as well as some other environment variable setup, is of course
+# why we need this escape hatch in the first place.
+#
+# xxx the "|| $sh_is_login" is currently redundant -- all login shells are also
+# considered to be interactive shells in the tests above.
+#
+if ${sh_is_interactive} || ${sh_is_login} || ${FROM_DOT_PROFILE:-false}; then
 	: OK
 else
 	# Everything in this file is for interactive (or explicitly chosen) use
@@ -77,12 +163,10 @@ else
 	# ash(1) and its derivatives do not have arrays and so cannot use the
 	# ksh(1) ${ENVFILE[]} trick, so we must exit now.
 	#
-	# Note this file is _always_ expected to be sourced with ".", which
-	# behaves kind of like a function (without parameters, and so "return"
-	# is a/the valid way to stop sourcing early.
-	#
 	return
 fi
+
+#echo $0: still in $HOME/.shrc!
 
 # do this early so everything else can use it if needed
 #
@@ -126,10 +210,10 @@ is_ksh ()
 		"Version"*)
 			return 0 # likely att ksh
 			;;
-		"@(#)MIRBSD"*)
+		*"MIRBSD"*)
 			return 0 # mksh
 			;;
-		"@(#)"*)
+		*"PD"*"KSH"*)
 			return 0 # likely pdksh or some other derivative
 			;;
 		*)
@@ -752,66 +836,160 @@ fi
 : ${CENTRAL_USER:="woods"}
 : ${CENTRAL_SERVER:="central.avoncote.ca"} # FQDN for outbound connections
 : ${HOME_SERVER:="more"}
+
+#
+#	dotfiles2git - meant as an internal helper
+#
+dotfiles2git ()
+{
+	( cd $HOME
+
+        git-sccsimport --move-date=2010/11/5T00:00:00 --move-offset=3 --expand-kw --maildomain=robohack.ca --git-dir="$HOME/work/home" --dirs SCCS && cd $HOME/work/home && git push --mirror
+	if [ $? -ne 0 ]; then
+		echo "$0:  check for errors above!" 1>&2
+		#
+		# Quite possibly some aspect of some change that had
+		# already been imported was accidentally changed causing
+		# a fork in the change history.  One likely possibility
+		# is some aspect of an SCCS file, e.g. a metadata value
+		# which appears in the expanded "@(#)" header, was
+		# modified, e.g. the module type.
+		#
+		# In this case there are two choices -- (1) undo the
+		# change; or (2) rewrite the git history.
+		#
+		# For this particular repository the second option is
+		# probably OK.  Do the following:
+		#
+		#   git reset --hard $(git log HEAD^..HEAD | awk '$1 == "commit" {print $2}')
+		#   git push --force --mirror
+		#
+		return 1
+	fi
+	)
+}
+
+archivedotfiles ()
+{
+	( cd $HOME
+
+	# update the live files on the central server
+	#
+	rsync -v -lptHS --progress --stats --files-from=$HOME/dotfiles.list $HOME ${CENTRAL_USER}@${CENTRAL_SERVER}:.
+
+	# remove g-files on $CENTRAL_SERVER that have been removed in SCCS
+	#
+	removed="$(vremoved)"
+	if [ -n "${removed}" ]; then
+		ssh ${CENTRAL_USER}@${CENTRAL_SERVER} rm -f ${removed}
+	fi
+	unset removed
+
+	# update dotfiles.tar.gz
+	#
+	pax -wzf ${HOME}/dotfiles.tar.gz < ${HOME}/dotfiles.list
+
+	ssh ${CENTRAL_USER}@${CENTRAL_SERVER} rm -f dotfiles.list # is likely unwriteable
+	scp ${HOME}/dotfiles.list ${HOME}/dotfiles.tar.gz ${CENTRAL_USER}@${CENTRAL_SERVER}:.
+
+	# publish via HTTP too -- xxx this is sometimes a bit wasteful, but
+	# simplest...
+	#
+	cd $HOME/public_html
+	./publish
+
+	)
+}
+
+#
+#	publishdotfiles - re-import to git, push, and publish to $CENTRAL_SERVER
+#
+# meant for incremental updates without creating a new release and can be used
+# without SCCS tools (but of course requires git-sccsimport)
+#
 publishdotfiles ()
 {
-	if [ -z "${HOME}" ]; then
-		echo "publishdotfiles: HOME is unset or empty!" 1>&2
-		return 2
-	fi
 	case ${HOSTNAME} in
 	${CENTRAL_SERVER%%.*}*)	# assume there is only one by this name!
-		echo "publishdotfiles: not useful when run on server host!" 1>&2
+		echo "$0: not useful when run on server host!" 1>&2
 		return 2
 		;;
 	${HOME_SERVER}*)
-		( cd && ${SCCS:-"sccs"} info )
-		( cd && git-sccsimport --move-date=2010/11/5T00:00:00 --move-offset=3 --expand-kw --maildomain=robohack.ca --git-dir="$HOME/work/home" --dirs SCCS && cd $HOME/work/home && git push --mirror )
-		if [ $? -ne 0 ]; then
-			echo "publishdotfiles:  check for errors above!"
-			#
-			# Quite possibly some aspect of some change that had
-			# already been imported was accidentally changed causing
-			# a fork in the change history.  One likely possibility
-			# is some aspect of an SCCS file, e.g. a metadata value
-			# which appears in the expanded "@(#)" header, was
-			# modified, e.g. the module type.
-			#
-			# In this case there are two choices -- (1) undo the
-			# change; or (2) rewrite the git history.
-			#
-			# For this particular repository the second option is
-			# probably OK.  Do the following:
-			#
-			#   git reset --hard $(git log HEAD^..HEAD | awk '$1 == "commit" {print $2}')
-			#   git push --force --mirror
-			#
+		if [ -z "${HOME}" ]; then
+			echo "$0: HOME is unset or empty!" 1>&2
+			return 2
 		fi
-		rsync -v -lptHS --progress --delete-after --stats --files-from=$HOME/dotfiles.list $HOME ${CENTRAL_USER}@${CENTRAL_SERVER}:.
+		( cd ${HOME}; ${SCCS:-"sccs"} info )
+
+		dotfiles2git || {
+			return 1
+		}
+
+		# update the archive files on the central server, etc.
 		#
 		archivedotfiles
 		;;
 	*)
-		echo "publishdotfiles: not useful when run on client host!" 1>&2
+		echo "$0: not useful when run on client host!" 1>&2
 		return 2
 		;;
 	esac
 }
 
-archivedotfiles ()
+#
+#	releasedotfiles - publish dotfiles as a release and start a new one
+#
+releasedotfiles ()
 {
-	# XXX somehow this should be combined with vnewrel, or should call
-	# vnewrel (sometimes)??
-	#
-	# XXX also put them on the FTP server?  (only when vnewrel?)
-	#
-	# (note I had never put these in /work/release.d, so no need to now)
-	#
-	(cd; pax -wzf ${HOME}/dotfiles.tar.gz < ${HOME}/dotfiles.list)
-	ssh ${CENTRAL_USER}@${CENTRAL_SERVER} rm -f dotfiles.list
-	scp ${HOME}/dotfiles.list ${HOME}/dotfiles.tar.gz ${CENTRAL_USER}@${CENTRAL_SERVER}:.
-	#
-	# publish via HTTP too -- xxx this is a bit wasteful, but simplest...
-	(cd $HOME/public_html; ./publish)
+	case ${HOSTNAME} in
+	${CENTRAL_SERVER})
+		echo "$0: not useful when run on server host!" >&2
+		return 1
+		;;
+	more*)
+		( cd ${HOME}
+
+		vcheck || {
+			echo "$0: files still being edited!" >&2
+			return 1
+		}
+
+		vverify || {
+			return 1
+		}
+
+		# create archives from the "next", i.e. current level, release
+		#
+		# function is from ~/.shrc
+		#
+		publishdotfiles
+
+		# update the FTP files for the current release
+		#
+		# (note I had never put these in /work/release.d, so no need to
+		# do so now)
+		#
+		typeset REL
+		REL="$(vcurrentrel)"
+		scp dotfiles.list ${CENTRAL_USER}@${CENTRAL_SERVER}:\~ftp/pub/local/dotfiles-v$REL.list
+		scp dotfiles.tar.gz ${CENTRAL_USER}@${CENTRAL_SERVER}:\~ftp/pub/local/dotfiles-v$REL.tar.gz
+		ssh ${CENTRAL_USER}@${CENTRAL_SERVER} ln -fhs dotfiles-v${REL}.list \~ftp/pub/local/dotfiles.list
+		ssh ${CENTRAL_USER}@${CENTRAL_SERVER} ln -fhs dotfiles-v${REL}.tar.gz \~ftp/pub/local/dotfiles.tar.gz
+
+		# finally close off the release and get ready for the next one!
+		#
+		vnewrel
+		if [ $? -ne 0 ]; then
+			echo "$0:  check for errors above!" >&2
+			return 1
+		fi
+		)
+		;;
+	*)
+		echo "$0: this host needs dotfiles updates!" >&2
+		return 1
+		;;
+	esac
 }
 
 pushdotfiles ()
@@ -819,8 +997,9 @@ pushdotfiles ()
 	_e_opt=""
 	_user=${LOGNAME}
 	_copy=false
-	_transport=${RSYNC_RSH:-"scp"}
-	_USAGE="pushdotfiles: Usage: pushdotfiles [-c] [-e TRANSPORT] [-u RUSER] hostname"
+	_rcp=${RCP:-"scp"}
+	_rsh=${RSH:-"ssh"}
+	_USAGE="$0: Usage: $0 [-c] [-e TRANSPORT] [-u RUSER] hostname"
 	OPTIND="1"
 	while getopts "ce:u:" OPTCH
 	do
@@ -832,13 +1011,15 @@ pushdotfiles ()
 			_e_opt="-e ${OPTARG}"
 			case ${OPTARG} in
 			r*)
-				_transport=rcp
+				_rcp=rcp
+				_rsh=rsh
 				;;
 			s*)
-				_transport=scp
+				_rcp=scp
+				_rsh=ssh
 				;;
 			*)
-				echo "pushdotfiles: ${OPTARG}: unknown transport" >&2
+				echo "$0: ${OPTARG}: unknown transport" >&2
 				return 2
 			esac
 			;;
@@ -858,16 +1039,29 @@ pushdotfiles ()
 		return 2
 	fi
 	if $_copy; then
-		if [ $_transport = "rcp" ]; then
-			echo "pushdotfiles: the rcp transport cannot create subdirectories!" >&2
+		rdirs="$(grep '/$' ${HOME}/dotfiles.list)"
+		if [ $_rcp = "rcp" -a -n "${rdirs}" ]; then
+			echo "pushdotfiles: rcp cannot create or copy subdirectories along with files!" >&2
 			return 2
 		fi
-		cd $HOME && \
-		$_transport -r `cat ${HOME}/dotfiles.list` ${1}:
+		${_rsh} ${_user}@${1} chmod u+w `cat ${HOME}/dotfiles.list`
+		if [ -n "${rdirs}" ]; then
+			for _rdir in ${rdirs}; do
+				${_rsh} ${_user}@${1} chmod +w ${_rdir}/\*
+			done
+		fi
+		( cd $HOME
+		  ${_rcp} -p -r `cat ${HOME}/dotfiles.list` ${_user}@${1}:
+		)
+		unset rdirs
 	else
-		rsync ${_e_opt} -v -lptHS --progress --delete-after --stats --files-from=${HOME}/dotfiles.list ${HOME} ${_user}@${1}:.
+		rsync ${_e_opt} -v -lptHS --progress --stats --files-from=${HOME}/dotfiles.list ${HOME} ${_user}@${1}:.
 	fi
-	unset _copy _e_opt _user _USAGE OPTCH
+	removed="$(vremoved)"
+	if [ -n "${removed}" ]; then
+		${_rsh} ${_user}@${1} rm -f ${removed}
+	fi
+	unset _copy _e_opt _rcp _rsh _user _USAGE removed OPTCH
 }
 
 syncdotfiles ()
@@ -889,7 +1083,7 @@ syncdotfiles ()
 		return 2
 		;;
 	esac
-	rsync -v -lptHS --progress --delete-after --stats --files-from=:dotfiles.list ${CENTRAL_USER}@${CENTRAL_SERVER}:. $HOME
+	rsync -v -lptHS --progress --stats --files-from=:dotfiles.list ${CENTRAL_USER}@${CENTRAL_SERVER}:. $HOME
 	if [ -r $HOME/.xinitrc -a ! -x $HOME/.xinitrc ] ; then
 		chmod +x $HOME/.xinitrc
 	fi
@@ -1257,7 +1451,7 @@ get_domainname ()
 		# explicitly in resolv.conf -- normally dhclient and
 		# such will set "search" from the network DHCP server
 		#
-		# xxx except of course on MacOS X, aka OSX, aka macOS, sigh...
+		# xxx except of course on MacOS X, aka OSX, aka macOS, aka macos, sigh...
 		#
 		sed -n '/^[;#]/d;s/domain[ 	]*/./p' /etc/resolv.conf
 	elif type domainname >/dev/null 2>&1; then
@@ -1532,7 +1726,7 @@ signo ()
 
 snmpmiblist ()
 {
-	cd $1; echo `awk '{print $1}' .index` | sed 's/ /:/g'
+	( cd $1; echo `awk '{print $1}' .index` | sed 's/ /:/g' )
 }
 
 if [ -f /usr/adm/lastlog.ut -a -x /usr/lib/acct/fwtmp ] ; then
@@ -1650,7 +1844,12 @@ if [ -n "$DISPLAY" ]; then
 				_X11server=${OPTARG}
 				;;
 			Y)
+				# XXX n.b. try adding -Snone "because session
+				# multiplexing doesn't work very well with X
+				# forwarding"
+				#
 				_tunopt="-CY"
+				unset _RDISPLAY
 				;;
 			*)
 				echo "$_USAGE" >&2
@@ -1665,12 +1864,16 @@ if [ -n "$DISPLAY" ]; then
 		# which will end up as the X11SERVERNAME when quoting isn't
 		# used....
 		#
-		if [ -z "$_X11server" ]; then
+		if [ -z "${_X11server}" ]; then
 			echo "$0: -X X11SERVERNAME not set!" >&2
 			echo "$_USAGE" >&2
 			return 2
 		fi
 
+		_DO_DISPLAY=""
+		if [ -n "${_RDISPLAY}" ]; then
+			_DO_DISPLAY="DISPLAY=${_RDISPLAY}; export DISPLAY;"
+		fi
 		# Note:  the remote shell is asked to explicitly source
 		# ~/.profile on the remote server so as to set up $PATH and
 		# other things since most X11 apps we start remotely are
@@ -1680,16 +1883,16 @@ if [ -n "$DISPLAY" ]; then
 		# Note though that the remote shell will not be an interactive
 		# shell, nor a login shell.
 		#
-		echo "onx11server: starting $_REMSHELL $_nullopt $_tunopt $_X11server . ./.profile\; DISPLAY=${_RDISPLAY}\; export DISPLAY\; ${1+\"$@\"}"
+		echo "onx11server: starting $_REMSHELL $_nullopt $_tunopt $_X11server . ./.profile\; ${_DO_DISPLAY} ${1+\"$@\"}"
 
 		# Note:  The command is not run in the background here -- let
 		# the caller do that (unfortunately we must have a shell waiting
 		# for the rsh/ssh to keep the connection open so that the remote
 		# process will continue running anyway).
 		#
-		$_REMSHELL $_nullopt $_tunopt $_X11server . ./.profile\; DISPLAY=${_RDISPLAY}\; export DISPLAY\; ${1+"$@"}
+		$_REMSHELL $_nullopt $_tunopt $_X11server . ./.profile\; ${_DO_DISPLAY} ${1+"$@"}
 
-		unset _RDISPLAY _REMSHELL _USAGE _nullopt _tunopt _X11server OPTCH
+		unset _RDISPLAY _DO_DISPLAY _REMSHELL _USAGE _nullopt _tunopt _X11server OPTCH
 	}
 	lxterm ()
 	{
@@ -2273,6 +2476,11 @@ if [ "$uid" -eq 0 ] ; then
 		HOSTNAME=`hostname`
 		export HOSTNAME
 	fi
+	case "${HOSTNAME}" in
+	*.local)
+		DOMAINNAME=".local"
+		;;
+	esac
 	if [ -z "$DOMAINNAME" ]; then
 		DOMAINNAME=`get_domainname`
 		export DOMAINNAME

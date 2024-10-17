@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.35	24/10/05 16:51:28 (woods)"
+#ident	"@(#)HOME:.profile	37.36	24/10/16 17:01:42 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -76,7 +76,7 @@
 #
 #	Login shells can be tested with:
 #
-#	    cd $HOME && env -i SHELL=/path/to/sh HOME=$HOME DISPLAY=$DISPLAY PATH=$PATH uxterm &
+#	    cd $HOME && env -i SHELL=/path/to/sh HOME=$HOME DISPLAY=$DISPLAY PATH=$PATH uxterm -ls &
 #
 #	or (sometimes, iff the shell supports '-l' to make it a login shell):
 #
@@ -257,6 +257,9 @@ fi
 export DOMAINNAME
 
 # system-local user preferences go in here
+#
+# n.b.:  these should mostly/all be environment variables, except for settings
+# which might control options herein, such as $PATH_IS_OKAY.
 #
 if [ -r ${HOME}/.localprofile ]; then
 	. ${HOME}/.localprofile
@@ -473,7 +476,7 @@ if [ -f ${HOME}/.xinitrc ]; then
 		chmod +x ${HOME}/.xinitrc
 	fi
 	if [ ! -r ${HOME}/.xsession ]; then
-		rm -f ${HOME}/.xsession
+		mv ${HOME}/.xsession ${HOME}/SAVED.xsession
 		ln -s .xinitrc ${HOME}/.xsession
 	fi
 fi
@@ -769,6 +772,11 @@ export PAGER
 if [ "${PAGER}" = "less" ]; then
 	MANPAGER="${PAGER} -Rsi"; export MANPAGER # n.b. more and less both suppport "-Rsi"
 fi
+
+# NetBSD's new apropos is horrible, but this puts it in legacy mode
+#
+APROPOS="-l"
+export APROPOS
 
 if [ -s "${HOME}/.editor" ]; then
 	# mktable just throws away comments....
@@ -1249,22 +1257,6 @@ fi
 
 if ${ISATTY}; then
 	do_first_time
-fi
-
-# There is a trick here -- if your shell is like ksh(1) or modern GNU Bash, and
-# it has arrays, then you can use the ${ENVFILE[]} array expansion magic in
-# ~/.kshlogin to have the shell only source the $ENV file for interactive
-# shells.  Other shells that auto-source $ENV (e.g. ash, [p]bosh) will of course
-# require it to be a plain filename, and they will also need the "case $- in
-# *i*)" wrapper on the contents of $ENV and they will still suffer the cost of
-# reading and parsing the whole file every time.
-#
-# Otherwise $ENV may have to be sourced directly (or manually), so if $ENV is
-# set, and if it is readable, do that now.  In this case sub-shells will not
-# have automatic sourcing of $ENV.  (and of course ~/.shrc was sourced above)
-#
-if ${ISATTY} && [ -n "${ENV}" -a "${ENV}" != "${HOME}/.shrc" -a -r "${ENV}" ]; then
-	. ${ENV}
 fi
 
 # minor cleanup

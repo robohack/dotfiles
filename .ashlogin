@@ -1,28 +1,44 @@
 #
-#	.ashlogin - login shell startup for ash, sourced by ~/.profile
+#	.ashlogin - login shell startup for ash(1), sourced by ~/.profile
 #
 # N.B.:  this is very similar to ~/.shlogin!
 #
-#ident	"@(#)HOME:.ashlogin	37.5	24/09/29 14:04:24 (woods)"
+#ident	"@(#)HOME:.ashlogin	37.6	24/10/16 17:01:42 (woods)"
 
-if [ -r ${HOME}/.shinter ]; then
-	. ${HOME}/.shinter
-else
-	echo "$0: WARNING: ~/.shinter not found"
-fi
+# Note I allow for /etc/profile to be explicitly sourced by non-interactive,
+# non-login shells, e.g. in ~/.xinitrc and from remote invocations of
+# onx11server (defined in ~/.shrc), so here we're testing to see if a shell is
+# truly a login shell or an interactive shell so we can determine what
+# additional setup we want for such shells, such as setting $ENV and exporting
+# it.
 
+# ~/.shrc, source early by ~/.profile, which sources this file, did the tests
+# for interactive/login shells
+#
 if ${sh_is_login}; then
 	#
 	# Commands for login shells
 	#
+
+	# n.b.: expanding ${.sh.version} is a fatal error in many shells!
+	#
+	_sh_version=`eval 'echo "${.sh.version}"' 2>/dev/null`
+	if [ -z "${_sh_version}" ]; then
+		_sh_version=${NETBSD_SHELL}
+	fi
+##	if [ -z "${_sh_version}" ]; then
+##		_sh_version=${...}
+##	fi
+	echo "$0: setup for Almquist's or similar POSIX-ish Shell (${_sh_version})"
+	unset _sh_version
+
 	set -o ignoreeof	# we only do this for our login shell....
 fi
 
-if ${sh_is_interactive}; then
+if ${sh_is_interactive} || ${sh_is_login}; then
 	#
 	# Commands for interactive shells.
 	#
-	echo "$0: setup for Almquist's Shell"
 
 	# for emacs timeclock.el
 	#
@@ -30,34 +46,58 @@ if ${sh_is_interactive}; then
 		touch ~/.timelog
 	fi
 
-	export ENVFILE=$HOME/.ashrc
+	export ENVFILE=${HOME}/.ashrc
 
-	# NetBSD sh(1) will in netbsd-11 support HISTFILE, but not in a manner
-	# that's really useful between multiple interactive shells....
+	# NetBSD sh(1) will, in netbsd-11, support $HISTFILE, but not in a
+	# manner that's really useful between multiple interactive shells as it
+	# only saves history, either just on exit by default, or with
+	# $HISTAPPEND set as commands are read; but is only read when $HISTFILE
+	# is assigned to in an interactive shell.  Some say it is possible to
+	# write and read the whole history buffer as each command is typed, but
+	# this is probably not what we want to do!  Probably we just want to do
+	# the read at start and write at the end.
 	#
-	export HISTSIZE=2000
+	# (p)bosh(1) also supports HISTFILE (defaulting to reading ~/.history).
+	# It saves history only upon exit, so also not really in a manner useful
+	# between multiple interactive shells, though it does have a
+	# "savehistory" builtin (as well as a $SAVEHISTORY boolean var).
+	#
+	case ${SHELL} in
+	*bosh)
+		HISTFILE=${HOME}/.bosh_history
+		;;
+	*)
+		HISTFILE=${HOME}/.ash_history
+		;;
+	esac
+	HISTSIZE=2000
 fi
-unset _interactive
 
 # xxx NetBSD /bin/sh (and dash) does not support FPATH
-if [ -d $HOME/lib/sh ]; then
-	export FPATH=$HOME/lib/sh
+if [ -d ${HOME}/lib/sh ]; then
+	export FPATH=${HOME}/lib/sh
 fi
 
-if [ -r "$ENVFILE" ] ; then
+if [ -n "${ENVFILE}" -a -r "${ENVFILE}" ] ; then
 	#
-	# N.B.:  since ash(1) and its earlier derivatives do not support
+	# N.B.:  since more recent ash(1) and its derivatives do not support
 	# arithmetic expressions (e.g. for the expansion of the contents of
 	# $ENV) the AT&T Ksh trick cannot be used so ~/.ashrc must include its
 	# own tests for an interactive shell and selectively do setup depending
 	# on the result.
 	#
+	# Really old ash(1) always sourced a hard-coded "$HOME/.ashrc" file for
+	# all _non_-login shells (i.e. no '-' in argv[0][0]), but it has always
+	# added 'i' to all interactive shells, so the $- interactivity test
+	# can/must be used in ~/.ashrc.
+	#
 	# NetBSD sh(1), since 2016-03-31 and netbsd-8, i.e. since the
 	# introduction of $NETBSD_SHELL, always sources $ENV unless its "posix"
 	# option is set.  More recent versions also support arithmetic
-	# expressions in the expansion of $ENV, but still do no support arrays.
+	# expressions in the expansion of $ENV, but still do no support arrays,
+	# so we will still rely on the interactive test in ~/.shrc for ~/.ashrc.
 	#
-	export ENV=$ENVFILE
+	export ENV=${ENVFILE}
 fi
 
 if [ -z "$LOGNAME" ] ; then

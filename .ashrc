@@ -1,7 +1,7 @@
 #
-#	.ashrc - per-shell startup stuff for ash via $ENV
+#	.ashrc - per-shell startup stuff for ash(1) and derivatives via $ENV
 #
-#ident	"@(#)HOME:.ashrc	37.9	24/10/03 10:32:36 (woods)"
+#ident	"@(#)HOME:.ashrc	37.10	24/10/16 17:01:42 (woods)"
 
 # Assumptions:
 #	- chdir must be synonymous with cd, and cd can be reset to a function
@@ -9,27 +9,26 @@
 # Files referenced:
 #
 #	$(dirname ${ENVFILE})/.shrc - sourced for common funcs, if needed & avail.
-#	$(dirname ${ENVFILE})/.localprofile - may be sourced if using above .shrc
 #	~${LOGNAME}/.shrc       - sourced for common functs, if still needed
-#	~${LOGNAME}/.localprofile - sourced for $MAILDOMAIN, if needed & avail.
 #	$HOME/.shaliases	- sourced, if it is readable
-#	$HOME/.shintr		- sourced for interactive shell test
 #	$HOME/.ashedit		- sourced, if it is readable else emacs editing set
 #	$HOME/.ashlocal		- sourced, if it is readable, at the end
 #	$HOME/.ashpwd		- sourced, if it is readable
 #	$HOME/.kshsccs		- sourced, if "function" works and it is readable
 #	$HOME/.ashsccs		- sourced, if it is readable and .kshsccs was not read
 
+#echo "$0: in ~/.ashrc ...."
+
 # try to find a related dotfiles, even when using "su" or a sub-shell the guts
 #
 # note:  this code is duplicated in ~/.kshrc
 #
-if [ -n "${ENVFILE:-ENV}" ]; then
-	envhome=$(dirname ${ENVFILE:-ENV})
+if [ -n "${ENVFILE:-${ENV}}" ]; then
+	envhome=$(dirname ${ENVFILE:-${ENV}})
 fi
 # there's a bit of a chicken&egg situation w.r.t. LOGNAME (see ~/.shrc)
 loghome=$(eval echo ~${LOGNAME})
-if [ -n "${ENVFILE:-ENV}" -a -f ${envhome}/.shrc ]; then
+if [ -n "${ENVFILE:-${ENV}}" -a -f ${envhome}/.shrc ]; then
 	HOME=${envhome}
 elif [ -r ${loghome}/.shrc ]; then
 	HOME=${loghome}
@@ -37,23 +36,29 @@ fi
 # else HOME stays unchanged...
 unset envhome loghome
 
-if [ -r ${HOME}/.shinter ]; then
-	. ${HOME}/.shinter
-elif [ -z "${sh_is_interactive}" ]; then
-	echo "$0:.ashrc: WARNING: ${HOME}/.shinter not found"
+# Get basic shell setup from a .shrc
+#
+# It is assumed of course that "zhead" is defined as a function in the desired
+# ~/.shrc file, and only there.
+#
+# note:  this code is also duplicated in ~/.kshrc
+#
+if ! type zhead >/dev/null 2>&1; then
+	if [ -r ${HOME}/.shrc ]; then
+		. ${HOME}/.shrc
+	fi
 fi
 
-if ${sh_is_interactive}; then
+# ~/.shrc also does the tests for interactive/login shells and will also have
+# returned "early" if neither (except if $FROM_DOT_PROFILE).
+#
+if ${sh_is_interactive} || ${sh_is_login}; then
 	: OK
 else
 	# Everything else in this file is for interactive use only, but $ENV is
 	# set to just the plain filename of this file because ash(1) and its
 	# derivatives do not have arrays and so cannot use the ksh(1)
 	# ${ENVFILE[]} trick, so we must exit now.
-	#
-	# Note this file is _always_ expected to be sourced with ".", which
-	# behaves kind of like a function (without parameters, and so "return"
-	# is a/the valid way to stop sourcing early.
 	#
 	return
 fi
@@ -70,53 +75,28 @@ if [ -n "${NETBSD_SHELL}" ]; then
 	set -o emacs
 fi
 
-# If I remember correctly SHLVL was not in early Ksh.... (and it's not in pdksh
-# nor its derivatives)
+# LEV counts (effectively) from zero, and is not set at level zero so as to
+# avoid presenting redundant useless information using a simple ${LEV:+${LEV}}
+# style of expansion.
 #
-# Also, LEV counts (effectively) from zero, and is not set at level zero so as
-# to avoid presenting redundant useless information using a simple
-# ${LEV:+${LEV}} style of expansion.
+# XXX in theory we could put this in ~/.shrc and it could even work for ancient
+# Bourne shell provided the user did ". $ENV" and we made sure to set $PS1 with
+# expanded values, but is it worth it?
 #
 if ${sh_is_login}; then
 	: this is a login shell
 	unset LEV
 else
-	if [ ${SHLVL:-0} -eq 1 -o ${PPID:-0} -eq 1 -o ${PPID:-1} -eq ${LAYERSPID:-0} ] ; then
+	if [ ${PPID:-0} -eq 1 -o ${PPID:-1} -eq ${LAYERSPID:-0} ] ; then
 		: this is still considered a "login" shell
 		unset LEV
 	else
 		if [ -n "${LEV}" ] ; then
 		       LEV=$((LEV+1))
 		else
-			# iff SHLVL is available, try starting with it...
-			if [ -n "${SHLVL}" ]; then
-				LEV=$((SHLVL-1))
-			else
-				LEV=1
-			fi
+			LEV=1
 		fi
 		export LEV
-	fi
-fi
-
-# Get basic shell setup from a .shrc
-#
-# It is assumed of course that "zhead" is defined as a function in the desired
-# ~/.shrc file.
-#
-# note:  this code is duplicated in ~/.kshrc
-#
-if ! type zhead >/dev/null 2>&1; then
-	if [ -r ${HOME}/.shrc ]; then
-		. ${HOME}/.shrc
-		# also try to set MAILDOMAIN for .emacs.el if it was not set...
-		if [ -r ${HOME}/.localprofile ]; then
-			. ${HOME}/.localprofile
-		fi
-	fi
-	# finally we can clean up unnecessary functions
-	if type rm_alias_funcs >/dev/null 2>&1; then
-		rm_alias_funcs
 	fi
 fi
 
@@ -167,6 +147,10 @@ PS1="${PS1} ${PSc} "
 
 if type alias >/dev/null 2>&1 && [ -r $HOME/.shaliases ] ; then
 	. $HOME/.shaliases
+fi
+# finally we can clean up unnecessary functions
+if type rm_alias_funcs >/dev/null 2>&1; then
+	rm_alias_funcs
 fi
 # xxx currently .kshsccs uses "function foo {}" syntax, and I've not discovered
 # a way to use aliases or other funtions to translate that into "foo() {}"
