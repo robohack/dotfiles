@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.28	24/10/03 12:39:57 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.29	24/10/16 17:12:02 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -30,6 +30,9 @@ echo "$argv0: initial PATH='$PATH'" | sed 's/:/: /g' | fold -s
 XODISPLAY=$DISPLAY
 echo "$argv0: starting up with DISPLAY='$DISPLAY'"
 
+# N.B.:  we assume $DISPLAY is set correctly enough that clients run from this
+# script can connect and use it.
+
 #echo "With the following arguments:"
 #
 #c=0
@@ -45,14 +48,14 @@ echo "$argv0: starting up with DISPLAY='$DISPLAY'"
 # note we redirect input from /dev/null while sourcing in hopes of
 # showing these scripts that they are not attached to a TTY.
 #
-if [ -r /etc/profile ] ; then
+if [ -r /etc/profile ]; then
 	echo "$argv0: sourcing /etc/profile"
 	. /etc/profile < /dev/null
 else
 	echo "$argv0: no /etc/profile on this host!"
 fi
 # XXX /etc/shrc ???  or should ~/.profile or ~/.shrc do that?
-if [ -r $HOME/.profile ] ; then
+if [ -r $HOME/.profile ]; then
 	echo "$argv0: sourcing $HOME/.profile"
 	. $HOME/.profile < /dev/null
 else
@@ -64,7 +67,7 @@ fi
 # manager.  For example some things that can be over-ridden in ~/.localprofile
 # will not be reset by ~/.profile if they're exported via the environment here.
 
-if [ "$XOPATH" != "$PATH" ] ; then
+if [ "$XOPATH" != "$PATH" ]; then
 	echo "$argv0: adjusted PATH='$PATH'" | sed 's/:/: /g' | fold -s
 fi
 unset XOPATH
@@ -133,72 +136,16 @@ else
 	echo "$argv0: cannot force hi-res display without xrandr utility..."
 fi
 
-# XXX these should be in a single AWK script (the shell can eval the AWK output
-# to set variables), and the script should fetch only the values for the screen
-# number which matches the $DISPLAY value!!!
-#
-#	SCREEN_NUM=${DISPLAY##*:}
-#	xdpyinfo | sed -n "/^screen #${SCREEN_NUM}:/,+2p'
-#
-# for now this is only designed to work in single-screen environments.
-#
-# XXX this could also be a shell fragment using xrdb's pre-defined symbols and
-# their values, with input fed to stdin and then spit back out and eval'ed from:
-#
-#	xrdb -quiet -cpp m4 -E -n | sed 1d
-#
-# however xdpyinfo provides all values without need for calculations that might
-# suffer rounding, while xrdb only provides [XY]_RESOLUTION values in pixels per
-# metre for some stupid reason.
-#
-VENDORSTR="$(xdpyinfo | sed -n 's/^vendor string:[ ]*\(.*\)$/\1/p;//q')"
-SCREENDEPTH=$(xdpyinfo | sed -n 's/^[ ]*depth of root window:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q')
-SCREENSIZE=$(xdpyinfo | sed -n 's/^[ ]*dimensions:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q')
-SCREENDIM=$(xdpyinfo | sed -n 's/^[ ]*dimensions:[ ]*[^ ][^ ]* [^ ]* (\(.*\))$/\1/p;//q')
-SCREENDPI=$(xdpyinfo | sed -n 's/^[ ]*resolution:[ ]*\([^ ][^ ]*\) .*$/\1/p;//q')
-# break out millimetre dimensions
-SCREENDIMmm_X=$(expr "$SCREENDIM" : '\([0-9]*\)x')
-SCREENDIMmm_Y=$(expr "$SCREENDIM" : '[0-9]*x\([0-9]*\)')
-# and in pixel dimensions
-SCREENSIZE_X=$(expr "$SCREENSIZE" : '\([0-9]*\)x')
-SCREENSIZE_Y=$(expr "$SCREENSIZE" : '[0-9]*x\([0-9]*\)')
-SCREENDPI_X=$(expr "$SCREENDPI" : '\([0-9]*\)x')
-SCREENDPI_Y=$(expr "$SCREENDPI" : '[0-9]*x\([0-9]*\)')
-# use DPI to get approximate inches....
-SCREENDIM_X=$(expr "$SCREENSIZE_X" / "$SCREENDPI_X")
-SCREENDIM_Y=$(expr "$SCREENSIZE_Y" / "$SCREENDPI_Y")
-#
-# xxx we only actually use SCREENDIM_[XY], SCREENDPI_[XY], and SCREENSIZE_Y (and
-# potentially VENDORSTR); and only within this file!
-#
-export VENDORSTR SCREENDEPTH SCREENSIZE SCREENDIM SCREENDPI
-export SCREENDIMmm_X SCREENDIMmm_Y SCREENDIM_X SCREENDIM_Y
-export SCREENDPI_X SCREENDPI_Y SCREENSIZE_X SCREENSIZE_Y
-
-# N.B.:  If the true screen resolution is within 10% of 100DPI it makes the most
-# sense to claim exactly 100DPI to avoid font-scaling artifacts for bitmap fonts
-if expr \( $SCREENDPI_X / 100 = 1 \) \& \( $SCREENDPI_X % 100 \<= 10 \) >/dev/null; then
-	FontXDPI=100
-else
-	FontXDPI=${SCREENDPI_X}
-fi
-if expr \( $SCREENDPI_Y / 100 = 1 \) \& \( $SCREENDPI_Y % 100 \<= 10 \) >/dev/null; then
-	FontYDPI=100
-else
-	FontYDPI=${SCREENDPI_Y}
-fi
-export FontXDPI FontYDPI
-
 # Xrdb stuff must come before any other client is started!
 #
-if [ -r "/usr/lib/X11/Xdefaults" ] ; then
+if [ -r "/usr/lib/X11/Xdefaults" ]; then
 	xrdb -merge /usr/lib/X11/Xdefaults	# Load default X11 resource database
-elif [ -r "$X11PATH/lib/X11/Xdefaults" ] ; then
+elif [ -r "$X11PATH/lib/X11/Xdefaults" ]; then
 	xrdb -merge $X11PATH/lib/X11/Xdefaults	# Load default X11 resource database
-elif [ -r "$OPENWINHOME/lib/Xdefaults" ] ; then
+elif [ -r "$OPENWINHOME/lib/Xdefaults" ]; then
 	xrdb -merge $OPENWINHOME/lib/Xdefaults	# Load default X11 resource database
 fi
-if [ -r $HOME/.Xdefaults ] ; then
+if [ -r $HOME/.Xdefaults ]; then
 	# n.b.:  note the custom use of m4!
 	xrdb -cpp m4 -merge $HOME/.Xdefaults	# Load user's X11 resource database
 fi
@@ -209,29 +156,62 @@ if [ -r ${X11PATH}/lib/X11/fonts/misc/fonts.dir ]; then
 else
 	X11FONTDIR=${X11PATH}/share/fonts
 fi
+
+# Set shell variables from things calculated in ~/.X11-macros.m4
 #
+# n.b.:  note the abuse of xrdb and the custom use of m4!
+#
+# XXX xdpyinfo provides the DPI values we need without need for calculations
+# that might suffer rounding, but without going metric getting $SCREENSIZE* from
+# either xdpyinfo or xrdb's m4 defines is a rough calculation.  The latter only
+# provides [XY]_RESOLUTION values in pixels per metre for some stupid reason!
+#
+# However everywhere else, i.e. namely in .X11-m4macros.m4 (and .ctwmrc), we
+# have to use those defines and the rough calculations they require, so we'll
+# use xrdb here to make sure everything matches.
+#
+# XXX there are some ugly translations between M4 names and variable names that
+# should probably all be normalised!
+#
+eval `
+{
+	echo "changequote([, ])"
+	cat .X11-m4macros.m4
+	echo "[VENDORSTR]='VENDOR'"
+	echo "[SCREENDEPTH]=PLANES"
+	echo "[SCREENSIZE]=WIDTH[x]HEIGHT"
+	echo "[SCREENSIZE_X]=WIDTH"
+	echo "[SCREENSIZE_Y]=HEIGHT"
+	echo "[SCREENDIM]='ScreenDimX[x]ScreenDimY'"
+	echo "[SCREENDIM_X]=ScreenDimX"
+	echo "[SCREENDIM_Y]=ScreenDimY"
+	echo "[SCREENDPI_X]=HorizDPI"
+	echo "[SCREENDPI_Y]=VertDPI"
+	echo "[FontXDPI]=FontXDPI"
+	echo "[FontYDPI]=FontYDPI"
+	echo "[BorderWidth]=BORDERWIDTH"
+	echo "[TDBorderWidth]=TDBORDERWIDTH"
+	echo "[TitleHeight]=TitleHeight"
+	echo "[ClockSize]=ClockSize"
+	echo "[ClockWidth]=ClockWidth"
+	echo "[ClockHeight]=ClockHeight"
+	echo "[ClockOffH]=ClockOffH"
+	echo "[ClockOffV]=ClockOffV"
+	echo "[ClockGeom]='ClockGeom'"
+	echo "[DClockHeight]=DClockHeight"
+	echo "[DClockGeom]='DClockGeom'"
+	echo "[XloadWidth]=XloadWidth"
+	echo "[XloadHeight]=XloadHeight"
+	echo "[XloadGeom]='XloadGeom'"
+	echo "[WSWidth]=WS_WIDTH"
+	echo "[WSHeight]=WS_HEIGHT"
+	echo "[WSOff]=WS_OFF"
+	echo "[XchronoWidth]='XchronoWidth'"
+	echo "[XchronoGeom]='XchronoGeom'"
+} | xrdb -quiet -cpp m4 -E -n  | sed -e 1d -e '/^!/d'`
+
 # Choose some defaults for pixel-sized things...
 #
-# XXX TitleHeight here is mostly based on observation, but could be calculated
-# with output from xwininfo (e.g. top corner - TDBorderWidth), or even from some
-# font info... and we're assuming a 10pt font is used....
-#
-if [ $SCREENDPI_Y -ge 200 ]; then
-	# a "6k" display
-	TDBorderWidth="10"
-	TitleHeight=55
-elif [  $SCREENDPI_Y -ge 110 ]; then
-	# a "4k" display
-	TDBorderWidth="8"
-	TitleHeight=42		# xxx unknown
-else
-	# a "normal" display
-	TDBorderWidth="6"
-	TitleHeight=31
-fi
-export TDBorderWidth
-export TitleHeight
-
 DecentDeciPt="80"
 DecentPt="8"
 export DecentDeciPt DecentPt
@@ -255,7 +235,7 @@ DecentFontSpec=$(eval echo "${DefaultFontSpec}")
 DecentFontSpecL1=$(eval echo "${DefaultFontSpecL1}")
 export DecentFontSpec DecentFontSpecL1
 #
-# For Xft .Xdefaults forces the Xft.dpi resource to be set to what we've worked
+# For Xft ~/.Xdefaults forces the Xft.dpi resource to be set to what is worked
 # out above so this allows the physical font size to be specified, in points,
 # (either with a ":size=" attribute in the font spec (which can be abbreviated
 # as "-POINTS"), or with a command-line option to override that, e.g. with
@@ -313,7 +293,7 @@ if [ ! -d ${HOME}/.fonts ]; then
 	mkdir ${HOME}/.fonts
 fi
 #
-if [ -r ${HOME}/.fonts.alias.m4 ] ; then
+if [ -r ${HOME}/.fonts.alias.m4 ]; then
 	# n.b.:  note the abuse of xrdb and the custom use of m4!
 	xrdb -quiet -cpp m4 -E -n ${HOME}/.fonts.alias.m4 | sed 1,2d > ${HOME}/.fonts/fonts.alias
 fi
@@ -441,13 +421,23 @@ fc-cache -v
 #
 xsetroot -cursor_name tcross
 
-if [ $argv0 = ".xsession" -a -z "$XDMHOST" ] ; then
-	#
-	# assume HOSTNAME & DOMAINNAME are set reasonably by the user
-	# or system shell profile script(s) such that this combination
-	# is useful both on the local host as well as on any servers
-	# where X11 applications may run.
-	#
+if [ -z "${HOSTNAME}" ]; then
+	HOSTNAME=`hostname`
+fi
+export HOSTNAME
+
+case "${HOSTNAME}" in
+*.local)
+	DOMAINNAME=".local"
+	;;
+esac
+if [ -z "${DOMAINNAME}" ]; then
+	# from ~/.shrc
+	DOMAINNAME=`get_domainname`
+fi
+export DOMAINNAME
+
+if [ $argv0 = ".xsession" -a -z "$XDMHOST" ]; then
 	case "${HOSTNAME}${DOMAINNAME}" in
 	*${DOMAINNAME})
 		XDMHOST=${HOSTNAME}
@@ -460,66 +450,28 @@ if [ $argv0 = ".xsession" -a -z "$XDMHOST" ] ; then
 	echo "$argv0: have set XDMHOST='$XDMHOST'"
 fi
 
-# N.B.:  These are repeated, as m4 expressions, in ~/.ctwmrc!
+# Align the xconsole at the bottom of the screeen to the workspace manager at
+# the top of the screen....
 #
-if [ "$SCREENDIM_X" -gt 12 ]; then
-	ClockSize="2"			# 2"x2" is OK on larger screens, but....
-else
-	ClockSize="1"
-fi
-ClockWidth=$(expr ${SCREENDPI_X} \* ${ClockSize})
-ClockHeight=$(expr ${SCREENDPI_Y} \* ${ClockSize})
-ClockGeom=${ClockWidth}x${ClockHeight}-0+0
-# it's square!
-ClockOff=$(expr ${ClockHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-DClockHeight=$(expr ${SCREENDPI_Y} / 4) # 1/4 inch should always suffice?
-DClockGeom=${ClockWidth}x${DClockHeight}-0+${ClockOff}
-export ClockSize ClockWidth ClockHeight ClockGeom ClockOff DClockHeight DClockGeom
-
-# xxx should this use floating point to get finer control???
-XloadWidth=$(expr ${SCREENDPI_X} \* 1)
-XloadHeight=$(expr ${SCREENDPI_Y} / 3)
-XloadGeom=${XloadWidth}x${XloadHeight}-${ClockOff}+0
-export XloadWidth XloadHeight XloadGeom
-
+# xxx at the moment nothing in ~/.ctwmrc needs $Xconsole*, but instead we pass
+# it $XTERM_LITTLE_OPTS (which is using these calculations) trough the environ.
 #
-# XXX re-calculate WorkSpaceManager's geometry
-#
-# should this use floating point to get finer control???
-# note that m4 evals for ~/.ctwmrc use integer math too
-#
-# define(WS_GEOM, eval(WIDTH / 30 * WS_COLS)[x]eval(HEIGHT / 30 * WS_ROWS))
-WSWidth=$(expr ${SCREENSIZE_X} / 30 \* 3)
-WSHeight=$(expr ${SCREENSIZE_Y} / 30 \* 4)
-#
-# define(WS_OFF, eval(ClockWidth + XloadWidth + (2 * TDBORDERWIDTH)))
-#
-# XXX on a really wide screen, like the XDR, we might have two Xload columns
-# (and still be able to have two 132-column emacs windows)
-#
-WSOff=$(expr ${ClockOff} + ${XloadWidth} + ${TDBorderWidth} + ${TDBorderWidth})
-#
-export WSOff WSWidth WSHeight
-
-XchronoGeom="-"$(expr ${WSOff} + ${WSWidth} - 120)"+"$(expr ${WSHeight} + \( 2 \* ${TDBorderWidth} \) )
-export XchronoGeom
-
 XconsoleWidth=$(expr ${WSOff} + ${WSWidth})
 if [ $SCREENSIZE_Y -gt 3000 ]; then
-	XconsoleHeight=$(expr ${SCREENDPI_Y} \* 2)
+	XconsoleHeight=$(expr ${SCREENDPI_Y} \* 2) # 2 inches
 elif [ $SCREENSIZE_Y -ge 1440 ]; then
 	# this should give 130 on the 27" iMac, matching my old pixel setting
-	XconsoleHeight=$(expr ${SCREENDPI_Y} \* 12 / 10)
+	XconsoleHeight=$(expr ${SCREENDPI_Y} \* 12 / 10) # 1.2 inches
 else
-	XconsoleHeight=$(expr ${SCREENDPI_Y} \* 1)
+	XconsoleHeight=$(expr ${SCREENDPI_Y} \* 1) # 1 inch
 fi
-# n.b. not sure why there's only one borderWidth involved!
-XconsoleVoff=$(expr ${XconsoleHeight} + ${TitleHeight} + ${TDBorderWidth})
-export XconsoleWidth XconsoleHeight XconsoleVoff
+# n.b. not sure why there was only one borderWidth involved originally!
+XconsoleVoff=$(expr ${XconsoleHeight} + ${TitleHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 
-# XTerm options which cannot to be set with resources, (xxx are there any
-# left?), or which should not because they depend on other things in the
-# environment, such as which window manager is being used.
+# XTerm options which cannot to be set consistently with resources, ("+ai" may
+# be added below, depending on which window manager is used), or which should
+# not because they depend on other things in the environment, such as which
+# window manager is being used.
 #
 # n.b.:  this is also set in ~/.profile, and should be identical
 #
@@ -528,10 +480,19 @@ if [ -z "$XTERM_OPTS" ]; then
 fi
 export XTERM_OPTS
 
-if [ -z "$WM" ] ; then
+if [ -z "$WM" ]; then
 	echo "$argv0: searching for a usable window manager..."
 	#
-	# XXX maybe it would be nice to have a window-manager-chooser
+	# XXX maybe it would be nice to have a window-manager-chooser, which is
+	# effectively what a modern "session" manager is... but xsm(1) isn't
+	# really that modern, and it's the only thing available by default, and
+	# it wants to be started instead of the window manager.  Even xsm(1)
+	# though can do all the secondary app startups, in theory, but it seems
+	# it needs the deprecated rstart(1) and friends to start programs on
+	# remote machines, and:
+	#
+	# *** rstart and iceauth should be installed on each machine that you expect
+	#     to run applications on that will be part of your session ***
 	#
 	if type ctwm >/dev/null 2>&1; then
 		#
@@ -542,13 +503,28 @@ if [ -z "$WM" ] ; then
 		#
 		# also, don't bother with '-v' -- it's too much and slows things!
 		#
-		if [ ${SCREENDEPTH:-1} -eq 1 ] ; then
+		if [ ${SCREENDEPTH:-1} -eq 1 ]; then
 			# the welcome screen on monochrome is silly and slow
 			WM="ctwm -k -K $HOME/.ctwmrc.m4out -W"
 		else
 			WM="ctwm -k -K $HOME/.ctwmrc.m4out"
 		fi
+		# force activeIcon on for ctwm, though it may not be used if an
+		# IconManager is in use for Xterm windows....
+		#
 		XTERM_OPTS="+ai ${XTERM_OPTS}"
+	elif type etwm >/dev/null 2>&1; then
+		# Brian Bidulock's "Enhanced TWM", forked from CTWM, possibly dead
+		# https://github.com/bbidulock/etwm
+		#
+		WM=etwm
+		XTERM_OPTS="+ai ${XTERM_OPTS}"
+	elif type adwm >/dev/null 2>&1; then
+		# Brian Bidulock's "advanced dynamic window manager" for his(?)
+		# XDE (X Desktop Environment)
+		# https://github.com/bbidulock/xde-desktop
+		#
+		WM=adwm
 	elif type tvtwm >/dev/null 2>&1; then
 		WM=tvtwm
 	elif type wmx >/dev/null 2>&1; then
@@ -593,31 +569,27 @@ case "$DISPLAY" in
 	xconsole_args=$xconsole_args" -saveLines 2000 -notify -verbose"
 	#
 	if [ $(uname -s) = "Darwin" ]; then
-		# XXX
-		# XXX hmmmm.... what can we do to direct our output here????
-		# XXX (but maybe we don't need to with startx writing to /var/log/system.log)
-		# XXX
-#		tail -F /var/log/system.log | \
-		# XXX
+		#
 		# XXX n.b.:  with the advent of the new Unified Logging System
 		# XXX and log(1) but with XQuartz not (yet) using os_log(3), so
 		# XXX 'subsystem == "org.xquartz.X11"' cannot be used, though
-		# XXX then debug would be too much....
+		# XXX then debug would be too much easier....
 		#
 		# XXX the "log" and "awk" may get left behind if nothing ever
-		# generates another "launchd_startx" message and so they never
-		# write to the closed pipe and so never get a SIGPIPE....
+		# generates another message, and so they never write to the
+		# closed pipe, and so never get a SIGPIPE....
 		#
 		TEN_S_AGO=$(date -r $(($(date '+%s') - 10)) '+%Y-%m-%d %H:%M:%S''%z')
-                { log show --info --debug --predicate 'process == "launchd_startx" || process == "privileged_startx"' --style compact --start "${TEN_S_AGO}";
-                  log stream --level debug --predicate 'process == "launchd_startx" || process == "privileged_startx"' --style compact; } | \
-			awk '{
+		{
+			log show --info --debug --predicate 'process == "launchd_startx" || process == "privileged_startx"' --style compact --start "${TEN_S_AGO}"
+			log stream --level debug --predicate 'process == "launchd_startx" || process == "privileged_startx"' --style compact
+		} | awk '{
 				match($0, /[^\]]*\][^\])]*[\])] /);
 				print substr($0, 1, 24) substr($0, (RLENGTH > 0) ? RLENGTH : 25);
 				fflush();
-			     }' | \
-		xconsole $xconsole_args -file /dev/stdin &
-	elif [ -w /dev/console ] ; then
+			}' | xconsole $xconsole_args -file /dev/stdin &
+		#
+	elif [ -w /dev/console ]; then
 		ONCONSOLE=true
 		echo "$argv0: redirecting stdout and stderr to /dev/console."
 		exec 1>/dev/console 2>&1
@@ -629,33 +601,44 @@ case "$DISPLAY" in
 		echo "$argv0: WARNING: display was '$DISPLAY' but /dev/console is not writable by ${USER:-$LOGNAME}!"
 		ls -l /dev/console
 	fi
+
+	# Now since $DISPLAY doesn't have a hostname we need to figure out what
+	# name to use so that remotely running clients can connect back to this
+	# Xserver...
+	#
+	# N.B.:  This first test, per chance, also excludes Darwin hosts,
+	# handled above....
+	#
 	if [ ! -w /dev/console -a -n "${XDMHOST}" ]; then
 		#
-		# If $XDMHOST is set then assume we are on a fixed
-		# xterm or "diskless" workstation on a LAN and that we
-		# will commonly be using X applications running on
-		# other local servers.
+		# If $XDMHOST is set then assume we are on a fixed xterminal or
+		# "diskless" workstation on a LAN and that we will commonly be
+		# using X applications running on other local servers, including
+		# $X11SERVER which will be set below.
 		#
-		# For diskless workstations the use of a few local
-		# applications with a $DISPLAY set to include the
-		# network name is usually acceptable.
+		# For diskless workstations the use of a few local applications
+		# with a $DISPLAY set to include the network name is usually
+		# acceptable.
 		#
 		DISPLAY="${XDMHOST}${DISPLAY}"
-		echo "$argv0: have set DISPLAY='$DISPLAY'"
+		echo "$argv0: have set DISPLAY='$DISPLAY' using XDMHOST, setting REMOTE_DISPLAY to match"
 		#
-		# we should not need to set this here, but it does
-		# make .ctwmrc simpler....
+		# we should not need to set this here, but it does make .ctwmrc
+		# simpler....
 		#
 		REMOTE_DISPLAY="${DISPLAY}"
 	else
-		# assume we are on a mobile workstation (laptop!) or
-		# some similar host where X is started with startx
-		# (i.e. not XDM) and that we will normally run all of
-		# our applications either locally or via RSH, or SSH
-		# tunnels, etc....
+		# assume we are on a (mobile?) workstation (laptop?) or some
+		# similar host where X is started with startx (i.e. not XDM),
+		# e.g. XQuartz on Darwin, and that we will normally run all of
+		# our applications either locally or via RSH, or SSH tunnels,
+		# etc., so we keep the short-form $DISPLAY for local clients and
+		# set $REMOTE_DISPLAY to a name that hopefully they can resolve
+		# to an address by which they can connect back to this Xserver.
 		#
-		# so, using the local ":N.n" syntax is supremely
-		# preferred for the local host
+		# so, using the local short-form ":N.n" syntax is supremely
+		# preferred for the local host as it should use its local Unix
+		# socket.
 		#
 		# XXX ${DOMAINNAME} is probably not right here....
 		# XXX and if so, ${HOSTNAME} must be something remote
@@ -677,13 +660,13 @@ export REMOTE_DISPLAY
 export DISPLAY
 
 
-if [ "$XODISPLAY" != "$DISPLAY" ] ; then
+if [ "$XODISPLAY" != "$DISPLAY" ]; then
 	echo "$argv0: notice: XODISPLAY='$XODISPLAY', DISPLAY='$DISPLAY'"
 fi
 
 # may be things that depend on DISPLAY in here, so source it again....
 #
-if [ -r $HOME/.localprofile ] ; then
+if [ -r $HOME/.localprofile ]; then
 	. $HOME/.localprofile < /dev/null
 fi
 
@@ -697,15 +680,17 @@ if [ -z "$LONGITUDE" ]; then
 	export LATITUDE LONGITUDE
 fi
 
+#	Possibly needed xmodmap fixups....
+#
 # Unfortunately there is no real way to tell what type of keyboard is
 # attached and no way to revert unknown earlier changes, so instead we
 # must just rely on the display name to know what keyboard is attached.
 #
 #case "$VENDORSTR" in
-#"Network Computing Devices"*)
+#*"Network Computing Devices"*)
 case $DISPLAY in
 xtra*:*|xtremely*:*)
-	if [ -r $HOME/.Xmodmap-ncd-108 ] ; then
+	if [ -r $HOME/.Xmodmap-ncd-108 ]; then
 		case "$XDMHOST" in
 		proven.weird.com|starting-out.weird.com)
 			# should have been done by xdm setup script....
@@ -732,7 +717,7 @@ xhost +$(hostname) +localhost +local: -
 
 # deprecated xhost crap
 #
-if [ -r $HOME/.xhosts ] ; then
+if [ -r $HOME/.xhosts ]; then
 	echo "$argv0: now setting up all the DANGEROUS deprecated xhost access controls!"
 	while read XHOST junk; do
 		case "$XHOST" in
@@ -756,9 +741,17 @@ fi
 #   (two at 132 cols, one at +80 cols) with a point size of 10 for the big ones,
 #   but 9pt is quite readable anyway.
 #
-# XXX this really should depend on $SCREENDIM* not SCREENSIZE*
-#
 # XXX with a laptop in the range of 300mmx200mm we want no more than 60x132 -fs 7.5
+#
+# XXX to accurately calculate a fit onto the screen we would need to use
+# xprop(1) or xwininfo(1) (-size) and an existing window displaying the desired
+# font size.  This would give us the character cell size ("program specified
+# resize increment").  So far the only way I can think of doing this is to start
+# one or more test xterms (one for each desired font size) and have them run
+# xwininfo to find out about their own WM size hints, but this would require
+# using a temporary file (and then parsing its contents):
+#
+#	xterm -fs 9 -e 'xwininfo -id $WINDOWID -size > $HOME/tmp/xwi.out; exit'
 #
 if [ ${SCREENSIZE_X} -ge 6016 -a ${SCREENSIZE_Y} -ge 3384 ]; then
 	XTERM_BIG_OPTS="-geometry 132x100+0+0 -fs 9"
@@ -780,63 +773,28 @@ export XTERM_BIG_OPTS
 # With CommitMono and DejaVu Sans Mono fonts this could be 91 wide
 # With Liberation Mono and .sf ns mono (appl) this could be 92 wide
 #
-# XXX this should depend on $SCREENDIM*
-#
 # XXX with a laptop in the range of 300mmx200mm we want no more than 40x80 -fs 6
 #
-XTERM_LITTLE_OPTS="-geometry 91x47-0-${XconsoleVoff} -fs 7.5"
+# (e.g. 91x45, 95x50), or taller, or shorter....  (calculate based on character
+# size (see above about 'xwininfo -size') and $XconsoleWidth and something
+# related to IR_GEOM vs. $XconsoleHeight)
+#
+# N.B.: for the '-T OccupyAll' to work the terminal must be started after the
+# window manager is running, so put a little sleep in front of ones using these
+# flags....
+#
+XTERM_LITTLE_OPTS="-geometry 91x47-0-${XconsoleVoff} -fs 7.5 -T OccupyAll"
 export XTERM_LITTLE_OPTS
 
 # on OSX Xterm isn't configured to record logins properly with "-ls", but if we
 # start login(1) instead then it will record the login session.
 #
+# N.B.:  because this contains another variable expansion the command must be
+# started with "eval"
+#
 if [ $(uname -s) = "Darwin" ]; then
 	XTERM_LOGIN_OPTS="-e login -pf ${USER:-$LOGNAME}"
 	export XTERM_LOGIN_OPTS
-fi
-
-# If you're running on a diskless workstation that runs xdm itself
-# then you probably have a server that's more powerful and on which
-# you'd rather run the majority of your X applications.  Normally
-# this will be the same server your home directory resides on....
-#
-if [ -n "$XDMHOST" -a "$XDMHOST" = "$(echo $DISPLAY | sed 's/:.*$//')" ] ; then
-	echo "$argv0: looks like '$XDMHOST' is running xdm for our display..."
-	case "$XDMHOST" in
-	almost.weird.com)
-		X11SERVER=${X11SERVER:-"most.weird.com"}
-		export X11SERVER
-		echo "$argv0: have set X11SERVER='$X11SERVER'"
-		# now move our AUTH cookies over to the server in case it
-		# doesn't have a shared $HOME...
-		# (note: don't run this in the background!)
-		xauth extract - $DISPLAY | onx11server -X \"${X11SERVER}\" 'xauth merge -'
-		# now start server programs we like for this scenario
-		onx11server -n -X \"${X11SERVER}\" 'xload -geometry 120x40-200+48 -hl grey90' &
-		;;
-	very.weird.com|very.robohack.planix.com)
-		X11SERVER=${X11SERVER:-"once.weird.com"}
-		export X11SERVER
-		echo "$argv0: have set X11SERVER='$X11SERVER'"
-		# now move our AUTH cookies over to the server in case it
-		# doesn't have a shared $HOME...
-		xauth extract - $DISPLAY | onx11server -X \"${X11SERVER}\" 'xauth merge -'
-		# we run these ones in the background because the hosts might not be up
-		xauth extract - $DISPLAY | onx11server -X most.weird.com 'xauth merge -' &
-		xauth extract - $DISPLAY | onx11server -X isit.weird.com 'xauth merge -' &
-		xauth extract - $DISPLAY | onx11server -X historically.weird.com 'xauth merge -' &
-		# now start server programs we like for this scenario
-		onx11server -n -X \"${X11SERVER}\" 'xload -geometry 120x40-200+48 -hl red' &
-		onx11server -n -X \"${X11SERVER}\" "uxterm ${XTERM_BIG_OPTS} -font 7x14 ${XTERM_OPTS} -T OccupyAll" &
-		onx11server -n -X \"${X11SERVER}\" "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-		;;
-	*)
-		# not setting X11SERVER hopefully just makes the WM run all X11SERVER clients on
-		# the current login host....  unless it eliminates the menu entries entirely!
-		unset X11SERVER
-		echo "$argv0: have unset X11SERVER; XDMHOST is $XDMHOST"
-		;;
-	esac
 fi
 
 HAVESWISSWATCH=false ; export HAVESWISSWATCH
@@ -872,9 +830,45 @@ if type display >/dev/null 2>&1; then
 	HAVEIMAGEMAGICK=true
 fi
 
-# argv0 is .xinitrc if called by xinit or startx (likely only for XQuartz)
+# If you're running on a diskless workstation that runs xdm itself
+# then you probably have a server that's more powerful and on which
+# you'd rather run the majority of your X applications.  Normally
+# this will be the same server your home directory resides on....
 #
-if [ "$argv0" = ".xinitrc" ] ; then
+if [ -n "$XDMHOST" -a "$XDMHOST" = "$(echo $DISPLAY | sed 's/:.*$//')" ]; then
+	echo "$argv0: looks like '$XDMHOST' is running xdm for our display..."
+	case "$XDMHOST" in
+	almost.weird.com)
+		X11SERVER=${X11SERVER:-"most.weird.com"}
+		export X11SERVER
+		echo "$argv0: have set X11SERVER='$X11SERVER'"
+		;;
+	very.weird.com|very.robohack.planix.com)
+		X11SERVER=${X11SERVER:-"once.weird.com"}
+		export X11SERVER
+		echo "$argv0: have set X11SERVER='$X11SERVER'"
+		;;
+	*)
+		# not setting X11SERVER hopefully just makes the WM run all
+		# X11SERVER clients on the current login host....  unless it can
+		# and does eliminate the menu entries entirely!
+		unset X11SERVER
+		echo "$argv0: have unset X11SERVER; XDMHOST is $XDMHOST"
+		;;
+	esac
+
+	#
+	# Common for all xdm startups
+	#
+	# XXX anything special???
+
+fi
+
+# else...
+
+# argv0 is .xinitrc if called by xinit or startx
+#
+if [ "$argv0" = ".xinitrc" ]; then
 	echo "$argv0: looks like X was started with xinit or startx..."
 	#
 	# setup for "remote" windows
@@ -882,257 +876,45 @@ if [ "$argv0" = ".xinitrc" ] ; then
 	case $DISPLAY in
 	:*)
 		case $REMOTE_DISPLAY in
-		#
-		# XXX most/all of this for my main desktop should move below to
-		# the main REMOTE_DISPLAY section as there's little possibility
-		# or likelyhood of ever using xdm with XQuartz
-		#
-		very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*)	# xxx not so good for incoming SSH sessions...
-			#
-			# probably available hosts...
-			#
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X more.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X xenful.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X xentastic.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X nb10.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server -S -X nbday.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X nbt.local 'xauth nmerge -'
-#			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X nbt2.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X nbtest.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X nbtcur.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server -S -X fezzik.local 'xauth nmerge -'
-#			xauth nextract - ${REMOTE_DISPLAY} | onx11server -S -X frodo.local 'xauth nmerge -'
-#			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X historically.local 'xauth nmerge -'
-			xauth nextract - ${REMOTE_DISPLAY} | onx11server -X once.local 'xauth nmerge -'
-			# next ones share a home dir mounted from more.local
-			#xauth nextract - ${REMOTE_DISPLAY} | onx11server -X building.local 'xauth nmerge -'
-			#xauth nextract - ${REMOTE_DISPLAY} | onx11server -X future.local 'xauth nmerge -'
-			#
-			# XXX for starting windows it would be ideal if we could
-			# tell the window manager to do these using its existing
-			# menu operations!
-			#
-			# local server performance levels we want to be aware of
-			xloadoff="0"
-
-#			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-#			XloadGeomBuilding=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
-#			export XloadGeomBuilding
-#			onx11server -n -X building.local "xload -geometry ${XloadGeomBuilding -hl red" &
-
-			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-			XloadGeomMore=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
-			export XloadGeomMore
-			onx11server -n -X more.local "xload -geometry ${XloadGeomMore} -hl red" &
-
-			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-			XloadGeomCentral=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
-			export XloadGeomCentral
-# see below central	onx11server -n -X central.weird.com "xload -geometry ${XloadGeomCentral} -hl red" &
-
-#			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-#			XloadGeomFuture=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
-#			export XloadGeomFuture
-#			onx11server -n -X future.local "xload -geometry ${XloadGeomFuture} -hl red" &
-
-			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-			XloadGeomXenful=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
-			export XloadGeomXenful
-			onx11server -n -X xenful.local "xload -geometry ${XloadGeomXenful} -hl red" &
-
-			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-			XloadGeomXentastic=${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}
-			export XloadGeomXentastic
-			onx11server -n -X xentastic.local "xload -geometry ${XloadGeomXentastic} -hl red" &
-
-			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-			XloadGeomXentral="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
-			export XloadGeomXentral
-# see below for xentral	onx11server -fS -X xentral "xload -geometry ${XloadGeomXentral} -hl red" &
-
-			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-			XloadGeomOnce="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
-			export XloadGeomOnce
-			onx11server -n -X once.local "xload -geometry ${XloadGeomOnce} -hl red" &
-
-#			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-#			XloadGeomHistorically="${XloadWidth}x${XloadHeight}-${ClockOff}+${xloadoff}"
-#			export XloadGeomHistorically
-#			onx11server -n -X historically.local "xload -geometry ${XloadGeomHistorically} -hl red: &
-
-# under the clocks!	xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-			XloadGeomFezzik="${XloadWidth}x${XloadHeight}-0+${xloadoff}" # under the clocks!
-			export XloadGeomFezzik
-			onx11server -fS -X fezzik.local "xload -geometry ${XloadGeomFezzik} -hl red" &
-
-# under the clocks	xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-			XloadGeomB2="${XloadWidth}x${XloadHeight}-${XloadWidth}+${xloadoff}"
-			export XloadGeomB2
-# see below for b2	onx11server -n -X b2.local "xload -geometry ${XloadGeomB2} -hl red: &
-
-			# these are under the workspace manager
-			#
-			xloadoff=$(expr ${WSHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-			#
-			XloadGeomNbtest="${XloadWidth}x${XloadHeight}-${WSOff}+${xloadoff}"
-			export XloadGeomNbtest
-			onx11server -n -X nbtest.local "xload -geometry ${XloadGeomNbtest} -hl red" &
-
-			xload2east=$(expr ${WSOff} + ${XloadWidth} + ${TDBorderWidth} + ${TDBorderWidth})
-
-			XloadGeomNbtcur="${XloadWidth}x${XloadHeight}-${xload2east}+${xloadoff}"
-			export XloadGeomNbtcur
-			onx11server -n -X nbtcur.local "xload -geometry ${XloadGeomNbtcur} -hl red" &
-
-			xloadoff=$(expr ${xloadoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-
-			XloadGeomNb10="${XloadWidth}x${XloadHeight}-${WSOff}+${xloadoff}"
-			export XloadGeomNb10
-			onx11server -n -X nb10.local "xload -geometry ${XloadGeomNb10} -hl red" &
-
-			XloadGeomNbday="${XloadWidth}x${XloadHeight}-${xload2east}+${xloadoff}"
-			export XloadGeomNbday
-			onx11server -fS -X nbday.local "xload -geometry ${XloadGeomNbday} -hl red" &
-
-# xxx these need a variable for "80x45" as it could be wider (e.g. 91x45, 95x50), or taller, or shorter....
-# (calculate based on character size and $XconsoleWidth and something related to IR_GEOM vs. $XconsoleHeight)
-
-#			onx11server -n -X building.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -n -X more.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -n -X nb10.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -fS -X nbday.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -n -X nbt.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-#			onx11server -n -X nbt2.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -n -X nbtest.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -n -X nbtcur.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -fS -X fezzik.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-#			onx11server -n -X future.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-#			onx11server -n -X historically.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -n -X xenful.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			onx11server -n -X xentastic.local "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-			#
-			# SSH-only hosts... (hopefully with auto-xauth via -Y,
-			# but note the use of both '-f' and '&')
-			#
-			# XXX n.b. try -Snone "because session multiplexing
-			# doesn't work very well with X forwarding"
-			#
-			ssh -CY -C -f woods@central.weird.com ". ./.profile; exec xload -geometry ${XloadGeomCentral} -hl red" &
-			ssh -CY -C -f woods@xentral.avoncote.ca ". ./.profile; exec xload -geometry ${XloadGeomXentral} -hl red" &
-			ssh -CY -C -f woods@b2.avoncote.ca ". ./.profile; exec xload -geometry ${XloadGeomB2} -hl red" &
-			#
-			# possibly available hosts -- one background
-			# sub-shell for host each...
-			#
-#			(
-#				xauth nextract - ${REMOTE_DISPLAY} | onx11server -X isit.local 'xauth nmerge -'
-#				onx11server -n -X isit.local 'xload -geometry 120x40-70+240 -hl red' &
-#			) &
-#			(
-#				xauth nextract - ${REMOTE_DISPLAY} | onx11server -X lilbit.local 'xauth nmerge -'
-#				onx11server -n -X lilbit.local 'xload -geometry 120x40-70+280 -hl red' &
-#			) &
-###
-### XXX these launch a terminal running on the remote host, sending
-### X11 back through the SSH tunnel opened by each, which is obviously
-### not ideal as it leaves us with no clue as to why a window
-### disappears when the connection is dropped....
-###
-###			ssh -Y -n central.weird.com ". ./.profile; exec uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}" &
-###			ssh -Y -n central.weird.com ". ./.profile; exec uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
-###
-### XXX what we really want is to stuff an "ssh -Y hostname" command
-### into the xterm so that it would be the first command run by an
-### interactive terminal -- note this is not the same as running
-### "xterm -e 'ssh -Y hostname'" since that too will cause the window
-### to close if/when the remote connection ends for whatever reason.
-###
-### One way to do this with a shell that supports $ENV might be to
-### create a temporary file containing the command to run, then set
-### $ENV to point at that file, and then to start the xterm as:
-###
-###	xterm -e env ENV=$tmp_rcfile $SHELL
-###
-### The trick is to figure out if/which $SHELL supports $ENV properly.
-###
-### Another trick is how to remove the temporary file at the right time.
-###
-### Or maybe they can just be prototype scripts, one per remote host, and so
-### they pre-exist and persist and don't have to be removed.
+		very.local:*|very-old.local:*)
 			;;
 		esac
 		;;
+	almost.weird.com)
+		X11SERVER=${X11SERVER:-"most.weird.com"}
+		export X11SERVER
+		echo "$argv0: have set X11SERVER='$X11SERVER'"
+		;;
 	very.weird.com:*|very.robohack.planix.com:*)
-
-		# XXX note: for the moment the rest of this section is identical to the XDM variant above for this host.
-
 		X11SERVER=${X11SERVER:-"once.weird.com"}
 		export X11SERVER
 		echo "$argv0: have set X11SERVER='$X11SERVER'"
-		# now move our AUTH cookies over to the server in case it
-		# doesn't have a shared $HOME...
-		xauth nextract - $DISPLAY | onx11server -X \"${X11SERVER}\" 'xauth nmerge -'
-		# we could/should run these ones in the background because the hosts might not be up
-		xauth nextract - $DISPLAY | onx11server -X most.weird.com 'xauth nmerge -' &
-		xauth nextract - $DISPLAY | onx11server -X isit.weird.com 'xauth nmerge -' &
-		xauth nextract - $DISPLAY | onx11server -X historically.weird.com 'xauth nmerge -' &
-		# and then start some useful programs...
-		onx11server -n -X \"${X11SERVER}\" 'xload -geometry 120x40-200+48 -hl red' &
-		onx11server -n -X \"${X11SERVER}\" "uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}" &
-		onx11server -n -X \"${X11SERVER}\" "uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll" &
 		;;
 	esac
 
 	#
 	# Common for all xinit/startx startups
 	#
+	# XXX anything special???
 
-	if $HAVEXV && [ -d '/Library/Desktop Pictures/Nature' ]; then
-		xv -root '/Library/Desktop Pictures/Nature/'* "$HOME/Pictures/"*.jpg &
-#	elif $HAVEIMAGEMAGICK && [ -d "$HOME/Pictures" ]; then
-#		# this is wonky and slow, but perhaps the best we can do...
-#		# (nothing else sets the root window!)
-#		display "vid:$HOME/Pictures/"'*.[gjp]*' vid:'/Library/Desktop Pictures/Nature/*.[gjp]*' &
-	elif $HAVEXEARTH ; then
-		XEGAMMA=""
-		if [ ${SCREENDEPTH:-1} -ne 1 ] ; then
-			XEGAMMA="-gamma 1.6 -night 15"	# for Sun3 CG2
-		fi
-		xearth $XEGAMMA -bigstars 10 -pos fixed,${LATITUDE:-0},${LONGITUDE:-0} -label -labelpos +1+1 -grid -wait 900 -nice 10 &
-		unset XEGAMMA
-	elif $HAVEXPLANET ; then
-		XPLANETCONFIG=""
-		if [ -r $HOME/xplanet.conf ]; then
-			XPLANETCONFIG="-config $HOME/xplanet.conf"
-		fi
-		xplanet ${XPLANETCONFIG} -label -labelpos +15-15 -radius 60 -latitude $LATITUDE -longitude $LONGITUDE -wait 300 &
-	elif $HAVEXPHOON ; then
-		xphoon -t 10 &
-	elif [ -r $X11PATH/include/X11/bitmaps/escherknot ] ; then
-		xsetroot -bitmap $X11PATH/include/X11/bitmaps/escherknot
-	elif [ -r /usr/include/X11/bitmaps/escherknot ] ; then
-		xsetroot -bitmap /usr/include/X11/bitmaps/escherknot
-	else
-		echo "$argv0: no background set"
-	fi
 elif $ONCONSOLE ; then
 	#
-	#	we're probably signing in via xdm on the system console....
+	#	we're probably signing in via xdm on the system console....  maybe?
 	#
 	# I/O is already redirected to /dev/console above, so we will see it...
 	#
 	:
 else
 	#
-	#	we're probably signing in on an independent xterm....
+	#	we're probably signing in on an independent xterminal....
 	#
 	# XXX I think these "tail"s could get left behind if nothing ever writes
 	# to the file they are watching (so they'll never write anything more to
 	# the closed pipe, and so never get a SIGPIPE....
 	#
-	if [ -r $HOME/.xsession-errors-$DISPLAY ] ; then
+	if [ -r $HOME/.xsession-errors-$DISPLAY ]; then
 		tail -F $HOME/.xsession-errors-$DISPLAY | xconsole $xconsole_args -file /dev/stdin &
-	elif [ "$XODISPLAY" != "$DISPLAY" -a -r $HOME/.xsession-errors-$XODISPLAY ] ; then
+	elif [ "$XODISPLAY" != "$DISPLAY" -a -r $HOME/.xsession-errors-$XODISPLAY ]; then
 		tail -F $HOME/.xsession-errors-$XODISPLAY | xconsole $xconsole_args -file /dev/stdin &
 	else
 		echo "$argv0: didn't find ~/.xsession-errors-$DISPLAY, assuming old XDM config in use"
@@ -1140,16 +922,13 @@ else
 	fi
 fi
 
-#
-# now we start more programs we like depending on which $DISPLAY we're
-# using, but which don't depend on whether X was started by XDM or
-# xinit/startx.
-#
+#	Programs for everyone
+#	====================
 
-# run localhost mailbox monitor of some sort...
+# if possible run a localhost mailbox monitor of some sort...
 #
 if $HAVEXBUFFY ; then
-	if [ -n "$AUDIOPLAYER" -a -r $HOME/lib/sounds/newmail ] ; then
+	if [ -n "$AUDIOPLAYER" -a -r $HOME/lib/sounds/newmail ]; then
 		xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd "$AUDIOPLAYER $HOME/lib/sounds/newmail" &
 	else
 		xbuffy -geometry 80x25-0+235 -shortnames -header 0 &
@@ -1158,45 +937,208 @@ elif $HAVEXBIFF ; then
 	xbiff -geometry 48x48-0+235 -bw 0 &
 fi
 
+# set/start the root window display/app
+#
+if $HAVEXEARTH ; then
+	XEGAMMA=""
+	if [ ${SCREENDEPTH:-1} -ne 1 ]; then
+		XEGAMMA="-gamma 1.6 -night 15"	# for Sun3 CG2
+	fi
+	xearth $XEGAMMA -bigstars 10 -pos fixed,${LATITUDE:-0},${LONGITUDE:-0} -label -labelpos +1+1 -grid -wait 900 -nice 10 &
+	unset XEGAMMA
+elif $HAVEXPLANET ; then
+	XPLANETCONFIG=""
+	if [ -r $HOME/xplanet.conf ]; then
+		XPLANETCONFIG="-config $HOME/xplanet.conf"
+	fi
+	xplanet ${XPLANETCONFIG} -label -labelpos +15-15 -radius 60 -latitude $LATITUDE -longitude $LONGITUDE -wait 300 &
+elif $HAVEXPHOON ; then
+	xphoon -t 10 &
+elif $HAVEXV && [ -d '/Library/Desktop Pictures/Nature' ]; then
+	xv -root '/Library/Desktop Pictures/Nature/'* "$HOME/Pictures/"*.jpg &
+#elif $HAVEIMAGEMAGICK && [ -d "$HOME/Pictures" ]; then
+#	# this is wonky and slow, but perhaps the best we can do...
+#	# (nothing else sets the root window!)
+#	display "vid:$HOME/Pictures/"'*.[gjp]*' vid:'/Library/Desktop Pictures/Nature/*.[gjp]*' &
+elif [ -r $X11PATH/include/X11/bitmaps/escherknot ]; then
+	xsetroot -bitmap $X11PATH/include/X11/bitmaps/escherknot
+elif [ -r /usr/include/X11/bitmaps/escherknot ]; then
+	xsetroot -bitmap /usr/include/X11/bitmaps/escherknot
+else
+	echo "$argv0: no background set"
+fi
+
+if [ ${SCREENDEPTH:-1} -eq 1 ]; then
+	xload -geometry $XloadGeom -hl grey90 &
+else
+	xload -geometry $XloadGeom -hl red &
+fi
+
+XCLOCK="xclock"
+if [ -x ${PKG}/bin/xclock ]; then
+	XCLOCK=${PKG}/bin/xclock
+fi
+LC_CTYPE=C ${XCLOCK} -geometry $DClockGeom -face ${DefaultXftFont}:size=10 -digital -update 1 -chime &
+if $HAVESWISSWATCH; then
+	swisswatch -name swissclock -geometry $ClockGeom &
+else
+	${XCLOCK} -update 1 -geometry $ClockGeom &
+fi
+
+if [ -n "${X11SERVER}" ]; then
+	# now move our AUTH cookies over to the server in case it
+	# doesn't have a shared $HOME...
+	# (note: don't run this in the background!)
+	xauth nextract - ${REMOTE_DISPLAY} | onx11server -X \"${X11SERVER}\" 'xauth nmerge -'
+	# now start server programs we like for this scenario
+	if [ ${SCREENDEPTH:-1} -eq 1 ]; then
+		onx11server -n -X \"${X11SERVER}\" 'xload -geometry 120x40-200+48 -hl grey90' &
+	else
+		onx11server -n -X \"${X11SERVER}\" 'xload -geometry 120x40-200+48 -hl red' &
+	fi
+	onx11server -n -X \"${X11SERVER}\" "sleep 5; uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}" &
+	onx11server -n -X \"${X11SERVER}\" "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
+fi
+
+#	Default programs to start, by $DISPLAY
+#	======================================
+#
+# now we start more programs we like depending on which $DISPLAY we're
+# using, but which don't depend on whether X was started by XDM or
+# xinit/startx.
+#
 case ${REMOTE_DISPLAY:-${DISPLAY}} in
 
-very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.robohack.planix.com:*)
+very.local:*|very-old.local:*)
 	# very has a very large, very hi-res, display....
 	# very-old also has a quite large, quite hi-res, display...
 	xset m 2 0
 
-	xload -geometry $XloadGeom -hl red &
-	#
 	# xxx the xclock supplied with XQuartz 2.8.2 is broken somehow in how it
 	# displays text, but the pkgsrc build works OK....
 	#
-	XCLOCK="xclock"
-	if [ -x ${PKG}/bin/xclock ]; then
-		XCLOCK=${PKG}/bin/xclock
-	fi
-	LC_CTYPE=C ${XCLOCK} -geometry $DClockGeom -face ${DefaultXftFont}:size=10 -digital -update 1 -chime &
-	if $HAVESWISSWATCH; then
-		swisswatch -name swissclock -geometry $ClockGeom &
-	else
-		${XCLOCK} -update 1 -geometry $ClockGeom &
-	fi
 	# xxx width here is based on what's left to the left of xloads on a
 	# high-res display, but there is no more space on a ~100dpi display so
 	# it collides anyway....  120 will suffice everywhere for now
-	XchronoOpts="-width 120 -rv -update 1 -local Kelowna -newyork -hawaii -tokyo -sydney -frankfurt"
+	XchronoOpts="-width ${XchronoWidth} -rv -update 1 -local Kelowna -newyork -hawaii -tokyo -sydney -frankfurt"
 	export XchronoOpts
 	if type xchrono >/dev/null 2>&1; then
 		xchrono -geometry ${XchronoGeom} ${XchronoOpts} &
 	fi
 
-	# our own small lower-right command terminal
-	#
-	# (the rest, for "remote" windows, are done in xinit/startx section)
-	#
-	eval uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll ${XTERM_LOGIN_OPTS} &
-
 	# our own big main area terminal
 	eval uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &
+
+	# xxx so many ways to choose a font size -- the -fs sets the default,
+	# but the -fc selects what is given in the "*VT100.font5" resource
+	# (normally this will be 11.0)
+	#
+	uxterm -tn xterm-256color -geometry 80x25+$(expr \( $SCREENDIM_X \* $SCREENDPI_X / 2 \) - \( 3 \* $SCREENDPI_X \))-$(expr $SCREENDPI_Y \* 2) -fs 9 -fa "${DefaultXftFont}" ${XTERM_OPTS} -fc 5 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor &
+	#
+	# probably available hosts...
+	#
+	# XXX N.B.:  note the filter to get only address-family "0" i.e. IPv4
+	# addresses since we don't use IPv6 and loading IPv6 addresses in the
+	# remote host may confuse it should it have code that supports IPv6 but
+	# it is not configured properly to use IPv6 on the network....
+	#
+	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X more.local 'xauth nmerge -'
+	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X xenful.local 'xauth nmerge -'
+	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X xentastic.local 'xauth nmerge -'
+	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X nb10.local 'xauth nmerge -'
+	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -S -X nbday.local 'xauth nmerge -'
+	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X nbt.local 'xauth nmerge -'
+	#xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X nbt2.local 'xauth nmerge -'
+	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X nbtest.local 'xauth nmerge -'
+	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X nbtcur.local 'xauth nmerge -'
+	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -S -X fezzik.local 'xauth nmerge -'
+	#xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -S -X frodo.local 'xauth nmerge -'
+	#xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X historically.local 'xauth nmerge -'
+	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X once.local 'xauth nmerge -'
+	# very-old runs in the background -- it's not used immediately below
+	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -S -X very-old.local 'xauth nmerge -' &
+	#
+	# XXX for starting windows it would be ideal if we could
+	# tell the window manager to do these using its existing
+	# menu operations!
+	#
+	# local server performance levels we want to be aware of
+	xloadVoff="0"
+
+	#xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+	#XloadGeomBuilding=${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}
+	#export XloadGeomBuilding
+	#onx11server -n -X building.local "xload -geometry ${XloadGeomBuilding -hl red" &
+
+	xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+	XloadGeomMore=${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}
+	export XloadGeomMore
+	onx11server -n -X more.local "xload -geometry ${XloadGeomMore} -hl red" &
+
+	xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+	XloadGeomCentral=${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}
+	export XloadGeomCentral
+	onx11server -fSY -X central.weird.com "xload -geometry ${XloadGeomCentral} -hl red" &
+
+	#xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+	#XloadGeomFuture=${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}
+	#export XloadGeomFuture
+	#onx11server -n -X future.local "xload -geometry ${XloadGeomFuture} -hl red" &
+
+	xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+	XloadGeomXenful=${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}
+	export XloadGeomXenful
+	onx11server -n -X xenful.local "xload -geometry ${XloadGeomXenful} -hl red" &
+
+	xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+	XloadGeomXentastic=${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}
+	export XloadGeomXentastic
+	onx11server -n -X xentastic.local "xload -geometry ${XloadGeomXentastic} -hl red" &
+
+	xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+	XloadGeomXentral="${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}"
+	export XloadGeomXentral
+	onx11server -fSY -X xentral.avoncote.ca "xload -geometry ${XloadGeomXentral} -hl red" &
+
+	xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+	XloadGeomOnce="${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}"
+	export XloadGeomOnce
+	onx11server -n -X once.local "xload -geometry ${XloadGeomOnce} -hl red" &
+
+	# aligned vertically with XloadGeomOnce, under the clocks!
+  	XloadGeomFezzik="${XloadWidth}x${XloadHeight}-0+${xloadVoff}" # under the clocks!
+	export XloadGeomFezzik
+	onx11server -fS -X fezzik.local "xload -geometry ${XloadGeomFezzik} -hl red" &
+
+	# aligned vertically with XloadGeomOnce, under the clocks
+	XloadGeomB2="${XloadWidth}x${XloadHeight}-${XloadWidth}+${xloadVoff}"
+	export XloadGeomB2
+	onx11server -fSY -X b2.avoncote.ca "xload -geometry ${XloadGeomB2} -hl red" &
+
+	# these are under the workspace manager, not quite aligned vertically
+	# with adjacent xloads
+	#
+	xloadVoff=$(expr ${WSHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+	#
+	XloadGeomNbtest="${XloadWidth}x${XloadHeight}-${WSOff}+${xloadVoff}"
+	export XloadGeomNbtest
+	onx11server -n -X nbtest.local "xload -geometry ${XloadGeomNbtest} -hl red" &
+
+	xload2east=$(expr ${WSOff} + ${XloadWidth} + ${TDBorderWidth} + ${TDBorderWidth})
+
+	XloadGeomNbtcur="${XloadWidth}x${XloadHeight}-${xload2east}+${xloadVoff}"
+	export XloadGeomNbtcur
+	onx11server -n -X nbtcur.local "xload -geometry ${XloadGeomNbtcur} -hl red" &
+
+	xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+
+	XloadGeomNb10="${XloadWidth}x${XloadHeight}-${WSOff}+${xloadVoff}"
+	export XloadGeomNb10
+	onx11server -n -X nb10.local "xload -geometry ${XloadGeomNb10} -hl red" &
+
+	XloadGeomNbday="${XloadWidth}x${XloadHeight}-${xload2east}+${xloadVoff}"
+	export XloadGeomNbday
+	onx11server -fS -X nbday.local "xload -geometry ${XloadGeomNbday} -hl red" &
 
 	if type xmahjongg >/dev/null 2>&1; then
 		#
@@ -1215,8 +1157,10 @@ very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.roboha
 			if [ -r $HOME/public_html/marble.gif ]; then
 				MB="--bg $HOME/public_html/marble.gif"
 			fi
-# XXX xmahjongg parses but does not correctly use offset info from -g (i.e. --geometry)
-#			xmahjongg -t real_x2 -g 2000x1500+2200+0 $MB &
+			# XXX xmahjongg parses but does not correctly use offset
+			# info from -g (i.e. --geometry) this is worked around
+			# in ~/.ctwmrc with WindowGeometries.
+			# xmahjongg -t real_x2 -g 2000x1500+2200+0 $MB &
 			xmahjongg -t real_x2 -g 2000x1500 $MB &
 		elif [ $SCREENDPI_Y -gt 110 ]; then
 			echo "You might want to make a bigger tile set for XmahJongg."
@@ -1225,13 +1169,64 @@ very.local:*|Gregs-Mac-Pro.local:*|very-old.local:*|very.weird.com:*|very.roboha
 		else
 			xmahjongg -g +1000+0 &
 		fi
+		unset MP MB
 	fi
 
-	# xxx so many ways to choose a font size -- the -fs sets the default,
-	# but the -fc selects what is given in the "*VT100.font5" resource
-	# (normally this will be 11.0)
+	onx11server -n -X more.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
+	onx11server -n -X nb10.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
+	onx11server -fS -X nbday.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
+	onx11server -n -X nbt.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
+	onx11server -n -X nbtest.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
+	onx11server -n -X nbtcur.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
+	onx11server -fS -X fezzik.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
+	onx11server -n -X xenful.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
+	onx11server -n -X xentastic.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
 	#
-	uxterm -tn xterm-256color -geometry 80x25+$(expr \( $SCREENDIM_X \* $SCREENDPI_X / 2 \) - \( 3 \* $SCREENDPI_X \))-$(expr $SCREENDPI_Y \* 2) -fs 9 -fa "${DefaultXftFont}" ${XTERM_OPTS} -fc 5 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor &
+	# SSH-only hosts... (hopefully with auto-xauth via -Y,
+	# but note the use of both '-f' and '&')
+	#
+	#
+	# possibly available hosts -- one background sub-shell for host each...
+	#
+	#	(
+	#		xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X isit.local 'xauth nmerge -'
+	#		onx11server -n -X isit.local 'xload -geometry 120x40-70+240 -hl red' &
+	#	) &
+	#	(
+	#		xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X lilbit.local 'xauth nmerge -'
+	#		onx11server -n -X lilbit.local 'xload -geometry 120x40-70+280 -hl red' &
+	#	) &
+	###
+	### XXX these are obviously not ideal as they leave us with no clue as
+	### to why a window disappears when the connection is dropped....
+	###
+	( sleep 5; exec uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -e 'slogin -CY b2.avoncote.ca' & ) &
+	( sleep 5; exec uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -e 'slogin -CY central.avoncote.ca' & ) &
+	( sleep 5; exec uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -e 'slogin -CY xentral.avoncote.ca' & ) &
+	###
+	### XXX what we really want is to stuff an "ssh -Y hostname" command
+	### into the xterm so that it would be the first command run by an
+	### interactive terminal.
+	###
+	### One way to do this with a shell that supports $ENV would be to
+	### create a temporary file containing the command to run, then set $ENV
+	### to point at that file, and then to start the xterm as:
+	###
+	###	luxterm -e "PS1='lost connection to host $ ' ENV=$tmp_rcfile $SHELL"
+	###
+	### The trick is to figure out if/which $SHELL supports $ENV properly.
+	###
+	### And also tricky is how to remove the temporary file at the right
+	### time.
+	###
+	### Or maybe they can just be prototype scripts, one per remote host,
+	### and so they pre-exist and persist and don't have to be removed.
+
+	# finally our own small lower-right command terminal
+	#
+	# (the rest, for "remote" windows, are done in xinit/startx section)
+	#
+	( sleep 5; eval exec uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} & ) &
 	;;
 
 macweird.*:*|Gregs-MBP.*|*xquartz:*)
@@ -1243,22 +1238,6 @@ macweird.*:*|Gregs-MBP.*|*xquartz:*)
 	#   Macbook Air 13-inch; 1440x900 32-bit
 	#   Macbook Air 13.3-inch; 2560x1600; 227 pixels per inch; 16:10 aspect ratio
 	#
-	if $HAVEXEARTH ; then
-		xearth -gamma 1.3 -bigstars 10 -pos fixed,${LATITUDE:-0},${LONGITUDE:-0} -label -labelpos +1+1 -grid -wait 900 -nice 10 &
-	elif $HAVEXPLANET ; then
-		XPLANETCONFIG=""
-		if [ -r $HOME/xplanet.conf ]; then
-			XPLANETCONFIG="-config $HOME/xplanet.conf"
-		fi
-		xplanet ${XPLANETCONFIG} -label -labelpos +15-15 -radius 60 -latitude $LATITUDE -longitude $LONGITUDE -wait 300 &
-	elif $HAVEXPHOON ; then
-		xphoon -t 10 &
-	elif [ -r $X11PATH/include/X11/bitmaps/escherknot ] ; then
-		xsetroot -bitmap $X11PATH/include/X11/bitmaps/escherknot
-	else
-		echo "$argv0: no background set"
-	fi
-
 	xload -geometry 120x40-200+0 -hl red &
 	LC_CTYPE=C xclock -update 1 -geometry 190-0+196 -digital -chime -face lucidasans-9 &
 	if $HAVESWISSWATCH; then
@@ -1266,11 +1245,11 @@ macweird.*:*|Gregs-MBP.*|*xquartz:*)
 	else
 		xclock -update 1 -geometry 190x190-0+0 &
 	fi
-	# All the small lower-right command terminals (starting with our own first one)
-	eval uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll ${XTERM_LOGIN_OPTS} &
-
 	# All the big main area terminals (starting with our own first one)
 	eval uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &
+
+	# All the small lower-right command terminals (starting with our own first one)
+	( sleep 2; eval uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} & ) &
 	;;
 
 xceptionally*:*)
@@ -1284,15 +1263,6 @@ xceptionally*:*)
 	else
 		xclock -update 1 -geometry 190x190-0+0 &
 	fi
-	if $HAVEXEARTH ; then
-		xearth -gamma 1.3 -bigstars 10 -pos fixed,${LATITUDE:-0},${LONGITUDE:-0} -label -labelpos +1+1 -grid -wait 900 -nice 10 &
-	elif $HAVEXPHOON ; then
-		xphoon -t 10 &
-	elif [ -r $X11PATH/include/X11/bitmaps/escherknot ] ; then
-		xsetroot -bitmap $X11PATH/include/X11/bitmaps/escherknot
-	else
-		echo "$argv0: no background set"
-	fi
 	# local server performance levels we want to be aware of
 	$RSH -n most.weird.com exec /usr/X11R6/bin/xload -geometry 120x40-200+48 -hl grey90 &
 	$RSH -n once.weird.com exec /usr/X11R6/bin/xload -geometry 120x40-200+144 -hl grey90 &
@@ -1301,7 +1271,7 @@ xceptionally*:*)
 #	$RSH -n always.weird.com exec /usr/X11R6/bin/xload -geometry 120x40-70+242 -hl grey90 &
 
 	# All the small lower-right command terminals (starting with our own first one)
-	xterm -geometry 80x42-0-${XconsoleVoff} $XTERM_OPTS -T OccupyAll &
+	xterm -geometry 80x42-0-${XconsoleVoff} $XTERM_OPTS $XTERM_LITTLE_OPTS &
 
 	# All the consoles:
 	# first column....
@@ -1345,43 +1315,31 @@ xtremely*:*)
 		xclock -norender -geometry 190x190-0+0 &
 	fi
 	# All the small lower-right command terminals (starting with our own first one)
-	uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll &
+	( sleep 2; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} & ) &
 
+	;;
+
+almost.weird.com)
+	;;
+
+very.weird.com:*|very.robohack.planix.com:*)
+	# we run these ones in the background because the hosts might not be up
+	xauth nextract - $DISPLAY | onx11server -X most.weird.com 'xauth nmerge -' &
+	xauth nextract - $DISPLAY | onx11server -X isit.weird.com 'xauth nmerge -' &
+	xauth nextract - $DISPLAY | onx11server -X historically.weird.com 'xauth nmerge -' &
 	;;
 
 *)
-	# make everything rather small so that enough will fit on even
-	# tiny screens....
-	#
-	if $HAVEXEARTH ; then
-		xearth -gamma 1.3 -bigstars 10 -pos fixed,${LATITUDE:-0},${LONGITUDE:-0} -label -labelpos +1+1 -grid -wait 900 -nice 10 &
-	elif $HAVEXPHOON ; then
-		xphoon -t 10 &
-	elif [ -r $X11PATH/include/X11/bitmaps/escherknot ] ; then
-		xsetroot -bitmap $X11PATH/include/X11/bitmaps/escherknot
-	else
-		echo "$argv0: no background set"
-	fi
-	if [ ${SCREENDEPTH:-1} -eq 1 ] ; then
-		xload -geometry $XloadGeom -hl grey90 &
-	else
-		xload -geometry $XloadGeom -hl red &
-	fi
-	LC_CTYPE=C xclock -geometry $DClockGeom -face :size=10 -digital -update 1 -chime &
-	if $HAVESWISSWATCH ; then
-		swisswatch -name swissclock -geometry $ClockGeom &
-	else
-		xclock -update 1 -geometry $ClockGeom &
-	fi
 	uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} &
-	uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T OccupyAll &
+	( sleep 2; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} & ) &
 	;;
+
 esac
 
 
 # when the window manager exits so shall we...
 #
-exec $WM
+eval exec $WM
 
 ### $WM || twm
 

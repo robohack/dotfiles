@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	37.3	24/10/03 12:39:57 (woods)"
+#ident	"@(#)HOME:.twmrc	37.4	24/10/16 17:12:02 (woods)"
 #
 
 AutoRelativeResize
@@ -12,6 +12,7 @@ DecorateTransients
 NoGrabServer
 NoRaiseOnMove
 NoRaiseOnResize
+RandomPlacement
 
 OpaqueMove
 
@@ -187,7 +188,40 @@ WarpCursor {
 	"emacs"		# damn thing gets a resource name based on argv[0]!
 	"Links"
 	"xcalc"
+	"xcalendar"
+	"xclipboard"
+	"xcutsel"
+	"xedit"
+	"xftp"
 	"xmahjongg"
+	"xmail"
+	"xman"
+	"xmh"
+	"xhelp"
+	"xrn"
+	"xshell"
+	"xtalk"
+	"xterm"
+}
+
+# xxx twm doesn't have WindowRingExclude, sigh....
+WindowRing {
+	"emacs"
+	"Links"
+	"xcalc"
+	"xcalendar"
+	"xclipboard"
+	"xcutsel"
+	"xedit"
+	"xftp"
+	"xmahjongg"
+	"xmail"
+	"xman"
+	"xmh"
+	"xhelp"
+	"xrn"
+	"xshell"
+	"xtalk"
 	"xterm"
 }
 
@@ -195,15 +229,22 @@ WarpCursor {
 #
 MoveDelta 4
 
+Function "deiconify-and-raise" { f.deiconify f.raise }
 Function "move-or-lower" { f.move f.deltastop f.lower }
 Function "move-or-raise" { f.move f.deltastop f.raise }
 Function "move-or-iconify" { f.move f.deltastop f.iconify }
 
 # Set some useful bindings.  Sort of uwm-ish, sort of simple-button-ish
 #
-Button1 = : root : f.menu "quickies"
-Button2 = : root : f.menu "TwmWindows"
-Button3 = : root : f.menu "defops"
+# Note "mod2" here means the "command" key on OSX Xquartz
+# Note "meta" here means the "option" key on OSX Xquartz
+# Note "shift" needs to be quoted to avoid being seen as an m4 macro
+#
+#Button	= KEYS		: CONTEXT	: FUNCTION
+#-------------------------------------------------
+Button1 =		: root		: f.menu "quickies"
+Button2 =		: root		: f.menu "TwmWindows"
+Button3 =		: root		: f.menu "defops"
 
 Button1 = m : window|icon : f.function "move-or-raise"
 Button2 = m : window|icon : f.function "move-or-iconify"
@@ -217,23 +258,32 @@ Button1 = : icon : f.function "move-or-iconify"
 Button2 = : icon : f.iconify
 Button3 = : icon : f.lower
 
-Button1 = : iconmgr : f.iconify
-Button2 = : iconmgr : f.raise
-Button3 = : iconmgr : f.lower
+Button1 =		: iconmgr	: f.function "deiconify-and-raise"
+Button1 = control	: iconmgr	: f.raise
+Button1 = mod2		: iconmgr	: f.iconify
+Button2 =		: iconmgr	: f.raiselower
+Button2 = mod2		: iconmgr	: f.lower
+"Return"=		: iconmgr	: f.iconify
+"F16"	=		: iconmgr	: f.iconify
+"F17"	=		: iconmgr	: f.raiselower
+"Left"	= 		: iconmgr	: f.backiconmgr
+"Right"	= 		: iconmgr	: f.forwiconmgr
+"Up"	= 		: iconmgr	: f.upiconmgr
+"Down"	= 		: iconmgr	: f.downiconmgr
+"n"	= 		: iconmgr	: f.forwmapiconmgr
+"p"	= 		: iconmgr	: f.backmapiconmgr
 
+# xxx try out <cmd>-Tab ala macos.... (this key sequence doesn't seem to be
+# needed for emacs or xterm)
+#
+"Tab"	= mod2		: all		: f.warpring "next"
+"Tab"	= mod2|[shift]	: all		: f.warpring "prev"
+#"m"	= mod2		: all		: f.iconify
 
 #	for xterms menus
 #
-function "start-local-xterm" {
-	f.exec "${X11BIN}/xterm ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
-}
-
 function "start-local-uxterm" {
 	f.exec "${X11BIN}/uxterm ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
-}
-
-function "start-x11server-xterm" {
-	f.exec "set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"xterm ${XTERM_OPTS} ${XTERM_LOGIN_OPTS}\" &"
 }
 
 function "start-x11server-uxterm" {
@@ -334,8 +384,6 @@ menu "quickies"
 	"WinDelete"		f.delete
 	"Kill"			f.menu "kill"
 	""			f.nop
-	"Xterm"			f.function "start-local-xterm"
-	"Xterm @x11server"	f.function "start-x11server-xterm"
 	"UXterm"		f.function "start-local-uxterm"
 	"UXterm @x11server"	f.function "start-x11server-uxterm"
 	""			f.nop
@@ -422,17 +470,6 @@ menu "iconmgr"
 	"Show Iconmgr"		f.showiconmgr
 	"Hide Iconmgr"		f.hideiconmgr
 	"Sort"			f.sorticonmgr
-	""			f.nop
-	"Next"			f.nexticonmgr
-	"Previous"		f.previconmgr
-	""			f.nop
-	"Up"			f.upiconmgr
-	"Down"			f.downiconmgr
-	"Forward"		f.forwiconmgr
-	"Back"			f.backiconmgr
-	""			f.nop
-	"Left"			f.lefticonmgr
-	"Right"			f.righticonmgr
 }
 
 # "personal preference" adjustments
@@ -456,11 +493,6 @@ menu "preferences"
 	"Bug Compat On"		!"xset bc"
 	"Bug Compat Off"	!"xset -bc"
 	"ReHash FP"		!"xset fp rehash"
-##	"Reset FP Default"	!"xset fp default"
-##	"Prefer 75dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/75dpi/,/usr/lib/X11/fonts/100dpi/"
-##	"Prefer 100dpi fonts"	!"xset fp= /usr/lib/X11/fonts/misc/,/usr/lib/X11/fonts/Speedo/,/usr/lib/X11/fonts/100dpi/,/usr/lib/X11/fonts/75dpi/"
-##	"Video Inverse"		!"xset p 1 0"
-##	"Video Normal"		!"xset p 0 1"
 	"Colour Map Ctl..."	f.menu "cmap"
 	"Screen Saver..."	f.menu "screensaver"
 	"Keyboard LEDs..."	f.menu "leds"
@@ -531,6 +563,7 @@ menu "kill"
 	"Kill X Application"		f.title
 	"Select confirm to kill."	f.nop
 	""				f.nop
+	"        No...."		f.nop
 	"        Confirm...."		f.destroy
 }
 
@@ -539,6 +572,7 @@ menu "exit"
 	"Exit TWM"				f.title
 	"Select confirm to end your session."	f.nop
 	""					f.nop
+	"        No...."			f.nop
 	"        Confirm...."			f.quit
 }
 
@@ -737,6 +771,13 @@ menu "games"
 	"Xgas"				!"xgas &"
 	"Xlogo"				!"xlogo &"
 	"ico"				!"ico &"
+	# ico(1): "Color allocation fails in TrueColor displays and option
+	# -faces does not work well."
+	"ico cube"		!"ico -sleep 0.02 -obj cube -faces -colors red &"
+	"ico ico"		!"ico -sleep 0.02 -obj ico -faces -colors green &"
+	"ico octa"		!"ico -sleep 0.02 -obj octa -faces -colors blue &"
+	"ico pyramid"		!"ico -sleep 0.02 -obj pyramid -faces -colors yellow &"
+	"ico plane"		!"ico -sleep 0.02 -obj pyramid -faces -colors purple &"
 	"maze"				!"maze &"
 	"puzzle"			!"puzzle &"
 }
@@ -744,8 +785,6 @@ menu "games"
 menu "xterm"
 {
 	"Xterm's Everywhere"		f.title
-	"Xterm @localhost"		f.function "start-local-xterm"
 	"UXterm @localhost"		f.function "start-local-uxterm"
-	"Xterm @x11server"		f.function "start-x11server-xterm"
 	"UXterm @x11server"		f.function "start-x11server-uxterm"
 }

@@ -9,12 +9,14 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.30	24/10/03 12:39:57 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.31	24/10/16 17:12:02 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
 #
 #	cat /var/tmp/ctwmrc.XXXXXX ~/.ctwmrc | m4 | less
+#
+# Also run ctwm with "-K $HOME/.ctwmrc.m4out" to see the final result.
 #
 # Note on macos temp files are in $(getconf DARWIN_USER_TEMP_DIR), and this
 # value is often also in $TMPDIR.
@@ -46,17 +48,17 @@
 # XTERM_BIG_OPTS - used to specify the geometry of main working xterms
 # XTERM_LOGIN_OPTS - used for @CLIENTHOST xterms (for macos login session recording)
 # MY_EMACS	- the specific "emacs" to invoke
+# XchronoOpts	- options for xchrono
 #
 # Also:
 #
-# ClockGeom, DClockGeom, XchronoGeom
-# XloadGeom, XloadGeom*
+# XloadGeom*
 #
 # Note macros expanded by M4, e.g. HOME, must be used instead of environment
-# variables of the same name, as they are obviously expanded first while
-# environment variables are expanded at run/use time!  Thus environment variable
-# names (in script settings) should be encosed in curly brackets for visibility,
-# e.g. "${DISPLAY}".
+# variables of the same name, unless they are quoted from M4, as they are
+# obviously expanded first while environment variables are expanded at run/use
+# time!  Thus environment variable names (in script settings) should be encosed
+# in curly brackets for visibility, e.g. "${DISPLAY}".
 #
 # The current directory is always expected to be $HOME.
 #
@@ -64,10 +66,17 @@
 #
 # "set -i; ./.shrc" should provide a function "onx11server"
 
-# Note that we could "comment" these macros out in .ctwmrc syntax, but they
-# would still be visible to m4.
+# Note that we could use changecom() and have these macros appear in "comments"
+# in ctwmrc syntax, and they would still be visible to M4, but this is not as
+# necessary for CTWM in order to keep line numbers in error messages accurate.
 
 changequote([, ])
+
+# suck in the shared macros, adjusting their comments on the way through....
+#
+changecom()
+esyscmd([sed 's/^!/#/' ]HOME[/.X11-m4macros.m4])
+changecom([#])
 
 ifelse(eval(index(HOSTNAME, weird.com) >= 0), 1, [define(AT_WEIRD, [@weird.com])], [])
 ifelse(eval(index(HOSTNAME, robohack.planix.com) >= 0), 1, [define(AT_WEIRD, [@robohack.planix.com])], [])
@@ -80,69 +89,12 @@ ifelse(eval(index(HOSTNAME, very.weird.com) >= 0), 1, [define(AT_VERY_WEIRD, [@v
 ifelse(eval(index(HOSTNAME, very.local) >= 0), 1, [define(AT_VERY_LOCAL, [@very.local])], [])
 ifelse(eval(index(HOSTNAME, very-old.local) >= 0), 1, [define(AT_VERY_LOCAL, [@very-old.local])], [])
 
-# XXX it is very unfortunate that nothing is provided to identify the host
-# environment (e.g. the `uname -s` value)!
-#
-ifdef([AT_VERY_LOCAL], [define(ON_OSX, [yes])])
-ifelse(eval(index(HOSTNAME, macbook.local) >= 0), 1, [define(ON_OSX, [yes])], [])
-ifelse(eval(index(HOSTNAME, macweird.local) >= 0), 1, [define(ON_OSX, [yes])], [])
+esyscmd([printf "define(SYSTEM, %s)\n" "$(uname -s)"])
+
+ifelse(SYSTEM, [Darwin], [define(ON_OSX, [yes])])
 
 # if ctwm is running on the server host then we want @X11SERVER menu choices...
 ifelse([SERVERHOST], [CLIENTHOST], [define(USE_X11SERVER, [yes])], [])
-
-# n.b.:  integer math is used, so these will only be approximate:
-#
-# XXX Too bad envrionment variables weren't also imported as macro definitions!
-# SOOOooo many of these values are also computed and used in ~/.xinitrc, and
-# these same dpi-related macros are also defined in ~/.X11-m4macros.m4
-#
-define(HorizDPI, eval(((X_RESOLUTION * 100) / 3937) + ((((X_RESOLUTION * 1000) / 3937) % 10) >= 5)))
-define(VertDPI, eval(((Y_RESOLUTION * 100) / 3937) + ((((X_RESOLUTION * 1000) / 3937) % 10) >= 5)))
-define(ScreenDimX, eval(WIDTH / HorizDPI))
-define(ScreenDimY, eval(HEIGHT / VertDPI))
-
-# N.B.:  If true screen resolution is within 10% of 100DPI it could sense to
-# claim 100DPI to avoid font-scaling artifacts for bitmap fonts, but since we
-# already alias most font names that did refer to bitmap fonts into scalable
-# fonts anyway, there is not much to gain
-#
-ifelse(eval((HorizDPI / 100 == 1) && (HorizDPI % 100 <= 10)), 1,
- [define(FontXDPI, [100])],
- [define(FontXDPI, [HorizDPI])]
-)
-ifelse(eval((VertDPI / 100 == 1) && (VertDPI % 100 <= 10)), 1,
- [define(FontYDPI, [100])],
- [define(FontYDPI, [VertDPI])]
-)
-
-ifelse(eval(X_RESOLUTION >= 8000 && Y_RESOLUTION >= 8000), 1,
- [define(BORDERWIDTH, [6]) define(TDBORDERWIDTH, [10])],
- [ifelse(eval(X_RESOLUTION >= 4500 && Y_RESOLUTION >= 4500), 1,
-  [define(BORDERWIDTH, [4]) define(TDBORDERWIDTH, [8])],
-  [define(BORDERWIDTH, [2]) define(TDBORDERWIDTH, [6])]
- )]
-)
-
-# N.B.:  These are repeated, as shell expressions, in ~/.xinitrc!
-#
-ifelse(eval(ScreenDimX > 12), 1,
- [define(ClockSize, [2])],
- [define(ClockSize, [1])]
-)
-# N.B.: these are just for calculating WS_OFF (menus use env vars)
-define(ClockWidth, eval(HorizDPI * ClockSize))
-define(ClockHeight, eval(VertDPI * ClockSize))
-# it's square!
-define(ClockOff, eval(ClockHeight + (2 * TDBORDERWIDTH)))
-
-# hmmm.... maybe, some, xloads could be in a WindowBox:
-#
-#	 WindowBox "xloadbox" "320x100+0-0" {
-#	                   "xload"
-#	               }
-#
-define(XLOADWIDTH, eval(HorizDPI * 1))
-define(XLOADHEIGHT, eval(VertDPI / 2))
 
 # Boolean flags
 #
@@ -177,7 +129,7 @@ ShowWorkSpaceManager
 SchrinkIconTitles	# a spello, fixed in 4.?.? (????)
 ShortAllWindowsMenus
 SortIconManager
-#StayUpMenus
+StayUpMenus		# xxx give this a try again...
 StartInMapState
 SunkFocusWindowTitle
 #TransientHasOccupation # DNE: make sure transients stay with their leader!
@@ -187,41 +139,39 @@ UseThreeDIconManagers
 UseThreeDMenus
 UseThreeDTitles
 ifelse(eval(PLANES > 8), 1, [UseThreeDWMap], [])	# this is way too wasteful of colours....
+WarpRingOnScreen
+WarpToDefaultMenuEntry
+WindowRing		# all the windows (on the screen) except those in WindowRingExclude
 
 # variables with simple values
 #
+BorderWidth			BORDERWIDTH	# has no effect when UseThreeDBorders is on
+ThreeDBorderWidth		TDBORDERWIDTH	# has no effect unless UseThreeDBorders is on])
+BorderShadowDepth		ShadowDepth	# has no effect unless UseThreeDBorders is on])
+TitleButtonShadowDepth		ShadowDepth	# has no effect unless UseThreeDBorders is on])
+TitleShadowDepth		ShadowDepth	# has no effect unless UseThreeDBorders is on])
+WMgrButtonShadowDepth		ShadowDepth	# has no effect unless UseThreeDBorders is on])
+IconBorderWidth			ShadowDepth	# has no effect unless UseThreeDBorders is on])
+IconManagerShadowDepth		ShadowDepth	# has no effect unless UseThreeDBorders is on])
+FramePadding			0		# 0 is the default with UseThreeDTitles set
+
 # n.b.:  resolutions are in pixels per metre, for some stupid reason....
 # so 4500 dpM is just over 110 dpi
 #
-BorderWidth			BORDERWIDTH	# has no effect when UseThreeDBorders is on
  ifelse(eval(X_RESOLUTION >= 4500 && Y_RESOLUTION >= 4500), 1,
  [
-BorderShadowDepth		4	# should allow more on >8-bit displays
-TitleButtonShadowDepth		5
-TitleShadowDepth		5
-WMgrButtonShadowDepth		5
-IconBorderWidth			5
-IconManagerShadowDepth		5
 MoveDelta			12
 MoveOffResistance		100
 MovePackResistance		100
 Zoom				16	# just for creation and destruction?
  ], [
-BorderShadowDepth		2	# should allow more on >8-bit displays
-TitleButtonShadowDepth		3
-TitleShadowDepth		3
-WMgrButtonShadowDepth		3
-IconBorderWidth			3
-IconManagerShadowDepth		3
 MoveDelta			4
 MoveOffResistance		50
 MovePackResistance		50
 Zoom				12
  ])
-ThreeDBorderWidth		TDBORDERWIDTH	# has no effect unless UseThreeDBorders is on])
 
 ConstrainedMoveTime		600	# 400 seems a tad too quick for a double-click
-FramePadding			0
 IconifyStyle			"normal"
 MaxIconTitleWidth		500
 MaxWindowSize			"eval(WIDTH * 2)[x]eval(HEIGHT * 2)"	# not everyone plays fair..., default is "30000x30000"
@@ -230,19 +180,24 @@ OpaqueResizeThreshold		100	# window % of screen size
 OpenWindowTimeout		15
 # XXX this doesn't seem to work...
 RaiseOnClickButton		1
+
 # I'm tired of dragging so many windows around!
  ifelse(eval(FontYDPI > 110), 1,
  [
-RandomPlacement			"on" +100+100
+RandomPlacement			"on" "+100+100"
  ], [
 RandomPlacement			"on"
  ])
+
 UsePPosition			"non-zero"
 XMoveGrid			1
 YMoveGrid			1
 
 #
 # Best is to arrange one's font-path to get the desired one first....
+#
+# Fallbacks in the code are "variable" for everything but DefaultFont, and
+# "fixed" for it.
 #
 
 #TitleFont	"-*-helvetica-bold-r-*-*-*-100-FontXDPI-VertDPI-*-*-iso10646-1"
@@ -521,49 +476,10 @@ Cursors {
 # geometry shown while doing so bears no relation to the actual
 # geometry in pixels, as given here.
 #
-# The first one is for the likes of "very" where there's room for the xloads.
-# The second is for the likes of a modern macbook.
-# The third is for the likes of an NCD HMX or 19c with room for a big clock.
-# The default is for small screens where there's only room for a small clock.
-#
-# for the downstairs machine this can move 90 to the left (leaving room for
-# a 132-column window at the default font)
-#
-ifelse(SERVERHOST, xtremely.weird.com, [
- define(WS_COLS, [2])
- define(WS_ROWS, [4])
-], [
- define(WS_COLS, [3])
- define(WS_ROWS, [4])
-])
-define(WS_HEIGHT, eval(HEIGHT / 30 * WS_ROWS))
-define(WS_WIDTH, eval(WIDTH / 30 * WS_COLS))
-define(WS_GEOM, WS_WIDTH[x]WS_HEIGHT)
-#
-# XXX on a really wide screen, like the XDR, we might have two Xload columns
-# (and still be able to have two 132-column emacs windows)
-#
-define(WS_OFF, eval(ClockOff + XLOADWIDTH + (2 * TDBORDERWIDTH)))
-#
 WorkSpaceManagerGeometry	"WS_GEOM-WS_OFF+0" WS_COLS
 
 # Note WS_ROWS x WS_COLS should be fulfilled by WorkSpaces names to match above
 #
-ifelse(SERVERHOST, xtremely.weird.com, [
-WorkSpaces {
-	"Consoles"
-	"TkIned"
-
-	"Testing"
-	"Browsing"
-
-	"Coding"
-	"Work 1"
-
-	"Work 2"
-	"Play"
-}
-], [
 WorkSpaces {
 	"Desktop"
 	"Remote VMs"
@@ -581,11 +497,12 @@ WorkSpaces {
 	"Xentastic VMs"
 	"Work 2"
 }
-])
 
+# xxx I don't remember if this actually worked, and these days I don't have any
+# applications specific to just one workspace (emacs in two, xterms everywhere)
+#
 #Occupy {
-#    ifelse(SERVERHOST, xtremely.weird.com,
-#	[WorkSpace	"TkIned"	{ "tkined" } ])
+#	WorkSpace	"TkIned"	{ "tkined" }
 #	WorkSpace	"Browsing"	{ "Netscape" "mozilla-bin" }
 #}
 
@@ -626,30 +543,32 @@ OccupyAll {
 IconRegionAlignement		"border"
 IconRegionJustification		"border"
 
-# Note it seems the IconRegion must include the expanded icon title,
-# which can be a bit long when we have pathnames in xterm titles.
+# Note it seems the IconRegion must include the expanded icon title, which can
+# be a bit long when we have pathnames in xterm titles.
 #
-# This isn't such a problem though if the "gravity" is North East and
-# when the IconJustification is to the right -- the IconRegion can
-# then be expanded to the left over other windows and normally, so
-# long as there aren't too many icons to fit in the actual desired
-# area, then expanding titles will have the needed room to expand to
-# the left.
+# This isn't such a problem though if the "gravity" is North East and when the
+# IconJustification is to the right -- the IconRegion can then be expanded to
+# the left over other windows and normally, so long as there aren't too many
+# icons to fit in the actual desired area, then expanding titles will have the
+# needed room to expand to the left.
 #
-# A 10-pixel X 10-pixel grid keeps icons packed about as tight as
-# you'd ever want them to be.  This is of course way too small a grid
-# to keep arbitrary sized icons centred in a box.  It also means
-# little icons can mess up the arrangement of normal-sized icons.  Too
-# bad we can't force them on the grid such that they overlap if
-# they're too big.  Alternately if the arrangement was always shuffled
-# on every change such that all similar sized icons were kept
-# together....  And how about shrinking them to always fit and using a
-# magnifier like the Aqua dock?
+# A 10-pixel X 10-pixel grid keeps icons packed about as tight as you'd ever
+# want them to be.  This is of course way too small a grid to keep arbitrary
+# sized icons centred in a box.  It also means little icons can mess up the
+# arrangement of normal-sized icons.  Too bad we can't force them on the grid
+# such that they overlap if they're too big.  Alternately if the arrangement was
+# always shuffled on every change such that all similar sized icons were kept
+# together....  And how about shrinking them to always fit and using a magnifier
+# like the Aqua dock?
 #
-# On the big screen we keep a little xterm open above xconsole in the
-# bottom right so we keep the icon region above that.  On the
-# mid-sized screens we keep icons just above the xconsole (even though
-# it's rarely kept open on such smaller screens).
+# On a big enough screen there should be room to keep a little xterm open above
+# xconsole in the bottom right and so the icon region will be above that.
+#
+# A region 1/4 the height of the screen will then allow a reasonably tall little
+# xterm.
+#
+# On smaller screens the little xterm may obscure the icons.  See notes for
+# $XTERM_LITTLE_OPTS in ~/.xinitrc.
 #
 # (run through M4 as described above then use "xlogo -geometry XXXxYYY" to see
 # where this will be!)
@@ -657,7 +576,8 @@ IconRegionJustification		"border"
 # xxx this may not be wide enough on smaller screens, but on a big hi-res screen
 # it should be OK
 #
-define(IR_GEOM, eval(WS_WIDTH + WS_OFF + TDBORDERWIDTH)[x]eval(HEIGHT / 4)[-0+]eval(WS_HEIGHT + (2 * XloadHeight) + (2 * TDBORDERWIDTH)))
+define(IR_GEOM, eval(WS_WIDTH + WS_OFF)[x]eval(HEIGHT / 4)[-0+]eval(WS_HEIGHT + (2 * XloadHeight) + (6 * TDBORDERWIDTH)))
+#
 ifelse(eval(X_RESOLUTION >= 8000 && Y_RESOLUTION >= 8000), 1,
  [define(IR_GRID, [100])],
  [ifelse(eval(X_RESOLUTION >= 4500 && Y_RESOLUTION >= 4500), 1,
@@ -667,13 +587,13 @@ ifelse(eval(X_RESOLUTION >= 8000 && Y_RESOLUTION >= 8000), 1,
 )
 IconRegion	"IR_GEOM" North East IR_GRID IR_GRID
 
-## Use an Icon Manager for xterms.
-##
-# XXX the same WS_OFF positions this differently than the WorkSpaceManager!!!
+# Use an Icon Manager for xterms.
 #
-# xxx the -200 is based on observations, not math!
+# n.b.: A height of zero allows it to grow vertically as needed, and the 4
+# borders for the width calculation are the borders _between_ the three xloads
+# -- the outside borders are accounted for in the IconManager's borders.
 #
-define(ICONMGR_GEOM, eval(3 * XLOADWIDTH)[x0][-]eval(WS_OFF - 200)[+]eval(WS_HEIGHT + (2 * XLOADHEIGHT) - TDBORDERWIDTH))
+define(ICONMGR_GEOM, eval((3 * XloadWidth) + (4 * TDBORDERWIDTH))[x0][-]ClockOffH[+]eval(WS_HEIGHT + (2 * XloadHeight) + (6 * TDBORDERWIDTH)))
 IconManagerGeometry		"ICONMGR_GEOM" 2
 #
 ShowIconManager
@@ -752,9 +672,21 @@ NoHighlight {
 WarpCursor {
 	"emacs"		# damn thing gets a resource name based on argv[0]!
 	"Links"
-	"xterm"
 	"xcalc"
+	"xcalendar"
+	"xclipboard"
+	"xcutsel"
+	"xedit"
+	"xftp"
 	"xmahjongg"
+	"xmail"
+	"xman"
+	"xmh"
+	"xhelp"
+	"xrn"
+	"xshell"
+	"xtalk"
+	"xterm"
 }
 
 WindowGeometries {
@@ -764,6 +696,31 @@ WindowGeometries {
  ], [])
 }
 
+# n.b.: this is essentially the same as the NoTitle list....
+WindowRingExclude {
+	"TWM Icon Manager"
+	"WorkSpaceManager"
+	"asclock"
+	"lmclock"
+	"oclock"
+	"swisswatch"
+	"swissclock"
+	"xbiff"
+	"xbuffy"		# only the main box window
+	"xchrono"
+	"xclock"
+	"xcpustate"
+	"xeyes"
+	"xli"
+	"xload"
+	"xlogo"
+	"xnetload"
+	"xosview"
+	"XSysStats"
+	"xv"
+	"xwud"
+}
+
 # These have an optional window list parameter
 #
 DontSqueezeTitle
@@ -771,6 +728,7 @@ NoTitleHighlight
 OpaqueResize
 OpaqueMove
 
+Function "deiconify-and-raise"	{ f.deiconify f.raise }
 Function "forcemove-or-lower"	{ f.forcemove f.deltastop f.lower }
 Function "forcemove-or-raise"	{ f.forcemove f.deltastop f.raise }
 Function "forcemove-or-iconify"	{ f.forcemove f.deltastop f.iconify }
@@ -782,10 +740,16 @@ Function "movepack-or-raise"	{ f.movepack f.deltastop f.raise }
 Function "movepack-or-iconify"	{ f.movepack f.deltastop f.iconify }
 Function "resize-or-raise"	{ f.raise f.deltastop f.resize }
 Function "resize-or-lower"	{ f.lower f.deltastop f.resize }
-#Function "restore-colormap"	{ f.colormap "default" f.lower }
+Function "refresh-ws"		{ f.HideWorkSpaceMgr f.ShowWorkSpaceMgr f.Refresh }
 
 # Set some useful bindings.  Sort of uwm-ish, sort of simple-button-ish
 #
+# Note "mod2" here means the "command" key on OSX Xquartz
+# Note "meta" here means the "option" key on OSX Xquartz
+# Note "shift" needs to be quoted to avoid being seen as an m4 macro
+#
+#Button	= KEYS		: CONTEXT	: FUNCTION
+#-------------------------------------------------
 Button1 =		: root		: f.menu "quickies"
 Button2 =		: root		: f.menu "TwmWindows"
 Button3 =		: root		: f.menu "defops"
@@ -794,17 +758,13 @@ Button1 = control	: root		: f.menu "TwmAllWindows"
 Button2 = control	: root		: f.menu "TwmIcons"
 Button3 = control	: root		: f.menu "preferences"
 
-# Note "meta" here means the "option" key on OSX Xquartz
-#
 Button1 = meta		: root		: f.menu "applications"
 Button2 = meta		: root		: f.menu "TwmAllWindows"
 Button3 = meta		: root		: f.menu "wmops"
 
-# shift modifier doesn't seem to work (at least not on an NCD HMX)
-# the un-alterd buttons get clobbered!
-#Button1 = shift	: root		: f.menu "xterm"
-#Button2 = shift	: root		: f.menu "TwmIcons"
-#Button3 = shift	: root		: f.menu "some-other-menu"
+Button1 = [shift]	: root		: f.menu "xterms"
+Button2 = [shift]	: root		: f.menu "consoles"
+Button3 = [shift]	: root		: f.menu "monitors"
 
 Button1 = control	: icon		: f.menu "winops"
 Button2 = control	: icon		: f.iconify
@@ -834,39 +794,73 @@ Button1 = meta		: icon		: f.function "forcemove-or-iconify"
 Button2 = meta		: icon		: f.iconify
 Button3 = meta		: icon		: f.lower
 
-Button1 =		: iconmgr	: f.iconify
-Button2 =		: iconmgr	: f.raise
-Button3 =		: iconmgr	: f.lower
+Button1 =		: iconmgr	: f.function "deiconify-and-raise"
+Button1 = control	: iconmgr	: f.raise
+Button1 = mod2		: iconmgr	: f.iconify
+Button2 =		: iconmgr	: f.raiselower
+Button2 = mod2		: iconmgr	: f.lower
+Button3 =		: iconmgr	: f.occupyall # ???
+
+"Return"=		: iconmgr	: f.iconify
+
+"F16"	=		: iconmgr	: f.iconify
+"F17"	=		: iconmgr	: f.raiselower
+
+# XXX these only wander around one of the entries, not all
+"Left"	= 		: iconmgr	: f.backiconmgr
+"Right"	= 		: iconmgr	: f.forwiconmgr
+"Up"	= 		: iconmgr	: f.upiconmgr
+"Down"	= 		: iconmgr	: f.downiconmgr
+# XXX these do no better
+"n"	= 		: iconmgr	: f.forwmapiconmgr
+"p"	= 		: iconmgr	: f.backmapiconmgr
 
 "Help"	=		: root		: f.version
+"F19"	=		: root		: f.version
 
-"F11"	=		: root		: f.prevworkspace
-"F12"	=		: root		: f.nextworkspace
+# xxx try out <cmd>-Tab ala macos.... (this key sequence doesn't seem to be
+# needed for emacs or xterm)
+#
+"Tab"	= mod2		: all		: f.warpring "next"
+"Tab"	= mod2|[shift]	: all		: f.warpring "prev"
+#"m"	= mod2		: all		: f.iconify
 
-"Left"	= meta		: root		: f.leftworkspace
-"Right"	= meta		: root		: f.rightworkspace
-"Down"	= meta		: root		: f.downworkspace
-"Up"	= meta		: root		: f.upworkspace
+"Left"	= mod2		: root|workspace: f.leftworkspace
+"Right"	= mod2		: root|workspace: f.rightworkspace
+"Down"	= mod2		: root|workspace: f.downworkspace
+"Up"	= mod2		: root|workspace: f.upworkspace
+"F7"	=		: root|workspace: f.prevworkspace # "<<"
+"F9"	=		: root|workspace: f.nextworkspace # ">>"
+"F13"	=		: root|workspace: f.prevworkspace
+"F14"	=		: root|workspace: f.nextworkspace
+"Prior"	=		: root|workspace: f.prevworkspace
+"Next"	=		: root|workspace: f.nextworkspace
+"F16"	=		: root|workspace: f.prevworkspace
+"F17"	=		: root|workspace: f.nextworkspace
 
-"Left"	= mod2		: root		: f.leftworkspace
-"Right"	= mod2		: root		: f.rightworkspace
-"Down"	= mod2		: root		: f.downworkspace
-"Up"	= mod2		: root		: f.upworkspace
+# XXX Hmmm... these seem to be delivered to the app regardless....
+"Right"	= control	: frame|title	: f.changesize "right +10"
+"Left"	= control	: frame|title	: f.changesize "right -10"
+"Down"	= control	: frame|title	: f.changesize "bottom +10"
+"Up"	= control	: frame|title	: f.changesize "bottom -10"
 
-# Hmmm... these seem to be delivered to the app regardless....
-#"Left"	=		: frame|title	: f.jumpleft "2"
-#"Right" =		: frame|title	: f.jumpright "2"
-#"Down"	=		: frame|title	: f.jumpdown "2"
-#"Up"	=		: frame|title	: f.jumpup "2"
-#"Left"	= meta		: frame|title	: f.pack "left"
-#"Right" = meta		: frame|title	: f.pack "right"
-#"Up"	= meta		: frame|title	: f.pack "top"
-#"Down"	= meta		: frame|title	: f.pack "bottom"
-#"Left"	= shift|meta	: frame|title	: f.fill "left"
-#"Right" = shift|meta	: frame|title	: f.fill "right"
-#"Up"	= shift|meta	: frame|title	: f.fill "top"
-#"Down"	= shift|meta	: frame|title	: f.fill "bottom"
+"Right"	= [shift]	: frame|title	: f.changesize "left +10"
+"Left"	= [shift]	: frame|title	: f.changesize "left -10"
+"Down"	= [shift]	: frame|title	: f.changesize "top +10"
+"Up"	= [shift]	: frame|title	: f.changesize "top -10"
 
+"Left"	=		: frame|title	: f.jumpleft "2"
+"Right" =		: frame|title	: f.jumpright "2"
+"Down"	=		: frame|title	: f.jumpdown "2"
+"Up"	=		: frame|title	: f.jumpup "2"
+"Left"	= meta		: frame|title	: f.pack "left"
+"Right" = meta		: frame|title	: f.pack "right"
+"Up"	= meta		: frame|title	: f.pack "top"
+"Down"	= meta		: frame|title	: f.pack "bottom"
+"Left"	= [shift]|meta	: frame|title	: f.fill "left"
+"Right" = [shift]|meta	: frame|title	: f.fill "right"
+"Up"	= [shift]|meta	: frame|title	: f.fill "top"
+"Down"	= [shift]|meta	: frame|title	: f.fill "bottom"
 
 # icons and menus/operations for window "Title" buttons
 #
@@ -895,11 +889,13 @@ menu "quickies"
 	"Resize"		f.resize
 	"Lower"			f.lower
 	"Raise"			f.raise
+	"RaiseIcons"		f.raiseicons
 	"Iconify"		f.iconify
 	"Identify"		f.identify
 	"Occupy ..."		f.occupy
 	"Occupy All"		f.occupyall
 	"Vanish"		f.vanish
+	"Icon Manager..."	f.menu "iconmgr"
 	""			f.separator
  ifdef([ON_OSX], [
 	""			f.separator
@@ -908,6 +904,7 @@ menu "quickies"
  ])
 	"Toggle workspace"	f.togglestate
 	"Screen Refresh"	f.refresh
+	"WS Refresh"		f.function "refresh-ws"
 	"Window Refresh"	f.winrefresh
 	"Save"			f.saveyourself
 	""			f.separator
@@ -945,8 +942,8 @@ menu "quickies"
 	"Xclipboard"		!"xclipboard &"
  ])
 	""			f.separator
-	"UXterm @CLIENTHOST"	!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
-	"UXterm-big @CLIENTHOST" !"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
+	"UXterm @CLIENTHOST"	!"eval uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
+	"UXterm-big @CLIENTHOST" !"eval uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
 	#
  ifdef([USE_X11SERVER], [
 	"Xterm @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"xterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
@@ -1066,7 +1063,9 @@ menu "winops"
 	""			f.separator
 	"Occupy All"		f.occupyall
 	"Vanish"		f.vanish
-	"Occupy ..."		f.occupy
+	"Occupy"		f.occupy
+	"Occupy Next"		f.movetonextworkspace
+	"Occupy Prev"		f.movetoprevworkspace
 	""			f.separator
 	"Refresh"		f.winrefresh
 	"Save"			f.saveyourself
@@ -1082,6 +1081,8 @@ menu "winops"
 	""			f.separator
 	"Focus"			f.focus
 	"Unfocus"		f.unfocus
+	""			f.separator
+	"WarpRing (toggle)"	f.ring
 	""			f.separator
 	"Delete"		f.delete
 	"Delete Or Destroy"	f.deleteordestroy
@@ -1104,10 +1105,13 @@ menu "wmops"
 	"Identify Window"	f.identify
 	""			f.separator
 	"Refresh Screen"	f.refresh
+	"Refresh WS"		f.function "refresh-ws"
 	"Refresh Window"	f.winrefresh
 	"Save Window"		f.saveyourself
 	""			f.separator
 	"Restart TWM_TYPE"	f.restart
+# xxx unfortunately only TWM has this!
+#	"Start TWM"		f.startwm "twm"
 	"About TWM_TYPE TWM_VERSION"	f.version
 	""			f.separator
 	"Pin this menu"		f.pin
@@ -1159,18 +1163,6 @@ menu "iconmgr"
 	"Show Iconmgr"		f.showiconmgr
 	"Hide Iconmgr"		f.hideiconmgr
 	"Sort"			f.sorticonmgr
-	""			f.separator
-	"Next"			f.nexticonmgr
-	"Previous"		f.previconmgr
-	""			f.separator
-	"Up"			f.upiconmgr
-	"Down"			f.downiconmgr
-	"Forward"		f.forwiconmgr
-	"Back"			f.backiconmgr
-	""			f.separator
-	"Left"			f.lefticonmgr
-	"Right"			f.righticonmgr
-	""			f.separator
 	"Pin this menu"		f.pin
 }
 
@@ -1273,6 +1265,7 @@ menu "leds"
 menu "exit"
 {
 	"Exit CTWM"				f.title
+	"        No...."			f.nop
 	"        Confirm...."			f.quit
 }
 
@@ -1414,11 +1407,11 @@ menu "monitors"
 	"xconsole x-errors"	!"xconsole -geometry 500x120-0-0 -notify -verbose -file HOME/.xsession-errors &"
 	"xconsole x-errors-DISPLAY" !"xconsole -geometry 500x120-0-0 -notify -verbose -file HOME/.xsession-errors-`echo ${DISPLAY} | sed 's/\.[[0-9]]*$//'` &"
 	""			f.separator
-	"xclock"		!"xclock -geometry ${ClockGeom} &"
-	"xclock -digital"	!"LC_CTYPE=C xclock -geometry ${DClockGeom} -face :size=10 -digital -update 1 -chime &"
-	"swissclock"		!"swisswatch -name swissclock -geometry ${ClockGeom} &"
+	"xclock"		!"xclock -geometry ClockGeom &"
+	"xclock -digital"	!"LC_CTYPE=C xclock -geometry DClockGeom -face :size=10 -digital -update 1 -chime &"
+	"swissclock"		!"swisswatch -name swissclock -geometry ClockGeom &"
 	# n.b.:  "-local" doesn't give a timezone, just a name for the local time zone!
-	"xchrono"		!"xchrono -geometry ${XchronoGeom} ${XchronoOpts} &"
+	"xchrono"		!"xchrono -geometry XchronoGeom ${XchronoOpts} &"
 	"asclock"		!"asclock -shape -position -200+234 &"
 	""			f.separator
 	"xbiff"			!"xbiff -rv -bw 0 &"
@@ -1427,7 +1420,7 @@ menu "monitors"
 	"xbuffy w/-acmd"	!"xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd \"${AUDIOPLAYER} HOME/lib/sounds/newmail &\" &"
 
 	""			f.separator
-	"xload"			!"xload -geometry ${XloadGeom} -hl XLOAD_HL &"
+	"xload"			!"xload -geometry XloadGeom -hl XLOAD_HL &"
  ifdef([USE_X11SERVER], [
 	"xload @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"xload -geometry 120x40-200+48 -hl XLOAD_HL\" &"
  ])
@@ -1437,15 +1430,15 @@ menu "monitors"
  ifdef([AT_LOCAL], [
 #	"xload @building"	!"set -i; . ./.shrc; onx11server -n -X building.local \"xload -geometry ${XloadGeomBuilding} -hl red\" &"
 	"xload @more"		!"set -i; . ./.shrc; onx11server -n -X more.local \"xload -geometry ${XloadGeomMore} -hl red\" &"
-	"xload @central"	!"ssh -CY -n woods@central.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomCentral} -hl red\" &"
+	"xload @central"	!"set -i; . ./.shrc; onx11server -fSY -X central.avoncote.ca \"xload -geometry ${XloadGeomCentral} -hl red\" &"
 #	"xload @future"		!"set -i; . ./.shrc; onx11server -n -X future.local \"xload -geometry ${XloadGeomFuture} -hl red\" &"
 	"xload @xenful"		!"set -i; . ./.shrc; onx11server -n -X xenful.local \"xload -geometry ${XloadGeomXenful} -hl red\" &"
 	"xload @xentastic"	!"set -i; . ./.shrc; onx11server -n -X xentastic.local \"xload -geometry ${XloadGeomXentastic} -hl red\" &"
-	"xload @xentral"	!"set -i; . ./.shrc; onx11server -fSY -X woods@xentral.avoncote.ca \". ./.profile; exec xload -geometry ${XloadGeomXentral} -hl red\" &"
+	"xload @xentral"	!"set -i; . ./.shrc; onx11server -fSY -X woods@xentral.avoncote.ca \"xload -geometry ${XloadGeomXentral} -hl red\" &"
 	"xload @once"		!"set -i; . ./.shrc; onx11server -n -X once.local \"xload -geometry ${XloadGeomOnce} -hl red\" &"
 	#
 #	"xload @historically"	!"set -i; . ./.shrc; onx11server -n -X historically.local \"xload -geometry ${XloadGeomHistorically} -hl red\" &"
-	"xload @b2"		!"set -i; . ./.shrc; onx11server -fSY -X woods@b2.avoncote.ca  \". ./.profile; exec xload -geometry ${XloadGeomB2} -hl red\" &"
+	"xload @b2"		!"set -i; . ./.shrc; onx11server -fSY -X woods@b2.avoncote.ca  \"xload -geometry ${XloadGeomB2} -hl red\" &"
 	"xload @fezzik"		!"set -i; . ./.shrc; onx11server -fS -X fezzik.local \"xload -geometry ${XloadGeomFezzik} -hl red\" &"
 	"xload @nbtest"		!"set -i; . ./.shrc; onx11server -n -X nbtest.local \"xload -geometry ${XloadGeomNbtest} -hl red\" &"
 	"xload @nbtcur"		!"set -i; . ./.shrc; onx11server -n -X nbtcur.local \"xload -geometry ${XloadGeomNbtcur} -hl red\" &"
@@ -1541,6 +1534,13 @@ menu "samplegames"
 	"Xgas"			!"xgas &"
 	"Xlogo"			!"xlogo &"
 	"ico"			!"ico &"
+	# ico(1): "Color allocation fails in TrueColor displays and option
+	# -faces does not work well."
+	"ico cube"		!"ico -sleep 0.02 -obj cube -faces -colors red &"
+	"ico ico"		!"ico -sleep 0.02 -obj ico -faces -colors green &"
+	"ico octa"		!"ico -sleep 0.02 -obj octa -faces -colors blue &"
+	"ico pyramid"		!"ico -sleep 0.02 -obj pyramid -faces -colors yellow &"
+	"ico plane"		!"ico -sleep 0.02 -obj pyramid -faces -colors purple &"
 	"maze"			!"maze &"
 	"puzzle"		!"puzzle &"
 	""			f.separator
@@ -1550,8 +1550,8 @@ menu "samplegames"
 menu "xterms"
 {
 	"Xterms Everywhere"	f.title
-	"UXterm @CLIENTHOST"	!"${X11BIN}/uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
-	"UXterm-big @CLIENTHOST" !"${X11BIN}/uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
+	"UXterm @CLIENTHOST"	!"eval uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
+	"UXterm-big @CLIENTHOST" !"eval uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
  ifdef([AT_LOCAL], [
 # xxx this should use a macro!
 	"UXterm @xenful"	!"set -i; . ./.shrc; onx11server -n -X xenful.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
@@ -1648,6 +1648,13 @@ menu "xterms"
 #
 #	xauth nextract - ${REMOTE_DISPLAY} | rsh $X11SERVER $X11BIN/xauth nmerge -
 #
+# XXX N.B.:  note use a filter to get only address-family "0" i.e. IPv4
+# addresses since we don't use IPv6 and loading IPv6 addresses in the remote
+# host may confuse it should it have code that supports IPv6 but it is not
+# configured properly to use IPv6 on the network....
+#
+#	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | rsh $X11SERVER $X11BIN/xauth nmerge -
+#
 ifdef([AT_WEIRD], [
 menu "xauths"
 {
@@ -1655,12 +1662,12 @@ menu "xauths"
  ifdef([USE_X11SERVER], [
 	"Xauth to X11SERVER"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -X \"${X11SERVER}\" 'xauth nmerge -' ) &"
  ])
-	"Xauth to most"		!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} most.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
-	"Xauth to isit"		!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} isit.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
-	"Xauth to once"		!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} once.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
-	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} historically.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
-	"Xauth to freely"	!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} freely.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
-	"Xauth to whats"	!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} whats.weird.com exec /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to most"		!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} most.weird.com /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to isit"		!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} isit.weird.com /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to once"		!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} once.weird.com /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} historically.weird.com /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to freely"	!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} freely.weird.com /usr/X11R6/bin/xauth nmerge - &"
+	"Xauth to whats"	!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} whats.weird.com /usr/X11R6/bin/xauth nmerge - &"
 	""			f.separator
 	"Pin this menu"		f.pin
 }
@@ -1670,20 +1677,20 @@ ifdef([AT_LOCAL], [
 menu "xauths"
 {
 	"Xauth pushes"		f.title
-	"Xauth to more"		!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -X more.local 'xauth nmerge -' ) &"
-	"Xauth to xenful"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -X xenful.local 'xauth nmerge -' ) &"
-	"Xauth to xentastic"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -X xentastic.local 'xauth nmerge -' ) &"
-	"Xauth to nb10"		!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -X nb10.local 'xauth nmerge -' ) &"
-	"Xauth to nbday"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -S -X nbday.local 'xauth nmerge -' ) &"
-	"Xauth to nbt"		!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -X nbt.local 'xauth nmerge -' ) &"
-	"Xauth to nbt2"		!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -X nbt2.local 'xauth nmerge -' ) &"
-	"Xauth to nbtest"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -X nbtest.local 'xauth nmerge -' ) &"
-	"Xauth to nbtcur"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -X nbtcur.local 'xauth nmerge -' ) &"
-	"Xauth to fezzik"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -S -X fezzik.local 'xauth nmerge -' ) &"
-	"Xauth to frodo"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -S -X frodo.local 'xauth nmerge -' ) &"
-#	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -X historically.local 'xauth nmerge -' ) &"
-	"Xauth to once"		!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -X once.local 'xauth nmerge -' ) &"
-	"Xauth to very-old"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -S -X very-old.local 'xauth nmerge -' ) &"
+	"Xauth to more"		!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X more.local 'xauth nmerge -' ) &"
+	"Xauth to xenful"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X xenful.local 'xauth nmerge -' ) &"
+	"Xauth to xentastic"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X xentastic.local 'xauth nmerge -' ) &"
+	"Xauth to nb10"		!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X nb10.local 'xauth nmerge -' ) &"
+	"Xauth to nbday"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -S -X nbday.local 'xauth nmerge -' ) &"
+	"Xauth to nbt"		!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X nbt.local 'xauth nmerge -' ) &"
+	"Xauth to nbt2"		!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X nbt2.local 'xauth nmerge -' ) &"
+	"Xauth to nbtest"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X nbtest.local 'xauth nmerge -' ) &"
+	"Xauth to nbtcur"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X nbtcur.local 'xauth nmerge -' ) &"
+	"Xauth to fezzik"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -S -X fezzik.local 'xauth nmerge -' ) &"
+	"Xauth to frodo"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -S -X frodo.local 'xauth nmerge -' ) &"
+	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X historically.local 'xauth nmerge -' ) &"
+	"Xauth to once"		!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X once.local 'xauth nmerge -' ) &"
+	"Xauth to very-old"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -S -X very-old.local 'xauth nmerge -' ) &"
 	""			f.separator
 	"Pin this menu"		f.pin
 }
@@ -1718,5 +1725,5 @@ menu "osx-apps"
 
 # Local Variables:
 # comment-start: "# "
-# conf-space-keywords: "\\(ifdef\\|ifelse\\|define\\|changequote\\|eval\\)"
+# conf-space-keywords: "\\(ifdef\\|ifelse\\|define\\|changequote\\|esyscmd\\|eval\\)"
 # End:
