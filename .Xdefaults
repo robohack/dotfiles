@@ -2,7 +2,7 @@
 !
 ! changequote([, ])	note brackets will disappear from comments!
 !
-!#ident	"@(#)HOME:.Xdefaults	37.13	24/09/26 13:31:17 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.14	24/10/20 14:49:24 (woods)"
 !
 ! N.B. WARNING:  This file must be processed with "xrdb -cpp m4" with macros and
 ! macro calls in the comments.  (perhaps it should be renamed to .Xdefaults.m4?)
@@ -201,10 +201,9 @@ xtDefaultFont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso88
 *xtDefaultFont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
 !
 ! e.g. viewres uses xtDefaultFontSet....
-XtDefaultFontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-xtDefaultFontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-*xtDefaultFontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-!,-*-*-*-*-*--0-100-FontXDPI-FontYDPI-*-0-*-*
+XtDefaultFontSet:		-*-DecentFont-medium-r-normal--*-90-FontXDPI-FontYDPI-m-0-iso8859-*,-*-DecentFont-*-*-*--*-90-FontXDPI-FontYDPI-*-*-iso8859-*,-*-*-*-*-*--*-*-FontXDPI-FontYDPI-*-*-iso8859-*
+xtDefaultFontSet:		-*-DecentFont-medium-r-normal--*-90-FontXDPI-FontYDPI-m-0-iso8859-*,-*-DecentFont-*-*-*--*-90-FontXDPI-FontYDPI-*-*-iso8859-*,-*-*-*-*-*--*-*-FontXDPI-FontYDPI-*-*-iso8859-*
+*xtDefaultFontSet:		-*-DecentFont-medium-r-normal--*-90-FontXDPI-FontYDPI-m-0-iso8859-*,-*-DecentFont-*-*-*--*-90-FontXDPI-FontYDPI-*-*-iso8859-*,-*-*-*-*-*--*-*-FontXDPI-FontYDPI-*-*-iso8859-*
 !
 ! xxx these work for / affect various Xt apps....
 ! viewres also(only?)....
@@ -222,7 +221,7 @@ xtDefaultFontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
 ! really just for Xfontsel (with "-scaled"):
 !
 *pixelSizeList:			0
-*pointSizeList:			80, 90, 100, 110, 120, 140, 160, 170, 180, 200, 240, 250, 300, 350, 400
+*pointSizeList:			60, 70, 75, 80, 90, 100, 110, 120, 140, 160, 180, 200, 240, 300, 360, 400, 720, 722
 !
 ! ifdef([COLOR], [
 !
