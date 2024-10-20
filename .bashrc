@@ -1,7 +1,7 @@
 #
 #	.bashrc - per-shell startup stuff for bash via $ENV
 #
-#ident	"@(#)HOME:.bashrc	37.3	24/10/16 17:01:42 (woods)"
+#ident	"@(#)HOME:.bashrc	37.4	24/10/20 14:44:48 (woods)"
 
 # Assumptions:
 
@@ -20,9 +20,21 @@ if [ -z "$SHELL" ] ; then
 	export SHELL=$BASH
 fi
 
-# XXX not quite right, but near enough?
+# XXX not quite right, but near enough?  Probably not, but better than nothing!
 #
-alias print=echo
+# Note that some/many GNU/Linux systems have a "run-mailcap" package (from
+# Debian?) which includes a /usr/bin/print command (a link to the
+# /usr/bin/run-mailcap command).  So far *BSD packages which might install this
+# are usually called "misc/mime-support", and they either don't install the link
+# aliases, or they sanely call them something else, like "mime-print".
+#
+# Note the AT&T ksh(1) manual page says:  "the behavior of echo is system
+# dependent and print or printf described below should be used."
+#
+print ()
+{
+	echo ${1+"${@}"}
+}
 
 alias whence="command -v"
 

@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	37.15	24/10/16 17:01:42 (woods)"
+#ident	"@(#)HOME:.kshrc	37.16	24/10/20 14:44:48 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -35,7 +35,7 @@ if [ -n "${ENVFILE:-${ENV}}" ]; then
 	envhome=$(dirname ${ENVFILE:-${ENV}})
 fi
 # there's a bit of a chicken&egg situation w.r.t. LOGNAME (see ~/.shrc)
-loghome=$(eval print ~${LOGNAME})
+loghome=$(eval printf "%s\n" ~${LOGNAME})
 if [ -n "${ENVFILE:-${ENV}}" -a -f ${envhome}/.shrc ]; then
 	HOME=${envhome}
 elif [ -r ${loghome}/.shrc ]; then
@@ -268,22 +268,6 @@ if [ -r $HOME/.kshdir ] ; then
 	alias showd='unalias pushd popd showd sd;. $HOME/.kshdir; showd'
 fi
 
-# provide ksh(1) "print" as echo, if not available (e.g. for bash and any other
-# future shells which might share ~/.kshrc)
-#
-if type print >/dev/null 2>&1; then
-	:
-else
-	if type alias >/dev/null 2>&1; then
-		alias print=echo
-	else
-		print ()
-		{
-			echo ${1+"${@}"}
-		}
-	fi
-fi
-
 trap '
 	rc=$?;
 	if ((ERRNO > 0)); then
@@ -291,7 +275,7 @@ trap '
 	else
 		EMSG=""
 	fi;
-	print "${0#-}: exit code: $rc$EMSG"
+	printf "%s: exit code: %d%s\n" ${0#-} $rc "$EMSG"
 	unset rc EMSG
 ' ERR
 
