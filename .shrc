@@ -26,7 +26,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.44	24/10/16 17:14:07 (woods)"
+#ident	"@(#)HOME:.shrc	37.45	24/10/20 14:41:24 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -453,7 +453,7 @@ dirremove ()
 pathvarrm ()
 {
 	if [ $# -le 1 -o -z "${1}" ] ; then
-		echo "Usage: dirremove pathvar directory [...]" >&2
+		echo "Usage: pathvarrm pathvar directory [...]" >&2
 		return 2
 	fi
 	IFS=':'
@@ -846,7 +846,7 @@ dotfiles2git ()
 
         git-sccsimport --move-date=2010/11/5T00:00:00 --move-offset=3 --expand-kw --maildomain=robohack.ca --git-dir="$HOME/work/home" --dirs SCCS && cd $HOME/work/home && git push --mirror
 	if [ $? -ne 0 ]; then
-		echo "$0:  check for errors above!" 1>&2
+		echo "dotfiles2git:  check for errors above!" 1>&2
 		#
 		# Quite possibly some aspect of some change that had
 		# already been imported was accidentally changed causing
@@ -879,7 +879,7 @@ archivedotfiles ()
 
 	# remove g-files on $CENTRAL_SERVER that have been removed in SCCS
 	#
-	removed="$(vremoved)"
+	removed=`vremoved`
 	if [ -n "${removed}" ]; then
 		ssh ${CENTRAL_USER}@${CENTRAL_SERVER} rm -f ${removed}
 	fi
@@ -911,12 +911,12 @@ publishdotfiles ()
 {
 	case ${HOSTNAME} in
 	${CENTRAL_SERVER%%.*}*)	# assume there is only one by this name!
-		echo "$0: not useful when run on server host!" 1>&2
+		echo "publishdotfiles: not useful when run on server host!" 1>&2
 		return 2
 		;;
 	${HOME_SERVER}*)
 		if [ -z "${HOME}" ]; then
-			echo "$0: HOME is unset or empty!" 1>&2
+			echo "publishdotfiles: HOME is unset or empty!" 1>&2
 			return 2
 		fi
 		( cd ${HOME}; ${SCCS:-"sccs"} info )
@@ -930,7 +930,7 @@ publishdotfiles ()
 		archivedotfiles
 		;;
 	*)
-		echo "$0: not useful when run on client host!" 1>&2
+		echo "publishdotfiles: not useful when run on client host!" 1>&2
 		return 2
 		;;
 	esac
@@ -943,14 +943,14 @@ releasedotfiles ()
 {
 	case ${HOSTNAME} in
 	${CENTRAL_SERVER})
-		echo "$0: not useful when run on server host!" >&2
+		echo "releasedotfiles: not useful when run on server host!" >&2
 		return 1
 		;;
 	more*)
 		( cd ${HOME}
 
 		vcheck || {
-			echo "$0: files still being edited!" >&2
+			echo "releasedotfiles: files still being edited!" >&2
 			return 1
 		}
 
@@ -969,7 +969,7 @@ releasedotfiles ()
 		# (note I had never put these in /work/release.d, so no need to
 		# do so now)
 		#
-		REL="$(vcurrentrel)"
+		REL=`vcurrentrel`
 		scp dotfiles.list ${CENTRAL_USER}@${CENTRAL_SERVER}:\~ftp/pub/local/dotfiles-v$REL.list
 		scp dotfiles.tar.gz ${CENTRAL_USER}@${CENTRAL_SERVER}:\~ftp/pub/local/dotfiles-v$REL.tar.gz
 		ssh ${CENTRAL_USER}@${CENTRAL_SERVER} ln -fhs dotfiles-v${REL}.list \~ftp/pub/local/dotfiles.list
@@ -980,13 +980,13 @@ releasedotfiles ()
 		#
 		vnewrel
 		if [ $? -ne 0 ]; then
-			echo "$0:  check for errors above!" >&2
+			echo "releasedotfiles:  check for errors above!" >&2
 			return 1
 		fi
 		)
 		;;
 	*)
-		echo "$0: this host needs dotfiles updates!" >&2
+		echo "releasedotfiles: this host needs dotfiles updates!" >&2
 		return 1
 		;;
 	esac
@@ -994,12 +994,13 @@ releasedotfiles ()
 
 pushdotfiles ()
 {
+	# XXX maybe _e_opt should default to "-e rsh" since that's what _rsh does (because RSH)?  or just default to SSH???
 	_e_opt=""
 	_user=${LOGNAME}
 	_copy=false
-	_rcp=${RCP:-"scp"}
+	_rcp=${RCP:-"scp"}	# xxx currently RCP is a fictional variable
 	_rsh=${RSH:-"ssh"}
-	_USAGE="$0: Usage: $0 [-c] [-e TRANSPORT] [-u RUSER] hostname"
+	_USAGE="Usage: pushdotfiles [-c] [-e TRANSPORT] [-u RUSER] hostname"
 	OPTIND="1"
 	while getopts "ce:u:" OPTCH
 	do
@@ -1019,7 +1020,7 @@ pushdotfiles ()
 				_rsh=ssh
 				;;
 			*)
-				echo "$0: ${OPTARG}: unknown transport" >&2
+				echo "pushdotfiles: ${OPTARG}: unknown transport" >&2
 				return 2
 			esac
 			;;
@@ -1039,7 +1040,7 @@ pushdotfiles ()
 		return 2
 	fi
 	if $_copy; then
-		rdirs="$(grep '/$' ${HOME}/dotfiles.list)"
+		rdirs=`grep '/$' ${HOME}/dotfiles.list`
 		if [ $_rcp = "rcp" -a -n "${rdirs}" ]; then
 			echo "pushdotfiles: rcp cannot create or copy subdirectories along with files!" >&2
 			return 2
@@ -1050,6 +1051,7 @@ pushdotfiles ()
 				${_rsh} ${_user}@${1} chmod +w ${_rdir}/\*
 			done
 		fi
+		# XXX hmmm.... stale SCCS/p. files might never get removed!
 		( cd $HOME
 		  ${_rcp} -p -r `cat ${HOME}/dotfiles.list` ${_user}@${1}:
 		)
@@ -1057,10 +1059,12 @@ pushdotfiles ()
 	else
 		rsync ${_e_opt} -v -lptHS --progress --stats --files-from=${HOME}/dotfiles.list ${HOME} ${_user}@${1}:.
 	fi
-	removed="$(vremoved)"
-	if [ -n "${removed}" ]; then
+	( cd $HOME
+	  removed=`vremoved`
+	  if [ -n "${removed}" ]; then
 		${_rsh} ${_user}@${1} rm -f ${removed}
-	fi
+	  fi
+	)
 	unset _copy _e_opt _rcp _rsh _user _USAGE removed OPTCH
 }
 
@@ -1671,7 +1675,7 @@ sedjoinnext ()
 # Display the opening doc comment in a script file.
 #
 shelp () {
-        _binfile=`which "$0"`
+        _binfile=`which "$1"`
 
         _hdr=`dd if="$_binfile" count=2 bs=1`
         if [ "$_hdr" = "#!" ]; then
@@ -1865,7 +1869,7 @@ if [ -n "$DISPLAY" ]; then
 		# used....
 		#
 		if [ -z "${_X11server}" ]; then
-			echo "$0: -X X11SERVERNAME not set!" >&2
+			echo "onx11server: -X X11SERVERNAME not set!" >&2
 			echo "$_USAGE" >&2
 			return 2
 		fi
