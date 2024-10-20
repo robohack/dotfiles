@@ -2,7 +2,7 @@
 !
 !	.X11-m4macros.m4 - shared M4 macros for xrdb and ctwm uses
 !
-!#ident	"@(#)HOME:.X11-m4macros.m4	37.3	24/10/16 17:12:02 (woods)"
+!#ident	"@(#)HOME:.X11-m4macros.m4	37.4	24/10/20 14:47:15 (woods)"
 !
 ! This file is sourced for a couple of uses by ~/.xinitrc, once to define shell
 ! variables, and again to process ~/.fonts.alias.m4; and it is also sourced by
@@ -26,8 +26,8 @@
 !
 ! Work out the screen resolution in order to specify default Font DPIs.
 !
-! n.b.:  resolutions are in pixels per metre, for some stupid reason....
-! so 4500 dpM (/39.37) is just over 110 dpi (8594 dpM is 218 dpi)
+! n.b.:  resolutions are in pixels per metre, for some stupid reason, so we can
+! divide by the number of inches in a metre (39.370079) to get dots-per-inch:
 !
 ! define(HorizDPI, eval(((X_RESOLUTION * 100) / 3937) + ((((X_RESOLUTION * 1000) / 3937) % 10) >= 5)))
 ! define(VertDPI, eval(((Y_RESOLUTION * 100) / 3937) + ((((Y_RESOLUTION * 1000) / 3937) % 10) >= 5)))
@@ -52,34 +52,47 @@
 !   [define(FontYDPI, 100)],
 !   [define(FontYDPI, VertDPI)]
 ! )
-! 
+!
 ! XXX this is not really necessary (was used for Emacs.Font resource once upon a
 ! time), but is is an example of how to work out the number of pixels for a
 ! given point size (9.0 and 10.0 here).  In digital typefaces a font's point
 ! size is defined by the _width_ of a capital M at that point size (in "points",
-! i.e. units of 1/72 of an inch), and although it is normally an almost square
-! character, that doesn't take into account the descender.  What we really want
-! is the distance between one baseline and the next, which is the sum of the
-! body height and the leading, often expressed as "characters per inch
-! vertically" (as in RFC 678) or lines of text per inch.  Xterm calculates this
-! (using the actual ascender and descender sizes) on average at about 23% more
-! than the distance in points (at least for these "normal: sized fonts)
+! i.e. units of 1/72.27 of an inch), and although it is normally an almost
+! square character, that doesn't take into account the descender.  What we
+! really want is the distance between one baseline and the next, which is the
+! sum of the body height and the leading, often expressed as "characters per
+! inch vertically" (as in RFC 678) or lines of text per inch.  Xterm calculates
+! this (using the actual ascender and descender sizes) on average at about 23%
+! more than the distance in points (at least for these "normal: sized fonts)
 !
-! define(VertPix9pt, eval(((VertDPI * ((900 * 123) / 720)) / 1000)))
-! define(VertPix10pt, eval(((VertDPI * ((1000 * 123) / 720)) / 1000)))
+! define(VertPix9pt, eval(((VertDPI * ((9000 * 123) / 7227)) / 10000)))
+! define(VertPix10pt, eval(((VertDPI * ((10000 * 123) / 7227)) / 10000)))
 !
 !
 ! Window and Window Element Size and Positioning macros
 ! =====================================================
 !
+! *DPI could be used here, but [XY]_RESOUTION is the native value, avoiding
+! rounding:
+!
+!	4000 dpM is ~101 dpi
+!	4288 dpM is ~109 dpi	# iMac 27"
+!	8000 dpM is ~203 dpi
+!	8594 dpM is ~218 dpi	# XDR Pro
+!	12000 dpM is ~304 dpi
+!	13100 dpM is ~331 dpi	# ASUS Zenbook
+!
 ! These are used by both ~/.ctwmrc and ~/.xinitrc
 !
-! ifelse(eval(X_RESOLUTION >= 8000 && Y_RESOLUTION >= 8000), 1,
-!   [define(BORDERWIDTH, [6]) define(TDBORDERWIDTH, [10]) define(ShadowDepth, [5])],
-!   [ifelse(eval(X_RESOLUTION >= 4500 && Y_RESOLUTION >= 4500), 1,
-!      [define(BORDERWIDTH, [4]) define(TDBORDERWIDTH, [8]) define(ShadowDepth, [4])],
-!      [define(BORDERWIDTH, [2]) define(TDBORDERWIDTH, [6]) define(ShadowDepth, [3])]
-!   )]
+! ifelse(eval(X_RESOLUTION >= 12000 && Y_RESOLUTION >= 12000), 1,
+!   [define(BORDERWIDTH, [12]) define(TDBORDERWIDTH, [14]) define(ShadowDepth, [7])],
+! [ifelse(eval(X_RESOLUTION >= 8000 && Y_RESOLUTION >= 8000), 1,
+!   [define(BORDERWIDTH, [8]) define(TDBORDERWIDTH, [10]) define(ShadowDepth, [5])],
+! [ifelse(eval(X_RESOLUTION >= 4500 && Y_RESOLUTION >= 4500), 1,
+!   [define(BORDERWIDTH, [6]) define(TDBORDERWIDTH, [8]) define(ShadowDepth, [4])],
+!   [define(BORDERWIDTH, [4]) define(TDBORDERWIDTH, [6]) define(ShadowDepth, [3])]
+! )]
+! )]
 ! )
 !
 ! The TitleHeight in the CTWM code is: Scr->TitleBarFont.height + Scr->FramePadding * 2;
@@ -192,6 +205,11 @@
 ! default X11 monospaced font with a 'c' spacing, so it is unusable -- but it is
 ! missing rather a large number of glyphs anyway!  but it is the only
 ! good-looking monospace font with serifs)
+! 
+! N.B.:  Currently with the DejaVu fonts, in addition to the normal slant="r",
+! the DejaVuSansMono and DejaVuSans fonts only have slant="o" while DejaVuSerif
+! only has slant="i" (and DejaVuSansLite has no italic/oblique face).  XXX There
+! should probably be a corresponding DecentFont*Italic variable to select this.
 !
 ! define(DecentFont, [DejaVu Sans Mono])
 ! define(DecentFontSans, [DejaVu Sans])
