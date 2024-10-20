@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.36	24/10/16 17:01:42 (woods)"
+#ident	"@(#)HOME:.profile	37.37	24/10/20 14:53:00 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -361,7 +361,12 @@ if [ -z "${X11PATH}" ]; then
 		fi
 	done
 	if [ -z "${X11PATH}" ]; then
-		X11PATH="/NO-X11-FOUND"
+		if [ -x /usr/bin/xterm ]; then
+			# GNU/Linux, of course, has to be different....
+			X11PATH="/usr"
+		else
+			X11PATH="/NO-X11-FOUND"
+		fi
 	fi
 	unset x11paths x11pc
 fi
@@ -585,6 +590,10 @@ else
 	# locale alias called "C.UTF-8", which is currently by default an alias
 	# for "en_US.UTF-8". but maybe the alias is more universal?
 	#
+	# xxx on Debian GNU/Linux there is a "C.utf8", and a "en_CA.utf8", and a
+	# "en_US.utf8", as well as "POSIX".  XXX However there is only a "UTF-8"
+	# character map!  So, presumably "en_CA.UTF-8" will work normally.
+	#
 	LC_NUMERIC="en_CA.UTF-8"
 	export LC_NUMERIC
 	LC_MONETARY="en_CA.UTF-8" # this is the only one different from en_US
@@ -594,6 +603,9 @@ else
 	# NetBSD but "locale -m" does not include "646" (only "US-ASCII"!)
 	#
 	# XXX Besides, shouldn't it properly be "ISO646"????
+	#
+	# xxx on Debian GNU/Linux the result is "ANSI_X3.4-1968" (which is in
+	# the "locale -m" list)
 fi
 # I am unlikely to ever want command to display times and dates in locale form!
 LC_TIME="C"
