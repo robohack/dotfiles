@@ -9,7 +9,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.31	24/10/16 17:12:02 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.32	24/10/20 14:51:40 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -218,15 +218,19 @@ MenuFont	"-*-dejavu sans-medium-r-normal--*-80-FontXDPI-FontYDPI-p-0-iso10646-1"
 #ResizeFont	"-*-bitstream charter-bold-i-normal--*-300-FontXDPI-FontYDPI-p-0-iso10646-1"
 #
 #ResizeFont	"-*-courier-bold-i-normal--*-300-FontXDPI-FontYDPI-m-0-iso10646-1"
-# luxi mono (a serif font) has nice looking numbers
-ResizeFont	"-*-luxi mono-bold-o-normal--*-300-FontXDPI-FontYDPI-m-0-iso10646-1"
+# luxi mono (a serif font) has nice looking numbers, but it isn't everywhere
+#ResizeFont	"-*-luxi mono-bold-o-normal--*-300-FontXDPI-FontYDPI-m-0-iso10646-1"
+ResizeFont	"-*-courier 10 pitch-bold-i-normal--*-300-FontXDPI-FontYDPI-m-0-iso10646-1"
 
 #WorkSpaceFont	"-*-helvetica-*-r-*--10-*-*-*-*-*-*-*"
 WorkSpaceFont	"-*-dejavu sans-medium-r-normal--*-70-FontXDPI-FontYDPI-p-0-iso10646-1"
 
 # XXX which is the font for the "identify" and "about" windows?
 
-## XXX DefaultFont is not yet configurable (it should first use this, or else the "*font" resource, or lastly the compiled in font)
+## XXX DefaultFont is not yet configurable (I hacked a fix for NetBSD's version
+## but....) (it should first use this, or else the "*font" resource, or lastly
+## the compiled in font)
+##
 ##DefaultFont	"-*-courier-bold-r-*-*-*-100-FontXDPI-FontYDPI-*-*-iso10646-1"
 ##DefaultFont	"-*-dejavu sans mono-medium-r-normal--*-100-FontXDPI-FontYDPI-m-0-iso10646-1"
 
@@ -795,6 +799,7 @@ Button2 = meta		: icon		: f.iconify
 Button3 = meta		: icon		: f.lower
 
 Button1 =		: iconmgr	: f.function "deiconify-and-raise"
+Button1 = [shift]	: iconmgr	: f.raise
 Button1 = control	: iconmgr	: f.raise
 Button1 = mod2		: iconmgr	: f.iconify
 Button2 =		: iconmgr	: f.raiselower
@@ -1602,7 +1607,13 @@ menu "xterms"
 	"Slogin-big @central"	!"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -e 'slogin -CY central.weird.com' &"
 	"Slogin @b2"		!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -e 'slogin -CY b2.avoncote.ca' &"
 	"Slogin-big @b2"	!"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -e 'slogin -CY b2.avoncote.ca' &"
-  ifdef([AT_VERY_LOCAL], [], [
+  ifdef([AT_VERY_LOCAL], [
+	# xxx until MDNS is integrated in nsdispatch(3) in NetBSD, only macos can find dynamic names....
+	"Slogin @westley-tng"	!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -e 'slogin -CY westley-tng.local' &"
+	"Slogin-big @westley-tng" !"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -e 'slogin -CY westley-tng.local' &"
+	"Slogin @wayback"	!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -e 'slogin -CY wayback.local' &"
+	"Slogin-big @wayback"	!"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -e 'slogin -CY wayback.local' &"
+  ], [
 	"Slogin @very"		!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -e 'slogin -CY very.local' &"
 	"Slogin-big @very"	!"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -e 'slogin -CY very.local' &"
   ])
