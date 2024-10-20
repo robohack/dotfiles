@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.29	24/10/16 17:12:02 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.30	24/10/20 14:56:06 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -75,6 +75,8 @@ unset XOPATH
 echo "$argv0: using X11 in '$X11PATH'"
 
 # XXX for debugging
+#
+# N.B.:  debugging can break XQuartz as mentioned in the warning above!
 #
 DEBUG=false
 #DEBUG=true
@@ -152,10 +154,13 @@ fi
 
 if [ -r ${X11PATH}/lib/X11/fonts/misc/fonts.dir ]; then
 	X11FONTDIR=${X11PATH}/lib/X11/fonts
-#elif [ -r ${X11PATH}/share/fonts/misc/fonts.dir ]; then
+elif [ -r ${X11PATH}/share/fonts/X11/misc/fonts.dir ]; then
+	X11FONTDIR=${X11PATH}/share/fonts/X11
 else
 	X11FONTDIR=${X11PATH}/share/fonts
 fi
+export X11FONTDIR
+echo "$argv0: X11FONTDIR='${X11FONTDIR}'"
 
 # Set shell variables from things calculated in ~/.X11-macros.m4
 #
@@ -538,7 +543,7 @@ if [ -z "$WM" ]; then
 	elif type fvwm >/dev/null 2>&1; then
 		WM=fvwm
 	elif type twm >/dev/null 2>&1; then
-		WM=twm
+		WM="twm"
 		XTERM_OPTS="+ai ${XTERM_OPTS}"
 	else
 		echo "$argv0: assuming 'xterm' is available in lieu of a known WM..."
@@ -546,21 +551,19 @@ if [ -z "$WM" ]; then
 	fi
 	export WM
 fi
+echo "$argv0: WM='${WM}'"
 
 ONCONSOLE=false
 export ONCONSOLE
 case "$DISPLAY" in
 :[0-9]*)
 	#
-	# OK, so if we're running on the system console there's a good
-	# chance the user will never see system messages sent to
-	# /dev/console so we will try to run xconsole and also
-	# redirect our own output to /dev/console so that window
-	# manager and application errors will also go to the xconsole
-	# window.  Unfortunately there's no logging this way though...
-	#
-	# don't bother with this unless it'll do us some good...
-	# (i.e. unless XDM ran the GiveConsole script)
+	# OK, so if we're running on the system console there's a good chance
+	# the user will never see system messages sent to /dev/console so we
+	# will try to run xconsole and also redirect our own output to
+	# /dev/console so that window manager and application errors will also
+	# go to the xconsole window.  Unfortunately there's no logging to a
+	# permanent file this way though...
 	#
 	xconsole_args="-geometry ${XconsoleWidth}x${XconsoleHeight}-0-0"
 	#
@@ -589,6 +592,10 @@ case "$DISPLAY" in
 				fflush();
 			}' | xconsole $xconsole_args -file /dev/stdin &
 		#
+	#
+	# don't bother with this unless it'll do us some good though...
+	# (i.e. unless XDM ran the GiveConsole script)
+	#
 	elif [ -w /dev/console ]; then
 		ONCONSOLE=true
 		echo "$argv0: redirecting stdout and stderr to /dev/console."
@@ -600,6 +607,7 @@ case "$DISPLAY" in
 	else
 		echo "$argv0: WARNING: display was '$DISPLAY' but /dev/console is not writable by ${USER:-$LOGNAME}!"
 		ls -l /dev/console
+		# XXX this is likely startx on a system without 
 	fi
 
 	# Now since $DISPLAY doesn't have a hostname we need to figure out what
@@ -1335,7 +1343,6 @@ very.weird.com:*|very.robohack.planix.com:*)
 	;;
 
 esac
-
 
 # when the window manager exits so shall we...
 #
