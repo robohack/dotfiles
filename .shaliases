@@ -1,7 +1,7 @@
 #
 #	.shaliases - common aliases for Ksh and clones, Ash, etc.
 #
-#ident	"@(#)HOME:.shaliases	37.4	23/11/23 18:03:28 (woods)"
+#ident	"@(#)HOME:.shaliases	37.5	24/10/20 14:53:43 (woods)"
 
 if $ISSUN; then
 	alias df="/usr/bin/df"
@@ -147,12 +147,6 @@ alias snmpoidinfo='snmptranslate -T d -O f'
 alias wcvs="echo \$CVSROOT"
 alias zds="z$PAGER"
 
-alias xload-1="xload -geometry 120x40-200+48 -hl red &"
-alias xload-2="xload -geometry 120x40-200+96 -hl red &"
-alias xload-3="xload -geometry 120x40-200+144 -hl red &"
-alias xload-4="xload -geometry 120x40-200+192 -hl red &"
-alias xload-5="xload -geometry 120x40-200+240 -hl red &"
-
 alias dlog='$PAGER -en +G /var/log/debug'
 alias ilog='$PAGER -en +G /var/log/important'
 alias klog='$PAGER -en +G /var/log/kern'
@@ -165,7 +159,7 @@ alias rblcount='fgrep " matched " $MAILLOG | cut -d " " -f 13 | cut -d . -f 5- |
 alias rblstats='fgrep " matched " $MAILLOG | cut -d " " -f 10- | sort | uniq -c | sort -n | ds'
 
 # This is only useful on SysV and NetBSD-5 and newer
-alias fw='who -HurTbA'
+alias fw='who -HaT'	# xxx the T shouldn't be necessary, but is on stock NetBSD
 
 # these are only useful on SysV
 #alias lpq='lpstat -o'
