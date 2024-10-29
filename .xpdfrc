@@ -1,39 +1,13 @@
 #
 #	xpdfrc - xpdf configuration
 #
-#ident	"@(#)HOME:.xpdfrc	37.1	21/03/23 11:43:09 (woods)"
+#ident	"@(#)HOME:.xpdfrc	37.2	24/10/29 12:20:04 (woods)"
 
 # use links in graphics mode to open URLs
-# XXX only works with old version
-#urlCommand	"links -g '%s'"
-
-# use the Base-14 Type 1 fonts from ghostscript
-fontFile Times-Roman           /usr/pkg/share/fonts/urw/n021003l.pfb
-fontFile Times-Italic          /usr/pkg/share/fonts/urw/n021023l.pfb
-fontFile Times-Bold            /usr/pkg/share/fonts/urw/n021004l.pfb
-fontFile Times-BoldItalic      /usr/pkg/share/fonts/urw/n021024l.pfb
-fontFile Helvetica             /usr/pkg/share/fonts/urw/n019003l.pfb
-fontFile Helvetica-Oblique     /usr/pkg/share/fonts/urw/n019023l.pfb
-fontFile Helvetica-Bold        /usr/pkg/share/fonts/urw/n019004l.pfb
-fontFile Helvetica-BoldOblique /usr/pkg/share/fonts/urw/n019024l.pfb
-fontFile Courier               /usr/pkg/share/fonts/urw/n022003l.pfb
-fontFile Courier-Oblique       /usr/pkg/share/fonts/urw/n022023l.pfb
-fontFile Courier-Bold          /usr/pkg/share/fonts/urw/n022004l.pfb
-fontFile Courier-BoldOblique   /usr/pkg/share/fonts/urw/n022024l.pfb
-fontFile Symbol                /usr/pkg/share/fonts/urw/s050000l.pfb
-fontFile ZapfDingbats          /usr/pkg/share/fonts/urw/d050000l.pfb
+urlCommand	"links -g '%s'"
 
 # set some PostScript options
 psPaperSize          letter
-psDuplex             no
-psLevel              level2
-psEmbedType1Fonts    yes
-psEmbedTrueTypeFonts yes
-
-# assume that the PostScript printer has the Univers and
-# Univers-Bold fonts
-psResidentFont Univers      Univers
-psResidentFont Univers-Bold Univers-Bold
 
 # set the text output options
 textEncoding UTF-8
@@ -41,4 +15,6 @@ textEOL      unix
 
 # misc options
 enableFreeType  yes
-launchCommand   viewer-script
+
+# this might be suitable for macos when XQuartz is not in full-screen mode
+#launchCommand   open
