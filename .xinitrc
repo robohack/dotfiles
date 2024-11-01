@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.30	24/10/20 14:56:06 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.31	24/11/01 12:22:50 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -138,6 +138,25 @@ else
 	echo "$argv0: cannot force hi-res display without xrandr utility..."
 fi
 
+# Modern X11, since Release 5, has had decent i18n support
+#
+# This is primarily done here to make sure LC_CTYPE propagates through the
+# window manager.
+#
+# Note these settings should match what ~/.profile will set for a uxterm(1)....
+#
+if $HAVELOCALE &&  [ -z "${LC_CTYPE}" ]; then
+	# xxx should maybe check if "locale -a" reports a matching en_CA*?
+	LC_CTYPE="en_CA.UTF-8"
+	export LC_CTYPE
+	LC_NUMERIC="en_CA.UTF-8"
+	export LC_NUMERIC
+	LC_MONETARY="en_CA.UTF-8"
+	export LC_MONETARY
+else
+	echo "$argv0: WARNING!!!  An X11 system without locale(1) is unheard of!"
+fi
+
 # Xrdb stuff must come before any other client is started!
 #
 if [ -r "/usr/lib/X11/Xdefaults" ]; then
@@ -232,8 +251,8 @@ export DecentDeciPt DecentPt
 #
 DecentFont="DejaVu Sans Mono"
 
-DefaultFontSpec='-*-${DecentFont}-medium-r-*-*-*-${DecentDeciPt}-${FontXDPI}-${FontYDPI}-m-*-iso10646-1'
-DefaultFontSpecL1='-*-${DecentFont}-medium-r-*-*-*-${DecentDeciPt}-${FontXDPI}-${FontYDPI}-m-*-iso8859-1'
+DefaultFontSpec='-*-${DecentFont}-medium-r-normal--0-${DecentDeciPt}-${FontXDPI}-${FontYDPI}-m-*-iso10646-1'
+DefaultFontSpecL1='-*-${DecentFont}-medium-r-normal--0-${DecentDeciPt}-${FontXDPI}-${FontYDPI}-m-*-iso8859-1'
 export DefaultFontSpec DefaultFontSpecL1
 #
 DecentFontSpec=$(eval echo "${DefaultFontSpec}")
@@ -471,7 +490,7 @@ else
 	XconsoleHeight=$(expr ${SCREENDPI_Y} \* 1) # 1 inch
 fi
 # n.b. not sure why there was only one borderWidth involved originally!
-XconsoleVoff=$(expr ${XconsoleHeight} + ${TitleHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+XconsoleVoff=$(expr ${XconsoleHeight} + ${TitleHeight} + ${TDBorderWidth} + ${TDBorderWidth} + ${TDBorderWidth})
 
 # XTerm options which cannot to be set consistently with resources, ("+ai" may
 # be added below, depending on which window manager is used), or which should
@@ -711,6 +730,11 @@ xtra*:*|xtremely*:*)
 		esac
 	else
 			echo "$argv0: $HOME/.Xmodmap-ncd-108 not found!"
+	fi
+	;;
+wayback*:*)
+	if [ -r $HOME/.Xmodmap-reverse-scroll ]; then
+		xmodmap $HOME/.Xmodmap-reverse-scroll
 	fi
 	;;
 esac
@@ -1055,7 +1079,8 @@ very.local:*|very-old.local:*)
 	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X xentastic.local 'xauth nmerge -'
 	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X nb10.local 'xauth nmerge -'
 	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -S -X nbday.local 'xauth nmerge -'
-	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X nbt.local 'xauth nmerge -'
+	# xxx something goes wrong with the bridge started by UTM after some time and its VMs can't reach the main host!
+	#xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X nbt.local 'xauth nmerge -'
 	#xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X nbt2.local 'xauth nmerge -'
 	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X nbtest.local 'xauth nmerge -'
 	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X nbtcur.local 'xauth nmerge -'
@@ -1181,9 +1206,10 @@ very.local:*|very-old.local:*)
 	fi
 
 	onx11server -n -X more.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
+	onx11server -n -X once.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
 	onx11server -n -X nb10.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
 	onx11server -fS -X nbday.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
-	onx11server -n -X nbt.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
+	#onx11server -n -X nbt.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
 	onx11server -n -X nbtest.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
 	onx11server -n -X nbtcur.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
 	onx11server -fS -X fezzik.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &

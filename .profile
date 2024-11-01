@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.37	24/10/20 14:53:00 (woods)"
+#ident	"@(#)HOME:.profile	37.38	24/11/01 12:22:50 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -543,10 +543,15 @@ fi
 # unset LC_* variables, and LESSCHARSET is the equivalent of LC_CTYPE (just for
 # "less", of course)
 #
-# Note also that "uxterm" will (have) set LC_CTYPE=en_US.UTF-8 if none of
+# Note also that "uxterm" will (have) set LC_CTYPE=en_US.UTF-8 IFF none of
 # LC_ALL, LC_CTYPE, or LANG were set on invocation.
 #
+HAVELOCALE=false
+if type locale >/dev/null 2>&1; then
+	HAVELOCALE=true
+fi
 if [ -z "${LC_CTYPE}" -a -z "${LC_ALL}" -a -z "${LANG}" ]; then
+	# note TERM here is a preset one, not a proven one as below
 	case "${TERM}" in
 	wsvt25*)
 		# this lets those pesky high-bit chars show through...
@@ -565,8 +570,9 @@ if [ -z "${LC_CTYPE}" -a -z "${LC_ALL}" -a -z "${LANG}" ]; then
 		# mode and loaded with an "iso" (i.e. ISO-8859-1) font.
 		;;
 	xterm*)
-		# Xterm will normally set the environment up for itself, i.e. if
-		# it was started as "uxterm" then we're NOT in this 'if' block!
+		# Xterm will normally set the environment up for itself, i.e. so
+		# if it was started as "uxterm" then we're NOT in this 'if'
+		# block!
 		#
 		# For less, from the man page:
 		#	If neither LESSCHARSET nor LESSCHARDEF is set, but any of the strings
@@ -580,8 +586,33 @@ if [ -z "${LC_CTYPE}" -a -z "${LC_ALL}" -a -z "${LANG}" ]; then
 		;;
 	esac
 else
-	# Here we have LC_CTYPE (and/or LC_ALL and/or LANG)...
+	# Here we should have either LC_CTYPE (and/or LC_ALL and/or LANG)....
 	#
+	# first try to set LC_CTYPE (i.e. from LC_ALL or LANG) if it is not
+	# set...
+	#
+	if $HAVELOCALE && [ -z "${LC_CTYPE}" ]; then
+		eval `locale | fgrep LC_CTYPE`
+	fi
+	#
+	# this likely never happens, but if it is still not set, but we appear
+	# to have locale(1), force it to our favourite
+	#
+	if $HAVELOCALE &&  [ -z "${LC_CTYPE}" ]; then
+		# xxx should maybe check if "locale -a" reports a matching en_CA*?
+		LC_CTYPE="en_CA.UTF-8"
+		export LC_CTYPE
+	fi
+	#
+	# translate LC_CTYPE=en_US* to LC_CTYPE=en_CA* for S's & G's
+	#
+	case "${LC_CTYPE}" in
+	en_US.*)
+		# xxx should maybe check if "locale -a" reports a matching en_CA*?
+		LC_CTYPE="en_CA."${LC_CTYPE##"en_US."}
+		;;
+	esac
+	export LC_CTYPE
 	# xxx printf(3)'s "%'d" flag (i.e. the "'") is pedantic about having a
 	# known locale set for at least LC_NUMERIC before it does commification!
 	#
@@ -957,7 +988,7 @@ if ${ISATTY}; then
 		#
 		if ${HAVETPUT} ; then
 			if tput longname > /dev/null; then
-				:
+				:	# all is well....
 			else
 				echo "NOTICE:  the preset TERM=${TERM} is unknown...";
 				TERM=unknown;
