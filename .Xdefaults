@@ -2,7 +2,7 @@
 !
 ! changequote([, ])	note brackets will disappear from comments!
 !
-!#ident	"@(#)HOME:.Xdefaults	37.14	24/10/20 14:49:24 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.15	24/11/01 13:40:14 (woods)"
 !
 ! N.B. WARNING:  This file must be processed with "xrdb -cpp m4" with macros and
 ! macro calls in the comments.  (perhaps it should be renamed to .Xdefaults.m4?)
@@ -13,12 +13,13 @@
 ! Maybe this should be converted to use cpp instead of m4 as some environments
 ! do not allow any easy way to specify extra command-line arguments for how they
 ! run xrdb (e.g. KDE Plasma), but keeping it as m4 allows use of the shared
-! macro definitions in .X11-m4macros.mr for ~/.ctwmrc and .fonts.alias.m4.
+! macro definitions in .X11-m4macros.m4 for ~/.ctwmrc and .fonts.alias.m4.
 ! Besides those strange environments can be worked around by running
 !
 !	mv .Xdefaults .Xdefaults.m4; xrdb -quiet -cpp m4 -E -n .Xdefaults.m4 > .Xdefaults
 !
-! (note also some desktop environments use "~/.Xresources" as their pref. name)
+! (note some desktop environments first look for ~/.Xdefaults-${HOSTNAME}, while
+! others use "~/.Xresources" as their pref. name)
 !
 ! Reload this file with (which is normally done in ~/.xinitrc):
 !
@@ -104,38 +105,47 @@
 !
 *StringConversionWarnings: on
 !
+! XXX editres(1) doesn't seem to work on XQuartz, nor does this help...
+*editresBlock: none
 !
 ! Xft setup:
 ! ==========
 !
-! For Xft we force the Xft.dpi resource to be set to what we've worked out above
-! so this allows the physical font size to be specified, in points, (either with
-! a ":size=" attribute in the font spec (which can be abbreviated as "-POINTS"),
-! or with a command-line option to override that, e.g. with Xterm's "-fs"
-! option.  See fonts.conf(5).
+! For Xft we force the Xft.dpi resource to be set to what we've worked out in
+! the macros file so this allows the physical font size to be specified, in
+! points, (either with a ":size=" attribute in the font spec (which can be
+! abbreviated as "-POINTS"), or with a command-line option to override that,
+! e.g. with Xterm's "-fs" option.  See fonts.conf(5).
 !
 ! Note that Xft does not seem to initialize the default Xft.dpi setting properly
-! -- it does do the right computation:
+! itself -- though it does do the right computation:
 !
 !	dpi = (((double) DisplayHeight (dpy, screen) * 25.4) /
 !		(double) DisplayHeightMM (dpy, screen));
 !
-! However if you ask for a font without specifying the actual resolution for the
-! screen you are going to display it on then it just gives you, at best, the
-! option for a 100x100 dpi scaled variant:
+! However if you ask for a font using an XLFD spec. without specifying the
+! actual resolution for the screen you are going to display it on then it just
+! gives you, at best, the option for a 100x100 dpi scaled variant, and indeed
+! that's what will usually be rendered:
 !
-! $ xlsfonts -fn '-*-liberation mono-medium-r-*-*-0-0-*-*-m-0-iso10646-1'
-! -misc-liberation mono-medium-r-normal--0-0-0-0-m-0-iso10646-1
-! -misc-liberation mono-medium-r-normal--0-0-100-100-m-0-iso10646-1
+! $ xlsfonts -fn '-*-liberation mono-medium-r-normal--0-0-*-*-m-*-iso10646-1'
+! -misc-liberation mono-medium-r-normal--0-0-0-0-m-*-iso10646-1
+! -misc-liberation mono-medium-r-normal--0-0-100-100-m-*-iso10646-1
 !
-! $ xlsfonts -fn '-*-commitmono-medium-r-*-*-0-0-*-*-m-0-iso10646-1'
-! -misc-commitmono-medium-r-normal--0-0-0-0-m-0-iso10646-1
-! -misc-commitmono-medium-r-normal--0-0-100-100-m-0-iso10646-1
+! $ xlsfonts -fn '-*-commitmono-medium-r-normal--0-0-*-*-m-*-iso10646-1'
+! -misc-commitmono-medium-r-normal--0-0-0-0-m-*-iso10646-1
+! -misc-commitmono-medium-r-normal--0-0-100-100-m-*-iso10646-1
 !
-! In fact according to the X Logical Font Description the ptSz and resY are to
-! be used by X clients querying for fonts according to device-independent size
-! in order to maintain constant text size on the display regardless of the pixel
-! size.
+! According to the X Logical Font Description the ptSz and resY are to be used
+! by X clients querying for fonts according to device-independent size in order
+! to maintain constant text size on the display regardless of the pixel size;
+! however unfortunately the standard code parsing XLFDs does not query for, nor
+! use, any available DPI value to try to achieve this.  Instead one must
+! explicitly specify the final desired DPI in the XLFD spec. request:
+!
+! $ xlsfonts -fn '-*-liberation mono-medium-r-normal--0-100-218-218-m-*-iso10646-1'
+! -misc-liberation mono-medium-r-normal--0-100-218-218-m-0-iso10646-1
+! -misc-liberation mono-medium-r-normal--0-100-218-218-m-0-iso10646-1
 !
 ! I have patches for Xfontsel (now included in xfontsel-1.1.0 and newer) that
 ! will allow it to give you the option of choosing the actual resX and resY
@@ -147,7 +157,7 @@
 ! value on the Xserver command line with "-dpi" (though note the latter sets the
 ! resolution for all screens, and should only be used when the server cannot
 ! determine the physical display size, and/or it learns lies about it, e.g. as
-! it does with Xquartz on XDR Pro).
+! it does with Xquartz on an XDR Pro screen).
 !
 *dpi:		VertDPI
 Xft.dpi:	FontYDPI
@@ -174,49 +184,157 @@ Xft.minspace:			true
 !
 ! Note we want to pass a '0' for pixelSz for applications that will properly use
 ! normal XLFD specs for scalable fonts, but for others we might be better off
-! passing a '*' instead, or maybe VertPix9pt as for Emacs?
+! passing a '*' instead.
 !
 ! xxx hmmm.... which of these do what?  Are there any apps that still cannot use
-! scalable fonts?
+! scalable fonts?  (All using libXt can!)
 !
-*Font:				-*-DecentFont-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-*
-! this next one is used by xfontsel, xconsole, etc., and may have been same as
-! "7x14"?, but that is way too big, so we shrink it down to be the same as "6x10"
-*font:				-*-DecentFont-medium-r-normal--0-72-FontXDPI-FontYDPI-m-0-iso8859-*
+! Solaris CDE docs say "*Font -- supports earlier version of X applications"
 !
-! xxx should this have '-m-' for monospace?
-*fontList:			-*-*-*-*-*--0-90-FontXDPI-FontYDPI-*-0-*-*
-! mentioned for Solaris CDE...
-*SystemFont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
-*UserFont:			-*-DecentFont-medium-r-normal--0-100-FontXDPI-FontYDPI-m-0-iso8859-*
+! Indeed with the note from libXaw shown below one should probably assume all
+! applications using *font natively are 8-bit only (e.g. xmessage), however as
+! the XLFD manual allows for, we can choose any registry that is "compatible"
+! with the user's locale setting, and since iso10646-1 is compatible with
+! iso8859-1, we go big!
+!
+! First though, we set the "International" resource, which helps where possible
+! to allow full UTF-8 in widgets and apps (e.g. including xmessage, but not
+! xman, or xedit).
+!
+! N.B.: for now we keep both *font and *fontSet resources (the same), ostensibly
+! to make it possible to turn this off for testing.
+!
+international:			true
+*international:			true
+!
+! Font and font are probably not used with international set true above.
+!
+*Font:				-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+*font:				-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+!
+! "In order to support multi-byte encodings, the concept of a FontSet was
+! introduced in R5."
+!
+! from the libXaw manual:
+!
+! *font		The text font to use when displaying the list, when the international resource is false.
+! *fontSet	The text font set to use when displaying the list, when the international resource is true.
+!
+!	"A font set is a collection of fonts suitable for rendering all codesets
+!	in a locale's encoding"
+!
+! See https://blog.summercat.com/x-fonts-and-rpbar.html for more discussion.
+! See also https://superuser.com/a/1596296
+!
+! XXX Unfortunately no new standard command-line option was added to specify an
+! explicit fontSet choice, and '-fn' does not extend itself to doing this.  The
+! only fallback is to try overriding with the '-xrm "*fontSet: blah' generic
+! resource setting flag.
+!
+! An example of "a single locale-independent base font name" from the libX11
+! documentation, presumably to be used in a *fontSet resource, but it doesn't
+! seem like it will normally do anything useful and will rely on the exact
+! ordering of the server's fontpath and what fonts are available:
+!
+!	"-*-*-*-R-Normal--*-180-100-100-*-*"
+!
+! A possible example for Japanese users (not sure what locale(1) settings this
+! matches, but possibly "ja_JP.eucJP"):
+!
+!	"-jis-fixed-medium-r-normal--24-230-75-75-c-240-jisx0208.1983-0;-sony-fixed-medium-r-normal--24-230-75-75-c-120-jisx0201.1976-0;-b&h-lucidabright-medium-i-normal--24-0-100-100-p-0-iso8859-1"
+!
+! And another (what expands the "%d"s???):
+!
+!	"-sony-fixed-medium-r-normal--*-%d-*-*-c-*-jisx0201.1976-0,-b&h-lucida-medium-r-normal-sans-*-%d-*-*-p-*-iso8859-1,-wadalab-mincho-medium-r-normal--*-%d-*-*-c-*-jisx0208.1983-0"
+!
+! XXX some apps have really strange/broken FontSet definitions, such as gv!
+!
+! CDE documentation gives the somewhat bizarre advice:  "Specific fonts within a
+! font set should be specified using XLFD naming conventions without the charset
+! field specified."  (which could make sense for modern fonts with multiple
+! available encodings, and then the locale and the X Locale Database mappings,
+! would select the "right" font by default)
+!
+! So basically that means you can define a fontSet with a set of fonts, each
+! with different(?) encodings to get full coverage for the locale(s) the user(s)
+! might be using.
+!
+! Now, since iso10646-1 is the "universal" Unicode encoding for UTF-8, it should
+! be the only font that needs to be listed in any fontSet for users using any
+! *.UTF-8 locale:
+!
+! XXX but note that the default *.UTF-8 locale for most non-Asian languages
+! (including C.UTF-8) is (via the .../locale/locale.dir file) "en_US.UTF-8", and
+! the libX11 X Locale Database for it, .../locale/en_US.UTF-8/XLC_LOCALE,
+! contains magic re-mappings that will screw some things up, including some of
+! the XCalc button labels given below!  These magic re-encodings are also the
+! origin of the infamous "Warning: Missing charsets in String to FontSet
+! conversion" message.  They should all just be removed!
+!
+*FontSet:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+*fontSet:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
 !
 ! XXX is this right?  Does it do anything?  Some app-defaults files mention XtDefaultFont
 !
-! XXX some apps have really strange FontSet definitions, such as gv
-!
 ! these are mentioned as the default values for font and fontSet resources for
 ! the Xt AsciiText widget
-XtDefaultFont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
-xtDefaultFont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
-*xtDefaultFont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
 !
-! e.g. viewres uses xtDefaultFontSet....
-XtDefaultFontSet:		-*-DecentFont-medium-r-normal--*-90-FontXDPI-FontYDPI-m-0-iso8859-*,-*-DecentFont-*-*-*--*-90-FontXDPI-FontYDPI-*-*-iso8859-*,-*-*-*-*-*--*-*-FontXDPI-FontYDPI-*-*-iso8859-*
-xtDefaultFontSet:		-*-DecentFont-medium-r-normal--*-90-FontXDPI-FontYDPI-m-0-iso8859-*,-*-DecentFont-*-*-*--*-90-FontXDPI-FontYDPI-*-*-iso8859-*,-*-*-*-*-*--*-*-FontXDPI-FontYDPI-*-*-iso8859-*
-*xtDefaultFontSet:		-*-DecentFont-medium-r-normal--*-90-FontXDPI-FontYDPI-m-0-iso8859-*,-*-DecentFont-*-*-*--*-90-FontXDPI-FontYDPI-*-*-iso8859-*,-*-*-*-*-*--*-*-FontXDPI-FontYDPI-*-*-iso8859-*
+XtDefaultFont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+xtDefaultFont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+*XtDefaultFont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+*xtDefaultFont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
 !
-! xxx these work for / affect various Xt apps....
-! viewres also(only?)....
-*Tree*List*Font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
-! editres...
-*mainViewport*resourceLabel.font:-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
-*namesLabel.font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
-*constraintLabel.font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
-! xterm et al
-*setup*title.font:		-*-bitstream charter-bold-r-*-*-*-100-FontXDPI-FontYDPI-*-*-iso8859-*
-*SimpleMenu*menuLabel.font:	-*-DecentFont-bold-r-normal--*-100-FontXDPI-FontYDPI-m-0-iso8859-*
-*SimpleMenu*font:		-*-DecentFont-bold-r-normal--*-80-FontXDPI-FontYDPI-m-0-iso8859-*
+! e.g. viewres seems to use xtDefaultFontSet....
+XtDefaultFontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+xtDefaultFontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+*XtDefaultFontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+*xtDefaultFontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+!
+! these work for / affect various Xt apps....
+!
+! N.B.:  xterm, for one, can't expand aliases (for SimpleMenu)
+!
+*label*font:			-*-DecentFontSans-bold-o-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+*label*fontSet:			-*-DecentFontSans-bold-o-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+!
+*tree*list*font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+*tree*list*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+!
+*mainViewport*resourceLabel.font:-*-DecentFontSans-medium-o-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+*mainViewport*resourceLabel.fontSet:-*-DecentFontSans-medium-o-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+!
+*namesLabel*font:		-*-DecentFontSans-medium-o-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+*namesLabel*fontSet:		-*-DecentFontSans-medium-o-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+!
+*constraintLabel*font:		-*-DecentFontSans-medium-o-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+*constraintLabel*fontSet:	-*-DecentFontSans-medium-o-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+!
+*setup*title*font:		-*-DecentFontSans-bold-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+*setup*title*fontSet:		-*-DecentFontSans-bold-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+!
+*SimpleMenu*menuLabel*font:	-*-DecentFontSans-medium-o-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+*SimpleMenu*menuLabel*fontSet:	-*-DecentFontSans-medium-o-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+!
+*SimpleMenu*font:		-*-DecentFontSans-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso10646-1
+*SimpleMenu*fontSet:		-*-DecentFontSans-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso10646-1
+!
 *SimpleMenu*cursor: 		hand2
+!
+*searchLabel*font:		-*-DecentFontSans-medium-o-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+*searchLabel*fontSet:		-*-DecentFontSans-medium-o-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+!
+*replaceLabel*font:		-*-DecentFontSans-medium-o-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+*replaceLabel*fontSet:		-*-DecentFontSans-medium-o-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+!
+! XXX these seem to have wider effect than desired, but still don't fix the CTWM
+! "identify" and "about" windows!
+!
+!*Text*Font:			9pt
+!*text*Font:			9pt
+*text*font:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+!*Text*FontSet:			9pt
+!*text*FontSet:			9pt
+*text*fontSet:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
 !
 ! really just for Xfontsel (with "-scaled"):
 !
@@ -262,51 +380,108 @@ xtDefaultFontSet:		-*-DecentFont-medium-r-normal--*-90-FontXDPI-FontYDPI-m-0-iso
 !*Scrollbar.thickness:		???
 !*Scrollbar.minimumThumb: 	???
 !
+! XXX fontList is only for Motif.  A FontList is a collection of fonts which are
+! used for drawing text in multiple different faces and styles.  Xpdf, a Motif
+! application, does use it; see below!  A FontList can apparently contain
+! (multiple? the separator should be a semicolon) FontSets, with a trailing
+! colon on the entry to designate it as a fontSet.  XXX I have not yet seen a
+! valid definition which specifies more than one font or fontSet.  XXX there
+! seem to be problems with some motif apps using UTF-8, so stick with iso8859-1
+! for now(?)
+!
+! note this also has more app-specific bindings below...
+*FontList:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+*fontList:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!
+! SystemFont and UserFont are probably for CDE, xxx stick with iso8859-1?:
+!
+*SystemFont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+*systemfont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+*UserFont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+*userfont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!
+!
+!	App-Specific Resources
+!	======================
 !
 ! Emacs is "special" -- as in especially difficult to deal with
 !
 ! Setting the FontBackend may not be necessary???  (only from 23.x(?) onwards)
 ! https://www.emacswiki.org/emacs/XftGnuEmacs
 ! Try: `(frame-parameter nil 'font-backend)'
-Emacs.FontBackend: xft
+Emacs.FontBackend:	xft
 !
 ! see also https://www.emacswiki.org/emacs/SetFonts
 !
 Emacs.Font:		DecentFont:size=9
+Emacs.FontSet:		DecentFont:size=9
 !
 ! When using XLFD font-specs emacs actually ignores the resolutions, and needs
 ! either a '*' or a non-zero pixelSz value!
 !
-!Emacs.Font:		-*-DecentFont-medium-r-normal--VertPix9pt-90-FontXDPI-FontYDPI-m-0-*-*
+!Emacs.Font:		-*-DecentFont-medium-r-normal--VertPix90dpt-90-FontXDPI-FontYDPI-m-*-iso10646-1
 !
+! these seem to work OK, even with the font aliases
+XConsole*Font:			7pt
+XConsole*FontSet:		7pt
+!
+xchrono*Font:			7pt
+xchrono*FontSet:		7pt
+!
+!
+XLoad*Font:			-*-DecentFontSerif-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso10646-1
+! xxx for testing:  this doesn't get rid of the warning from the
+! en_US.UTF-8/XLC_LOCALE bogosity -- we don't have all of the necessary
+! encodings in most fonts, I guess?
+XLoad*FontSet:			-*-DecentFontSerif-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso10646-1,\
+				-*-DecentFontSerif-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso8859-1,\
+				-*-DecentFontSerif-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso8859-2,\
+				-*-DecentFontSerif-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso8859-3,\
+				-*-DecentFontSerif-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso8859-4,\
+				-*-DecentFontSerif-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso8859-5,\
+				-*-DecentFontSerif-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-koi8-r,\
+				-*-DecentFontSerif-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso8859-7,\
+				-*-DecentFontSerif-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso8859-9,\
+				-*-DecentFontSerif-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso8859-13,\
+				-*-DecentFontSerif-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso8859-15
+!
+! n.b.:  Note xmessage's class name is "Xmessage", not "XMessage"
+Xmessage*font:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+Xmessage*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+! xxx setting the font differently for the buttons seems too complicated!  This doesn't do it....
+Xmessage*label*font:		-*-DecentFontSerif-bold-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+Xmessage*label*fontSet:		-*-DecentFontSerif-bold-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
 !
 ! Xpdf settings
 !
-Xpdf*fontList:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
+! XXX hmmm.....  xpdf cannot handle iso10646-1 (or maybe it's the motif
+! libraries?)
+!
+Xpdf*fontList:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
 Xpdf.initialZoom:		page
 ! ifdef([COLOR], [
 ! (we could in theory also use (PLANES <= 8) here...)
 !Xpdf.installCmap:		true
 ! ], [])
+! tooltip drawing is slow/broken(?)
 Xpdf.toolTipEnable:		false
 !
-! also mainly for xpdf, but also other Motif things?
-! (these use new aliases from ~/.fonts.alias.m4)
+! also mainly for xpdf, but also other Motif things?  xxx stick with iso8859-1???
 !
-*zoomComboBox*fontList:		variable
-*XmTextField*fontlist:		fixed
+*zoomComboBox*fontList:		-*-DecentFontSerif-medium-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso8859-1
+*XmTextField*fontlist:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
 !
-*buttonFontList:		varbold
-*defaultFontList:		fixed
-*labelFontList:			italic
-*menubar*fontList:		varbold
-*helpFont:			fixed
-*textFontList:			fixed
-*xrtGearFontListSelected:	bold
+*buttonFontList:		-*-DecentFontSans-bold-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso8859-1
+*defaultFontList:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+*labelFontList:			-*-DecentFontSerif-bold-o-normal--0-90-FontXDPI-FontYDPI-p-*-iso8859-1
+*menubar*fontList:		-*-DecentFontSerif-bold-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso8859-1
+*helpFont:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+*textFontList:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+*xrtGearFontListSelected:	-*-DecentFont-bold-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
 !
 ! Xterm settings:
 !
-! force TrueType (Xft) startup
+! force TrueType (Xft) startup (use "-fa FaceName" to override)
 *renderFont:			true
 *faceName:			DecentFont
 !
@@ -347,6 +522,10 @@ XTerm*ttyModes:			erase ^h
 !
 UXTerm*ptyInitialErase:		true
 XTerm*ptyInitialErase:		true
+!
+! xxx "-tb" -- even when the manual describes it, support may not exist
+!UXTerm*toolBar: 		true
+!XTerm*toolBar:			true
 !
 ! More xterm settings to avoid having to have $XTERM_OPTS everywhere:
 !
@@ -397,41 +576,39 @@ XTerm*zIconBeep:		1
 ! 
 ! xxx There are separate files for UXTerm and XTerm in app-defaults.  According
 ! to comments in UXterm the "*VT100.font" can be a wide font (one with more than
-! 256 glyphs), but if it is not wide, then it loads "*VT100.utf8Fonts.font".  I
-! do not know if XTerm sets country-code when it is a wildcard though, but it
-! seems to work OK for iso8859-1 by default.
+! 256 glyphs), but if it is not wide, then it loads "*VT100.utf8Fonts.font".
 !
 ! "Default", .faceSize is overridden by command-line "-fs", ~/.ctwmrc uses 7.5 and 9.0
-*VT100.font:			-*-DecentFont-medium-r-normal--0-75-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font:		-*-DecentFont-medium-r-normal--0-75-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.font:			-*-DecentFont-medium-r-normal--0-75-FontXDPI-FontYDPI-m-*-iso8859-1
+*VT100.utf8Fonts.font:		-*-DecentFont-medium-r-normal--0-75-FontXDPI-FontYDPI-m-*-iso10646-1
 *VT100.faceSize:	7.5
 ! Unreadable:
-*VT100.font1:			-*-DecentFont-medium-r-normal--0-05-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font1: 	-*-DecentFont-medium-r-normal--0-05-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.font1:			-*-DecentFont-medium-r-normal--0-05-FontXDPI-FontYDPI-m-*-iso8859-1
+*VT100.utf8Fonts.font1: 	-*-DecentFont-medium-r-normal--0-05-FontXDPI-FontYDPI-m-*-iso10646-1
 *VT100.faceSize1: 	0.5
 ! Tiny:
-*VT100.font2:			-*-DecentFont-medium-r-normal--0-60-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font2: 	-*-DecentFont-medium-r-normal--0-60-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.font2:			-*-DecentFont-medium-r-normal--0-60-FontXDPI-FontYDPI-m-*-iso8859-1
+*VT100.utf8Fonts.font2: 	-*-DecentFont-medium-r-normal--0-60-FontXDPI-FontYDPI-m-*-iso10646-1
 *VT100.faceSize2:	6.0
 ! Small:
-*VT100.font3:			-*-DecentFont-medium-r-normal--0-75-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font3: 	-*-DecentFont-medium-r-normal--0-75-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.font3:			-*-DecentFont-medium-r-normal--0-75-FontXDPI-FontYDPI-m-*-iso8859-1
+*VT100.utf8Fonts.font3: 	-*-DecentFont-medium-r-normal--0-75-FontXDPI-FontYDPI-m-*-iso10646-1
 *VT100.faceSize3:	7.5
 ! Medium:
-*VT100.font4:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font4: 	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.font4:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+*VT100.utf8Fonts.font4: 	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
 *VT100.faceSize4:	9.0
 ! Large:
-*VT100.font5:			-*-DecentFont-medium-r-normal--0-110-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font5: 	-*-DecentFont-medium-r-normal--0-110-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.font5:			-*-DecentFont-medium-r-normal--0-110-FontXDPI-FontYDPI-m-*-iso8859-1
+*VT100.utf8Fonts.font5: 	-*-DecentFont-medium-r-normal--0-110-FontXDPI-FontYDPI-m-*-iso10646-1
 *VT100.faceSize5:	11.0
 ! Huge:
-*VT100.font6:			-*-DecentFont-medium-r-normal--0-160-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font6: 	-*-DecentFont-medium-r-normal--0-160-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.font6:			-*-DecentFont-medium-r-normal--0-160-FontXDPI-FontYDPI-m-*-iso8859-1
+*VT100.utf8Fonts.font6: 	-*-DecentFont-medium-r-normal--0-160-FontXDPI-FontYDPI-m-*-iso10646-1
 *VT100.faceSize6:	16.0
 ! Enormous:
-*VT100.font7:			-*-DecentFont-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso8859-*
-*VT100.utf8Fonts.font7: 	-*-DecentFont-medium-r-normal--0-240-FontXDPI-FontYDPI-m-0-iso10646-1
+*VT100.font7:			-*-DecentFont-medium-r-normal--0-240-FontXDPI-FontYDPI-m-*-iso8859-1
+*VT100.utf8Fonts.font7: 	-*-DecentFont-medium-r-normal--0-240-FontXDPI-FontYDPI-m-*-iso10646-1
 *VT100.faceSize7:	24.0
 !
 ! Even with Unicode it is still nice to type accented chars
@@ -510,73 +687,176 @@ GV.gsX11AlphaDevice:	-sDEVICE=x11mono -dTextAlphaBits=4 -dGraphicsAlphaBits=4 -d
 GV.palette:		grayscale
 ! ])
 !
+! gv(1)'s UI seems unable to handle international!?!?!?
+GV*international:	false
+!
 ! xxx from strings....
-GV*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*SmeBSB.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*Button.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV.?.processButton.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV.?.Label*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV.?.Button*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV.?.locator*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV.?.dateButton*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV.?.titleButton*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optiongvPopup*infoVerboseButton.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV.?.infoVerboseButton*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV.?.prevPage*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV.?.nextPage*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*newtoc.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*fileSel*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*fileSel*button1.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*fileSel*button2.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*fileSel*button3.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*fileSel*button4.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*fileSel*pathtext*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optionsetupPopup*Label*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optionsetupPopup*confirmButton.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optionsetupPopup*Switch*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optionsetupPopup*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optionsetupPopup*Button.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optiongvPopup*Label*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optiongvPopup*Switch*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optiongvPopup*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optiongvPopup*Button.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optionfsPopup*Label*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optionfsPopup*Switch*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optionfsPopup*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optionfsPopup*Button.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optiongsPopup*Label*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optiongsPopup*Switch*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optiongsPopup*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*optiongsPopup*Button.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*dialogPopup*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*dialogPopup*Button.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*dialogPopup*message*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*notePopup*Button.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*notePopup*message*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*confirmPopup*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*confirmPopup*Button.fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*versionPopup*Label*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*versionPopup*versionTexta*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*versionPopup*versionTextb*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
-GV*infoPopup*Text*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-*-*
+GV*font:				-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*fontSet:				-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+!! xxx hmmm... the wildcard fontSet above doesn't cover the rest!
+GV*SmeBSB.font:				-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*SmeBSB.fontSet:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*Button.font:				-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*Button.fontSet:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV.?.processButton.font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV.?.processButton.fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV.?.Label*font:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV.?.Label*fontSet:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV.?.Button*font:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV.?.Button*fontSet:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV.?.locator*font:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV.?.locator*fontSet:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV.?.dateButton*font:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV.?.dateButton*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV.?.titleButton*font:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV.?.titleButton*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optiongvPopup*infoVerboseButton.font: -*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optiongvPopup*infoVerboseButton.fontSet: -*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV.?.infoVerboseButton*font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV.?.infoVerboseButton*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV.?.prevPage*font:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV.?.prevPage*fontSet:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV.?.nextPage*font:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV.?.nextPage*fontSet:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*newtoc.font:				-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*newtoc.fontSet:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*fileSel*font:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*fileSel*fontSet:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*fileSel*button1.font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*fileSel*button1.fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*fileSel*button2.font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*fileSel*button2.fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*fileSel*button3.font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*fileSel*button3.fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*fileSel*button4.font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*fileSel*button4.fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*fileSel*pathtext*font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*fileSel*pathtext*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optionsetupPopup*Label*font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optionsetupPopup*Label*fontSet:	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optionsetupPopup*confirmButton.font: -*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optionsetupPopup*confirmButton.fontSet: -*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optionsetupPopup*Switch*font:	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optionsetupPopup*Switch*fontSet:	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optionsetupPopup*font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optionsetupPopup*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optionsetupPopup*Button.font:	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optionsetupPopup*Button.fontSet:	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optiongvPopup*Label*font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optiongvPopup*Label*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optiongvPopup*Switch*font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optiongvPopup*Switch*fontSet:	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optiongvPopup*font:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optiongvPopup*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optiongvPopup*Button.font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optiongvPopup*Button.fontSet:	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optionfsPopup*Label*font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optionfsPopup*Label*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optionfsPopup*Switch*font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optionfsPopup*Switch*fontSet:	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optionfsPopup*font:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optionfsPopup*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optionfsPopup*Button.font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optionfsPopup*Button.fontSet:	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optiongsPopup*Label*font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optiongsPopup*Label*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optiongsPopup*Switch*font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optiongsPopup*Switch*fontSet:	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optiongsPopup*font:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optiongsPopup*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*optiongsPopup*Button.font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*optiongsPopup*Button.fontSet:	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*dialogPopup*font:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*dialogPopup*fontSet:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*dialogPopup*Button.font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*dialogPopup*Button.fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*dialogPopup*message*font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*dialogPopup*message*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*notePopup*Button.font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*notePopup*Button.fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*notePopup*message*font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*notePopup*message*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*confirmPopup*font:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*confirmPopup*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*confirmPopup*Button.font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*confirmPopup*Button.fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*versionPopup*Label*font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*versionPopup*Label*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*versionPopup*versionTexta*font:	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*versionPopup*versionTexta*fontSet:	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*versionPopup*versionTextb*font:	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*versionPopup*versionTextb*fontSet:	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+GV*infoPopup*Text*font:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1
+!GV*infoPopup*Text*fontSet:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
 !
 ! Xcb:  XXX not enough to fix it...
-Xcb*fontSet:		-*-*-*-*-*--*-*-FontXDPI-FontYDPI-m-0-iso8859-1
+Xcb*fontSet:				-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
 !
-XCal.fontToday:		varbold
-XCal*Font:		variable
-XCal*info.Font:		fixed
-XCal*alarmText*Font:	12x24
+XCal.fontToday:		-*-DecentFontSans-bold-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+XCal*Font:		-*-DecentFontSans-medium-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+XCal*FontSet:		-*-DecentFontSans-medium-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+XCal*info.Font:		-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+XCal*info.FontSet:	-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+XCal*alarmText*Font:	-*-DecentFontSans-medium-r-normal--0-140-FontXDPI-FontYDPI-p-*-iso10646-1
+XCal*alarmText*FontSet:	-*-DecentFontSans-medium-r-normal--0-140-FontXDPI-FontYDPI-p-*-iso10646-1
 !
-XAlarm*font:				variable
-XAlarm.Alarm!.alarm.message.font:	-*-DecentFont-medium-r-normal--0-340-FontXDPI-FontYDPI-m-0-iso8859-1
-XAlarm.When?.when.confirm.value*font:	variable
-XAlarm.When?*value*font:		varbold
+XAlarm*font:				-*-DecentFontSans-medium-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+XAlarm*fontSet:				-*-DecentFontSans-medium-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+XAlarm.Alarm!.alarm.message.font:	-*-DecentFontSans-medium-r-normal--0-340-FontXDPI-FontYDPI-p-*-iso10646-1
+XAlarm.Alarm!.alarm.message.fontSet:	-*-DecentFontSans-medium-r-normal--0-340-FontXDPI-FontYDPI-p-*-iso10646-1
+XAlarm.When?.when.confirm.value*font:	-*-DecentFontSans-medium-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+XAlarm.When?.when.confirm.value*fontSet:	-*-DecentFontSans-medium-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+XAlarm.When?*value*font:		-*-DecentFontSans-bold-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+XAlarm.When?*value*fontSet:		-*-DecentFontSans-bold-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
 !
-! XScrabble:  xxx more other fixes needed....
-XScrabble*font:				-*-*-medium-r-normal--0-0-FontXDPI-FontYDPI-m-0-iso8859-1
+! XScrabble:
+XScrabble*board.edg*justify:		center
+XScrabble*font:				-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+XScrabble*fontSet:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+XScrabble*title.font:			-*-DecentFontSans-bold-r-normal--0-140-FontXDPI-FontYDPI-p-*-iso10646-1
+XScrabble*title.fontSet:		-*-DecentFontSans-bold-r-normal--0-140-FontXDPI-FontYDPI-p-*-iso10646-1
+XScrabble*abouttitle.font:		-*-DecentFontSans-bold-r-normal--0-120-FontXDPI-FontYDPI-p-*-iso10646-1
+XScrabble*abouttitle.fontSet:		-*-DecentFontSans-bold-r-normal--0-120-FontXDPI-FontYDPI-p-*-iso10646-1
+XScrabble*abouttext.font:		-*-DecentFontSerif-bold-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+XScrabble*abouttext.fontSet:		-*-DecentFontSerif-bold-r-normal--0-90-FontXDPI-FontYDPI-p-*-iso10646-1
+! xxx not sure why these don't work with XScrabble in front....
+*hiscoreshell*hiscoretitle.font:	-*-DecentFontSans-bold-r-normal--0-140-FontXDPI-FontYDPI-p-*-iso10646-1
+*hiscoreshell*hiscoretitle.fontSet:	-*-DecentFontSans-bold-r-normal--0-140-FontXDPI-FontYDPI-p-*-iso10646-1
+*bestgoshell*bestgotitle.font:		-*-DecentFontSans-bold-r-normal--0-120-FontXDPI-FontYDPI-p-*-iso10646-1
+*bestgoshell*bestgotitle.fontSet:	-*-DecentFontSans-bold-r-normal--0-120-FontXDPI-FontYDPI-p-*-iso10646-1
+*setup*font:				-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+*setup*fontSet:				-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1
+*setup*title.font:			-*-DecentFontSans-bold-r-normal--0-120-FontXDPI-FontYDPI-p-*-iso10646-1
+*setup*title.fontSet:			-*-DecentFontSans-bold-r-normal--0-120-FontXDPI-FontYDPI-p-*-iso10646-1
 !
 ! XCalc:
+!
+! re-label the buttons for iso10646-1 with *international:true
+!
+! xxx the 'MATHEMATICAL MONOSPACE SMALL X' is not in many scalable fonts yet....
+!XCalc*ti.button2.label:		𝚡²
+XCalc*ti.button2.label:			x²
+XCalc*ti.button3.label:			√‾
+! xxx the 'SCRIPT SMALL E', is not in DejaVuSansMono, only DejaVuSans (proportional)
+!XCalc*ti.button11.label:		ℯ
+! xxx the next three also aren't in very many scalable fonts yet...
+!XCalc*ti.button13.label:		㏒
+!XCalc*ti.button14.label:		㏑
+!XCalc*ti.button15.label:		𝚢ˣ
+XCalc*ti.button15.label:		yˣ
+XCalc*ti.button16.label:		not ¬
+XCalc*ti.button17.label:		and ∧
+XCalc*ti.button18.label:		or ∨
+XCalc*ti.button19.label:		xor ⊻
+XCalc*ti.button21.label:		π
+XCalc*ti.button26.label:		shl <<
+XCalc*ti.button30.label:		shr >>
+XCalc*ti.button31.label:		mod %
+XCalc*ti.button35.label:		÷
+XCalc*ti.button40.label:		×
+XCalc*ti.button45.label:		−
+XCalc*ti.button50.label:		+
+XCalc*ti.button55.label:		=
 !
 ! ifdef([COLOR], [
 !
@@ -651,8 +931,37 @@ XCalc*ti.button54.background:		gray95
 XCalc*ti.button55.background:		rgb:e/d/c
 ! ], [])
 !
+! Xman:
 !
-! Now some sample text for xfontsel.  The first is assumed to be in iso8859-1.
+! N.B.: although xman(1) is able to use fonts with iso10646-1 encodings, it
+! cannot handle UTF-8 output from nroff, so must be run with
+! LC_ALL=en_US.iso8859-1 in the environment.
+!
+! The following are the default resource values from the code, but they don't
+! match the installed app-defaults file:
+!
+!	manualFontNormal
+!	*-new century schoolbook-medium-r-normal--*-120-*
+!	manualFontBold
+!	*-new century schoolbook-bold-r-normal--*-120-*
+!	manualFontItalic
+!	*-new century schoolbook-bold-i-normal--*-120-*
+!	manualFontSymbol
+!	*-symbol-medium-r-normal--*-120-*
+!
+*manualFontBold:		bold
+*manualFontItalic:		italic
+*manualFontNormal:		fixed
+! xxx nothing here seems to help with nroff's UTF-8 output....
+*manualFontSymbol:		symbol
+*directoryFontNormal:		variable
+!
+! xbomb
+!
+XBomb*font:                  -*-DecentFontSans-bold-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso10646-1
+XBomb*grid.font:             -*-DecentFontSans-bold-r-normal--0-100-FontXDPI-FontYDPI-p-*-iso10646-1
+!
+! Now some sample text for xfontsel.  The first is assumed to be in iso10646-1.
 !
 ! The first line of each are chars that must all be easily distinguisable as
 ! unique for programming (except maybe the last two, the first of which is the
@@ -669,7 +978,7 @@ XCalc*ti.button55.background:		rgb:e/d/c
 ! Note that xrdb does not strip leading whitespace after a backslash (only after
 ! the colon), so all these lines start with an extra tab character.
 !
-! changequote(	)	N.B.:  try to avoid m4 problems with the comment block below:
+! changequote(	)	N.B.:  try to avoid m4 problems with the strings below:
 !
 XFontSel*sampleText:\
 	`\264\250\047\0421lIi|\246\041¡/\3300Oo{[(<\253\273>)]},.;\072?\277\n\
@@ -698,9 +1007,10 @@ XFontSel*sampleTextUCS:\
 	αβγδεζηθικλμνξοπρςτυφχψω\n\
 	АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ\n\
 	абвгдеёжзийклмнопрстуфхцчшщъыьэюя\n\
-	–―†‡•…‰™ᴂﬁœᴈŠŸž\n\
-	☺☹✝✚✡☥⎈☭☪∀∂∈ℝ∧∪∞π↑↗↨↻⇣┐┼╔╘►⑀₂ἠḂӥẄɐː⍎אԱა�\n\
-	⌈⌉⌊⌋∏∑∫⊕⊖⊗⊘⊙⊚⊛∙∘′″‴∼∂√≔ⁱ⁰₀₁₂∧∨∃⊦∅∈∉⊂⊃⊆⊇⊄⋂⋃\n\
+	–―†‡•…‰™ᴂﬁœᴈŠŸž⌘\n\
+	☺☹✝✚✡☥⎈☭☪∀∂∈ℝ∧∪↑↗↨↻⇣┐┼╔╘►⑀₂ἠḂӥẄɐː⍎אԱა�\n\
+	⌈⌉⌊⌋∏∑∫∼∞πΩ∂√‾÷×−=≔₀₁₂ʸˣ⁰¹³²⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿⁱ\n\
+	⊕⊖⊗⊘⊙⊚⊛∙∘′″‴∧∨∝∃⊦∅∈∉⊂⊃⊆⊇⊄⋂⋃\n\
 	※◆░▒␉␌␍␊␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥≮≯≠≈≡$¢£¤¥₿₠€∎\n\
 	‹›“”‘’„〖〗【】「」『』〈〉《》〔〕\n\
 	•◦‣✓●■◆○□◇★☆♠♣♥♦♤♧♡♢♩♪♫♬♭♮♯☰☱☲☳☴☵☶☷\n\
