@@ -9,7 +9,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.32	24/10/20 14:51:40 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.33	24/11/01 13:17:41 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -199,9 +199,13 @@ YMoveGrid			1
 # Fallbacks in the code are "variable" for everything but DefaultFont, and
 # "fixed" for it.
 #
+# XXX to debug what fonts are actually loaded and used, especially for the
+# Identify window, we may need to resort to LD_PRELOAD trickery:
+#
+#	https://superuser.com/questions/1531413/getting-warning-missing-charsets-in-string-to-fontset-conversion
 
 #TitleFont	"-*-helvetica-bold-r-*-*-*-100-FontXDPI-VertDPI-*-*-iso10646-1"
-TitleFont	"-*-dejavu serif-bold-r-normal--*-100-FontXDPI-FontYDPI-p-0-iso10646-1"
+TitleFont	"-*-dejavu serif-bold-r-normal--*-90-FontXDPI-FontYDPI-p-0-iso10646-1"
 
 #IconFont	"-*-helvetica-bold-r-*-*-*-80-FontXDPI-FontYDPI-*-*-iso10646-1"
 IconFont	"-*-dejavu sans-medium-r-normal--*-80-FontXDPI-FontYDPI-p-0-iso10646-1"
@@ -220,7 +224,7 @@ MenuFont	"-*-dejavu sans-medium-r-normal--*-80-FontXDPI-FontYDPI-p-0-iso10646-1"
 #ResizeFont	"-*-courier-bold-i-normal--*-300-FontXDPI-FontYDPI-m-0-iso10646-1"
 # luxi mono (a serif font) has nice looking numbers, but it isn't everywhere
 #ResizeFont	"-*-luxi mono-bold-o-normal--*-300-FontXDPI-FontYDPI-m-0-iso10646-1"
-ResizeFont	"-*-courier 10 pitch-bold-i-normal--*-300-FontXDPI-FontYDPI-m-0-iso10646-1"
+ResizeFont	"-*-courier 10 pitch-bold-i-normal--*-360-FontXDPI-FontYDPI-m-0-iso10646-1"
 
 #WorkSpaceFont	"-*-helvetica-*-r-*--10-*-*-*-*-*-*-*"
 WorkSpaceFont	"-*-dejavu sans-medium-r-normal--*-70-FontXDPI-FontYDPI-p-0-iso10646-1"
@@ -1335,8 +1339,8 @@ menu "graphics"
 	"xmag"				!"xmag &"
 	"xditview"			!"xditview &"
 	"xcmap"				!"xcmap &"
-	"xwd > ~/tmp/win.xwd"		!"xwd > HOME/tmp/win.xwd"
-	"xwd -root > ~/tmp/root.xwd"	!"xwd -root > HOME/tmp/root.xwd"
+	"xwd > ~/tmp/win.xwd"		!"xwd > HOME/tmp/win.xwd &"
+	"xwd -root > ~/tmp/root.xwd"	!"xwd -root > HOME/tmp/root.xwd &"
 	""			f.separator
 	"Pin this menu"		f.pin
 }
@@ -1344,11 +1348,15 @@ menu "graphics"
 menu "tools"
 {
 	"Miscellaneous Tools"		f.title
+	"editres"			!"editres &"
+	"viewres"			!"viewres &"
 	"xclipboard"			!"xclipboard &"
 	"xcutsel"			!"xcutsel &"
 	"xfontsel"			!"xfontsel &"
 	"xkeycaps"			!"xkeycaps &"
 	"xdpr"				!"xdpr -device ps &"
+	""				f.separator
+	"Show Environment"		!"env | sort | xmessage -file - &"
 	""			f.separator
 	"Pin this menu"		f.pin
 }
@@ -1359,9 +1367,10 @@ menu "miscapps"
 	"xalarm"			!"xalarm &"
  ifelse(eval(FontYDPI > 110), 1, [
 # 800 is barely wide enough for the widest button (trunc), and 500 is also a
-# little short for the buttons, except making it taller obscures too much of the
-# "degree" indicators
-	"xcalc"				!"xcalc -stipple -geometry 800x550 &"
+# little short for the buttons in the default 9pt font, except making it taller
+# than 540 obscures too much of the "degree" indicators (they are obscured by
+# the value box -- click in it to see its extent)
+	"xcalc"				!"xcalc -stipple -geometry 800x540 &"
  ], [
 	"xcalc"				!"xcalc -stipple &"
  ])
@@ -1370,8 +1379,11 @@ menu "miscapps"
 	"xfd"				!"xfd &"
 	"xftp"				!"xftp &"
 	"xmail"				!"xmail &"
-	"xman"				!"xman &"
+	# xman can't handle UTF-8 output from nroff...
+	"xman"				!"LC_ALL=en_us.iso8859-1 xman &"
 	"xmh"				!"xmh &"
+	# a blank xpdf has to be resized before you can find the quit button....
+	"xpdf"				!"xpdf &"
 	"xpostit"			!"xpostit &"
 	"xplan"				!"xplan &"
 	"xrolodex"			!"xrolodex &"
@@ -1382,6 +1394,7 @@ menu "miscapps"
 	"xvnews"			!"xvnews &"
 	"xvtdl"				!"xvtdl &"
 	"axe"				!"axe &"
+	"gv"				!"gv &"
 	"plan"				!"plan &"
 	"pan"				!"pan &"
 	"timekeeper"			!"timekeeper &"
@@ -1533,10 +1546,10 @@ menu "games"
 
 menu "samplegames"
 {
-	"X11 Sample Toys"	f.title
+	"X11 Sample Toys & Demos"	f.title
 	"Xeyes"			!"xeyes &"
 	"Xgc"			!"xgc &"
-	"Xgas"			!"xgas &"
+	"Xgas"			!"xgas &" # xxx gone?
 	"Xlogo"			!"xlogo &"
 	"ico"			!"ico &"
 	# ico(1): "Color allocation fails in TrueColor displays and option
@@ -1546,8 +1559,8 @@ menu "samplegames"
 	"ico octa"		!"ico -sleep 0.02 -obj octa -faces -colors blue &"
 	"ico pyramid"		!"ico -sleep 0.02 -obj pyramid -faces -colors yellow &"
 	"ico plane"		!"ico -sleep 0.02 -obj pyramid -faces -colors purple &"
-	"maze"			!"maze &"
-	"puzzle"		!"puzzle &"
+	"maze"			!"maze &" # xxx gone ?
+	"puzzle"		!"puzzle &" # xxx gone?
 	""			f.separator
 	"Pin this menu"		f.pin
 }
