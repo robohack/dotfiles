@@ -26,7 +26,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.45	24/10/20 14:41:24 (woods)"
+#ident	"@(#)HOME:.shrc	37.46	24/11/02 13:40:49 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -1887,14 +1887,14 @@ if [ -n "$DISPLAY" ]; then
 		# Note though that the remote shell will not be an interactive
 		# shell, nor a login shell.
 		#
-		echo "onx11server: starting $_REMSHELL $_nullopt $_tunopt $_X11server . ./.profile\; ${_DO_DISPLAY} ${1+\"$@\"}"
+		echo "onx11server: starting $_REMSHELL $_nullopt $_tunopt $_X11server ${LANG:+LANG=${LANG}; export LANG;} ${LC_ALL:+LC_ALL=${LC_ALL}; export LC_ALL;} ${LC_CTYPE:+LC_CTYPE=${LC_CTYPE}; export LC_CTYPE;}. ./.profile\; ${_DO_DISPLAY} ${1+\"$@\"}"
 
 		# Note:  The command is not run in the background here -- let
 		# the caller do that (unfortunately we must have a shell waiting
 		# for the rsh/ssh to keep the connection open so that the remote
 		# process will continue running anyway).
 		#
-		$_REMSHELL $_nullopt $_tunopt $_X11server . ./.profile\; ${_DO_DISPLAY} ${1+"$@"}
+		$_REMSHELL $_nullopt $_tunopt $_X11server ${LANG:+LANG=${LANG}"; export LANG;"} ${LC_ALL:+LC_ALL=${LC_ALL}"; export LC_ALL;"} ${LC_CTYPE:+LC_CTYPE=${LC_CTYPE}"; export LC_CTYPE;"} . ./.profile\; ${_DO_DISPLAY} ${1+"$@"}
 
 		unset _RDISPLAY _DO_DISPLAY _REMSHELL _USAGE _nullopt _tunopt _X11server OPTCH
 	}
