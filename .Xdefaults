@@ -2,7 +2,7 @@
 !
 ! changequote([, ])	note brackets will disappear from comments!
 !
-!#ident	"@(#)HOME:.Xdefaults	37.15	24/11/01 13:40:14 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.16	24/11/02 13:39:46 (woods)"
 !
 ! N.B. WARNING:  This file must be processed with "xrdb -cpp m4" with macros and
 ! macro calls in the comments.  (perhaps it should be renamed to .Xdefaults.m4?)
@@ -430,9 +430,9 @@ xchrono*FontSet:		7pt
 !
 !
 XLoad*Font:			-*-DecentFontSerif-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso10646-1
-! xxx for testing:  this doesn't get rid of the warning from the
-! en_US.UTF-8/XLC_LOCALE bogosity -- we don't have all of the necessary
-! encodings in most fonts, I guess?
+! xxx for testing:  this doesn't get rid of the warning from the Xlib and
+! en_US.UTF-8/XLC_LOCALE bogosity -- because we don't have all of the necessary
+! encodings in most fonts, I guess?  See also XCalc*fontSet below too.
 XLoad*FontSet:			-*-DecentFontSerif-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso10646-1,\
 				-*-DecentFontSerif-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso8859-1,\
 				-*-DecentFontSerif-medium-r-normal--0-80-FontXDPI-FontYDPI-p-*-iso8859-2,\
@@ -831,8 +831,32 @@ XScrabble*abouttext.fontSet:		-*-DecentFontSerif-bold-r-normal--0-90-FontXDPI-Fo
 !
 ! XCalc:
 !
-! re-label the buttons for iso10646-1 with *international:true
+! XXX XCalc is a great demonstration of how the libX11/Xlib character encoding
+! translations triggered by en_US.UTF-8/XLC_LOCALE don't have the desired effect
+! when the primary font has iso10646-1 encoding.  None of the broken
+! translations show up in bold!  Nor when using an XLC_LOCALE with just these
+! available encodings do any chars appear in bold.
 !
+XCalc*fontSet:			-*-DecentFont-medium-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso10646-1,\
+				-*-DecentFont-bold-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-1,\
+				-*-DecentFont-bold-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-2,\
+				-*-DecentFont-bold-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-3,\
+				-*-DecentFont-bold-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-4,\
+				-*-DecentFont-bold-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-5,\
+				-*-DecentFont-bold-r-normal--0-90-FontXDPI-FontYDPI-m-*-koi8-r,\
+				-*-DecentFont-bold-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-7,\
+				-*-DecentFont-bold-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-9,\
+				-*-DecentFont-bold-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-13,\
+				-*-DecentFont-bold-r-normal--0-90-FontXDPI-FontYDPI-m-*-iso8859-15
+!
+! re-label the buttons for iso10646-1 with "*international:true"
+!
+! xxx so these should be wrapped in an ifdef that's set only if so
+!
+! N.B.  with "*international:true" we don't have to override the "buttonN.font"
+! values because they are ignored and the global "*fontSet" value overrides.
+!
+XCalc*ti.button1.label:			¹/x
 ! xxx the 'MATHEMATICAL MONOSPACE SMALL X' is not in many scalable fonts yet....
 !XCalc*ti.button2.label:		𝚡²
 XCalc*ti.button2.label:			x²
@@ -856,7 +880,27 @@ XCalc*ti.button35.label:		÷
 XCalc*ti.button40.label:		×
 XCalc*ti.button45.label:		−
 XCalc*ti.button50.label:		+
+XCalc*ti.button54.label:		±
 XCalc*ti.button55.label:		=
+!
+XCalc*hp.button1.label:			√‾
+!XCalc*hp.button2.label: 		ℯˣ
+XCalc*hp.button2.label:			eˣ
+XCalc*hp.button3.label:			10ˣ
+!XCalc*hp.button4.label: 		𝚢ˣ
+XCalc*hp.button4.label:			yˣ
+XCalc*hp.button5.label:			¹/x
+XCalc*hp.button10.label:		÷
+XCalc*hp.button12.label:		π
+XCalc*hp.button20.label:		×
+XCalc*hp.button25.fontSet:		-*-DecentFont-medium-r-normal--0-140-FontXDPI-FontYDPI-m-*-iso10646-1
+XCalc*hp.button25.label:		⇐
+XCalc*hp.button26.fontSet:		-*-DecentFont-medium-r-normal--0-50-FontXDPI-FontYDPI-m-*-iso10646-1
+XCalc*hp.button30.label:		−
+XCalc*hp.button39.label:		+
+!
+! XXX XCalc also has many resources defining the layout and positioning of every
+! element, and some of those should be scaled....
 !
 ! ifdef([COLOR], [
 !
