@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.31	24/11/01 12:22:50 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.32	24/11/02 11:15:56 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -1052,8 +1052,8 @@ very.local:*|very-old.local:*)
 	# xxx width here is based on what's left to the left of xloads on a
 	# high-res display, but there is no more space on a ~100dpi display so
 	# it collides anyway....  120 will suffice everywhere for now
-	XchronoOpts="-width ${XchronoWidth} -rv -update 1 -local Kelowna -newyork -hawaii -tokyo -sydney -frankfurt"
-	export XchronoOpts
+	XchronoOpts="-width ${XchronoWidth} -rv -update 1 -newyork -sydney -frankfurt"
+	export XchronoOpts XchronoGeom
 	if type xchrono >/dev/null 2>&1; then
 		xchrono -geometry ${XchronoGeom} ${XchronoOpts} &
 	fi
