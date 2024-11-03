@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.38	24/11/01 12:22:50 (woods)"
+#ident	"@(#)HOME:.profile	37.39	24/11/02 17:32:38 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -954,7 +954,7 @@ fi
 
 # set terminal type and tty settings, etc....
 #
-if ${ISATTY}; then
+if ${ISATTY} && [ -z "${XDG_CURRENT_DESKTOP}" ]; then
 	echo "Re-setting terminal preferences...."
 
 	# turn this off by default, turn it on by hand in one main window?
@@ -1095,6 +1095,10 @@ if ${ISATTY}; then
 		tabs -8
 	fi
 
+	# WARNING: some stupid stty's cause this to fail!!!!
+	# eg., ULTRIX V4.3 stty(1) 'cause it uses stdout, not stdin....
+	SANE=`stty -g` ; export SANE
+
 	case "${TERM}" in
 	xterm*)
 		if type resize >/dev/null 2>&1; then
@@ -1143,27 +1147,27 @@ if ${ISATTY}; then
 	else
 		echo "Your terminal is port ${TTY}."
 	fi
-fi
 
-# TODO: find some way to see if login(1) ran, or xterm(n) started us
-# TODO: since login(1) checks for mail too, but xterm(n) doesn't.
-# XXX or maybe we just always make xterm run "login -pf ${USER}" ???
-#
-# check your mail...
-if type messages >/dev/null 2>&1; then
-	messages
-else
-	[ -x /bin/mail ] && /bin/mail -e
-	HAVENEWMAIL=$?
-	if ${HAVEMUSH} && [ ${HAVENEWMAIL} -eq 0 ]; then
-		echo 'You have mail:'
-		mush -H:n
-	elif [ "${MAILER}" = mh -a ${HAVENEWMAIL} -eq 0 ]; then
-		echo "Change this line in ${HOME}/.profile to show new mail using MH"
-	elif [ ${HAVENEWMAIL} -eq 0 ]; then
-		echo "You have some mail!"
+	# TODO: find some way to see if login(1) ran, or xterm(n) started us
+	# TODO: since login(1) checks for mail too, but xterm(n) doesn't.
+	# XXX or maybe we just always make xterm run "login -pf ${USER}" ???
+	#
+	# check your mail...
+	if type messages >/dev/null 2>&1; then
+		messages
+	else
+		[ -x /bin/mail ] && /bin/mail -e
+		HAVENEWMAIL=$?
+		if ${HAVEMUSH} && [ ${HAVENEWMAIL} -eq 0 ]; then
+			echo 'You have mail:'
+			mush -H:n
+		elif [ "${MAILER}" = mh -a ${HAVENEWMAIL} -eq 0 ]; then
+			echo "Change this line in ${HOME}/.profile to show new mail using MH"
+		elif [ ${HAVENEWMAIL} -eq 0 ]; then
+			echo "You have some mail!"
+		fi
+		unset HAVENEWMAIL
 	fi
-	unset HAVENEWMAIL
 fi
 
 
@@ -1182,12 +1186,6 @@ if [ -d ${HOME}/lib/terminfo ]; then
 		TERMINFO=${HOME}/lib/terminfo ; export TERMINFO
 		;;
 	esac
-fi
-
-if ${ISATTY}; then
-	# WARNING: some stupid stty's cause this to fail!!!!
-	# eg., ULTRIX V4.3 stty(1) 'cause it uses stdout, not stdin....
-	SANE=`stty -g` ; export SANE
 fi
 
 # one thing we assume for ~/${SHELL}login is that it will set, or
@@ -1228,7 +1226,7 @@ else
 	fi
 fi
 
-if ${ISATTY} && ${HAVEX} && [ "X$DISPLAY" = "X" ]; then
+if ${ISATTY} && ${HAVEX} && [ "X$DISPLAY" = "X" ] && [ -z "${XDG_CURRENT_DESKTOP}" ]; then
 	case "${TTYN}" in
 	console|vg*|vt*|ttyc*|ttyE*)
 		case "${TERM}" in
@@ -1298,7 +1296,7 @@ fi
 # NOTE:  we don't get here the first time if we're starting a window system
 #
 
-if ${ISATTY}; then
+if ${ISATTY} && [ -z "${XDG_CURRENT_DESKTOP}" ]; then
 	do_first_time
 fi
 
