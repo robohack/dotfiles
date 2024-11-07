@@ -26,7 +26,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.47	24/11/02 14:09:58 (woods)"
+#ident	"@(#)HOME:.shrc	37.48	24/11/07 09:43:48 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -793,7 +793,8 @@ if type mktable >/dev/null 2>&1; then
 	MKTABLE="mktable"
 else
 	# a little ditty to throw away comment lines....
-	# TODO: should this remove trailing comments too? (-e '/#.*$//')
+	# ToDo: allow for changing of the comment character!
+	# ToDo: should this remove trailing comments too? (-e '/#.*$//')
 	mktable ()
 	{
 		sed				\
@@ -1457,33 +1458,41 @@ get_domainname ()
 		#
 		# xxx except of course on MacOS X, aka OSX, aka macOS, aka macos, sigh...
 		#
-		sed -n '/^[;#]/d;s/domain[ 	]*/./p' /etc/resolv.conf
+		_D=`sed -n '/^[;#]/d;s/domain[ 	]*/./p' /etc/resolv.conf`
+	elif type dnsdomainname >/dev/null 2>&1; then
+		# GNU only?
+		_D=`dnsdomainname`
 	elif type domainname >/dev/null 2>&1; then
 		#
 		# for laggards like me who use this for DNS too
 		#
-		_D=domainname
-		if expr "${_D}" : '^\.' >/dev/null 2>&1 ; then
-			echo ${_D}
-		else
-			echo .${_D}
-		fi
-		unset _D
+		_D=`domainname`
 	elif expr "${HOSTNAME}" : '[^\.]*\.' >/dev/null 2>&1; then
-		echo "."`expr "${HOSTNAME}" : '[^\.]*\.\(.*\)$'`
+		_D=`expr "${HOSTNAME}" : '[^\.]*\.\(.*\)$'`
 	else
 		# these cases for machines without domainname,
 		# and a short hostname....
 		#
 		case "${UUNAME}" in
-		weirdo )
-			echo ".weird.com"
+		weirdo)
+			_D=".weird.com"
 			;;
-		* )
-			echo ".UUCP"
+		*)
+			_D=".UUCP"
 			;;
 		esac
 	fi
+	case "${_D}" in
+	"(none)"|"")		# "(none") from GNU
+		_D=".local"
+		;;
+	esac
+	if expr "${_D}" : '^\.' >/dev/null 2>&1 ; then
+		echo ${_D}
+	else
+		echo .${_D}
+	fi
+	unset _D
 }
 
 get_macos_sdk_path ()
