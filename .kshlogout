@@ -1,9 +1,9 @@
 #
 #	.kshlogout - logout script for ksh
 #
-#ident	"@(#)HOME:.kshlogout	37.3	24/10/05 16:50:09 (woods)"
+#ident	"@(#)HOME:.kshlogout	37.4	24/11/08 04:23:21 (woods)"
 
-trap "" 1 2 3 4 5 6 7 8 9 10 12 13 14 15
+trap "" 1 2 3 4 5 6 7 8 10 12 13 14 15
 trap "" 0
 
 printf "\n| Logging $LOGNAME out of $UUNAME at $(date).\n"
