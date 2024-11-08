@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.39	24/11/02 17:32:38 (woods)"
+#ident	"@(#)HOME:.profile	37.40	24/11/08 04:12:29 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -702,7 +702,7 @@ elif type mailx >/dev/null 2>&1; then
 	MAILER="mailx"
 fi
 case "${MAILER}" in
-mh )
+mh)
 	if [ -d ${CONTRIB}/mh ]; then
 		dirprepend PATH ${CONTRIB}/mh/bin
 		dirprepend MANPATH ${CONTRIB}/mh/man
@@ -721,7 +721,7 @@ mh )
 		dirprepend MANPATH ${LOCAL}/mh/man
 	fi
 	;;
-nmh )
+nmh)
 	if [ -d ${CONTRIB}/nmh ]; then
 		dirprepend PATH ${CONTRIB}/nmh/bin
 		dirprepend MANPATH ${CONTRIB}/nmh/man
@@ -852,7 +852,7 @@ else
 fi
 
 case "${EDPREF}" in
-emacs | "" )
+emacs|"")
 	HAVEJOVE=false
 	if ${HAVEEMACS}; then
 		EDITOR="${MY_EMACS}"
@@ -870,7 +870,7 @@ emacs | "" )
 		VISUAL="vi"
 	fi
 	;;
-vi )
+vi)
 	if type nvi >/dev/null 2>&1; then
 		EDITOR="nvi"
 	elif type vi >/dev/null 2>&1; then
@@ -886,7 +886,7 @@ vi )
 		VISUAL="no-visual-editor"
 	fi
 	;;
-* )
+*)
 	if type nvi >/dev/null 2>&1; then
 		EDITOR="nvi"
 	elif type vi >/dev/null 2>&1; then
@@ -1237,7 +1237,7 @@ if ${ISATTY} && ${HAVEX} && [ "X$DISPLAY" = "X" ] && [ -z "${XDG_CURRENT_DESKTOP
 			read yn
 			trap 2
 			case "$yn" in
-				"" | [yY]*)
+			""|[yY]*)
 				trap '' 2
 				startx # xxx was just xinit
 				exec sleep 1
@@ -1262,7 +1262,7 @@ if ${ISATTY} && ${HAVELAYERS} && [ "X${TERM}" = "Xdmd" ]; then
 		read yn
 		trap 2
 		case "$yn" in
-		"" | [yY]* | d*)
+		""|[yY]*|d*)
 			if expr "$yn" : 'd.*' >/dev/null ; then
 				layers=layers-DEBUG
 			else
