@@ -2,11 +2,11 @@
 !
 !	.X11-m4macros.m4 - shared M4 macros for xrdb and ctwm uses
 !
-!#ident	"@(#)HOME:.X11-m4macros.m4	37.5	24/11/01 13:20:48 (woods)"
+!#ident	"@(#)HOME:.X11-m4macros.m4	37.6	24/11/10 14:58:36 (woods)"
 !
 ! This file is sourced for a couple of uses by ~/.xinitrc, once to define shell
-! variables, and again to process ~/.fonts.alias.m4; and it is also sourced by
-! ~/.ctwmrc.
+! variables, and again to process ~/.fonts.alias.m4; and it is also sourced
+! through a sed command (to change the comment character) by ~/.ctwmrc.
 !
 ! N.B.:  M4 quoting must be changed to '[' and ']' before including this file!
 !
@@ -162,12 +162,13 @@
 !
 ! The Digital clock should always be the same width as the main clock
 !
-! 1/4 inch height should always suffice?
-!
-! define(DClockHeight, eval(HorizDPI / 4))
+! ifelse(eval(ScreenDimY > 6), 1,
+!   [define(DClockHeight, eval(HorizDPI / 4))],
+!   [define(DClockHeight, eval(HorizDPI / 8))]
+! )
 !
 ! define(ClockGeom, ClockWidth[x]ClockHeight[-0+0])
-! define(DClockGeom, ClockWidth[x]DClockHeight[-0+]ClockOffH)
+! define(DClockGeom, ClockWidth[x]DClockHeight[-0+]ClockOffV)
 !
 ! Xload is one inch by 1/3 inch
 !
@@ -242,15 +243,59 @@
 ! default X11 monospaced font with a 'c' spacing, so it is unusable -- but it is
 ! missing rather a large number of glyphs anyway!  though it is the only
 ! good-looking monospace font with serifs)
-! 
+!
 ! N.B.:  Currently with the DejaVu fonts, in addition to the normal slant="r",
 ! the DejaVuSansMono and DejaVuSans fonts only have slant="o" while DejaVuSerif
-! only has slant="i" (and DejaVuSansLite has no italic/oblique face).  XXX There
-! should probably be a corresponding DecentFont*Italic variable to select this.
+! only has slant="i" (and DejaVuSansLite has no italic/oblique face).
+!
+! xxx note the *Spc macros are not yet used....  Are they really needed?  Maybe
+! just the one for monospace, which could be 'm' or 'c'
 !
 ! define(DecentFont, [DejaVu Sans Mono])
+! define(DecentFontSlant, [o])
+! define(DecentFontSpc, [m])
 ! define(DecentFontSans, [DejaVu Sans])
+! define(DecentFontSansSlant, [o])
+! define(DecentFontSansSpc, [p])
 ! define(DecentFontSerif, [DejaVu Serif])
+! define(DecentFontSerifSlant, [i])
+! define(DecentFontSerifSpc, [p])
+!
+! On a smaller, say laptop, screen smaller fonts may be nicer (xxx but only if
+! DPI is "high enough")?
+!
+! ifelse(eval(ScreenDimY <= 8), 1,
+!  [
+!   define(HugeDeciPt, [110])
+!   define(HugePt, [11])
+!
+!   define(BiggerDeciPt, [90])
+!   define(BiggerPt, [9])
+!
+!   define(DecentDeciPt, [80])
+!   define(DecentPt, [8])
+!
+!   define(SmallerDeciPt, [70])
+!   define(SmallerPt, [7])
+!
+!   define(TinyDeciPt, [60])
+!   define(TinyPt, [6])
+!  ], [
+!   define(HugeDeciPt, [120])
+!   define(HugePt, [12])
+!
+!   define(BiggerDeciPt, [100])
+!   define(BiggerPt, [10])
+!
+!   define(DecentDeciPt, [90])
+!   define(DecentPt, [9])
+!
+!   define(SmallerDeciPt, [75])
+!   define(SmallerPt, [7.5])
+!
+!   define(TinyDeciPt, [60])
+!   define(TinyPt, [6])
+!  ])
 !
 ! End of .X11-m4macros.m4
 !

@@ -9,7 +9,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.33	24/11/01 13:17:41 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.34	24/11/10 14:58:36 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -78,23 +78,23 @@ changecom()
 esyscmd([sed 's/^!/#/' ]HOME[/.X11-m4macros.m4])
 changecom([#])
 
-ifelse(eval(index(HOSTNAME, weird.com) >= 0), 1, [define(AT_WEIRD, [@weird.com])], [])
-ifelse(eval(index(HOSTNAME, robohack.planix.com) >= 0), 1, [define(AT_WEIRD, [@robohack.planix.com])], [])
+ifelse(eval(index(HOSTNAME, weird.com) >= 0), 1, [define(AT_WEIRD, [@weird.com])])
+ifelse(eval(index(HOSTNAME, robohack.planix.com) >= 0), 1, [define(AT_WEIRD, [@robohack.planix.com])])
 
-ifelse(eval(index(HOSTNAME, local) >= 0), 1, [define(AT_LOCAL, [@local])], [])
+ifelse(eval(index(HOSTNAME, local) >= 0), 1, [define(AT_LOCAL, [@local])])
 
 # this was the old SS20 with a bw2 monitor running NetBSD
-ifelse(eval(index(HOSTNAME, very.weird.com) >= 0), 1, [define(AT_VERY_WEIRD, [@very.weird])], [])
+ifelse(eval(index(HOSTNAME, very.weird.com) >= 0), 1, [define(AT_VERY_WEIRD, [@very.weird])])
 
-ifelse(eval(index(HOSTNAME, very.local) >= 0), 1, [define(AT_VERY_LOCAL, [@very.local])], [])
-ifelse(eval(index(HOSTNAME, very-old.local) >= 0), 1, [define(AT_VERY_LOCAL, [@very-old.local])], [])
+ifelse(eval(index(HOSTNAME, very.local) >= 0), 1, [define(AT_VERY_LOCAL, [@very.local])])
+ifelse(eval(index(HOSTNAME, very-old.local) >= 0), 1, [define(AT_VERY_LOCAL, [@very-old.local])])
 
 esyscmd([printf "define(SYSTEM, %s)\n" "$(uname -s)"])
 
 ifelse(SYSTEM, [Darwin], [define(ON_OSX, [yes])])
 
 # if ctwm is running on the server host then we want @X11SERVER menu choices...
-ifelse([SERVERHOST], [CLIENTHOST], [define(USE_X11SERVER, [yes])], [])
+ifelse([SERVERHOST], [CLIENTHOST], [define(USE_X11SERVER, [yes])])
 
 # Boolean flags
 #
@@ -104,7 +104,7 @@ AutoFocusToTransients	# there are some good things, and some VERY bad things, ab
 #AutoOccupy		# Definitely not a good idea....
 AutoRelativeResize
 AutoRaiseIcons
-ifelse(eval(PLANES <= 8), 1, [BeNiceToColormap], [])
+ifelse(eval(PLANES <= 8), 1, [BeNiceToColormap])
 BorderResizeCursors
 #NoCaseSensitive	# only affects iconmanager?
 CenterFeedbackWindow
@@ -138,7 +138,7 @@ UseThreeDBorders
 UseThreeDIconManagers
 UseThreeDMenus
 UseThreeDTitles
-ifelse(eval(PLANES > 8), 1, [UseThreeDWMap], [])	# this is way too wasteful of colours....
+ifelse(eval(PLANES > 8), 1, [UseThreeDWMap])	# this is way too wasteful of colours....
 WarpRingOnScreen
 WarpToDefaultMenuEntry
 WindowRing		# all the windows (on the screen) except those in WindowRingExclude
@@ -164,7 +164,9 @@ MoveDelta			12
 MoveOffResistance		100
 MovePackResistance		100
 Zoom				16	# just for creation and destruction?
- ], [
+ ],
+# else
+ [
 MoveDelta			4
 MoveOffResistance		50
 MovePackResistance		50
@@ -185,7 +187,9 @@ RaiseOnClickButton		1
  ifelse(eval(FontYDPI > 110), 1,
  [
 RandomPlacement			"on" "+100+100"
- ], [
+ ],
+# else
+ [
 RandomPlacement			"on"
  ])
 
@@ -193,50 +197,52 @@ UsePPosition			"non-zero"
 XMoveGrid			1
 YMoveGrid			1
 
+# N.B.:  "font" in CTWM (since 3.5) really means FontSet, except only really in
+# 3.5, borked in 3.6 and newer!
 #
-# Best is to arrange one's font-path to get the desired one first....
+# This wasn't really documented anywhere ever, and only mentioned in the CHANGES
+# file as follows:
 #
-# Fallbacks in the code are "variable" for everything but DefaultFont, and
-# "fixed" for it.
+#	* Better I18N. From Toshiya Yasukawa <t-yasuka@dd.iij4u.or.jp>. (Define
+#	    I18N in Imakefile to activate it).
 #
-# XXX to debug what fonts are actually loaded and used, especially for the
-# Identify window, we may need to resort to LD_PRELOAD trickery:
+# The I18N code became the only code in 3.8.
 #
-#	https://superuser.com/questions/1531413/getting-warning-missing-charsets-in-string-to-fontset-conversion
+# XXX unfortunately you can't actually define FontSets for CTWM fonts because
+# they always (up to 4.1.0 at least) have ",*" appended to the string!  Which
+# also explains why the default font, which was "fixed,*" never worked right!
 
-#TitleFont	"-*-helvetica-bold-r-*-*-*-100-FontXDPI-VertDPI-*-*-iso10646-1"
-TitleFont	"-*-dejavu serif-bold-r-normal--*-90-FontXDPI-FontYDPI-p-0-iso10646-1"
+TitleFont	"-*-DecentFontSerif-bold-r-normal--0-DecentDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1"
 
-#IconFont	"-*-helvetica-bold-r-*-*-*-80-FontXDPI-FontYDPI-*-*-iso10646-1"
-IconFont	"-*-dejavu sans-medium-r-normal--*-80-FontXDPI-FontYDPI-p-0-iso10646-1"
+IconFont	"-*-DecentFontSans-medium-r-normal--0-TinyDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1"
 
-#IconManagerFont "-*-helvetica-medium-r-*-*-*-80-FontXDPI-FontYDPI-*-*-iso10646-1"
-IconManagerFont "-*-dejavu sans-medium-r-normal--*-80-FontXDPI-FontYDPI-p-0-iso10646-1"
+IconManagerFont "-*-DecentFontSans-medium-r-normal--0-SmallerDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1"
 
-#MenuFont	"-*-helvetica-medium-r-*-*-*-80-FontXDPI-FontYDPI-*-*-iso10646-1"
-MenuFont	"-*-dejavu sans-medium-r-normal--*-80-FontXDPI-FontYDPI-p-0-iso10646-1"
+MenuFont	"-*-DecentFontSans-medium-r-normal--0-SmallerDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1"
 
 # n.b.:  the resize "window" is a box sized for monospace numbers, so using a
-# proportional font leaves un-balanced black bars on the sides
-#ResizeFont	"-*-dejavu serif-bold-i-normal--*-300-FontXDPI-FontYDPI-*-0-iso10646-1"
-#ResizeFont	"-*-bitstream charter-bold-i-normal--*-300-FontXDPI-FontYDPI-p-0-iso10646-1"
+# proportional font leaves un-balanced black bars on the sides, but a serifed
+# font somehow looks better, leaving us with few choices, most in the "courier"
+# style....
 #
-#ResizeFont	"-*-courier-bold-i-normal--*-300-FontXDPI-FontYDPI-m-0-iso10646-1"
 # luxi mono (a serif font) has nice looking numbers, but it isn't everywhere
-#ResizeFont	"-*-luxi mono-bold-o-normal--*-300-FontXDPI-FontYDPI-m-0-iso10646-1"
-ResizeFont	"-*-courier 10 pitch-bold-i-normal--*-360-FontXDPI-FontYDPI-m-0-iso10646-1"
+# (also note it may support both 'c' and 'm' spacing, or maybe just 'c'?!)
+#ResizeFont	"-*-luxi mono-bold-o-normal--0-360-FontXDPI-FontYDPI-m-*-iso10646-1"
+#
+#ResizeFont	"-*-courier-bold-i-normal--0-360-FontXDPI-FontYDPI-m-*-iso10646-1"
+#
+ResizeFont	"-*-courier 10 pitch-bold-i-normal--0-360-FontXDPI-FontYDPI-m-*-iso10646-1"
 
-#WorkSpaceFont	"-*-helvetica-*-r-*--10-*-*-*-*-*-*-*"
-WorkSpaceFont	"-*-dejavu sans-medium-r-normal--*-70-FontXDPI-FontYDPI-p-0-iso10646-1"
+WorkSpaceFont	"-*-DecentFontSans-medium-r-normal--0-TinyDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1"
 
 # XXX which is the font for the "identify" and "about" windows?
 
 ## XXX DefaultFont is not yet configurable (I hacked a fix for NetBSD's version
-## but....) (it should first use this, or else the "*font" resource, or lastly
-## the compiled in font)
+## but....)  Note if this fails to create a FontSet then a hard-coded default is
+## attempted, and originally it was "fixed,*", so never results in anything
+## useful or readable!
 ##
-##DefaultFont	"-*-courier-bold-r-*-*-*-100-FontXDPI-FontYDPI-*-*-iso10646-1"
-##DefaultFont	"-*-dejavu sans mono-medium-r-normal--*-100-FontXDPI-FontYDPI-m-0-iso10646-1"
+##DefaultFont	"-*-DecentFontSans-medium-r-normal--0-DecentDeciPt-FontXDPI-FontYDPI-m-*-iso10646-1"
 
 # Define some useful functions for motion-based actions.
 # These must come after fonts....
@@ -277,34 +283,75 @@ Color {
 	# by which I think it means CTWM's "TitleForeground" color is used....
 	#
 	MapWindowBackground	"LightSteelBlue" {
+		"AirTrafficMonitor" "LightSkyBlue"
+		"Console"	"DarkGreen"
+		"Links"		"maroon"
+		"Xnest"		"teal"
+		"emacs"		"yellow"
 		# XXX unfortunately the "root*" trick doesn't work very well
 		# since these colours are only assigned if the window name, at
 		# the moment the window is created, matches; or if Ctwm is
 		# restarted, e.g. after one runs "su"...
 		"root*"		"red"
 		# more for fun
-		"xterm"		"SteelBlue"
-		"emacs"		"yellow"
 		"tkined"	"goldenrod"
-		"Console"	"DarkGreen"
-		"AirTrafficMonitor" "LightSkyBlue"
-		"Links"		"maroon"
+		"xcolors"	"PaleGreen"
 		"xmahjongg"	"gold"
+		"xterm"		"SteelBlue"
 	}
 	MapWindowForeground	"Black" {
 		# better contrast for these ones....
-		"xterm" "White"
-		"tkined" "White"
-		"Links" "White"
 		"AirTrafficMonitor" "Black"
+		"Links"		"White"
+		"Xnest"		"White"
+		"tkined"	"White"
+		"xcolors"	"Black"
+		"xterm"		"White"
 	}
 	MenuBackground		"DarkGreen"
 	MenuForeground		"White"
 	MenuTitleBackground	"DarkSeaGreen"
 	MenuTitleForeground	"White"
 	MenuShadowColor		"gray50"
-	TitleBackground		"blue"	# default is white
-	TitleForeground		"White" # default is black
+	IconBackground		"blue" {	# default is white
+		"AirTrafficMonitor" "LightSkyBlue"
+		"Console"	"DarkGreen"
+		"Links"		"maroon"
+		"Xnest"		"teal"
+		"emacs"		"yellow2"
+		"root*"		"red"
+		"tkined"	"goldenrod"
+		"xcolors"	"PaleGreen"
+		"xmahjongg"	"gold"
+		"xterm"		"SteelBlue"
+	}
+	IconForeground		"White" {	# default is black
+		"AirTrafficMonitor" "Black"
+		"emacs"		"Black"
+		"tkined"	"Black"
+		"xcolors"	"Black"
+		"xmahjongg"	"Black"
+	}
+	# and again for the window titles
+	TitleBackground		"blue" {	# default is white
+		"AirTrafficMonitor" "LightSkyBlue"
+		"Console"	"DarkGreen"
+		"Links"		"maroon"
+		"Xnest"		"teal"
+		"emacs"		"yellow3"
+		"root*"		"red"
+		"tkined"	"goldenrod"
+		"xcolors"	"PaleGreen"
+		"xmahjongg"	"gold"
+		"xterm"		"SteelBlue"
+	}
+	TitleForeground		"White" { # default is black
+		"AirTrafficMonitor" "Black"
+		"emacs"		"Black"
+		"tkined"	"Black"
+		"xcolors"	"Black"
+		"xmahjongg"	"Black"
+	}
 }
 
 Monochrome {
@@ -321,7 +368,7 @@ Monochrome {
 	MenuTitleBackground	"grey98"
 	MenuTitleForeground	"Black"
 	MenuShadowColor		"gray50"
-	TitleBackground		"blue"
+	TitleBackground		"grey40"
 	TitleForeground		"White"
 }
 
@@ -369,8 +416,9 @@ MapWindowDefaultWorkSpace {
 #	TitleForeground
 #}
 
+ ],
 # else not COLOR
-], [
+ [
 
 define(XLOAD_HL, [grey90])
 
@@ -392,7 +440,7 @@ MapWindowDefaultWorkSpace {
 #
 # First appeared in 4.0.0
 #
-#ForceFocus { win-list }
+#ForceFocus { "xalarm" }
 
 # put the icon to the right-edge of its title -- this seems to work
 # best for icon titles which expand when hovered over, and when the
@@ -411,7 +459,7 @@ PixmapDirectory	"~/lib/pixmaps:~/lib/icons:/usr/X11/include/X11/pixmaps:/usr/X11
 ifdef([XPM], [UnknownIcon "xpm:unknown1.xpm"], [UnknownIcon "unknown.xbm"])
 
 # N.B.:  it may be useful to enable ForceFocus on "hi-res" displays where any
-# default icons may be too small, but of course this son't be useful
+# default icons may be too small, but of course this won't be useful
 # until/unless larger icons are known to be available!
 
 Icons {
@@ -587,11 +635,12 @@ IconRegionJustification		"border"
 define(IR_GEOM, eval(WS_WIDTH + WS_OFF)[x]eval(HEIGHT / 4)[-0+]eval(WS_HEIGHT + (2 * XloadHeight) + (6 * TDBORDERWIDTH)))
 #
 ifelse(eval(X_RESOLUTION >= 8000 && Y_RESOLUTION >= 8000), 1,
- [define(IR_GRID, [100])],
- [ifelse(eval(X_RESOLUTION >= 4500 && Y_RESOLUTION >= 4500), 1,
-  [define(IR_GRID, [50])],
-  [define(IR_GRID, [10])]
- )]
+  [define(IR_GRID, [100])],
+  [ifelse(eval(X_RESOLUTION >= 4500 && Y_RESOLUTION >= 4500), 1,
+    [define(IR_GRID, [50])],
+# else
+    [define(IR_GRID, [10])])
+  ]
 )
 IconRegion	"IR_GEOM" North East IR_GRID IR_GRID
 
@@ -764,11 +813,15 @@ Button3 =		: root		: f.menu "defops"
 
 Button1 = control	: root		: f.menu "TwmAllWindows"
 Button2 = control	: root		: f.menu "TwmIcons"
-Button3 = control	: root		: f.menu "preferences"
+Button3 = control	: root		: f.menu "winops"
 
 Button1 = meta		: root		: f.menu "applications"
-Button2 = meta		: root		: f.menu "TwmAllWindows"
+Button2 = meta		: root		: f.menu "preferences"
 Button3 = meta		: root		: f.menu "wmops"
+
+Button1 = mod2		: root		: f.menu "applications"
+Button2 = mod2		: root		: f.menu "preferences"
+Button3 = mod2		: root		: f.menu "wmops"
 
 Button1 = [shift]	: root		: f.menu "xterms"
 Button2 = [shift]	: root		: f.menu "consoles"
@@ -1110,7 +1163,7 @@ menu "wmops"
 	"Toggle workspace"	f.togglestate
 	"ShowWorkSpaceManager"	f.showWorkspaceMgr
 	"HideWorkSpaceManager"	f.hideWorkspaceMgr
-	"Adopt Window"		f.adoptwindow
+#	"Adopt Window"		f.adoptwindow	# gone in 4.1.0
 	"Identify Window"	f.identify
 	""			f.separator
 	"Refresh Screen"	f.refresh
@@ -1197,7 +1250,6 @@ menu "preferences"
 	"Bug Compat On"		!"xset bc"
 	"Bug Compat Off"	!"xset -bc"
 	"ReHash FP"		!"xset fp rehash"
-	"Reset FP Default"	!"xset fp default"
  ifelse(COLOR, Yes,
 	["Colour Map Ctl..."	f.menu "cmap"], [])
 	"Screen Saver..."	f.menu "screensaver"
@@ -1274,6 +1326,8 @@ menu "leds"
 menu "exit"
 {
 	"Exit CTWM"				f.title
+	"Select confirm to end your session."	f.nop
+	""					f.separator
 	"        No...."			f.nop
 	"        Confirm...."			f.quit
 }
@@ -1301,8 +1355,8 @@ menu "applications"
 	"Other Tools..."		f.menu "tools"
 	"Miscellaneous..."		f.menu "miscapps"
 	"Games..."			f.menu "games"
-	""			f.separator
-	"Pin this menu"		f.pin
+	""				f.separator
+	"Pin this menu"			f.pin
 }
 
 menu "audios"

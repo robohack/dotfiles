@@ -4,7 +4,7 @@
 # Original derived from:
 # @(#)XConsortium: system.twmrc,v 1.8 91/04/23 21:10:58 gildea Exp
 #
-#ident	"@(#)HOME:.twmrc	37.4	24/10/16 17:12:02 (woods)"
+#ident	"@(#)HOME:.twmrc	37.5	24/11/10 14:58:36 (woods)"
 #
 
 AutoRelativeResize
@@ -27,12 +27,22 @@ IconDirectory	"~/lib/bitmaps"
 Zoom 12
 
 # xxx better to let .fonts.alias remap the defaults to the right resolution
+# N.B. these will probably only work when twm is started with LC_ALL=C:
 #
-#TitleFont	"-*-courier-bold-o-normal-*-*-100-*-*-*-*-*-*"
-#ResizeFont	"-*-courier-bold-r-normal-*-*-180-*-*-*-*-*-*"
-#MenuFont	"-*-clean-bold-r-normal-*-*-90-*-*-*-*-*-*"
-#IconFont	"-*-courier-bold-o-normal-*-*-80-*-*-*-*-*-*"
-#IconManagerFont	"-*-helvetica-bold-r-normal-*-*-80-*-*-*-*-*-*"
+TitleFont	"-*-helvetica-bold-r-normal-*-*-100-*-*-*-*-iso8859-1"
+ResizeFont	"-*-courier-bold-r-normal-*-*-360-*-*-*-*-*-*"
+MenuFont	"-*-helvetica-medium-r-normal-*-*-90-*-*-*-*-iso8859-1"
+IconFont	"-*-helvetica-medium-r-normal-*-*-80-*-*-*-*-iso8859-1"
+IconManagerFont	"-*-helvetica-medium-r-normal-*-*-80-*-*-*-*-iso8859-1"
+#
+# XXX else only run TWM on ~100dpi screens (e.g. these are ok for iMac 27")
+# note these will work with LANG=en_US.UTF-8
+#
+#TitleFont	"-*-DejaVu Serif-medium-r-normal--0-100-0-0-p-*-iso10646-1"
+#ResizeFont	"-*-courier-bold-r-normal-*-*-360-0-0-*-*-*-*"
+#MenuFont	"-*-DejaVu Sans-medium-r-normal--0-90-0-0-p-*-iso10646-1"
+#IconFont	"-*-DejaVu Sans-medium-r-normal--0-80-0-0-p-*-iso10646-1"
+#IconManagerFont	"-*-DejaVu Sans-medium-r-normal--0-80-0-0-p-*-iso10646-1"
 
 # DefaultFunction must come after fonts....
 DefaultFunction f.beep
@@ -98,7 +108,8 @@ Color {
 }
 
 IconManagers	{
-	"xterm" "=305x100-320+4" 1
+	# xxx mostly keeps it out of the way of xloads on iMac 27"
+	"xterm" "=250x100-320+0" 1
 }
 
 IconifyByUnmapping {
@@ -246,19 +257,36 @@ Button1 =		: root		: f.menu "quickies"
 Button2 =		: root		: f.menu "TwmWindows"
 Button3 =		: root		: f.menu "defops"
 
-Button1 = m : window|icon : f.function "move-or-raise"
-Button2 = m : window|icon : f.function "move-or-iconify"
-Button3 = m : window|icon : f.function "move-or-lower"
+Button1 = control	: root		: f.menu "TwmWindows"
+Button2 = control	: root		: f.menu "winops"
+Button3 = control	: root		: f.menu "preferences"
 
-Button1 = : title : f.function "move-or-raise"
-Button2 = : title : f.raiselower
-Button3 = : title : f.lower
+Button1 = meta		: root		: f.menu "applications"
+Button2 = meta		: root		: f.menu "preferences"
+Button3 = meta		: root		: f.menu "wmops"
 
-Button1 = : icon : f.function "move-or-iconify"
-Button2 = : icon : f.iconify
-Button3 = : icon : f.lower
+Button1 = mod2		: root		: f.menu "applications"
+Button2 = mod2		: root		: f.menu "preferences"
+Button3 = mod2		: root		: f.menu "wmops"
+
+Button1 = shift		: root		: f.menu "xterms"
+Button2 = shift		: root		: f.menu "consoles"
+Button3 = shift		: root		: f.menu "applications"
+
+Button1 = meta		: window|icon	: f.function "move-or-raise"
+Button2 = meta		: window|icon	: f.function "move-or-iconify"
+Button3 = meta		: window|icon	: f.function "move-or-lower"
+
+Button1 =		: title		: f.function "move-or-raise"
+Button2 =		: title		: f.raiselower
+Button3 =		: title		: f.lower
+
+Button1 =		: icon		: f.function "move-or-iconify"
+Button2 =		: icon		: f.iconify
+Button3 =		: icon		: f.lower
 
 Button1 =		: iconmgr	: f.function "deiconify-and-raise"
+Button1 = shift		: iconmgr	: f.raise
 Button1 = control	: iconmgr	: f.raise
 Button1 = mod2		: iconmgr	: f.iconify
 Button2 =		: iconmgr	: f.raiselower
@@ -270,26 +298,34 @@ Button2 = mod2		: iconmgr	: f.lower
 "Right"	= 		: iconmgr	: f.forwiconmgr
 "Up"	= 		: iconmgr	: f.upiconmgr
 "Down"	= 		: iconmgr	: f.downiconmgr
-"n"	= 		: iconmgr	: f.forwmapiconmgr
-"p"	= 		: iconmgr	: f.backmapiconmgr
+
+"Help"	=		: root		: f.version
+"F19"	=		: root		: f.version
 
 # xxx try out <cmd>-Tab ala macos.... (this key sequence doesn't seem to be
 # needed for emacs or xterm)
 #
 "Tab"	= mod2		: all		: f.warpring "next"
-"Tab"	= mod2|[shift]	: all		: f.warpring "prev"
+"Tab"	= mod2|shift	: all		: f.warpring "prev"
 #"m"	= mod2		: all		: f.iconify
 
 #	for xterms menus
 #
 function "start-local-uxterm" {
-	f.exec "${X11BIN}/uxterm ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
+	f.exec "eval uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
 }
 
 function "start-x11server-uxterm" {
-	f.exec "set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"uxterm ${XTERM_OPTS} ${XTERM_LOGIN_OPTS}\" &"
+	f.exec "set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
 }
 
+function "start-local-uxterm-big" {
+	f.exec "eval uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
+}
+
+function "start-x11server-uxterm-big" {
+	f.exec "set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+}
 
 #	for xv menu
 #
@@ -380,12 +416,18 @@ menu "quickies"
 	"Lower"			f.lower
 	"Raise"			f.raise
 	"Iconify"		f.iconify
+	"Identify"		f.identify
 	""			f.nop
 	"WinDelete"		f.delete
 	"Kill"			f.menu "kill"
 	""			f.nop
 	"UXterm"		f.function "start-local-uxterm"
+	"UXterm-big"		f.function "start-local-uxterm-big"
 	"UXterm @x11server"	f.function "start-x11server-uxterm"
+	"UXterm-big @x11server"	f.function "start-x11server-uxterm-big"
+	""			f.nop
+	"Emacs"			f.function "start-local-emacs"
+	"Emacs @x11server"	f.function "start-x11server-emacs"
 	""			f.nop
 	"Xtalk"			!"xtalk &"
 	"Xalarm"		!"alarm &"
@@ -448,7 +490,7 @@ menu "wmops"
 	"Refresh"		f.refresh
 	""			f.nop
 	"Restart"		f.restart
-	"Start CTWM"		f.startwm "ctwm"
+	"Start CTWM"		f.startwm "ctwm -v -k -K $HOME/.ctwmrc.m4out -W"
 	""			f.nop
 	"Version"		f.version	# note: not documented!
 }
@@ -579,7 +621,7 @@ menu "exit"
 menu "applications"
 {
 	"Applications"			f.title
-	"Xterm's Everywhere..."		f.menu "xterm"
+	"Xterm's Everywhere..."		f.menu "xterms"
 	"GhostView's Everywhere..."	f.menu "ghostviews"
 	"WWW Everywhere..."		f.menu "www"
 	"Xv Everywhere..."		f.menu "xvs"
@@ -768,7 +810,7 @@ menu "games"
 	""				f.nop
 	"Xeyes"				!"xeyes &"
 	"Xgc"				!"xgc &"
-	"Xgas"				!"xgas &"
+	"Xgas"				!"xgas &"	# xxx gone?
 	"Xlogo"				!"xlogo &"
 	"ico"				!"ico &"
 	# ico(1): "Color allocation fails in TrueColor displays and option
@@ -778,11 +820,11 @@ menu "games"
 	"ico octa"		!"ico -sleep 0.02 -obj octa -faces -colors blue &"
 	"ico pyramid"		!"ico -sleep 0.02 -obj pyramid -faces -colors yellow &"
 	"ico plane"		!"ico -sleep 0.02 -obj pyramid -faces -colors purple &"
-	"maze"				!"maze &"
-	"puzzle"			!"puzzle &"
+	"maze"				!"maze &"	# xxx gone?
+	"puzzle"			!"puzzle &"	# xxx gone?
 }
 
-menu "xterm"
+menu "xterms"
 {
 	"Xterm's Everywhere"		f.title
 	"UXterm @localhost"		f.function "start-local-uxterm"

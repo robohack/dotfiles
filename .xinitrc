@@ -3,13 +3,23 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.32	24/11/02 11:15:56 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.33	24/11/10 14:58:36 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
 # XXX WARNING XXX:  It seems something on macos (launchd_startx?) blows up if
 # any line of output from this script is more than 512 bytes!!!  Pipe long lines
 # through:   | sed 's/:/: /g' | fold -s
+
+# To test you might be able to use Xnest:
+#
+#	XNESTDISPLAY=$DISPLAY startx -- $X11PATH/bin/Xnest
+#
+#	XNESTDISPLAY=$DISPLAY WM="/new/test/wm -v" startx -- $X11PATH/bin/Xnest
+#
+# Note for all the fonts you use you need them on both the host running Xnest
+# and the host running the native Xserver, which of course should not be a
+# problem if they are one in the same.
 
 # Assumptions that may cause breakage:
 #
@@ -30,9 +40,6 @@ echo "$argv0: initial PATH='$PATH'" | sed 's/:/: /g' | fold -s
 XODISPLAY=$DISPLAY
 echo "$argv0: starting up with DISPLAY='$DISPLAY'"
 
-# N.B.:  we assume $DISPLAY is set correctly enough that clients run from this
-# script can connect and use it.
-
 #echo "With the following arguments:"
 #
 #c=0
@@ -45,8 +52,36 @@ echo "$argv0: starting up with DISPLAY='$DISPLAY'"
 #fi
 #echo '# End-of-Arguments'
 
+ONCONSOLE=false
+export ONCONSOLE
+if [ $(uname -s) != "Darwin" -a -w /dev/console ]; then
+	ONCONSOLE=true
+	echo "$argv0: redirecting stdout and stderr to /dev/console."
+	exec 1>/dev/console 2>&1
+	echo "$argv0: redirected stdout and stderr to /dev/console"
+elif [ "$argv0" = ".xinitrc" ]; then
+	if [ -t 0 ]; then
+		echo "$argv0: redirecting stdout and stderr to ~/.xinit-errors."
+		exec >$HOME/.xinit-errors 2>&1
+		echo "$argv0: redirected stdout and stderr to ~/.xinit-errors"
+	fi
+elif [ "$argv0" = ".xsession" ]; then
+	# started as ~/.xsession by Xdm...
+	#
+	# output should already be going to ~/.xsession-errors (or /dev/console)?
+	echo "$argv0: stdout and stderr should be going to ~/.xsession-errors"
+	:
+fi
+
+# N.B.:  we assume $DISPLAY is set correctly enough that clients run from this
+# script can connect and use it.
+
 # note we redirect input from /dev/null while sourcing in hopes of
 # showing these scripts that they are not attached to a TTY.
+#
+# XXX N.B.:  startx/xinit inherit the environment from the shell that starts
+# them!  Maybe we should try clearing the environment first? (exec env -i;
+# keeping just what is essential, plus a magic guard...)
 #
 if [ -r /etc/profile ]; then
 	echo "$argv0: sourcing /etc/profile"
@@ -88,7 +123,7 @@ fi
 # try making sure we are using the maximum display resolution right away
 #
 # N.B.:  This assumes we've told startx to set the DPI parameter correctly for
-# the current screen.  On macos, with XQuartz, for the Retina 6K Pro Display
+# the current screen.  On macos, with XQuartz, for the Retina 6K XDR Pro Display
 # XDR, which has approximately 218 DPI, this is done with:
 #
 #	defaults write org.xquartz.X11 dpi -int 218
@@ -145,32 +180,47 @@ fi
 #
 # Note these settings should match what ~/.profile will set for a uxterm(1)....
 #
-if $HAVELOCALE &&  [ -z "${LC_CTYPE}" ]; then
-	# xxx should maybe check if "locale -a" reports a matching en_CA*?
-	LC_CTYPE="en_CA.UTF-8"
-	export LC_CTYPE
-	LC_NUMERIC="en_CA.UTF-8"
-	export LC_NUMERIC
-	LC_MONETARY="en_CA.UTF-8"
-	export LC_MONETARY
+if $HAVELOCALE; then
+	if locale -a | fgrep -i en_CA.UTF-8 >/dev/null; then
+		if [ -z "${LC_CTYPE}" ]; then
+			LC_CTYPE="en_CA.UTF-8"
+			export LC_CTYPE
+		fi
+		LC_NUMERIC="en_CA.UTF-8"
+		export LC_NUMERIC
+		LC_MONETARY="en_CA.UTF-8"
+		export LC_MONETARY
+	else
+		echo "$argv0: WARNING!!!  It seems 'locale -a' does not report having en_CA.UTF-8!"
+	fi
 else
 	echo "$argv0: WARNING!!!  An X11 system without locale(1) is unheard of!"
 fi
 
-# Xrdb stuff must come before any other client is started!
+# Xrdb stuff, especially when using M4, must come before any other client is
+# started!
+#
+if $DEBUG; then
+	# look at the default resources
+	xrdb -query -all
+fi
+#
+# First load any available default X11 resource database
 #
 if [ -r "/usr/lib/X11/Xdefaults" ]; then
-	xrdb -merge /usr/lib/X11/Xdefaults	# Load default X11 resource database
+	xrdb -merge /usr/lib/X11/Xdefaults
 elif [ -r "$X11PATH/lib/X11/Xdefaults" ]; then
-	xrdb -merge $X11PATH/lib/X11/Xdefaults	# Load default X11 resource database
+	xrdb -merge $X11PATH/lib/X11/Xdefaults
 elif [ -r "$OPENWINHOME/lib/Xdefaults" ]; then
-	xrdb -merge $OPENWINHOME/lib/Xdefaults	# Load default X11 resource database
+	xrdb -merge $OPENWINHOME/lib/Xdefaults
 fi
 if [ -r $HOME/.Xdefaults ]; then
 	# n.b.:  note the custom use of m4!
 	xrdb -cpp m4 -merge $HOME/.Xdefaults	# Load user's X11 resource database
 fi
 
+# Find the X11 Core Fonts
+#
 if [ -r ${X11PATH}/lib/X11/fonts/misc/fonts.dir ]; then
 	X11FONTDIR=${X11PATH}/lib/X11/fonts
 elif [ -r ${X11PATH}/share/fonts/X11/misc/fonts.dir ]; then
@@ -197,60 +247,64 @@ echo "$argv0: X11FONTDIR='${X11FONTDIR}'"
 # XXX there are some ugly translations between M4 names and variable names that
 # should probably all be normalised!
 #
-eval `
+eval $(
 {
 	echo "changequote([, ])"
 	cat .X11-m4macros.m4
-	echo "[VENDORSTR]='VENDOR'"
-	echo "[SCREENDEPTH]=PLANES"
-	echo "[SCREENSIZE]=WIDTH[x]HEIGHT"
-	echo "[SCREENSIZE_X]=WIDTH"
-	echo "[SCREENSIZE_Y]=HEIGHT"
-	echo "[SCREENDIM]='ScreenDimX[x]ScreenDimY'"
-	echo "[SCREENDIM_X]=ScreenDimX"
-	echo "[SCREENDIM_Y]=ScreenDimY"
-	echo "[SCREENDPI_X]=HorizDPI"
-	echo "[SCREENDPI_Y]=VertDPI"
-	echo "[FontXDPI]=FontXDPI"
-	echo "[FontYDPI]=FontYDPI"
-	echo "[BorderWidth]=BORDERWIDTH"
-	echo "[TDBorderWidth]=TDBORDERWIDTH"
-	echo "[TitleHeight]=TitleHeight"
-	echo "[ClockSize]=ClockSize"
-	echo "[ClockWidth]=ClockWidth"
-	echo "[ClockHeight]=ClockHeight"
-	echo "[ClockOffH]=ClockOffH"
-	echo "[ClockOffV]=ClockOffV"
-	echo "[ClockGeom]='ClockGeom'"
-	echo "[DClockHeight]=DClockHeight"
-	echo "[DClockGeom]='DClockGeom'"
-	echo "[XloadWidth]=XloadWidth"
-	echo "[XloadHeight]=XloadHeight"
-	echo "[XloadGeom]='XloadGeom'"
-	echo "[WSWidth]=WS_WIDTH"
-	echo "[WSHeight]=WS_HEIGHT"
-	echo "[WSOff]=WS_OFF"
-	echo "[XchronoWidth]='XchronoWidth'"
-	echo "[XchronoGeom]='XchronoGeom'"
-} | xrdb -quiet -cpp m4 -E -n  | sed -e 1d -e '/^!/d'`
+	echo "[VENDORSTR]='VENDOR'[; export VENDORSTR]"
+	echo "[SCREENDEPTH]=PLANES[; export SCREENDEPTH]"
+	echo "[SCREENSIZE]=WIDTH[x]HEIGHT[; export SCREENSIZE]"
+	echo "[SCREENSIZE_X]=WIDTH[; export SCREENSIZE_X]"
+	echo "[SCREENSIZE_Y]=HEIGHT[; export SCREENSIZE_Y]"
+	echo "[SCREENDIM]='ScreenDimX[x]ScreenDimY'[; export SCREENDIM]"
+	echo "[SCREENDIM_X]=ScreenDimX[; export SCREENDIM_X]"
+	echo "[SCREENDIM_Y]=ScreenDimY[; export SCREENDIM_Y]"
+	echo "[SCREENDPI_X]=HorizDPI[; export SCREENDPI_X]"
+	echo "[SCREENDPI_Y]=VertDPI[; export SCREENDPI_Y]"
+	echo "[FontXDPI]=FontXDPI[; export FontXDPI]"
+	echo "[FontYDPI]=FontYDPI[; export FontYDPI]"
+	echo "[BorderWidth]=BORDERWIDTH[; export BorderWidth]"
+	echo "[TDBorderWidth]=TDBORDERWIDTH[; export TDBorderWidth]"
+	echo "[TitleHeight]=TitleHeight[; export TitleHeight]"
+	echo "[ClockSize]=ClockSize[; export ClockSize]"
+	echo "[ClockWidth]=ClockWidth[; export ClockWidth]"
+	echo "[ClockHeight]=ClockHeight[; export ClockHeight]"
+	echo "[ClockOffH]=ClockOffH[; export ClockOffH]"
+	echo "[ClockOffV]=ClockOffV[; export ClockOffV]"
+	echo "[ClockGeom]='ClockGeom'[; export ClockGeom]"
+	echo "[DClockHeight]=DClockHeight[; export DClockHeight]"
+	echo "[DClockGeom]='DClockGeom'[; export DClockGeom]"
+	echo "[DecentFont]='DecentFont'[; export DecentFont]"
+	echo "[DecentFontSlant]='DecentFontSlant'[; export DecentFontSlant]"
+	echo "[DecentFontSpc]='DecentFontSpc'[; export DecentFontSpc]"
+	echo "[DecentFontSans]='DecentFontSans'[; export DecentFontSans]"
+	echo "[DecentFontSansSlant]='DecentFontSansSlant'[; export DecentFontSansSlant]"
+	echo "[DecentFontSansSpc]='DecentFontSansSpc'[; export DecentFontSansSpc]"
+	echo "[DecentFontSerif]='DecentFontSerif'[; export DecentFontSerif]"
+	echo "[DecentFontSerifSlant]='DecentFontSerifSlant'[; export DecentFontSerifSlant]"
+	echo "[DecentFontSerifSpc]='DecentFontSerifSpc'[; export DecentFontSerifSpc]"
+	echo "[HugeDeciPt]=HugeDeciPt[; export HugeDeciPt]"
+	echo "[HugePt]=HugePt[; export HugePt]"
+	echo "[BiggerDeciPt]=BiggerDeciPt[; export BiggerDeciPt]"
+	echo "[BiggerPt]=BiggerPt[; export BiggerPt]"
+	echo "[DecentDeciPt]=DecentDeciPt[; export DecentDeciPt]"
+	echo "[DecentPt]=DecentPt[; export DecentPt]"
+	echo "[SmallerDeciPt]=SmallerDeciPt[; export SmallerDeciPt]"
+	echo "[SmallerPt]=SmallerPt[; export SmallerPt]"
+	echo "[TinyDeciPt]=TinyDeciPt[; export TinyDeciPt]"
+	echo "[TinyPt]=TinyPt[; export TinyPt]"
+	echo "[XloadWidth]=XloadWidth[; export XloadWidth]"
+	echo "[XloadHeight]=XloadHeight[; export XloadHeight]"
+	echo "[XloadGeom]='XloadGeom'[; export XloadGeom]"
+	echo "[WSWidth]=WS_WIDTH[; export WSWidth]"
+	echo "[WSHeight]=WS_HEIGHT[; export WSHeight]"
+	echo "[WSOff]=WS_OFF[; export WSOff]"
+	echo "[XchronoWidth]='XchronoWidth'[; export XchronoWidth]"
+	echo "[XchronoGeom]='XchronoGeom'[; export XchronoGeom]"
+} | xrdb -quiet -cpp m4 -E -n  | sed -e 1d -e '/^!/d')
 
-# Choose some defaults for pixel-sized things...
+# xxx these aren't used, and could-should be in .X11-m4macros.m4???
 #
-DecentDeciPt="80"
-DecentPt="8"
-export DecentDeciPt DecentPt
-#
-# Best is to arrange one's font-path to get the desired one first....
-#
-# XXX this should probably check the family name is actually installed and
-# available, but only after the font-path is set?
-#
-# See also https://www.x.org/releases/X11R7.7/doc/xorg-docs/xlfd/xlfd.html
-#
-# Note: the *L1 (Latin-1) specs are not currently used.
-#
-DecentFont="DejaVu Sans Mono"
-
 DefaultFontSpec='-*-${DecentFont}-medium-r-normal--0-${DecentDeciPt}-${FontXDPI}-${FontYDPI}-m-*-iso10646-1'
 DefaultFontSpecL1='-*-${DecentFont}-medium-r-normal--0-${DecentDeciPt}-${FontXDPI}-${FontYDPI}-m-*-iso8859-1'
 export DefaultFontSpec DefaultFontSpecL1
@@ -263,15 +317,17 @@ export DecentFontSpec DecentFontSpecL1
 # out above so this allows the physical font size to be specified, in points,
 # (either with a ":size=" attribute in the font spec (which can be abbreviated
 # as "-POINTS"), or with a command-line option to override that, e.g. with
-# Xterm's "-fs" option.  See fonts.conf(5).
+# Xterm's "-fs" option.
 #
-# Note for Xft using fc-list(1) is probably the best way to fint Xft fonts...
+# Note for Xft using fc-list(1) is probably the best way to find Xft fonts...
 #
 #	fc-list :scalable=true:spacing=100:lang=en: family
 #
 # See "Font Name" in the following for how XftPatterns are specified:
 #
 #	https://fontconfig.pages.freedesktop.org/fontconfig/fontconfig-user.html
+#
+# See also fonts.conf(5).
 #
 # N.B.:  Xft does seem able to find fonts with the spaces removed from their
 # "fullname", e.g. "DejaVuSansMono" will find "DejaVu Sans Mono".  Phew!  (This
@@ -282,12 +338,17 @@ export DecentFontSpec DecentFontSpecL1
 #
 DefaultXftFont=$(echo "${DecentFont}" | sed 's/ //g')
 # note: ":size=N" can be replaced by "-N" but this form is more explicit
-DecentXftFontSpec="${DefaultXftFont}:size=9"
+DecentXftFontSpec="${DefaultXftFont}:size=${DecentPt}"
 export DefaultXftFont DecentXftFontSpec
 
 # For hi-res displays one critical entry should be in ~/.fonts/fonts.alias:
 #
 #	cursor -xfree86-cursor-medium-r-normal--0-160-218-218-p-0-adobe-fontspecific
+#
+# The target font comes from what is now called the Xorg "font-xfree86-type1"
+# package, and consists of a single file: cursor.pfa.  If you don't have it in
+# your Xserver's .../fonts/Type1 directory then you may need to find a copy and
+# put it in your ~/.fonts directory.
 #
 # (note there are "xcursor-*" pkgsrc packages with scalable loadable cursors)
 #
@@ -309,7 +370,7 @@ export DefaultXftFont DecentXftFontSpec
 #	https://stackoverflow.com/questions/57078805/xloadqueryfont-fails-on-font-found-with-xlistfonts
 #
 # FontConfig is a stupid STUPID design!  Having to have fonts installed on the
-# both client and server is STUPID!
+# both client and server is STUPID!  Configuration files in XML are STUPID!
 #
 if [ ! -d ${HOME}/.fonts ]; then
 	echo "$argv0: making a new empty ~/.fonts directory!"
@@ -353,7 +414,9 @@ fpappend X11FONTPATH "${PKG}/share/fonts/X11/intlfonts/TrueType" "${PKG}/share/f
 #
 fpappend X11FONTPATH "${X11FONTDIR}/TTF/" "${X11FONTDIR}/OTF/"
 #
-# N.B.:  If you've set the "cursor" alias then this is where it is from!
+# N.B.:  If you've set the "cursor" alias then this may be where it is from,
+# unless you've had to install it (i.e. "cursor.pfa") locally in your ~/.fonts
+# directory.
 #
 fpappend X11FONTPATH "${X11FONTDIR}/Type1/"
 #
@@ -413,53 +476,36 @@ xset fp rehash
 fc-cache -v
 
 ##################
-#ls -lisa $HOME/.fonts
-#xlsfonts > $HOME/tmp/xlsfonts.out
-#xset q
+if ! $DEBUG; then
+	set -x
+fi
+xdpyinfo
+#xrdb -query -all
+xset q
+if [ -n "$XNESTDISPLAY" ]; then
+	xset -display ${XNESTDISPLAY} q
+fi
+xlsfonts > $HOME/tmp/xlsfonts.out
 ## /Users/woods/.fonts/,/Users/woods/Library/Fonts,/opt/pkg/share/fonts/X11/TTF/,/opt/pkg/share/fonts/X11/intlfonts/TrueType,/opt/pkg/share/fonts/X11/intlfonts/Type1,/opt/X11/share/fonts/TTF/,/opt/X11/share/fonts/OTF/,/opt/X11/share/fonts/Type1/,/opt/X11/share/system_fonts/,/opt/X11/share/system_fonts/Supplemental
 ## /Users/woods/.fonts/,/opt/X11/share/fonts/TTF/,/opt/X11/share/fonts/OTF/,/opt/X11/share/fonts/Type1/,/opt/X11/share/system_fonts/,/opt/X11/share/system_fonts/Supplemental
-#if ! $DEBUG; then
-#	set -x
-#fi
-#xlsfonts -fn "-misc-dejavu sans mono-medium-r-normal--0-86-218-218-m-0-iso8859-1"
-#xlsfonts -fn "-*-dejavu sans mono-medium-r-normal--0-86-218-218-m-0-iso8859-1"
-#xlsfonts -fn "-*-*-medium-r-normal--0-86-218-218-m-0-iso8859-1"
-#xlsfonts -fn "-misc-dejavu sans mono-medium-r-normal--0-86-218-218-m-0-*-1"
-#xlsfonts -o -fn "-misc-dejavu sans mono-medium-r-normal--0-86-218-218-m-0-iso8859-1"
-#xlsfonts -o -fn "-*-dejavu sans mono-medium-r-normal--0-86-218-218-m-0-iso8859-1"
-#xlsfonts -o -fn "-*-*-medium-r-normal--0-86-218-218-m-0-iso8859-1"
-#xlsfonts -o -fn "-misc-dejavu sans mono-medium-r-normal--0-86-218-218-m-0-*-1"
+xlsfonts -fn "${DecentFontSpecL1}"
+xlsfonts -fn "${DecentFontSpec}"
+xlsfonts -o -fn "${DecentFontSpec}"
 #
-#xlsfonts -fn "-xfree86-cursor-medium-r-normal--0-160-218-218-p-0-adobe-fontspecific"
-#xlsfonts -o -fn "-xfree86-cursor-medium-r-normal--0-160-218-218-p-0-adobe-fontspecific"
-#xlsfonts -fn "cursor"
-#xlsfonts -o -fn "cursor"
+xlsfonts -fn "-xfree86-cursor-medium-r-normal--0-160-218-218-p-0-adobe-fontspecific"
+xlsfonts -o -fn "-xfree86-cursor-medium-r-normal--0-160-218-218-p-0-adobe-fontspecific"
+xlsfonts -fn "cursor"
+xlsfonts -o -fn "cursor"
 #
-#if ! $DEBUG; then
-#	set +x
-#fi
+if ! $DEBUG; then
+	set +x
+fi
 ##################
 
 #
 # now in case we've updated the "cursor" alias....
 #
 xsetroot -cursor_name tcross
-
-if [ -z "${HOSTNAME}" ]; then
-	HOSTNAME=`hostname`
-fi
-export HOSTNAME
-
-case "${HOSTNAME}" in
-*.local)
-	DOMAINNAME=".local"
-	;;
-esac
-if [ -z "${DOMAINNAME}" ]; then
-	# from ~/.shrc
-	DOMAINNAME=`get_domainname`
-fi
-export DOMAINNAME
 
 if [ $argv0 = ".xsession" -a -z "$XDMHOST" ]; then
 	case "${HOSTNAME}${DOMAINNAME}" in
@@ -492,88 +538,6 @@ fi
 # n.b. not sure why there was only one borderWidth involved originally!
 XconsoleVoff=$(expr ${XconsoleHeight} + ${TitleHeight} + ${TDBorderWidth} + ${TDBorderWidth} + ${TDBorderWidth})
 
-# XTerm options which cannot to be set consistently with resources, ("+ai" may
-# be added below, depending on which window manager is used), or which should
-# not because they depend on other things in the environment, such as which
-# window manager is being used.
-#
-# n.b.:  this is also set in ~/.profile, and should be identical
-#
-if [ -z "$XTERM_OPTS" ]; then
-	XTERM_OPTS=""
-fi
-export XTERM_OPTS
-
-if [ -z "$WM" ]; then
-	echo "$argv0: searching for a usable window manager..."
-	#
-	# XXX maybe it would be nice to have a window-manager-chooser, which is
-	# effectively what a modern "session" manager is... but xsm(1) isn't
-	# really that modern, and it's the only thing available by default, and
-	# it wants to be started instead of the window manager.  Even xsm(1)
-	# though can do all the secondary app startups, in theory, but it seems
-	# it needs the deprecated rstart(1) and friends to start programs on
-	# remote machines, and:
-	#
-	# *** rstart and iceauth should be installed on each machine that you expect
-	#     to run applications on that will be part of your session ***
-	#
-	if type ctwm >/dev/null 2>&1; then
-		#
-		# N.B.:  in newer versions (>= 4.x) a new command-line syntax
-		# makes use of "-display $DISPLAY" break.  However since well
-		# before 3.8.2 the default is the $DISPLAY in the environment,
-		# so we can just avoid using it at all.
-		#
-		# also, don't bother with '-v' -- it's too much and slows things!
-		#
-		if [ ${SCREENDEPTH:-1} -eq 1 ]; then
-			# the welcome screen on monochrome is silly and slow
-			WM="ctwm -k -K $HOME/.ctwmrc.m4out -W"
-		else
-			WM="ctwm -k -K $HOME/.ctwmrc.m4out"
-		fi
-		# force activeIcon on for ctwm, though it may not be used if an
-		# IconManager is in use for Xterm windows....
-		#
-		XTERM_OPTS="+ai ${XTERM_OPTS}"
-	elif type etwm >/dev/null 2>&1; then
-		# Brian Bidulock's "Enhanced TWM", forked from CTWM, possibly dead
-		# https://github.com/bbidulock/etwm
-		#
-		WM=etwm
-		XTERM_OPTS="+ai ${XTERM_OPTS}"
-	elif type adwm >/dev/null 2>&1; then
-		# Brian Bidulock's "advanced dynamic window manager" for his(?)
-		# XDE (X Desktop Environment)
-		# https://github.com/bbidulock/xde-desktop
-		#
-		WM=adwm
-	elif type tvtwm >/dev/null 2>&1; then
-		WM=tvtwm
-	elif type wmx >/dev/null 2>&1; then
-		WM=wmx
-	elif type wm2 >/dev/null 2>&1; then
-		WM=wm2
-	elif type scwm >/dev/null 2>&1; then
-		WM=scwm
-	elif type wmaker >/dev/null 2>&1; then
-		WM=wmaker
-	elif type fvwm >/dev/null 2>&1; then
-		WM=fvwm
-	elif type twm >/dev/null 2>&1; then
-		WM="twm"
-		XTERM_OPTS="+ai ${XTERM_OPTS}"
-	else
-		echo "$argv0: assuming 'xterm' is available in lieu of a known WM..."
-		WM=xterm
-	fi
-	export WM
-fi
-echo "$argv0: WM='${WM}'"
-
-ONCONSOLE=false
-export ONCONSOLE
 case "$DISPLAY" in
 :[0-9]*)
 	#
@@ -586,11 +550,9 @@ case "$DISPLAY" in
 	#
 	xconsole_args="-geometry ${XconsoleWidth}x${XconsoleHeight}-0-0"
 	#
-	# XXX add '-fn "$(eval echo \"$DecentFontSpec\" | sed s/-80-/-60-/)' for small laptop screens
-	#
 	xconsole_args=$xconsole_args" -saveLines 2000 -notify -verbose"
 	#
-	if [ $(uname -s) = "Darwin" ]; then
+	if [ $(uname -s) = "Darwin" -a -z "${XNESTDISPLAY}" ]; then
 		#
 		# XXX n.b.:  with the advent of the new Unified Logging System
 		# XXX and log(1) but with XQuartz not (yet) using os_log(3), so
@@ -615,18 +577,35 @@ case "$DISPLAY" in
 	# don't bother with this unless it'll do us some good though...
 	# (i.e. unless XDM ran the GiveConsole script)
 	#
-	elif [ -w /dev/console ]; then
+	elif [ $(uname -s) != "Darwin" -a -w /dev/console ]; then
 		ONCONSOLE=true
-		echo "$argv0: redirecting stdout and stderr to /dev/console."
-		exec 1>/dev/console 2>&1
-		echo "$argv0: redirected stdout and stderr to /dev/console, starting xconsole"
 		xconsole $xconsole_args &
 		# wait a wee bit in hopes xconsole gets running to display any errors....
 		sleep 1
+	elif [ "$argv0" = ".xinitrc" ]; then
+		#
+		# XXX I think this "tail" could get left behind if nothing ever
+		# writes to the file it is watching (so it will never write
+		# anything more to the closed pipe, and so never get a
+		# SIGPIPE....
+		#
+		if [ -r $HOME/.xinit-errors ]; then
+			tail -F $HOME/.xinit-errors | xconsole $xconsole_args -file /dev/stdin &
+		else
+			echo "$argv0: WARNING: startx/xinit output not going to ~/.xinit-errors?"
+		fi
+	elif [ "$argv0" = ".xsession" ]; then
+		# XXX again, beware of lost tails...
+		if [ -r $HOME/.xsession-errors-$DISPLAY ]; then
+			tail -F $HOME/.xsession-errors-$DISPLAY | xconsole $xconsole_args -file /dev/stdin &
+		elif [ "$XODISPLAY" != "$DISPLAY" -a -r $HOME/.xsession-errors-$XODISPLAY ]; then
+			tail -F $HOME/.xsession-errors-$XODISPLAY | xconsole $xconsole_args -file /dev/stdin &
+		else
+			echo "$argv0: didn't find ~/.xsession-errors-$DISPLAY, assuming old XDM config in use"
+			tail -F $HOME/.xsession-errors | xconsole $xconsole_args -file /dev/stdin &
+		fi
 	else
 		echo "$argv0: WARNING: display was '$DISPLAY' but /dev/console is not writable by ${USER:-$LOGNAME}!"
-		ls -l /dev/console
-		# XXX this is likely startx on a system without 
 	fi
 
 	# Now since $DISPLAY doesn't have a hostname we need to figure out what
@@ -685,7 +664,6 @@ case "$DISPLAY" in
 esac
 export REMOTE_DISPLAY
 export DISPLAY
-
 
 if [ "$XODISPLAY" != "$DISPLAY" ]; then
 	echo "$argv0: notice: XODISPLAY='$XODISPLAY', DISPLAY='$DISPLAY'"
@@ -753,9 +731,9 @@ if [ -r $HOME/.xhosts ]; then
 	echo "$argv0: now setting up all the DANGEROUS deprecated xhost access controls!"
 	while read XHOST junk; do
 		case "$XHOST" in
-		"" | '\#'* )
+		""|'#'*)
 			;;
-		* )
+		*)
 			# NEVER remove the "" from the first clause!!!
 			xhost +$XHOST
 			;;
@@ -763,14 +741,93 @@ if [ -r $HOME/.xhosts ]; then
 	done < $HOME/.xhosts
 fi
 
+if [ -z "$WM" ]; then
+	echo "$argv0: searching for a usable window manager..."
+	#
+	# XXX maybe it would be nice to have a window-manager-chooser, which is
+	# effectively what a modern "session" manager is... but xsm(1) isn't
+	# really that modern, and it's the only thing available by default, and
+	# it wants to be started instead of the window manager.  Even xsm(1)
+	# though can do all the secondary app startups, in theory, but it seems
+	# it needs the deprecated rstart(1) and friends to start programs on
+	# remote machines, and:
+	#
+	# *** rstart and iceauth should be installed on each machine that you expect
+	#     to run applications on that will be part of your session ***
+	#
+	if type ctwm >/dev/null 2>&1; then
+		#
+		# N.B.:  in newer versions (>= 4.x) a new command-line syntax
+		# makes use of "-display $DISPLAY" break.  However since well
+		# before 3.8.2 the default is the $DISPLAY in the environment,
+		# so we can just avoid using it at all.
+		#
+		if [ ${SCREENDEPTH:-1} -eq 1 ]; then
+			# the welcome screen on monochrome is silly and slow
+			WM="ctwm -v -k -K $HOME/.ctwmrc.m4out -W"
+		else
+			WM="ctwm -v -k -K $HOME/.ctwmrc.m4out"
+		fi
+		# force activeIcon on for ctwm, though it may not be used if an
+		# IconManager is in use for Xterm windows....
+		#
+		XTERM_OPTS="+ai ${XTERM_OPTS}"
+	elif type etwm >/dev/null 2>&1; then
+		# Brian Bidulock's "Enhanced TWM", forked from CTWM, possibly dead
+		# https://github.com/bbidulock/etwm
+		#
+		WM=etwm
+		XTERM_OPTS="+ai ${XTERM_OPTS}"
+	elif type adwm >/dev/null 2>&1; then
+		# Brian Bidulock's "advanced dynamic window manager" for his(?)
+		# XDE (X Desktop Environment)
+		# https://github.com/bbidulock/xde-desktop
+		#
+		WM=adwm
+	elif type tvtwm >/dev/null 2>&1; then
+		WM=tvtwm
+	elif type wmx >/dev/null 2>&1; then
+		WM=wmx
+	elif type wm2 >/dev/null 2>&1; then
+		WM=wm2
+	elif type scwm >/dev/null 2>&1; then
+		WM=scwm
+	elif type wmaker >/dev/null 2>&1; then
+		WM=wmaker
+	elif type fvwm >/dev/null 2>&1; then
+		WM=fvwm
+	elif type twm >/dev/null 2>&1; then
+		WM="env LC_ALL=C twm -v -v"
+		XTERM_OPTS="+ai ${XTERM_OPTS}"
+	else
+		echo "$argv0: assuming 'xterm' is available in lieu of a known WM..."
+		WM=xterm
+	fi
+	export WM
+fi
+echo "$argv0: WM='${WM}'"
+
+# XTerm options which cannot to be set consistently with resources, ("+ai" may
+# be added below, depending on which window manager is used), or which should
+# not because they depend on other things in the environment, such as which
+# window manager is being used.
+#
+# n.b.:  this is also set in ~/.profile, and should be identical
+#
+if [ -z "$XTERM_OPTS" ]; then
+	XTERM_OPTS=""
+fi
+export XTERM_OPTS
+
 # Notes:
 #
 # - setting -fs (faceSize) to 7.5 makes the TrueType font size most closely
-#   match the size of the default "fixed" bitmap font's size.
+#   match the size of the default "fixed" bitmap font's size (as it was on a
+#   100dpi display).
 #
-# - Unfortunately on both the iMac 27" (at 2560x1440) and the Retina 6K Pro
+# - Unfortunately on both the iMac 27" (at 2560x1440) and the Retina 6K XDR Pro
 #   there is not quite room enough horizontally for the three standard xterms
-#   (two at 132 cols, one at +80 cols) with a point size of 10 for the big ones,
+#   (two at 132 cols, one at +80 cols) with a point size of 9 for the big ones,
 #   but 9pt is quite readable anyway.
 #
 # XXX with a laptop in the range of 300mmx200mm we want no more than 60x132 -fs 7.5
@@ -785,16 +842,24 @@ fi
 #
 #	xterm -fs 9 -e 'xwininfo -id $WINDOWID -size > $HOME/tmp/xwi.out; exit'
 #
-if [ ${SCREENSIZE_X} -ge 6016 -a ${SCREENSIZE_Y} -ge 3384 ]; then
-	XTERM_BIG_OPTS="-geometry 132x100+0+0 -fs 9"
-elif [ ${SCREENSIZE_X} -ge 2560 -a ${SCREENSIZE_Y} -ge 1440 ]; then
-	XTERM_BIG_OPTS="-geometry 132x82+0+0 -fs 9"
-elif [ ${SCREENSIZE_X} -ge 1600 -a ${SCREENSIZE_Y} -ge 1280 ]; then
-	XTERM_BIG_OPTS="-geometry 117x82+0+0 -fs 9"
-elif [ ${SCREENSIZE_X} -ge 1280 -a ${SCREENSIZE_Y} -ge 1024 ]; then
-	XTERM_BIG_OPTS="-geometry 100x50+0+0 -fs 9"
+if [ ${SCREENDIM_Y} -ge 14 ]; then
+	# Mac 32" 6k XDR Pro
+	XTERM_BIG_OPTS="-geometry 132x100+0+0 -fs ${DecentPt}"
+elif [ ${SCREENDIM_Y} -ge 13 ]; then
+	# iMac 27"
+	XTERM_BIG_OPTS="-geometry 117x93+0+0 -fs ${DecentPt}"
+elif [ ${SCREENDIM_Y} -ge 11 ]; then
+	# Xnest on the 32" XDR Pro
+	XTERM_BIG_OPTS="-geometry 102x74+0+0 -fs ${DecentPt}"
+elif [ ${SCREENDIM_Y} -ge 8 ]; then
+	# xxx untested
+	XTERM_BIG_OPTS="-geometry 132x66+0+0 -fs ${SmallerPt}"
+elif [ ${SCREENDIM_Y} -ge 6 ]; then
+	# "13-inch" laptop
+	XTERM_BIG_OPTS="-geometry 132x54+0+0 -fs ${SmallerPt}"
 else
-	XTERM_BIG_OPTS="-geometry 80x40+0+0 -fs 7.5"
+	# xxx untested
+	XTERM_BIG_OPTS="-geometry 80x30+0+0 -fs ${TinyPt}"
 fi
 export XTERM_BIG_OPTS
 
@@ -805,7 +870,7 @@ export XTERM_BIG_OPTS
 # With CommitMono and DejaVu Sans Mono fonts this could be 91 wide
 # With Liberation Mono and .sf ns mono (appl) this could be 92 wide
 #
-# XXX with a laptop in the range of 300mmx200mm we want no more than 40x80 -fs 6
+# XXX with a laptop in the range of 300mmx200mm we want no more than 80x40 -fs 6
 #
 # (e.g. 91x45, 95x50), or taller, or shorter....  (calculate based on character
 # size (see above about 'xwininfo -size') and $XconsoleWidth and something
@@ -815,7 +880,25 @@ export XTERM_BIG_OPTS
 # window manager is running, so put a little sleep in front of ones using these
 # flags....
 #
-XTERM_LITTLE_OPTS="-geometry 91x47-0-${XconsoleVoff} -fs 7.5 -T OccupyAll"
+if [ ${SCREENDIM_Y} -ge 14 ]; then
+	# Mac 32" 6k XDR Pro
+	XTERM_LITTLE_OPTS="-geometry 91x47-0-${XconsoleVoff} -fs ${SmallerPt} -T OccupyAll"
+elif [ ${SCREENDIM_Y} -ge 13 ]; then
+	# iMac 27"
+	XTERM_LITTLE_OPTS="-geometry 98x47-0-${XconsoleVoff} -fs ${SmallerPt} -T OccupyAll"
+elif [ ${SCREENDIM_Y} -ge 11 ]; then
+	# Xnest on the 32" XDR Pro
+	XTERM_LITTLE_OPTS="-geometry 80x33-0-${XconsoleVoff} -fs ${SmallerPt} -T OccupyAll"
+elif [ ${SCREENDIM_Y} -ge 8 ]; then
+	# xxx untested
+	XTERM_LITTLE_OPTS="-geometry 80x30-0-${XconsoleVoff} -fs ${TinyPt} -T OccupyAll"
+elif [ ${SCREENDIM_Y} -ge 6 ]; then
+	# "13-inch" laptop
+	XTERM_LITTLE_OPTS="-geometry 80x24-0-0 -fs ${TinyPt} -T OccupyAll"
+else
+	# xxx untested, probably no space anyway!
+	XTERM_LITTLE_OPTS="-geometry 80x24-0-0 -fs ${TinyPt} -T OccupyAll"
+fi
 export XTERM_LITTLE_OPTS
 
 # on OSX Xterm isn't configured to record logins properly with "-ls", but if we
@@ -925,33 +1008,8 @@ if [ "$argv0" = ".xinitrc" ]; then
 	esac
 
 	#
-	# Common for all xinit/startx startups
+	#	Common for all xinit/startx startups
 	#
-	# XXX anything special???
-
-elif $ONCONSOLE ; then
-	#
-	#	we're probably signing in via xdm on the system console....  maybe?
-	#
-	# I/O is already redirected to /dev/console above, so we will see it...
-	#
-	:
-else
-	#
-	#	we're probably signing in on an independent xterminal....
-	#
-	# XXX I think these "tail"s could get left behind if nothing ever writes
-	# to the file they are watching (so they'll never write anything more to
-	# the closed pipe, and so never get a SIGPIPE....
-	#
-	if [ -r $HOME/.xsession-errors-$DISPLAY ]; then
-		tail -F $HOME/.xsession-errors-$DISPLAY | xconsole $xconsole_args -file /dev/stdin &
-	elif [ "$XODISPLAY" != "$DISPLAY" -a -r $HOME/.xsession-errors-$XODISPLAY ]; then
-		tail -F $HOME/.xsession-errors-$XODISPLAY | xconsole $xconsole_args -file /dev/stdin &
-	else
-		echo "$argv0: didn't find ~/.xsession-errors-$DISPLAY, assuming old XDM config in use"
-		tail -F $HOME/.xsession-errors | xconsole $xconsole_args -file /dev/stdin &
-	fi
 fi
 
 #	Programs for everyone
@@ -960,13 +1018,15 @@ fi
 # if possible run a localhost mailbox monitor of some sort...
 #
 if $HAVEXBUFFY ; then
+	XBuffyOffV=$(expr $ClockOffV - 80 - \( 2 \* $TDBorderWidth \))
 	if [ -n "$AUDIOPLAYER" -a -r $HOME/lib/sounds/newmail ]; then
-		xbuffy -geometry 80x25-0+235 -shortnames -header 0 -acmd "$AUDIOPLAYER $HOME/lib/sounds/newmail" &
+		xbuffy -geometry 80x25-0+${XBuffyOffV} -shortnames -header 0 -acmd "$AUDIOPLAYER $HOME/lib/sounds/newmail" &
 	else
-		xbuffy -geometry 80x25-0+235 -shortnames -header 0 &
+		xbuffy -geometry 80x25-0+${XBuffyOffV} -shortnames -header 0 &
 	fi
 elif $HAVEXBIFF ; then
-	xbiff -geometry 48x48-0+235 -bw 0 &
+	XBiffOffV=$(expr $ClockOffV - 50 - \( 2 \* $TDBorderWidth \))
+	xbiff -geometry 50x50-0+${XBiffOffV} -bw 0 &
 fi
 
 # set/start the root window display/app
@@ -1006,11 +1066,21 @@ else
 	xload -geometry $XloadGeom -hl red &
 fi
 
+# xxx Once upon a time I thought the xclock supplied with XQuartz 2.8.2 wass
+# broken somehow in how it displays text, but the pkgsrc build works OK....
+#
+# Either way, both seem to work now.
+#
 XCLOCK="xclock"
 if [ -x ${PKG}/bin/xclock ]; then
 	XCLOCK=${PKG}/bin/xclock
 fi
-LC_CTYPE=C ${XCLOCK} -geometry $DClockGeom -face ${DefaultXftFont}:size=10 -digital -update 1 -chime &
+if [ ${ClockSize} -eq 1 ]; then
+	# xxx the year is chopped off, but the seconds are still fully visible
+	${XCLOCK} -geometry $DClockGeom -face ${DefaultXftFont}:size=${TinyPt} -digital -update 1 -chime &
+else
+	${XCLOCK} -geometry $DClockGeom -face ${DefaultXftFont}:size=${BiggerPt} -digital -update 1 -chime &
+fi
 if $HAVESWISSWATCH; then
 	swisswatch -name swissclock -geometry $ClockGeom &
 else
@@ -1046,9 +1116,6 @@ very.local:*|very-old.local:*)
 	# very-old also has a quite large, quite hi-res, display...
 	xset m 2 0
 
-	# xxx the xclock supplied with XQuartz 2.8.2 is broken somehow in how it
-	# displays text, but the pkgsrc build works OK....
-	#
 	# xxx width here is based on what's left to the left of xloads on a
 	# high-res display, but there is no more space on a ~100dpi display so
 	# it collides anyway....  120 will suffice everywhere for now
@@ -1353,9 +1420,6 @@ xtremely*:*)
 
 	;;
 
-almost.weird.com)
-	;;
-
 very.weird.com:*|very.robohack.planix.com:*)
 	# we run these ones in the background because the hosts might not be up
 	xauth nextract - $DISPLAY | onx11server -X most.weird.com 'xauth nmerge -' &
@@ -1369,6 +1433,8 @@ very.weird.com:*|very.robohack.planix.com:*)
 	;;
 
 esac
+
+echo "$0: trying to start WM='$WM' ... " 1>&2
 
 # when the window manager exits so shall we...
 #
