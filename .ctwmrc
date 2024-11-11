@@ -9,7 +9,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.34	24/11/10 14:58:36 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.35	24/11/11 14:17:23 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -880,12 +880,12 @@ Button3 =		: iconmgr	: f.occupyall # ???
 "Help"	=		: root		: f.version
 "F19"	=		: root		: f.version
 
-# xxx try out <cmd>-Tab ala macos.... (this key sequence doesn't seem to be
-# needed for emacs or xterm)
+# xxx try out <cmd>-Tab ala macos, but using <meta>, aka <Option>.... (emacs may
+# use <cmd>-Tab, eg. in Magit)
 #
-"Tab"	= mod2		: all		: f.warpring "next"
-"Tab"	= mod2|[shift]	: all		: f.warpring "prev"
-#"m"	= mod2		: all		: f.iconify
+"Tab"	= meta		: all		: f.warpring "next"
+"Tab"	= meta|[shift]	: all		: f.warpring "prev"
+#"m"	= meta		: all		: f.iconify
 
 "Left"	= mod2		: root|workspace: f.leftworkspace
 "Right"	= mod2		: root|workspace: f.rightworkspace
