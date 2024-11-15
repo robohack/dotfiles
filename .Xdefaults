@@ -2,7 +2,7 @@
 !
 ! changequote([, ])	note brackets will disappear from comments!
 !
-!#ident	"@(#)HOME:.Xdefaults	37.17	24/11/10 14:58:36 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.18	24/11/15 12:42:40 (woods)"
 !
 ! N.B. WARNING:  This file must be processed with "xrdb -cpp m4" with macros and
 ! macro calls in the comments.  (perhaps it should be renamed to .Xdefaults.m4?)
@@ -648,7 +648,8 @@ Xpdf.toolTipEnable:		false
 *faceName:			DecentFont
 !
 ! really any and all app's cursors should blink!
-*cursorBlink:			true
+*cursorBlink:			always
+*cursorBlinkXOR:		false
 !
 ! The keyboard should always match the terminal description, as best as is
 ! possible, except of course for "erase".  We always want the erase character to
