@@ -9,7 +9,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.35	24/11/11 14:17:23 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.36	24/11/15 12:42:07 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -119,6 +119,7 @@ NoMenuShadows
 NoRaiseOnMove
 NoRaiseOnResize
 NoShowOccupyAll
+#NoTitleFocus		# XXX hmmm..... damned if you do, damned if you don't!
 PackNewWindows
 RaiseOnClick		# xxx because "RaiseOnClickButton 1" doesn't seem to work...
 RestartPreviousState	# only useful when restarting the WM (saves to X11 server memory)
@@ -851,6 +852,8 @@ Button1 =		: icon		: f.function "move-or-iconify"
 Button2 =		: icon		: f.iconify
 Button3 =		: icon		: f.lower
 
+"i"	=		: icon		: f.iconify
+
 Button1 = meta		: icon		: f.function "forcemove-or-iconify"
 Button2 = meta		: icon		: f.iconify
 Button3 = meta		: icon		: f.lower
@@ -864,8 +867,9 @@ Button2 = mod2		: iconmgr	: f.lower
 Button3 =		: iconmgr	: f.occupyall # ???
 
 "Return"=		: iconmgr	: f.iconify
-
+"i"	=		: iconmgr	: f.iconify
 "F16"	=		: iconmgr	: f.iconify
+
 "F17"	=		: iconmgr	: f.raiselower
 
 # XXX these only wander around one of the entries, not all
@@ -900,7 +904,14 @@ Button3 =		: iconmgr	: f.occupyall # ???
 "F16"	=		: root|workspace: f.prevworkspace
 "F17"	=		: root|workspace: f.nextworkspace
 
-# XXX Hmmm... these seem to be delivered to the app regardless....
+# XXX Hmmm... without NoTitleFocus keyboard focus always goes fully to the app,
+# (it should have been called NotTitleAppFocus) so these bindings are "hidden",
+# however even with NoTitleFocus it still never seems to go to the frame, only
+# to the titlebar.
+#
+# XXX also, NoTitleFocus makes focus switching a bit "lazy", perhaps exacerbated
+# by mouse acceleration.
+#
 "Right"	= control	: frame|title	: f.changesize "right +10"
 "Left"	= control	: frame|title	: f.changesize "right -10"
 "Down"	= control	: frame|title	: f.changesize "bottom +10"
@@ -915,10 +926,19 @@ Button3 =		: iconmgr	: f.occupyall # ???
 "Right" =		: frame|title	: f.jumpright "2"
 "Down"	=		: frame|title	: f.jumpdown "2"
 "Up"	=		: frame|title	: f.jumpup "2"
+
+"i"	=		: frame|title	: f.iconify
+
+"Left"	= mod2		: frame|title	: f.jumpleft "1"
+"Right" = mod2		: frame|title	: f.jumpright "1"
+"Down"	= mod2		: frame|title	: f.jumpdown "1"
+"Up"	= mod2		: frame|title	: f.jumpup "1"
+
 "Left"	= meta		: frame|title	: f.pack "left"
 "Right" = meta		: frame|title	: f.pack "right"
 "Up"	= meta		: frame|title	: f.pack "top"
 "Down"	= meta		: frame|title	: f.pack "bottom"
+
 "Left"	= [shift]|meta	: frame|title	: f.fill "left"
 "Right" = [shift]|meta	: frame|title	: f.fill "right"
 "Up"	= [shift]|meta	: frame|title	: f.fill "top"
