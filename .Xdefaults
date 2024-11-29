@@ -2,7 +2,7 @@
 !
 ! changequote([, ])	note brackets will disappear from comments!
 !
-!#ident	"@(#)HOME:.Xdefaults	37.19	24/11/29 12:30:55 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.20	24/11/29 14:03:35 (woods)"
 !
 ! N.B. WARNING:  This file must be processed with "xrdb -cpp m4" with macros and
 ! macro calls in the comments.  (perhaps it should be renamed to .Xdefaults.m4?)
@@ -401,8 +401,6 @@ xtDefaultFontSet:		-*-DecentFont-medium-r-normal--0-DecentDeciPt-FontXDPI-FontYD
 !
 ! these work for / affect various Xt apps....
 !
-! N.B.:  xterm, for one, can't expand aliases (for SimpleMenu)
-!
 *label.font:			-*-DecentFontSans-bold-DecentFontSansSlant-normal--0-BiggerDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
 *label.fontSet:			-*-DecentFontSans-bold-DecentFontSansSlant-normal--0-BiggerDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
 !
@@ -427,10 +425,12 @@ xtDefaultFontSet:		-*-DecentFont-medium-r-normal--0-DecentDeciPt-FontXDPI-FontYD
 *constraintLabel.font:		-*-DecentFontSans-medium-DecentFontSansSlant-normal--0-DecentDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
 *constraintLabel.fontSet:	-*-DecentFontSans-medium-DecentFontSansSlant-normal--0-DecentDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
 !
-*SimpleMenu*menuLabel.font:	-*-DecentFontSans-bold-DecentFontSansSlant-normal--0-HugeDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
-*SimpleMenu*menuLabel.fontSet:	-*-DecentFontSans-bold-DecentFontSansSlant-normal--0-HugeDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
+! these are probably just for SimpleMenu.menuLabel objects
 !
-! these are probably just for SimpleMenu.SmeBSB menu entry objects
+*menuLabel.font:	-*-DecentFontSans-bold-DecentFontSansSlant-normal--0-HugeDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
+*menuLabel.fontSet:	-*-DecentFontSans-bold-DecentFontSansSlant-normal--0-HugeDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
+!
+! these are probably just for SimpleMenu.SmeBSB "menu entry" objects
 !
 *SmeBSB.font:			-*-DecentFontSans-medium-r-normal--0-SmallerDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
 *SmeBSB.fontSet:		-*-DecentFontSans-medium-r-normal--0-SmallerDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
@@ -441,14 +441,17 @@ xtDefaultFontSet:		-*-DecentFont-medium-r-normal--0-DecentDeciPt-FontXDPI-FontYD
 ! also using xterm's object names (instead of these Class names) will stick?
 !
 *SimpleMenu.foreground:		black
+! XXX nope! '-fg' wins
 xterm.SimpleMenu.foreground:	black
+! XXX nope! '-fg' wins
+xterm.mainMenu.foreground:	black
 !
 ! ifelse(eval(PLANES > 8), 1, [
-!
-! xxx this is in the XTerm-color app-defaults file, and that works for XTerm,
-! but without this explicitly here too UXTerm's don't get it!
 *SimpleMenu.background:		AntiqueWhite
+! xxx yes! overrides '-bg'!
 xterm.SimpleMenu.background:	AntiqueWhite
+! ], [
+*SimpleMenu.background:		white
 ! ])
 !
 *searchLabel.font:		-*-DecentFontSans-medium-DecentFontSansSlant-normal--0-DecentDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
@@ -457,12 +460,9 @@ xterm.SimpleMenu.background:	AntiqueWhite
 *replaceLabel.font:		-*-DecentFontSans-medium-DecentFontSansSlant-normal--0-DecentDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
 *replaceLabel.fontSet:		-*-DecentFontSans-medium-DecentFontSansSlant-normal--0-DecentDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
 !
-! XXX these seem to have wider effect than desired, but still don't fix the CTWM
-! "identify" and "about" windows!
+! XXX these seem to have wider effect than may be desired....
 !
-!*Text*font:			6x12
 *Text.font:			-*-DecentFont-medium-r-normal--0-DecentDeciPt-FontXDPI-FontYDPI-m-*-iso10646-1
-!*Text*fontSet:			6x12
 *Text.fontSet:			-*-DecentFont-medium-r-normal--0-DecentDeciPt-FontXDPI-FontYDPI-m-*-iso10646-1
 !
 ! hmmmm....  what uses this resource name again?
@@ -470,6 +470,7 @@ xterm.SimpleMenu.background:	AntiqueWhite
 *setup*font:			-*-DecentFont-medium-r-normal--0-DecentDeciPt-FontXDPI-FontYDPI-m-*-iso10646-1
 *setup*fontSet:			-*-DecentFont-medium-r-normal--0-DecentDeciPt-FontXDPI-FontYDPI-m-*-iso10646-1
 !
+! xxx one point bigger than HugePt (?)
 *setup*title.font:		-*-DecentFontSans-bold-r-normal--0-120-FontXDPI-FontYDPI-p-*-iso10646-1
 *setup*title.fontSet:		-*-DecentFontSans-bold-r-normal--0-120-FontXDPI-FontYDPI-p-*-iso10646-1
 !
