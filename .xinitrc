@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.33	24/11/10 14:58:36 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.34	24/11/29 12:35:59 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -13,9 +13,9 @@
 
 # To test you might be able to use Xnest:
 #
-#	XNESTDISPLAY=$DISPLAY startx -- $X11PATH/bin/Xnest
+#	( cd; XNESTDISPLAY=$DISPLAY startx -- $X11PATH/bin/Xnest; cd - )
 #
-#	XNESTDISPLAY=$DISPLAY WM="/new/test/wm -v" startx -- $X11PATH/bin/Xnest
+#	( cd; WM="$HOME/bin/ctwm -v -k -K $HOME/.ctwmrc.m4out-Xnest" XNESTDISPLAY=$display xinit -- $X11PATH/bin/Xnest; cd - )
 #
 # Note for all the fonts you use you need them on both the host running Xnest
 # and the host running the native Xserver, which of course should not be a
