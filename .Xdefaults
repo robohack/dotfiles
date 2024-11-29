@@ -2,7 +2,7 @@
 !
 ! changequote([, ])	note brackets will disappear from comments!
 !
-!#ident	"@(#)HOME:.Xdefaults	37.18	24/11/15 12:42:40 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.19	24/11/29 12:30:55 (woods)"
 !
 ! N.B. WARNING:  This file must be processed with "xrdb -cpp m4" with macros and
 ! macro calls in the comments.  (perhaps it should be renamed to .Xdefaults.m4?)
@@ -430,19 +430,25 @@ xtDefaultFontSet:		-*-DecentFont-medium-r-normal--0-DecentDeciPt-FontXDPI-FontYD
 *SimpleMenu*menuLabel.font:	-*-DecentFontSans-bold-DecentFontSansSlant-normal--0-HugeDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
 *SimpleMenu*menuLabel.fontSet:	-*-DecentFontSans-bold-DecentFontSansSlant-normal--0-HugeDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
 !
-! these are probably just for SimpleMenu.SmeBSBa menu entry objects
+! these are probably just for SimpleMenu.SmeBSB menu entry objects
 !
 *SmeBSB.font:			-*-DecentFontSans-medium-r-normal--0-SmallerDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
 *SmeBSB.fontSet:		-*-DecentFontSans-medium-r-normal--0-SmallerDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
 !
 *SimpleMenu.cursor: 		hand2
+!
+! xxx unfortunately xterm(1)'s '-fg' and '-bg' options override these!  Maybe
+! also using xterm's object names (instead of these Class names) will stick?
+!
 *SimpleMenu.foreground:		black
+xterm.SimpleMenu.foreground:	black
 !
 ! ifelse(eval(PLANES > 8), 1, [
 !
 ! xxx this is in the XTerm-color app-defaults file, and that works for XTerm,
 ! but without this explicitly here too UXTerm's don't get it!
 *SimpleMenu.background:		AntiqueWhite
+xterm.SimpleMenu.background:	AntiqueWhite
 ! ])
 !
 *searchLabel.font:		-*-DecentFontSans-medium-DecentFontSansSlant-normal--0-DecentDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
@@ -459,7 +465,7 @@ xtDefaultFontSet:		-*-DecentFont-medium-r-normal--0-DecentDeciPt-FontXDPI-FontYD
 !*Text*fontSet:			6x12
 *Text.fontSet:			-*-DecentFont-medium-r-normal--0-DecentDeciPt-FontXDPI-FontYDPI-m-*-iso10646-1
 !
-! 
+! hmmmm....  what uses this resource name again?
 !
 *setup*font:			-*-DecentFont-medium-r-normal--0-DecentDeciPt-FontXDPI-FontYDPI-m-*-iso10646-1
 *setup*fontSet:			-*-DecentFont-medium-r-normal--0-DecentDeciPt-FontXDPI-FontYDPI-m-*-iso10646-1
@@ -585,7 +591,7 @@ Viewres*font:			-*-DecentFontSans-medium-r-normal--0-DecentDeciPt-FontXDPI-FontY
 !Editres*fontSet:		-*-DecentFont-medium-r-normal--0-DecentDeciPt-FontXDPI-FontYDPI-m-*-iso10646-1
 Editres*namesLabel.font:	-*-DecentFontSans-bold-DecentFontSansSlant-normal--0-DecentDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
 Editres*namesLabel.fontSet:	-*-DecentFontSans-bold-DecentFontSansSlant-normal--0-DecentDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
-n!Editres*constraintLabel.font:	-*-DecentFontSans-bold-r-normal--0-DecentDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
+!Editres*constraintLabel.font:	-*-DecentFontSans-bold-r-normal--0-DecentDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
 !Editres*constraintLabel.fontSet:-*-DecentFontSans-bold-r-normal--0-DecentDeciPt-FontXDPI-FontYDPI-p-*-iso10646-1
 ! ifdef([COLOR], [
 Editres*SimpleMenu.background:	RoyalBlue3
@@ -643,6 +649,10 @@ Xpdf.toolTipEnable:		false
 !
 ! XTerm settings:
 !
+! Note:  both xterm(1) [as started without '-class'], and uxterm(1) [as started
+! with '-class UXTerm'] keep the resource name "xterm", so we don't need both
+! "XTerm*:" and "UXTerm*:" entries, just "xterm*:".
+!
 ! force TrueType (Xft) startup (use "-fa FaceName" to override)
 *renderFont:			true
 *faceName:			DecentFont
@@ -665,74 +675,57 @@ Xpdf.toolTipEnable:		false
 !
 ! XXX However, keyboardType=tcap overrules deleteIsDEL entirely and disables the
 ! menu toggle for it as well, so it is entirely unworkable.
-!
-!!UXTerm*keyboardType:		tcap
-!!XTerm*keyboardType:		tcap
+!xterm*keyboardType:		tcap
 !
 ! XXX hmmmm on some laptop keyboards we do not always want deleteIsDEL set....
 ! The default ("maybe") is probably best, but then it requires manually toggling
 ! via the menu to enable it.
 !
 ! XXX as mentioned the default is "Maybe", but you can't put that in a bool resource!
-!UXTerm*deleteIsDEL:		Maybe
-!XTerm*deleteIsDEL:		Maybe
+!xterm*deleteIsDEL:		Maybe
 !
 ! N.B.:  in any case we can set the TTY modes and tell XTerm to obey them and
 ! solve this problem once and for all:
 !
-UXTerm*ttyModes:		erase ^h
-XTerm*ttyModes:			erase ^h
+xterm*ttyModes:			erase ^h
 !
-UXTerm*ptyInitialErase:		true
-XTerm*ptyInitialErase:		true
+xterm*ptyInitialErase:		true
 !
 ! xxx "-tb" -- even when the manual describes it, support may not exist
-!UXTerm*toolBar: 		true
-!XTerm*toolBar:			true
+!xterm*toolBar:			true
 !
 ! More xterm settings to avoid having to have $XTERM_OPTS everywhere:
 !
 ! xxx activeIcon should only be set when using a compatible $WM
-!UXTerm*activeIcon:		true
-!XTerm*activeIcon:		true
+!xterm*activeIcon:		true
 !
-UXTerm*cutNewline:		false
-XTerm*cutNewline:		false
+xterm*cutNewline:		false
 !
 ! xxx the default is false:
-UXTerm*forceBoxChars:		false
-XTerm*forceBoxChars:		false
+xterm*forceBoxChars:		false
 !
 ! xxx this doesn't always do all the things, e.g. record the login session,
 ! depending on compile-time options and system support....
-UXTerm*loginShell:		true
-XTerm*loginShell:		true
+xterm*loginShell:		true
 !
-UXTerm*reverseWrap:		true
-XTerm*reverseWrap:		true
+xterm*reverseWrap:		true
 !
-UXTerm*saveLines:		4096
-XTerm*saveLines:		4096
+xterm*saveLines:		4096
 !
-UXTerm*scrollBar:		true
-XTerm*scrollBar:		true
+xterm*scrollBar:		true
 !
-UXTerm*scrollKey:		true
-XTerm*scrollKey:		true
+xterm*scrollKey:		true
 !
-UXTerm*scrollTtyOutput:		false
-XTerm*scrollTtyOutput:		false
+xterm*scrollTtyOutput:		false
 !
 ! ifelse(eval(PLANES >= 8), 1, [
 ! xxx assume this is in everyone's terminfo these days....
-UXTerm*termName:		xterm-256color
-XTerm*termName:			xterm-256color
+xterm*termName:			xterm-256color
 ! ])
 !
 ! n.b.: zIconBeep is a percentage (presumably of change).  The manual says the
 ! default is "false", but presumably it should say "0".
-UXTerm*zIconBeep:		1
-XTerm*zIconBeep:		1
+xterm*zIconBeep:		1
 !
 ! xxx the *VT100(.*).font* values may be necessary if XTerm does not have Xft
 ! support, but that is hopefully no longer a concern anywhere.
@@ -785,8 +778,7 @@ XTerm*zIconBeep:		1
 ! to manually enable it via the menu for Emacs, and disable it again if you want
 ! to type accented characters with "Meta" to any other program.
 !
-!UXTerm*metaSendsEscape:	true
-!XTerm*metaSendsEscape:		true
+!xterm*metaSendsEscape:		true
 !
 ! set up shifted and meta arrow and page keys to scroll xterms
 !
