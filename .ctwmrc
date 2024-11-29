@@ -9,7 +9,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.36	24/11/15 12:42:07 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.37	24/11/29 12:33:52 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -78,23 +78,23 @@ changecom()
 esyscmd([sed 's/^!/#/' ]HOME[/.X11-m4macros.m4])
 changecom([#])
 
-ifelse(eval(index(HOSTNAME, weird.com) >= 0), 1, [define(AT_WEIRD, [@weird.com])])
-ifelse(eval(index(HOSTNAME, robohack.planix.com) >= 0), 1, [define(AT_WEIRD, [@robohack.planix.com])])
+ifelse(eval(index(HOSTNAME, [weird.com]) >= 0), 1, [define([AT_WEIRD], [@weird.com])])
+ifelse(eval(index(HOSTNAME, [robohack.planix.com]) >= 0), 1, [define([AT_WEIRD], [@robohack.planix.com])])
 
-ifelse(eval(index(HOSTNAME, local) >= 0), 1, [define(AT_LOCAL, [@local])])
+ifelse(eval(index(HOSTNAME, [.local]) >= 0), 1, [define([AT_LOCAL], [@local])])
 
 # this was the old SS20 with a bw2 monitor running NetBSD
-ifelse(eval(index(HOSTNAME, very.weird.com) >= 0), 1, [define(AT_VERY_WEIRD, [@very.weird])])
+ifelse(HOSTNAME, [very.weird.com], [define([AT_VERY_WEIRD], [@very.weird])])
 
-ifelse(eval(index(HOSTNAME, very.local) >= 0), 1, [define(AT_VERY_LOCAL, [@very.local])])
-ifelse(eval(index(HOSTNAME, very-old.local) >= 0), 1, [define(AT_VERY_LOCAL, [@very-old.local])])
+ifelse(HOSTNAME, [very.local], [define([AT_VERY_LOCAL], [@very.local])])
+ifelse(HOSTNAME, [very-old.local], [define([AT_VERY_LOCAL], [@very-old.local])])
 
-esyscmd([printf "define(SYSTEM, %s)\n" "$(uname -s)"])
+esyscmd([printf "define([SYSTEM], %s)\n" "$(uname -s)"])
 
-ifelse(SYSTEM, [Darwin], [define(ON_OSX, [yes])])
+ifelse(SYSTEM, [Darwin], [define([ON_OSX], [yes])])
 
-# if ctwm is running on the server host then we want @X11SERVER menu choices...
-ifelse([SERVERHOST], [CLIENTHOST], [define(USE_X11SERVER, [yes])])
+# IFF ${X11SERVER} is set, then define it as a macro with its env value
+esyscmd([test -n "${X11SERVER}" && printf "# defining X11SERVER=${X11SERVER}\n define([X11SERVER], [${X11SERVER}])\n"])
 
 # Boolean flags
 #
@@ -375,7 +375,7 @@ Monochrome {
 
 ifelse(COLOR, Yes, [
 
-define(XLOAD_HL, [red])
+define([XLOAD_HL], [red])
 
 MapWindowCurrentWorkSpace {
 	"yellow"		# border
@@ -421,7 +421,7 @@ MapWindowDefaultWorkSpace {
 # else not COLOR
  [
 
-define(XLOAD_HL, [grey90])
+define([XLOAD_HL], [grey90])
 
 MapWindowCurrentWorkSpace {
 	"White"
@@ -633,14 +633,15 @@ IconRegionJustification		"border"
 # xxx this may not be wide enough on smaller screens, but on a big hi-res screen
 # it should be OK
 #
-define(IR_GEOM, eval(WS_WIDTH + WS_OFF)[x]eval(HEIGHT / 4)[-0+]eval(WS_HEIGHT + (2 * XloadHeight) + (6 * TDBORDERWIDTH)))
+define([IR_GEOM], eval(WS_WIDTH + WS_OFF)[x]eval(HEIGHT / 4)[-0+]eval(WS_HEIGHT + (2 * XloadHeight) + (6 * TDBORDERWIDTH)))
 #
 ifelse(eval(X_RESOLUTION >= 8000 && Y_RESOLUTION >= 8000), 1,
-  [define(IR_GRID, [100])],
-  [ifelse(eval(X_RESOLUTION >= 4500 && Y_RESOLUTION >= 4500), 1,
-    [define(IR_GRID, [50])],
+  [define([IR_GRID], [100])],
 # else
-    [define(IR_GRID, [10])])
+  [ifelse(eval(X_RESOLUTION >= 4500 && Y_RESOLUTION >= 4500), 1,
+    [define([IR_GRID], [50])],
+#  else
+    [define([IR_GRID], [10])])
   ]
 )
 IconRegion	"IR_GEOM" North East IR_GRID IR_GRID
@@ -651,7 +652,7 @@ IconRegion	"IR_GEOM" North East IR_GRID IR_GRID
 # borders for the width calculation are the borders _between_ the three xloads
 # -- the outside borders are accounted for in the IconManager's borders.
 #
-define(ICONMGR_GEOM, eval((3 * XloadWidth) + (4 * TDBORDERWIDTH))[x0][-]ClockOffH[+]eval(WS_HEIGHT + (2 * XloadHeight) + (6 * TDBORDERWIDTH)))
+define([ICONMGR_GEOM], eval((3 * XloadWidth) + (4 * TDBORDERWIDTH))[x0][-]ClockOffH[+]eval(WS_HEIGHT + (2 * XloadHeight) + (6 * TDBORDERWIDTH)))
 IconManagerGeometry		"ICONMGR_GEOM" 2
 #
 ShowIconManager
@@ -751,7 +752,7 @@ WindowGeometries {
 	# xmahjongg cannot handle standard geometry positioning params (it does do size)
  ifelse(eval(FontYDPI > 110), 1, [
 	"xmahjongg"	"2000x1500+2200+0"
- ], [])
+ ])
 }
 
 # n.b.: this is essentially the same as the NoTitle list....
@@ -822,7 +823,7 @@ Button3 = meta		: root		: f.menu "wmops"
 
 Button1 = mod2		: root		: f.menu "applications"
 Button2 = mod2		: root		: f.menu "preferences"
-Button3 = mod2		: root		: f.menu "wmops"
+Button3 = mod2		: root		: f.menu "misc"
 
 Button1 = [shift]	: root		: f.menu "xterms"
 Button2 = [shift]	: root		: f.menu "consoles"
@@ -840,6 +841,10 @@ Button1 =		: title		: f.function "movepack-or-raise"
 Button2 =		: title		: f.raiselower
 Button3 =		: title		: f.function "movepack-or-lower"
 
+Button1 = [shift]	: title		: f.function "movepack-or-lower"
+Button2 = [shift]	: title		: f.raiselower
+Button3 = [shift]	: title		: f.function "movepack-or-raise"
+
 Button1 =		: frame		: f.function "resize-or-raise"
 Button2 =		: frame		: f.raiselower
 Button3 =		: frame		: f.function "resize-or-lower"
@@ -853,6 +858,7 @@ Button2 =		: icon		: f.iconify
 Button3 =		: icon		: f.lower
 
 "i"	=		: icon		: f.iconify
+"m"	= mod2		: icon		: f.iconify
 
 Button1 = meta		: icon		: f.function "forcemove-or-iconify"
 Button2 = meta		: icon		: f.iconify
@@ -912,6 +918,9 @@ Button3 =		: iconmgr	: f.occupyall # ???
 # XXX also, NoTitleFocus makes focus switching a bit "lazy", perhaps exacerbated
 # by mouse acceleration.
 #
+"i"	=		: title		: f.iconify
+"m"	= mod2		: title		: f.iconify
+
 "Right"	= control	: frame|title	: f.changesize "right +10"
 "Left"	= control	: frame|title	: f.changesize "right -10"
 "Down"	= control	: frame|title	: f.changesize "bottom +10"
@@ -926,8 +935,6 @@ Button3 =		: iconmgr	: f.occupyall # ???
 "Right" =		: frame|title	: f.jumpright "2"
 "Down"	=		: frame|title	: f.jumpdown "2"
 "Up"	=		: frame|title	: f.jumpup "2"
-
-"i"	=		: frame|title	: f.iconify
 
 "Left"	= mod2		: frame|title	: f.jumpleft "1"
 "Right" = mod2		: frame|title	: f.jumpright "1"
@@ -997,8 +1004,8 @@ menu "quickies"
 	"Xauth to..."		f.menu "xauths"
 	""			f.separator
 	"emacs @CLIENTHOST"	!"${MY_EMACS} -fh &"
- ifdef([USE_X11SERVER], [
-	"emacs @X11SERVER"	!"set -i; . ./.shrc; onx11server -X \"${X11SERVER}\" \"${MY_EMACS} -fh\" &"
+ ifdef([X11SERVER], [
+	"emacs @X11SERVER"	!"set -i; . ./.shrc; onx11server -X X11SERVER \"${MY_EMACS} -fh\" &"
  ])
  ifdef([AT_LOCAL], [
 	"emacs @more"		!"set -i; . ./.shrc; onx11server -X more.local 'emacs -fh' &"
@@ -1007,8 +1014,8 @@ menu "quickies"
 	#
 	""			f.separator
 	"links -g @CLIENTHOST"	!"links -g &"
- ifdef([USE_X11SERVER], [
-	"links -g @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X ${X11SERVER} 'links -g' &"
+ ifdef([X11SERVER], [
+	"links -g @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X X11SERVER 'links -g' &"
  ])
  ifdef([AT_LOCAL], [
 	"links -g @more"	!"set -i; . ./.shrc; onx11server -n -X more.local 'links -g' &"
@@ -1016,22 +1023,21 @@ menu "quickies"
 	# xxx unfortunately duckduckgo.com isn't very usable with links
 	"DDG something"		!"links -g https://html.duckduckgo.com/html/ &"
 	"Google something"	!"links -g https://google.ca/ &"
- ifelse([ON_OSX], [
 	""			f.separator
+ ifdef([ON_OSX], [
 	"Mac OS X Apps..."	f.menu "osx-apps"
  ], [
-	""			f.separator
 	"Xclipboard"		!"xclipboard &"
  ])
 	""			f.separator
 	"UXterm @CLIENTHOST"	!"eval uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
 	"UXterm-big @CLIENTHOST" !"eval uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
 	#
- ifdef([USE_X11SERVER], [
-	"Xterm @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"xterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"Xterm-big @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"xterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm-big @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+ ifdef([X11SERVER], [
+	"Xterm @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X X11SERVER \"xterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X X11SERVER \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"Xterm-big @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X X11SERVER \"xterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X X11SERVER \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
  ])
  ifdef([AT_LOCAL], [
 	"UXterm @more"		!"set -i; . ./.shrc; onx11server -n -X more.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
@@ -1043,7 +1049,7 @@ menu "quickies"
 	""			f.separator
 	"TermSrvr Telnets"	f.menu "termservers"
 	""			f.separator
- ifelse([ON_OSX], [
+ ifdef([ON_OSX], [
  ], [
 	"Xlock"			!"xlock -mode flame &"
  ])
@@ -1055,8 +1061,8 @@ menu "quickies"
 menu "consoles"
 {
 	"Console Server"	f.title
-  define(CONSOLE_REP, [
-	"$1 []"			!"uxterm -fg lightgreen -bg black -geometry 132x66 -fs 7.5 ${XTERM_OPTS} -n $1 -T '\"$1 Virtual Console\"' -e console $1 &"
+  define([CONSOLE_REP], [
+	"$1 []"			!"uxterm -fg lightgreen -bg black -geometry 132x66 -fs 7.5 ${XTERM_OPTS} -n $1 -T 'console:$1' -e console $1 &"
   ])
 	CONSOLE_REP(xenful)
 	CONSOLE_REP(nbtcur)
@@ -1084,7 +1090,7 @@ menu "consoles"
 # running under UTM on very, but with vga console
 #	CONSOLE_REP(nbt)
 #	CONSOLE_REP(nbt2)
-  undefine(CONSOLE_REP)
+  undefine([CONSOLE_REP])
 	""			f.separator
 	"Pin this menu"		f.pin
 }
@@ -1094,7 +1100,7 @@ menu "termservers"
 	"Term Srvr Telnets"	f.title
 	"telnet controlling"	!"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -n controlling -T 'controlling Virtual Console' -e telnet controlling.local 2000 &"
 	""			f.separator
-  define(CONTROLLING_REP, [
+  define([CONTROLLING_REP], [
 # n.b.:  with DejaVuSansMono six of these will fit on the main area of the big
 # Retina 6K Pro screen
 	"Controlling-20$1"	!"uxterm -geometry 132x66 -fs 6 ${XTERM_OPTS} -n Ctrl20$1 -T 'Controlling-20$1' -e telnet controlling.local 20$1 &"
@@ -1107,7 +1113,7 @@ menu "termservers"
 	CONTROLLING_REP(06)
 	CONTROLLING_REP(07)
 	CONTROLLING_REP(08)
-  undefine(CONTROLLING_REP)
+  undefine([CONTROLLING_REP])
 	""			f.separator
 	"Pin this menu"		f.pin
 }
@@ -1192,8 +1198,15 @@ menu "wmops"
 	"Save Window"		f.saveyourself
 	""			f.separator
 	"Restart TWM_TYPE"	f.restart
-# xxx unfortunately only TWM has this!
-#	"Start TWM"		f.startwm "twm"
+# CTWM_VERSION_* first appeared in 4.0.0
+ ifdef([CTWM_VERSION_MAJOR],
+  ifelse(eval((CTWM_VERSION_MAJOR >= 4 && CTWM_VERSION_MINOR >= 2) ||
+              ((CTWM_VERSION_MAJOR == 4 && CTWM_VERSION_MINOR == 1) &&
+	       index(CTWM_VERSION_ADDL, [-post]) == 0)), 1, [
+	"Start Old TWM"		f.startwm "LC_ALL=C twm -v -v"
+  ])
+ )
+	""			f.separator
 	"About TWM_TYPE TWM_VERSION"	f.version
 	""			f.separator
 	"Pin this menu"		f.pin
@@ -1480,8 +1493,8 @@ menu "emacs"
 {
 	"Emacsen"		f.title
 	"@CLIENTHOST"		!"${MY_EMACS} -fh &"
- ifdef([USE_X11SERVER], [
-	"@X11SERVER"		!"set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"${MY_EMACS} -fh\" &"
+ ifdef([X11SERVER], [
+	"@X11SERVER"		!"set -i; . ./.shrc; onx11server -n -X X11SERVER \"${MY_EMACS} -fh\" &"
  ])
  ifdef([AT_LOCAL], [
 	"@more"			!"set -i; . ./.shrc; onx11server -n -X more.local \"emacs -fh\" &"
@@ -1513,8 +1526,8 @@ menu "monitors"
 
 	""			f.separator
 	"xload"			!"xload -geometry XloadGeom -hl XLOAD_HL &"
- ifdef([USE_X11SERVER], [
-	"xload @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"xload -geometry 120x40-200+48 -hl XLOAD_HL\" &"
+ ifdef([X11SERVER], [
+	"xload @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X X11SERVER \"xload -geometry 120x40-200+48 -hl XLOAD_HL\" &"
  ])
  ifdef([AT_VERY_LOCAL], [
 	"air-traffic-monitor"	!"uxterm -tn xterm-256color -geometry 80x25+eval((WIDTH / 2) - ( 3 * HorizDPI))-eval(VertDPI * 2) -fs 9 ${XTERM_OPTS} -fc 5 -n AirTrafficMonitor -T AirTrafficMonitor -e air-traffic-monitor &"
@@ -1537,11 +1550,9 @@ menu "monitors"
 	"xload @nb10"		!"set -i; . ./.shrc; onx11server -n -X nb10.local \"xload -geometry ${XloadGeomNb10} -hl red\" &"
 	"xload @nbday"		!"set -i; . ./.shrc; onx11server -fS -X nbday.local \"xload -geometry ${XloadGeomNbday} -hl red\" &"
  ])
- ifdef([USE_X11SERVER], [
-	"xosview @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"xosview\" &"
- ])
- ifdef([USE_X11SERVER], [
-	"xcpustate @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X \"${X11SERVER}\" \"xcpustate -geometry 190x20-0+300 -shorten 1 -wait -cpu -disk\" &"
+ ifdef([X11SERVER], [
+	"xosview @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X X11SERVER \"xosview\" &"
+	"xcpustate @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X X11SERVER \"xcpustate -geometry 190x20-0+300 -shorten 1 -wait -cpu -disk\" &"
  ])
 	"tkined"		!"tkined &"
 	""			f.separator
@@ -1706,34 +1717,34 @@ menu "xterms"
   ])
  ])
  ifdef([AT_WEIRD], [
-  ifelse(HOSTNAME, most.weird.com, [], [
+  ifelse(HOSTNAME, [most.weird.com], [], [
 	"Xterm @most"		!"set -i; . ./.shrc; onx11server -n -X most.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
-  ifelse(HOSTNAME, historically.weird.com, [], [
+  ifelse(HOSTNAME, [historically.weird.com], [], [
 	"Xterm @historically"	!"set -i; . ./.shrc; onx11server -n -X historically.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
-  ifelse(HOSTNAME, building.weird.com, [], [
+  ifelse(HOSTNAME, [building.weird.com], [], [
 	"Xterm @building" 	!"set -i; . ./.shrc; onx11server -n -X building.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
-  ifelse(HOSTNAME, once.weird.com, [], [
+  ifelse(HOSTNAME, [once.weird.com], [], [
 	"Xterm @once"		!"set -i; . ./.shrc; onx11server -n -X once.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
-  ifelse(HOSTNAME, very.weird.com, [], [
+  ifelse(HOSTNAME, [very.weird.com], [], [
 	"Xterm @very"		!"set -i; . ./.shrc; onx11server -n -X very.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
-  ifelse(HOSTNAME, almost.weird.com, [], [
+  ifelse(HOSTNAME, [almost.weird.com], [], [
 	"Xterm @almost"		!"set -i; . ./.shrc; onx11server -n -X almost.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
-  ifelse(HOSTNAME, whats.weird.com, [], [
+  ifelse(HOSTNAME, [whats.weird.com], [], [
 	"Xterm @whats"		!"set -i; . ./.shrc; onx11server -n -X whats.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
-  ifelse(HOSTNAME, sometimes.weird.com, [], [
+  ifelse(HOSTNAME, [sometimes.weird.com], [], [
 	"Xterm @sometimes" 	!"set -i; . ./.shrc; onx11server -n -X sometimes.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
-  ifelse(HOSTNAME, always.weird.com, [], [
+  ifelse(HOSTNAME, [always.weird.com], [], [
 	"Xterm @always" 	!"set -i; . ./.shrc; onx11server -n -X always.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
-  ifelse(HOSTNAME, freely.weird.com, [], [
+  ifelse(HOSTNAME, [freely.weird.com], [], [
 	"Xterm @freely" 	!"set -i; . ./.shrc; onx11server -n -X freely.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
  ])
@@ -1757,8 +1768,8 @@ ifdef([AT_WEIRD], [
 menu "xauths"
 {
 	"Xauth pushes to Weird.com"	f.title
- ifdef([USE_X11SERVER], [
-	"Xauth to X11SERVER"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -X \"${X11SERVER}\" 'xauth nmerge -' ) &"
+ ifdef([X11SERVER], [
+	"Xauth to X11SERVER"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -X X11SERVER 'xauth nmerge -' ) &"
  ])
 	"Xauth to most"		!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} most.weird.com /usr/X11R6/bin/xauth nmerge - &"
 	"Xauth to isit"		!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} isit.weird.com /usr/X11R6/bin/xauth nmerge - &"
