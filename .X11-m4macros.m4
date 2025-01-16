@@ -2,7 +2,7 @@
 !
 !	.X11-m4macros.m4 - shared M4 macros for xrdb and ctwm uses
 !
-!#ident	"@(#)HOME:.X11-m4macros.m4	37.6	24/11/10 14:58:36 (woods)"
+!#ident	"@(#)HOME:.X11-m4macros.m4	37.7	25/01/15 17:15:16 (woods)"
 !
 ! This file is sourced for a couple of uses by ~/.xinitrc, once to define shell
 ! variables, and again to process ~/.fonts.alias.m4; and it is also sourced
@@ -176,6 +176,11 @@
 ! define(XloadHeight, eval(VertDPI / 3))
 !
 ! define(XloadGeom, XloadWidth[x]XloadHeight[-]ClockOffH[+0])
+!
+! ifdef([COLOR],
+!   [define([XLOAD_HL], [red])],
+!   [define([XLOAD_HL], [grey90])]
+! )
 !
 ! Once upon a time I had different WorkSpace layouts on different xterminals,
 ! but for now I'll go back to one consitent layout.
