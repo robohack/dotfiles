@@ -2,7 +2,7 @@
 !
 ! changequote([, ])	note brackets will disappear from comments!
 !
-!#ident	"@(#)HOME:.Xdefaults	37.20	24/11/29 14:03:35 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.21	25/01/15 17:19:38 (woods)"
 !
 ! N.B. WARNING:  This file must be processed with "xrdb -cpp m4" with macros and
 ! macro calls in the comments.  (perhaps it should be renamed to .Xdefaults.m4?)
@@ -516,6 +516,8 @@ xterm.SimpleMenu.background:	AntiqueWhite
 !*Scrollbar.thumb:		Stipple
 *Scrollbar.thumb:		None
 !
+*shadowWidth:			ShadowDepth
+!
 ! The width/height and minimum "length" should probably be more on a hi-res
 ! display....
 !*Scrollbar.thickness:		???
@@ -822,6 +824,10 @@ xterm*zIconBeep:		1
 !
 ! GhostView:
 !
+! GV has MANY built-in resources, most of which are bound to the GV class, and
+! as a result they will override any loose (*) bound settings without a class
+! name.
+!
 ! N.B.:  See also ~/.gv, which is also an X11 resource file, however it does not
 ! use CPP to process it, instead it reads it directly, so some resources have to
 ! be here of they are conditional on any xrdb symbol values!  Also a default
@@ -846,8 +852,12 @@ GV.palette:		grayscale
 ! gv(1)'s UI seems unable to handle international!?!?!?
 GV*international:	false
 !
-GV.control.MButton.background:  gray90
-GV*background:  gray90
+!GV.control.MButton.background:  gray90
+!GV*background:  gray90
+!gv*background:  gray90
+!gv*foreground:  black
+!
+GV*shadowWidth:			ShadowDepth
 !
 ! xxx from strings....
 GV*font:				-*-DecentFont-medium-r-normal--0-DecentDeciPt-FontXDPI-FontYDPI-m-*-iso8859-1
