@@ -1,7 +1,7 @@
 #
 #	.kshlogin - login shell startup for ksh, sourced by ~/.profile
 #
-#ident	"@(#)HOME:.kshlogin	37.7	24/10/16 17:01:42 (woods)"
+#ident	"@(#)HOME:.kshlogin	37.8	25/01/15 17:20:49 (woods)"
 
 # Note I allow for /etc/profile to be explicitly sourced by non-interactive,
 # non-login shells, e.g. in ~/.xinitrc and from remote invocations of
@@ -40,7 +40,10 @@ if ${sh_is_interactive} || ${sh_is_login}; then
 	# Keep them separated!
 	#
 	# NOTE: many implementations have HISTFILE inter-locking bugs amongst
-	# themselves!  Some only read on startup and write on exit.
+	# themselves!  Some only read on startup and write on exit, notably
+	# pdksh without the COMPLEX_HISTORY build option (as is typical) -- it
+	# only writes history on exit, so with multiple sessions only the
+	# history from the last shell to exit will be saved.
 	#
 	case "${KSH_VERSION}" in
 	*PD*KSH*)
