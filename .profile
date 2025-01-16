@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.40	24/11/08 04:12:29 (woods)"
+#ident	"@(#)HOME:.profile	37.41	25/01/15 17:18:59 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -414,11 +414,15 @@ dirprepend MANPATH /usr/xpg6/man /usr/xpg4/man /usr/ccs/man
 dirappend PATH ${X11BIN} ${LOCAL}/bin ${CONTRIB}/bin
 dirappend MANPATH ${X11MAN} ${LOCAL}/share/man ${CONTRIB}/share/man ${LOCAL}/man ${CONTRIB}/man
 
-dirappend PATH ${PKG}/bin ${PKG}/DWB/bin
+dirappend PATH ${PKG}/bin
 dirappend MANPATH ${PKG}/share/man ${PKG}/man
 
 dirappend PATH ${PKG}/heirloom-xpg4/bin ${PKG}/heirloom-ccs/bin ${PKG}/heirloom-doctools/bin ${PKG}/heirloom/bin
 dirappend MANPATH ${PKG}/heirloom-xpg4/man ${PKG}/heirloom-ccs/man ${PKG}/heirloom-doctools/man ${PKG}/heirloom/man
+
+# n.b.: prefer heirloom-doctools as it includes mandoc by default
+dirappend PATH ${PKG}/DWB/bin
+dirappend MANPATH ${PKG}/DWB/man
 
 dirappend PATH ${SLASHOPT}/bin
 dirappend MANPATH ${SLASHOPT}/share/man ${SLASHOPT}/man
