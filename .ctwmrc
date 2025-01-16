@@ -9,7 +9,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.37	24/11/29 12:33:52 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.38	25/01/15 17:14:49 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -121,7 +121,7 @@ NoRaiseOnResize
 NoShowOccupyAll
 #NoTitleFocus		# XXX hmmm..... damned if you do, damned if you don't!
 PackNewWindows
-RaiseOnClick		# xxx because "RaiseOnClickButton 1" doesn't seem to work...
+RaiseOnClick		# See also "RaiseOnClickButton 1"....
 RestartPreviousState	# only useful when restarting the WM (saves to X11 server memory)
 ReallyMoveInWorkspaceManager
 #ReverseCurrentWorkspace
@@ -147,14 +147,16 @@ WindowRing		# all the windows (on the screen) except those in WindowRingExclude
 # variables with simple values
 #
 BorderWidth			BORDERWIDTH	# has no effect when UseThreeDBorders is on
-ThreeDBorderWidth		TDBORDERWIDTH	# has no effect unless UseThreeDBorders is on])
 BorderShadowDepth		ShadowDepth	# has no effect unless UseThreeDBorders is on])
+#ButtonIndent			1		# default is 1 with UseThreeDTitles, else 0
+FramePadding			0		# 0 is the default with UseThreeDTitles set
+IconBorderWidth			ShadowDepth	# has no effect unless UseThreeDBorders is on])
+IconManagerShadowDepth		ShadowDepth	# has no effect unless UseThreeDBorders is on])
+ThreeDBorderWidth		TDBORDERWIDTH	# has no effect unless UseThreeDBorders is on])
+#TitleButtonBorderWidth		1		# default is 1 with UseThreeDTitles, else 0
 TitleButtonShadowDepth		ShadowDepth	# has no effect unless UseThreeDBorders is on])
 TitleShadowDepth		ShadowDepth	# has no effect unless UseThreeDBorders is on])
 WMgrButtonShadowDepth		ShadowDepth	# has no effect unless UseThreeDBorders is on])
-IconBorderWidth			ShadowDepth	# has no effect unless UseThreeDBorders is on])
-IconManagerShadowDepth		ShadowDepth	# has no effect unless UseThreeDBorders is on])
-FramePadding			0		# 0 is the default with UseThreeDTitles set
 
 # n.b.:  resolutions are in pixels per metre, for some stupid reason....
 # so 4500 dpM is just over 110 dpi
@@ -181,8 +183,7 @@ MaxWindowSize			"eval(WIDTH * 2)[x]eval(HEIGHT * 2)"	# not everyone plays fair..
 OpaqueMoveThreshold		100	# window % of screen size
 OpaqueResizeThreshold		100	# window % of screen size
 OpenWindowTimeout		15
-# XXX this doesn't seem to work...
-RaiseOnClickButton		1
+RaiseOnClickButton		1	# note: requires RaiseOnClick to also be set
 
 # I'm tired of dragging so many windows around!
  ifelse(eval(FontYDPI > 110), 1,
@@ -256,21 +257,52 @@ DefaultFunction			!"${AUDIOPLAYER} HOME/lib/sounds/wm-default &"
 #WindowFunction			{ f.deiconify f.raise }
 
 Color {
-	# highlit window borders
-	BorderColor		"SteelBlue"
-	# unused?
-	BorderTileBackground	"grey70"
-	# un-highlit window borders
-	BorderTileForeground	"grey50"
-	DefaultBackground	"LightSteelBlue"
-	DefaultForeground	"blue4"
-	IconBackground		"blue4"
-	IconForeground		"White"
-	IconBorderColor		"gray50"
-	IconManagerBackground	"blue4"
-	IconManagerForeground	"White"
-	IconManagerHighlight	"yellow"
-	# XXX hmmm....  the CHANGES file says:
+	# focused (non-iconified) window borders
+	BorderColor		"SteelBlue" # default is black
+	# un-focused window borders
+	BorderTileBackground	"grey70" # default is white
+	BorderTileForeground	"grey50" # default is black (unused with 3d borders)
+	# info windows
+	DefaultBackground	"LightSteelBlue" # default is white
+	DefaultForeground	"blue4"		 # default is black
+	#
+	IconBackground		"blue" {	# default is white
+		"AirTrafficMonitor" "LightSkyBlue"
+		"Links"		"maroon"
+		"Xnest"		"teal"
+		"console"	"DarkGreen"
+		"emacs"		"yellow2"
+		"SU .*root"	"red"
+		"tkined"	"goldenrod"
+		"xcolors"	"PaleGreen"
+		"xmahjongg"	"gold"
+		"xterm"		"SteelBlue"
+	}
+	IconForeground		"White" {	# default is black
+		"AirTrafficMonitor" "Black"
+		"emacs"		"Black"
+		"SU .*root"	"Black"
+		"tkined"	"Black"
+		"xcolors"	"Black"
+		"xmahjongg"	"Black"
+	}
+	IconBorderColor		"gray50"  # default is black
+	IconManagerBackground	"blue4" { # default is white
+		"SU .*root"	"red"
+		"tkined"	"goldenrod"
+	}
+	IconManagerForeground	"White" { # default is black
+		"SU .*root"	"black"
+		"tkined"	"black"
+	}
+	# N.B.:  IconManagerHighlight doesn't actually do anything with
+	# UseThreeDIconManagers enabled....
+	IconManagerHighlight	"yellow" { # default is black
+		"SU .*root"	"orange"
+	}
+	# Colors for the little window
+	#
+	# XXX hmmm....  There is no "default" -- the CHANGES file (for 3.3) says:
 	#
 	#  * If there is neither MapWindowBackground, nor MapWindowForeground in the
 	#    config file,the window title colors are used for the small windows in the
@@ -281,20 +313,16 @@ Color {
 	#	If there is neither MapWindowBackground, nor MapWindowForeground
 	#	the window title colors are used.
 	#
-	# by which I think it means CTWM's "TitleForeground" color is used....
+	# by which I think it means CTWM's "TitleBackground" and
+	# "TitleForeground" colors are used instead....
 	#
 	MapWindowBackground	"LightSteelBlue" {
 		"AirTrafficMonitor" "LightSkyBlue"
-		"Console"	"DarkGreen"
 		"Links"		"maroon"
 		"Xnest"		"teal"
+		"console"	"DarkGreen"
 		"emacs"		"yellow"
-		# XXX unfortunately the "root*" trick doesn't work very well
-		# since these colours are only assigned if the window name, at
-		# the moment the window is created, matches; or if Ctwm is
-		# restarted, e.g. after one runs "su"...
-		"root*"		"red"
-		# more for fun
+		"SU .*root"	"red"
 		"tkined"	"goldenrod"
 		"xcolors"	"PaleGreen"
 		"xmahjongg"	"gold"
@@ -314,41 +342,23 @@ Color {
 	MenuTitleBackground	"DarkSeaGreen"
 	MenuTitleForeground	"White"
 	MenuShadowColor		"gray50"
-	IconBackground		"blue" {	# default is white
-		"AirTrafficMonitor" "LightSkyBlue"
-		"Console"	"DarkGreen"
-		"Links"		"maroon"
-		"Xnest"		"teal"
-		"emacs"		"yellow2"
-		"root*"		"red"
-		"tkined"	"goldenrod"
-		"xcolors"	"PaleGreen"
-		"xmahjongg"	"gold"
-		"xterm"		"SteelBlue"
-	}
-	IconForeground		"White" {	# default is black
-		"AirTrafficMonitor" "Black"
-		"emacs"		"Black"
-		"tkined"	"Black"
-		"xcolors"	"Black"
-		"xmahjongg"	"Black"
-	}
 	# and again for the window titles
 	TitleBackground		"blue" {	# default is white
 		"AirTrafficMonitor" "LightSkyBlue"
-		"Console"	"DarkGreen"
 		"Links"		"maroon"
 		"Xnest"		"teal"
+		"console"	"DarkGreen"
 		"emacs"		"yellow3"
-		"root*"		"red"
+		"SU .*root"	"red"
 		"tkined"	"goldenrod"
 		"xcolors"	"PaleGreen"
 		"xmahjongg"	"gold"
 		"xterm"		"SteelBlue"
 	}
-	TitleForeground		"White" { # default is black
+	TitleForeground		"White" {	# default is black
 		"AirTrafficMonitor" "Black"
 		"emacs"		"Black"
+		"SU .*root"	"Black"
 		"tkined"	"Black"
 		"xcolors"	"Black"
 		"xmahjongg"	"Black"
@@ -374,8 +384,6 @@ Monochrome {
 }
 
 ifelse(COLOR, Yes, [
-
-define([XLOAD_HL], [red])
 
 MapWindowCurrentWorkSpace {
 	"yellow"		# border
@@ -420,8 +428,6 @@ MapWindowDefaultWorkSpace {
  ],
 # else not COLOR
  [
-
-define([XLOAD_HL], [grey90])
 
 MapWindowCurrentWorkSpace {
 	"White"
@@ -657,13 +663,16 @@ IconManagerGeometry		"ICONMGR_GEOM" 2
 #
 ShowIconManager
 #
+IconManagerShow {
+# xxx this list should match that in IconfifyByUnmapping
+	"xterm"
+}
+# otherwise they also get icons in the IconRegion
 IconifyByUnmapping {
+# xxx this list should match that in IconManagerShow
 	"xterm"
 }
 #
-IconManagerShow {
-	"xterm"
-}
 # hmmm... this must be just a boolean, when used with IconManagerShow
 IconManagerDontShow
 ## {
@@ -1062,10 +1071,10 @@ menu "consoles"
 {
 	"Console Server"	f.title
   define([CONSOLE_REP], [
-	"$1 []"			!"uxterm -fg lightgreen -bg black -geometry 132x66 -fs 7.5 ${XTERM_OPTS} -n $1 -T 'console:$1' -e console $1 &"
+	"$1 []"			!"uxterm -fg lightgreen -bg black -geometry 132x66 -fs 7.5 -fc 2 ${XTERM_OPTS} -n $1 -T 'console:$1' -e console $1 &"
   ])
 	CONSOLE_REP(xenful)
-	CONSOLE_REP(nbtcur)
+	CONSOLE_REP(historically)
 	CONSOLE_REP(more)
 	""			f.separator
 	CONSOLE_REP(xentastic)
@@ -1077,6 +1086,7 @@ menu "consoles"
 	CONSOLE_REP(once)
 # powered off, but enabled in tserver
 	CONSOLE_REP(isit)
+	""			f.separator
 # not connected
 #	CONSOLE_REP(bbb-1)
 #	CONSOLE_REP(rpi-1)
@@ -1090,6 +1100,14 @@ menu "consoles"
 # running under UTM on very, but with vga console
 #	CONSOLE_REP(nbt)
 #	CONSOLE_REP(nbt2)
+  undefine([CONSOLE_REP])
+  define([CONSOLE_REP], [
+	"$1 @xentral []"	!"uxterm -fg lightgreen -bg black -geometry 132x66 -fs 7.5 -fc 2 ${XTERM_OPTS} -n $1 -T 'console:$1' -e ssh -t xentral.avoncote.ca console $1 &"
+  ])
+	CONSOLE_REP(central)
+	CONSOLE_REP(b2)
+	CONSOLE_REP(nbtest)
+	CONSOLE_REP(freeaew)
   undefine([CONSOLE_REP])
 	""			f.separator
 	"Pin this menu"		f.pin
@@ -1200,11 +1218,11 @@ menu "wmops"
 	"Restart TWM_TYPE"	f.restart
 # CTWM_VERSION_* first appeared in 4.0.0
  ifdef([CTWM_VERSION_MAJOR],
-  ifelse(eval((CTWM_VERSION_MAJOR >= 4 && CTWM_VERSION_MINOR >= 2) ||
+  [ifelse(eval((CTWM_VERSION_MAJOR >= 4 && CTWM_VERSION_MINOR >= 2) ||
               ((CTWM_VERSION_MAJOR == 4 && CTWM_VERSION_MINOR == 1) &&
 	       index(CTWM_VERSION_ADDL, [-post]) == 0)), 1, [
 	"Start Old TWM"		f.startwm "LC_ALL=C twm -v -v"
-  ])
+  ])]
  )
 	""			f.separator
 	"About TWM_TYPE TWM_VERSION"	f.version
@@ -1536,17 +1554,16 @@ menu "monitors"
 #	"xload @building"	!"set -i; . ./.shrc; onx11server -n -X building.local \"xload -geometry ${XloadGeomBuilding} -hl red\" &"
 	"xload @more"		!"set -i; . ./.shrc; onx11server -n -X more.local \"xload -geometry ${XloadGeomMore} -hl red\" &"
 	"xload @central"	!"set -i; . ./.shrc; onx11server -fSY -X central.avoncote.ca \"xload -geometry ${XloadGeomCentral} -hl red\" &"
+	"xload @historically"	!"set -i; . ./.shrc; onx11server -n -X historically.local \"xload -geometry ${XloadGeomHistorically} -hl red\" &"
 #	"xload @future"		!"set -i; . ./.shrc; onx11server -n -X future.local \"xload -geometry ${XloadGeomFuture} -hl red\" &"
 	"xload @xenful"		!"set -i; . ./.shrc; onx11server -n -X xenful.local \"xload -geometry ${XloadGeomXenful} -hl red\" &"
 	"xload @xentastic"	!"set -i; . ./.shrc; onx11server -n -X xentastic.local \"xload -geometry ${XloadGeomXentastic} -hl red\" &"
 	"xload @xentral"	!"set -i; . ./.shrc; onx11server -fSY -X woods@xentral.avoncote.ca \"xload -geometry ${XloadGeomXentral} -hl red\" &"
 	"xload @once"		!"set -i; . ./.shrc; onx11server -n -X once.local \"xload -geometry ${XloadGeomOnce} -hl red\" &"
 	#
-#	"xload @historically"	!"set -i; . ./.shrc; onx11server -n -X historically.local \"xload -geometry ${XloadGeomHistorically} -hl red\" &"
 	"xload @b2"		!"set -i; . ./.shrc; onx11server -fSY -X woods@b2.avoncote.ca  \"xload -geometry ${XloadGeomB2} -hl red\" &"
 	"xload @fezzik"		!"set -i; . ./.shrc; onx11server -fS -X fezzik.local \"xload -geometry ${XloadGeomFezzik} -hl red\" &"
 	"xload @nbtest"		!"set -i; . ./.shrc; onx11server -n -X nbtest.local \"xload -geometry ${XloadGeomNbtest} -hl red\" &"
-	"xload @nbtcur"		!"set -i; . ./.shrc; onx11server -n -X nbtcur.local \"xload -geometry ${XloadGeomNbtcur} -hl red\" &"
 	"xload @nb10"		!"set -i; . ./.shrc; onx11server -n -X nb10.local \"xload -geometry ${XloadGeomNb10} -hl red\" &"
 	"xload @nbday"		!"set -i; . ./.shrc; onx11server -fS -X nbday.local \"xload -geometry ${XloadGeomNbday} -hl red\" &"
  ])
@@ -1666,6 +1683,10 @@ menu "xterms"
 #	"UXterm-big @building"	!"set -i; . ./.shrc; onx11server -n -X building.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
 	"UXterm @more"		!"set -i; . ./.shrc; onx11server -n -X more.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
 	"UXterm-big @more"	!"set -i; . ./.shrc; onx11server -n -X more.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+  ifdef([AT_VERY_LOCAL], [], [
+	"UXterm @very"		!"set -i; . ./.shrc; onx11server -n -X very.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @very"	!"set -i; . ./.shrc; onx11server -n -X very.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+  ])
 #	"UXterm @future"	!"set -i; . ./.shrc; onx11server -n -X future.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
 #	"UXterm-big @future"	!"set -i; . ./.shrc; onx11server -n -X future.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
 #	"UXterm @isit"		!"set -i; . ./.shrc; onx11server -n -X isit.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
@@ -1674,8 +1695,8 @@ menu "xterms"
 #	"UXterm-big @lilbit"	!"set -i; . ./.shrc; onx11server -n -X lilbit.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
 #	"UXterm @rpi"		!"set -i; . ./.shrc; onx11server -n -X rpi.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
 #	"UXterm-big @rpi"	!"set -i; . ./.shrc; onx11server -n -X rpi.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-#	"UXterm @historically"	!"set -i; . ./.shrc; onx11server -n -X historically.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-#	"UXterm-big @historically" !"set -i; . ./.shrc; onx11server -n -X historically.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm @historically"	!"set -i; . ./.shrc; onx11server -n -X historically.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
+	"UXterm-big @historically" !"set -i; . ./.shrc; onx11server -n -X historically.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
 	"UXterm @once"		!"set -i; . ./.shrc; onx11server -n -X once.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
 	"UXterm-big @once"	!"set -i; . ./.shrc; onx11server -n -X once.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
 	"UXterm @fezzik"	!"set -i; . ./.shrc; onx11server -fS -X fezzik.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
@@ -1690,8 +1711,6 @@ menu "xterms"
 	"UXterm-big @nbt2"	!"set -i; . ./.shrc; onx11server -n -X nbt2.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
 	"UXterm @nbtest"	!"set -i; . ./.shrc; onx11server -n -X nbtest.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
 	"UXterm-big @nbtest"	!"set -i; . ./.shrc; onx11server -n -X nbtest.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm @nbtcur"	!"set -i; . ./.shrc; onx11server -n -X nbtcur.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
-	"UXterm-big @nbtcur"	!"set -i; . ./.shrc; onx11server -n -X nbtcur.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
 	"UXterm @very-old"	!"set -i; . ./.shrc; onx11server -fS -X very-old.local \"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}\" &"
 	"UXterm-big @very-old"	!"set -i; . ./.shrc; onx11server -fS -X very-old.local \"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS}\" &"
 	#
@@ -1787,6 +1806,7 @@ menu "xauths"
 {
 	"Xauth pushes"		f.title
 	"Xauth to more"		!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X more.local 'xauth nmerge -' ) &"
+	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X historically.local 'xauth nmerge -' ) &"
 	"Xauth to xenful"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X xenful.local 'xauth nmerge -' ) &"
 	"Xauth to xentastic"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X xentastic.local 'xauth nmerge -' ) &"
 	"Xauth to nb10"		!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X nb10.local 'xauth nmerge -' ) &"
@@ -1794,10 +1814,8 @@ menu "xauths"
 	"Xauth to nbt"		!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X nbt.local 'xauth nmerge -' ) &"
 	"Xauth to nbt2"		!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X nbt2.local 'xauth nmerge -' ) &"
 	"Xauth to nbtest"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X nbtest.local 'xauth nmerge -' ) &"
-	"Xauth to nbtcur"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X nbtcur.local 'xauth nmerge -' ) &"
 	"Xauth to fezzik"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -S -X fezzik.local 'xauth nmerge -' ) &"
 	"Xauth to frodo"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -S -X frodo.local 'xauth nmerge -' ) &"
-	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X historically.local 'xauth nmerge -' ) &"
 	"Xauth to once"		!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X once.local 'xauth nmerge -' ) &"
 	"Xauth to very-old"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -S -X very-old.local 'xauth nmerge -' ) &"
 	""			f.separator
