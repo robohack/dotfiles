@@ -26,7 +26,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.48	24/11/07 09:43:48 (woods)"
+#ident	"@(#)HOME:.shrc	37.49	25/01/15 17:09:19 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -729,6 +729,8 @@ fi
 
 unset defun_local
 
+# xxx note, after all that about "local", it is not actually used below....
+
 #
 # Setup for ls(1) shortcuts.
 #
@@ -1223,19 +1225,21 @@ if [ -z "${CVSROOT}" ] ; then
 	CVSROOT=${LOCAL}/src-CVS ; export CVSROOT
 fi
 
-# on older systems GNU Diff is preferred for things that use $DIFF,
-# but sometimes it's in ${LOCAL}/bin as just "diff"
-#
-if [ -x ${LOCAL}/bin/diff ] ; then
-	DIFF=${LOCAL}/bin/diff
-elif type gdiff >/dev/null 2>&1; then
-	# XXX this isn't always best any more!
-	DIFF="gdiff"
-else
-	# xxx this is probably a no-op...
-	DIFF="diff"
-fi
-export DIFF
+## XXX setting DIFF in the environment screws up too many things...
+##
+## on older systems GNU Diff is preferred for things that use $DIFF,
+## but sometimes it's in ${LOCAL}/bin as just "diff"
+##
+#if [ -x ${LOCAL}/bin/diff ] ; then
+#	DIFF=${LOCAL}/bin/diff
+#elif type gdiff >/dev/null 2>&1; then
+#	# XXX this isn't always best any more!
+#	DIFF="gdiff"
+#else
+#	# xxx this is probably a no-op...
+#	DIFF="diff"
+#fi
+#export DIFF
 
 if type make >/dev/null 2>&1; then
 	if make -v >/dev/null 2>&1; then
@@ -1412,14 +1416,12 @@ cdwrkpkg ()
 	pwd
 }
 
+# Look for all the "CVS/Root" files starting at $PWD and change their contents
+# to the given argument.
+#
 cvsupdateroot ()
 {
-	_newroot=$1
-
-	find . -name Root -print | fgrep CVS/Root | while read _rootfile ; do
-		echo $_newroot > $_rootfile
-	done
-	unset _newroot _rootfile
+	find . -path '*/CVS/Root' -exec sh -c "echo \"$1\" > \"{}\" " \;
 }
 
 # XXX what good is this again?
@@ -1437,7 +1439,7 @@ difforig ()
 		shift
 		;;
 	esac
-	diff $_DIFFOPTS $1.orig $1
+	${DIFF:-diff} $_DIFFOPTS $1.orig $1
 	unset _DIFFOPTS
 }
 
@@ -2364,8 +2366,9 @@ if type setban >/dev/null 2>&1; then
 		msg=n
 		if mesg >/dev/null 2>&1 ; then msg=y; fi
 		trap "trap 1 2 3 15; clearban; mesg $msg || true" 1 2 3 15
+		# n.b.:  see also the banner setting in "if [ "$uid" -eq 0 ]" below
 		OWBANNER=${WBANNER}
-		WBANNER="SU \"${*-root}\""
+		WBANNER="SU ${*-root} `basename ${SHELL}`"
 		setban
 		mesg n || true
 		$SU ${1+"$@"}
@@ -2406,9 +2409,8 @@ if [ "$uid" -eq 0 ] ; then
 	if [ ! -f $HISTFILE ]; then
 		touch $HISTFILE
 	fi
-	# see also ~/.kshlogin
+	# see also ~/.kshlogin (et al)
 	HISTSIZE=2000
-	export HISTSIZE
 
 	PRE_SU_PATH=$PATH
 
@@ -2439,7 +2441,7 @@ if [ "$uid" -eq 0 ] ; then
 		# simplifies the next PATH cleanup step....
 		#
 		# we set USER to "root" explicitly even if the user
-		# did not use "su -l" as they should have...
+		# did not use "su -l" as they probably should have...
 		#
 		LOGNAME=$SU_FROM
 		export LOGNAME
@@ -2598,13 +2600,31 @@ if [ "$uid" -eq 0 ] ; then
 	fi
 
 	unset -f krcmd || true
-	function krcmd
+	krcmd ()
 	{
 		# WARNING: this version kills everyone's rcmd procs!
 		kill -9 `ps -axlc | awk '$3 == 1 && $13 == "rcmd" {print $2}'`
 	}
-	# I don't know if this is right, or not, but let's try for now...
-	cd
+
+	# until there's an "rm" subcommand in blocklistctl(8) itself!
+	blocklistctl-rm ()
+	{
+		_address=$1
+
+		if [ $# -le 1 -o -z "${1}" ] ; then
+			echo "Usage: blocklistctl-rm address" >&2
+			return 2
+		fi
+
+		# /libexec/blocklistd-helper action rulename protocol address mask [port] [id]
+		/libexec/blocklistd-helper rem blocklistd tcp ${_address} 32
+
+		unset _address
+	}
+
+	cd	# I don't know if this is right, or not, but let's try for now...
+
+	# n.b.:  see also the banner setting in "if [ "$uid" -eq 0 ]" below
 	OWBANNER=${WBANNER}
 	WBANNER="SU root `basename ${SHELL}`"
 	setban
@@ -2681,7 +2701,11 @@ maillog ()
 	# parameter.  (xxx otherwise I would also include words like "core",
 	# "signal", and "trace")
 	#
-	$PAGER -enM -p ": \[[0-9]+\] (\[.+\] )?((remote[A-Z ]*:)|remote ..LO: (rejected: inv[^:]*:|refusing) )|^.*kill.*" +G $MAILLOG ${1+"$@"}
+	# N.B.:  --follow-name was introduced in less-416, which was released
+	# between the imports of less-394 and less-444, before NetBSD-4.0 and
+	# NetBSD-6.0 respectively; so it's been in since 6.0.
+	#
+	$PAGER --follow-name -enM -p ": \[[0-9]+\] (\[.+\] )?((remote[A-Z ]*:)|remote ..LO: (rejected: inv[^:]*:|refusing) )|^.*kill.*" +G $MAILLOG ${1+"$@"}
 }
 
 malias ()
