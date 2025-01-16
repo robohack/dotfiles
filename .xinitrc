@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.34	24/11/29 12:35:59 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.35	25/01/15 17:18:10 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -13,9 +13,9 @@
 
 # To test you might be able to use Xnest:
 #
-#	( cd; XNESTDISPLAY=$DISPLAY startx -- $X11PATH/bin/Xnest; cd - )
+#	( cd; XNESTDISPLAY=$DISPLAY startx -- $X11PATH/bin/Xnest )
 #
-#	( cd; WM="$HOME/bin/ctwm -v -k -K $HOME/.ctwmrc.m4out-Xnest" XNESTDISPLAY=$display xinit -- $X11PATH/bin/Xnest; cd - )
+#	( cd; WM="$HOME/bin/ctwm -v -k -K $HOME/.ctwmrc.m4out-Xnest" XNESTDISPLAY=$DISPLAY startx -- $X11PATH/bin/Xnest; )
 #
 # Note for all the fonts you use you need them on both the host running Xnest
 # and the host running the native Xserver, which of course should not be a
@@ -61,9 +61,9 @@ if [ $(uname -s) != "Darwin" -a -w /dev/console ]; then
 	echo "$argv0: redirected stdout and stderr to /dev/console"
 elif [ "$argv0" = ".xinitrc" ]; then
 	if [ -t 0 ]; then
-		echo "$argv0: redirecting stdout and stderr to ~/.xinit-errors."
-		exec >$HOME/.xinit-errors 2>&1
-		echo "$argv0: redirected stdout and stderr to ~/.xinit-errors"
+		echo "$argv0: redirecting stdout and stderr to ~/.xinit-errors-${XODISPLAY}."
+		exec >$HOME/.xinit-errors-${XODISPLAY} 2>&1
+		echo "$argv0: redirected stdout and stderr to ~/.xinit-errors-${XODISPLAY}"
 	fi
 elif [ "$argv0" = ".xsession" ]; then
 	# started as ~/.xsession by Xdm...
@@ -299,6 +299,7 @@ eval $(
 	echo "[WSWidth]=WS_WIDTH[; export WSWidth]"
 	echo "[WSHeight]=WS_HEIGHT[; export WSHeight]"
 	echo "[WSOff]=WS_OFF[; export WSOff]"
+	echo "[XLOAD_HL]=XLOAD_HL[; export XLOAD_HL]"
 	echo "[XchronoWidth]='XchronoWidth'[; export XchronoWidth]"
 	echo "[XchronoGeom]='XchronoGeom'[; export XchronoGeom]"
 } | xrdb -quiet -cpp m4 -E -n  | sed -e 1d -e '/^!/d')
@@ -497,6 +498,12 @@ xlsfonts -o -fn "-xfree86-cursor-medium-r-normal--0-160-218-218-p-0-adobe-fontsp
 xlsfonts -fn "cursor"
 xlsfonts -o -fn "cursor"
 #
+# the following are used by my ~/.twmrc
+xlsfonts -fn "-*-helvetica-bold-r-normal-*-*-100-*-*-*-*-iso8859-1"
+xlsfonts -o -fn "-*-helvetica-bold-r-normal-*-*-100-*-*-*-*-iso8859-1"
+xlsfonts -fn "fixed"
+xlsfonts -o -fn "fixed"
+#
 if ! $DEBUG; then
 	set +x
 fi
@@ -589,10 +596,10 @@ case "$DISPLAY" in
 		# anything more to the closed pipe, and so never get a
 		# SIGPIPE....
 		#
-		if [ -r $HOME/.xinit-errors ]; then
-			tail -F $HOME/.xinit-errors | xconsole $xconsole_args -file /dev/stdin &
+		if [ -r $HOME/.xinit-errors-${XODISPLAY} ]; then
+			tail -F $HOME/.xinit-errors-${XODISPLAY} | xconsole $xconsole_args -file /dev/stdin &
 		else
-			echo "$argv0: WARNING: startx/xinit output not going to ~/.xinit-errors?"
+			echo "$argv0: WARNING: startx/xinit output not going to ~/.xinit-errors-${XODISPLAY}?"
 		fi
 	elif [ "$argv0" = ".xsession" ]; then
 		# XXX again, beware of lost tails...
@@ -1060,11 +1067,7 @@ else
 	echo "$argv0: no background set"
 fi
 
-if [ ${SCREENDEPTH:-1} -eq 1 ]; then
-	xload -geometry $XloadGeom -hl grey90 &
-else
-	xload -geometry $XloadGeom -hl red &
-fi
+xload -geometry ${XloadGeom} -hl ${XLOAD_HL} &
 
 # xxx Once upon a time I thought the xclock supplied with XQuartz 2.8.2 wass
 # broken somehow in how it displays text, but the pkgsrc build works OK....
@@ -1150,10 +1153,9 @@ very.local:*|very-old.local:*)
 	#xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X nbt.local 'xauth nmerge -'
 	#xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X nbt2.local 'xauth nmerge -'
 	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X nbtest.local 'xauth nmerge -'
-	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X nbtcur.local 'xauth nmerge -'
 	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -S -X fezzik.local 'xauth nmerge -'
 	#xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -S -X frodo.local 'xauth nmerge -'
-	#xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X historically.local 'xauth nmerge -'
+	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X historically.local 'xauth nmerge -'
 	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -X once.local 'xauth nmerge -'
 	# very-old runs in the background -- it's not used immediately below
 	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -S -X very-old.local 'xauth nmerge -' &
@@ -1226,9 +1228,9 @@ very.local:*|very-old.local:*)
 
 	xload2east=$(expr ${WSOff} + ${XloadWidth} + ${TDBorderWidth} + ${TDBorderWidth})
 
-	XloadGeomNbtcur="${XloadWidth}x${XloadHeight}-${xload2east}+${xloadVoff}"
-	export XloadGeomNbtcur
-	onx11server -n -X nbtcur.local "xload -geometry ${XloadGeomNbtcur} -hl red" &
+	XloadGeomHistorically="${XloadWidth}x${XloadHeight}-${xload2east}+${xloadVoff}"
+	export XloadGeomHistorically
+	onx11server -n -X historically.local "xload -geometry ${XloadGeomHistorically} -hl red" &
 
 	xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
 
@@ -1278,7 +1280,7 @@ very.local:*|very-old.local:*)
 	onx11server -fS -X nbday.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
 	#onx11server -n -X nbt.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
 	onx11server -n -X nbtest.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
-	onx11server -n -X nbtcur.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
+	onx11server -n -X historically.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
 	onx11server -fS -X fezzik.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
 	onx11server -n -X xenful.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
 	onx11server -n -X xentastic.local "sleep 5; uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS}" &
