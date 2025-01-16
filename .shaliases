@@ -1,7 +1,7 @@
 #
 #	.shaliases - common aliases for Ksh and clones, Ash, etc.
 #
-#ident	"@(#)HOME:.shaliases	37.5	24/10/20 14:53:43 (woods)"
+#ident	"@(#)HOME:.shaliases	37.6	25/01/15 17:20:10 (woods)"
 
 if $ISSUN; then
 	alias df="/usr/bin/df"
@@ -141,7 +141,7 @@ alias rehash='_SV_PATH=$PATH; PATH=$_SV_PATH; unset _SV_PATH'
 alias rinfo='rlog -L -h -l $(find RCS -type f -print)'
 # use 'tput reset', and/or 'tabs -8' to reset tabs, etc. -- i.e. terminal (emulator) features
 alias rstty='stty $SANE'
-alias rsyncbackup='rsync -a -H -E --numeric-ids'
+alias rsyncbackup='rsync --info=stats3,flist,misc -a -H -E --numeric-ids'
 alias scvs='export CVSROOT="$(< CVS/Root)"; echo "CVSROOT=$CVSROOT"'
 alias snmpoidinfo='snmptranslate -T d -O f'
 alias wcvs="echo \$CVSROOT"
