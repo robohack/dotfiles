@@ -2,7 +2,7 @@
 !
 ! changequote([, ])	note brackets will disappear from comments!
 !
-!#ident	"@(#)HOME:.Xdefaults	37.21	25/01/15 17:19:38 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.22	25/01/28 13:45:57 (woods)"
 !
 ! N.B. WARNING:  This file must be processed with "xrdb -cpp m4" with macros and
 ! macro calls in the comments.  (perhaps it should be renamed to .Xdefaults.m4?)
@@ -1225,14 +1225,14 @@ XFontSel*sampleTextUCS:\
 	ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789\n\
 	abcdefghijklmnopqrstuvwxyz\n\
 	 \041\042#$%&\047()*+,-./\072;<->?@[\\]^_`{|}~\n\
-	 ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿\n\
+	 ¡¢£¤¥€¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿◊℧№ℨℵ℩\n\
 	ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞß\n\
 	àáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ\n\
 	ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ\n\
 	αβγδεζηθικλμνξοπρςτυφχψω\n\
 	АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ\n\
 	абвгдеёжзийклмнопрстуфхцчшщъыьэюя\n\
-	–―†‡•…‰™ᴂﬁœᴈŠŸž⌘\n\
+	–―†‡•…‰™ᴂﬁœᴈŠŸž⌘¼½¾⅓⅔⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞\n\
 	☺☹✝✚✡☥⎈☭☪∀∂∈ℝ∧∪↑↗↨↻⇣┐┼╔╘►⑀₂ἠḂӥẄɐː⍎אԱა�\n\
 	⌈⌉⌊⌋∏∑∫∼∞πΩ∂√‾÷×−=≔₀₁₂ʸˣ⁰¹³²⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿⁱ\n\
 	⊕⊖⊗⊘⊙⊚⊛∙∘′″‴∧∨∝∃⊦∅∈∉⊂⊃⊆⊇⊄⋂⋃\n\
