@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.19	25/01/28 13:45:57 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.20	25/01/28 13:47:43 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v23.1 or newer (with Xft)
 ;;;;
@@ -1175,8 +1175,13 @@ match `%s'. Connect anyway? " host))))))
 		       '("gitlab.freedesktop.org"
 			 "gitlab.freedesktop.org/api/v4"
 			 "gitlab.freedesktop.org" forge-gitlab-repository))
+	  ;; XXX N.B.:  forge-owned-accounts probably isn't right....
 	  (add-to-list 'forge-owned-accounts
-		       '("robohack@gitlab.freedesktop.org"))))
+		       '("robohack@github.org" . (remote-name "robohack")))
+	  (add-to-list 'forge-owned-accounts
+		       '("robo-hack@gitlab.org" . (remote-name "robo-hack")))
+	  (add-to-list 'forge-owned-accounts
+		       '("robohack@gitlab.freedesktop.org" . (remote-name "robohack")))))
       (eval-after-load 'magit
 	'(if (elisp-file-in-loadpath-p "forge")
 	    (require 'forge)))
