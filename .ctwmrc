@@ -9,7 +9,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.39	25/02/01 12:19:14 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.40	25/02/01 12:28:50 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -982,6 +982,8 @@ RightTitleButton "icon" = f.menu "zooms"
 menu "quickies"
 {
 	"Short Cuts"		f.title
+	"Pin this menu"		f.pin
+	""			f.separator
 	"Move & Pack"		f.movepack
 	"Move"			f.move
 	"Resize"		f.resize
@@ -1058,24 +1060,16 @@ menu "quickies"
 	""			f.separator
 	"TermSrvr Telnets"	f.menu "termservers"
 	""			f.separator
-	"Xlock blot"		!"xlock -ncolors 200 -mode blot &"
-	"Xlock discrete"	!"xlock -ncolors 200 -mode discrete &"
-	"Xlock fadeplot"	!"xlock -ncolors 200 -mode fadeplot &"
-	"Xlock flag"		!"xlock -ncolors 200 -mode flag &"
-	"Xlock flame"		!"xlock -ncolors 200 -mode flame &"
-	"Xlock fzort"		!"xlock -ncolors 200 -mode fzort &"
-	"Xlock julia"		!"xlock -ncolors 200 -mode julia &"
-	"Xlock matrix"		!"xlock -ncolors 200 -mode matrix &"
-	"Xlock random"		!"xlock -ncolors 200 -mode random &"
+	"Locks..."		f.menu "locks"
 	""			f.separator
 	"Exit..."		f.menu "exit"
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 menu "consoles"
 {
 	"Console Server"	f.title
+	"Pin this menu"		f.pin
+	""			f.separator
   define([CONSOLE_REP], [
 	"$1 []"			!"uxterm -fg lightgreen -bg black -geometry 132x66 -fs 7.5 -fc 2 ${XTERM_OPTS} -n $1 -T 'console:$1' -e console $1 &"
   ])
@@ -1115,13 +1109,13 @@ menu "consoles"
 	CONSOLE_REP(nbtest)
 	CONSOLE_REP(freeaew)
   undefine([CONSOLE_REP])
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 menu "termservers"
 {
 	"Term Srvr Telnets"	f.title
+	"Pin this menu"		f.pin
+	""			f.separator
 	"telnet controlling"	!"uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -n controlling -T 'controlling Virtual Console' -e telnet controlling.local 2000 &"
 	""			f.separator
   define([CONTROLLING_REP], [
@@ -1138,13 +1132,13 @@ menu "termservers"
 	CONTROLLING_REP(07)
 	CONTROLLING_REP(08)
   undefine([CONTROLLING_REP])
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 menu "defops"
 {
 	"TWM_TYPE - Version TWM_VERSION"	f.title
+	"Pin this menu"		f.pin
+	""			f.separator
 	"Window Operations..."	f.menu "winops"
 	"Window Manager..."	f.menu "wmops"
 	""			f.separator
@@ -1152,13 +1146,13 @@ menu "defops"
 	"Preferences..."	f.menu "preferences"
 	""			f.separator
 	"Exit..."		f.menu "exit"
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 menu "winops"
 {
 	"Window Operations"	f.title
+	"Pin this menu"		f.pin
+	""			f.separator
 	"Save Geometry"		f.savegeometry
 	"Restore Geometry"	f.restoregeometry
 	""			f.separator
@@ -1199,13 +1193,13 @@ menu "winops"
 	"Delete"		f.delete
 	"Delete Or Destroy"	f.deleteordestroy
 	"Kill"			f.destroy
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 menu "wmops"
 {
 	"Window Manager"	f.title
+	"Pin this menu"		f.pin
+	""			f.separator
 	"Icon Manager..."	f.menu "iconmgr"
 	"WorkSpace Summary..."	f.menu "TwmWindows"
 	"Window Summary..."	f.menu "TwmAllWindows"
@@ -1232,8 +1226,6 @@ menu "wmops"
  )
 	""			f.separator
 	"About TWM_TYPE TWM_VERSION"	f.version
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 menu "packs"
@@ -1279,16 +1271,19 @@ menu "fills"
 menu "iconmgr"
 {
 	"Icon Manager"		f.title
+	"Pin this menu"		f.pin
+	""			f.separator
 	"Show Iconmgr"		f.showiconmgr
 	"Hide Iconmgr"		f.hideiconmgr
 	"Sort"			f.sorticonmgr
-	"Pin this menu"		f.pin
 }
 
 # "personal preference" adjustments
 menu "preferences"
 {
 	"Preferences"		f.title
+	"Pin this menu"		f.pin
+	""			f.separator
 	"Viewres"		!"viewres &"
 	"Editres"		!"editres &"
 	"xprop"			!"xprop &"
@@ -1311,14 +1306,14 @@ menu "preferences"
 	["Colour Map Ctl..."	f.menu "cmap"], [])
 	"Screen Saver..."	f.menu "screensaver"
 	"Keyboard LEDs..."	f.menu "leds"
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 ifelse(COLOR, Yes,
 [menu "cmap"
 {
 	"Colour Map Control"	f.title
+	"Pin this menu"		f.pin
+	""			f.separator
 	"View Default Map"	!"xcmap &"
 	""			f.separator
 	"Set All"		!"xstdcmap -all -verbose &"
@@ -1335,8 +1330,6 @@ ifelse(COLOR, Yes,
 	"Delete red"		!"xstdcmap -delete red -verbose &"
 	"Delete green"		!"xstdcmap -delete green -verbose &"
 	"Delete blue"		!"xstdcmap -delete blue -verbose &"
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 ], [])
 
@@ -1366,6 +1359,8 @@ menu "screensavertime"
 menu "leds"
 {
 	"Keyboard LED Control"	f.title
+	"Pin this menu"		f.pin
+	""			f.separator
 	"all on"		!"xset led on"
 	"all off"		!"xset led off"
 	"1 on"			!"xset led 1"
@@ -1376,8 +1371,6 @@ menu "leds"
 	"3 off"			!"xset -led 3"
 	"4 on"			!"xset led 4"
 	"4 off"			!"xset -led 4"
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 menu "exit"
@@ -1392,6 +1385,8 @@ menu "exit"
 menu "applications"
 {
 	"Applications"			f.title
+	"Pin this menu"			f.pin
+	""				f.separator
 	"Xauth to..."			f.menu "xauths"
 	""				f.separator
  ifdef([ON_OSX], [
@@ -1412,13 +1407,13 @@ menu "applications"
 	"Other Tools..."		f.menu "tools"
 	"Miscellaneous..."		f.menu "miscapps"
 	"Games..."			f.menu "games"
-	""				f.separator
-	"Pin this menu"			f.pin
 }
 
 menu "audios"
 {
 	"Audio Tools"			f.title
+	"Pin this menu"			f.pin
+	""				f.separator
 	"xmms"				!"xmms -m &"
 	""				f.separator
 	"audemo"			!"cd HOME/lib/sounds; audemo &"
@@ -1429,13 +1424,13 @@ menu "audios"
 	""				f.separator
 	"xcdplayer"			!"xcdplayer &"
 	"xmcd"				!"xmcd &"
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 menu "graphics"
 {
 	"Graphics Applications"		f.title
+	"Pin this menu"			f.pin
+	""				f.separator
 	"xart"				!"xart &"
 	"xpaint"			!"xpaint &"
 	"xfig"				!"xfig &"
@@ -1452,13 +1447,13 @@ menu "graphics"
 	"xcmap"				!"xcmap &"
 	"xwd > ~/tmp/win.xwd"		!"xwd > HOME/tmp/win.xwd &"
 	"xwd -root > ~/tmp/root.xwd"	!"xwd -root > HOME/tmp/root.xwd &"
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 menu "tools"
 {
 	"Miscellaneous Tools"		f.title
+	"Pin this menu"			f.pin
+	""				f.separator
 	"editres"			!"editres &"
 	"viewres"			!"viewres &"
 	"xclipboard"			!"xclipboard &"
@@ -1468,13 +1463,13 @@ menu "tools"
 	"xdpr"				!"xdpr -device ps &"
 	""				f.separator
 	"Show Environment"		!"env | sort | xmessage -file - &"
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 menu "miscapps"
 {
 	"Miscellaneous Applications"	f.title
+	"Pin this menu"			f.pin
+	""				f.separator
 	"xalarm"			!"xalarm &"
  ifelse(eval(FontYDPI > 110), 1, [
 # 800 is barely wide enough for the widest button (trunc), and 500 is also a
@@ -1509,13 +1504,13 @@ menu "miscapps"
 	"plan"				!"plan &"
 	"pan"				!"pan &"
 	"timekeeper"			!"timekeeper &"
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 menu "emacs"
 {
 	"Emacsen"		f.title
+	"Pin this menu"		f.pin
+	""			f.separator
 	"@CLIENTHOST"		!"${MY_EMACS} -fh &"
  ifdef([X11SERVER], [
 	"@X11SERVER"		!"set -i; . ./.shrc; onx11server -n -X X11SERVER \"${MY_EMACS} -fh\" &"
@@ -1525,13 +1520,13 @@ menu "emacs"
 	"@xenful"		!"set -i; . ./.shrc; onx11server -n -X xenful.local \"emacs -fh\" &"
 	"@xentastic"		!"set -i; . ./.shrc; onx11server -n -X xentastic.local \"emacs -fh\" &"
 ])
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 menu "monitors"
 {
 	"Monitors"		f.title
+	"Pin this menu"		f.pin
+	""			f.separator
 	"xconsole"		!"xconsole -geometry 500x120-0-0 -notify -verbose &"
 	"xconsole x-errors"	!"xconsole -geometry 500x120-0-0 -notify -verbose -file HOME/.xsession-errors &"
 	"xconsole x-errors-DISPLAY" !"xconsole -geometry 500x120-0-0 -notify -verbose -file HOME/.xsession-errors-`echo ${DISPLAY} | sed 's/\.[[0-9]]*$//'` &"
@@ -1578,22 +1573,39 @@ menu "monitors"
 	"xcpustate @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X X11SERVER \"xcpustate -geometry 190x20-0+300 -shorten 1 -wait -cpu -disk\" &"
  ])
 	"tkined"		!"tkined &"
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 menu "locks"
 {
 	"Locks"			f.title
-	"xlock"			!"xlock -mode flame &"
-	"xlock remote"		!"xlock -remote -mode flame &"
-	""			f.separator
 	"Pin this menu"		f.pin
+	""			f.separator
+	"Xlock blot"		!"xlock -ncolors 200 -mode blot &"
+	"Xlock discrete"	!"xlock -ncolors 200 -mode discrete &"
+	"Xlock fadeplot"	!"xlock -ncolors 200 -mode fadeplot &"
+	"Xlock flag"		!"xlock -ncolors 200 -mode flag &"
+	"Xlock flame"		!"xlock -ncolors 200 -mode flame &"
+	"Xlock fzort"		!"xlock -ncolors 200 -mode fzort &"
+	"Xlock julia"		!"xlock -ncolors 200 -mode julia &"
+	"Xlock matrix"		!"xlock -ncolors 200 -mode matrix &"
+	"Xlock random"		!"xlock -ncolors 200 -mode random &"
+	""			f.separator
+	"Xlock remote blot"	!"xlock -remote -ncolors 200 -mode blot &"
+	"Xlock remote discrete"	!"xlock -remote -ncolors 200 -mode discrete &"
+	"Xlock remote fadeplot"	!"xlock -remote -ncolors 200 -mode fadeplot &"
+	"Xlock remote flag"	!"xlock -remote -ncolors 200 -mode flag &"
+	"Xlock remote flame"	!"xlock -remote -ncolors 200 -mode flame &"
+	"Xlock remote fzort"	!"xlock -remote -ncolors 200 -mode fzort &"
+	"Xlock remote julia"	!"xlock -remote -ncolors 200 -mode julia &"
+	"Xlock remote matrix"	!"xlock -remote -ncolors 200 -mode matrix &"
+	"Xlock remote random"	!"xlock -remote -ncolors 200 -mode random &"
 }
 
 menu "backgrounds"
 {
 	"Backgrounds"		f.title
+	"Pin this menu"		f.pin
+	""			f.separator
 	"xearth"		!"xearth -bigstars 10 -pos fixed,${LATITUDE:-0},${LONGITUDE:-0} -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
 	"xearth nogrid"		!"xearth -bigstars 10 -pos fixed,${LATITUDE:-0},${LONGITUDE:-0} -label -labelpos +1+1 -wait 900 -nice 10 &"
 	"xearth orbiting"	!"xearth -bigstars 10 -pos orbit,0.1,0 -rot 10 -label -labelpos +1+1 -grid -wait 900 -nice 10 &"
@@ -1611,13 +1623,13 @@ menu "backgrounds"
 	"xphoon"		!"xphoon -t 10 &"
 	"xsetroot eschernknot"	!"xsetroot -bitmap ${X11PATH}/[include]/X11/bitmaps/escherknot"
 	"xsetroot xsnow"	!"xsetroot -bitmap ${X11PATH}/[include]/X11/bitmaps/xsnow"
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 menu "games"
 {
 	"X11 Games"		f.title
+	"Pin this menu"		f.pin
+	""			f.separator
 	"Abuse"			!"abuse &"
 	"battleball"		!"battleball ${DISPLAY} &"
 	"GalaXa"		!"galaxa &"
@@ -1648,13 +1660,13 @@ menu "games"
 	"xworm"			!"xworm &"
 	""			f.separator
 	"X11 Sample Toys..."	f.menu "samplegames"
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 menu "samplegames"
 {
 	"X11 Sample Toys & Demos"	f.title
+	"Pin this menu"		f.pin
+	""			f.separator
 	"Xeyes"			!"xeyes &"
 	"Xgc"			!"xgc &"
 	"Xgas"			!"xgas &" # xxx gone?
@@ -1669,13 +1681,13 @@ menu "samplegames"
 	"ico plane"		!"ico -sleep 0.02 -obj pyramid -faces -colors purple &"
 	"maze"			!"maze &" # xxx gone ?
 	"puzzle"		!"puzzle &" # xxx gone?
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 menu "xterms"
 {
 	"Xterms Everywhere"	f.title
+	"Pin this menu"		f.pin
+	""			f.separator
 	"UXterm @CLIENTHOST"	!"eval uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
 	"UXterm-big @CLIENTHOST" !"eval uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &"
  ifdef([AT_LOCAL], [
@@ -1773,8 +1785,6 @@ menu "xterms"
 	"Xterm @freely" 	!"set -i; . ./.shrc; onx11server -n -X freely.weird.com \"xterm ${XTERM_OPTS}\" &"
   ])
  ])
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 
 # for pushing our X11 AUTH cookies over to the various target hosts in case they
@@ -1793,6 +1803,8 @@ ifdef([AT_WEIRD], [
 menu "xauths"
 {
 	"Xauth pushes to Weird.com"	f.title
+	"Pin this menu"		f.pin
+	""			f.separator
  ifdef([X11SERVER], [
 	"Xauth to X11SERVER"	!"xauth nextract - ${REMOTE_DISPLAY} | (set -i; . ./.shrc; onx11server -X X11SERVER 'xauth nmerge -' ) &"
  ])
@@ -1802,8 +1814,6 @@ menu "xauths"
 	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} historically.weird.com /usr/X11R6/bin/xauth nmerge - &"
 	"Xauth to freely"	!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} freely.weird.com /usr/X11R6/bin/xauth nmerge - &"
 	"Xauth to whats"	!"xauth nextract - ${REMOTE_DISPLAY} | ${RSH} whats.weird.com /usr/X11R6/bin/xauth nmerge - &"
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 ])
 
@@ -1811,6 +1821,8 @@ ifdef([AT_LOCAL], [
 menu "xauths"
 {
 	"Xauth pushes"		f.title
+	"Pin this menu"		f.pin
+	""			f.separator
 	"Xauth to more"		!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X more.local 'xauth nmerge -' ) &"
 	"Xauth to historically"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X historically.local 'xauth nmerge -' ) &"
 	"Xauth to xenful"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X xenful.local 'xauth nmerge -' ) &"
@@ -1824,8 +1836,6 @@ menu "xauths"
 	"Xauth to frodo"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -S -X frodo.local 'xauth nmerge -' ) &"
 	"Xauth to once"		!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -X once.local 'xauth nmerge -' ) &"
 	"Xauth to very-old"	!"xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | (set -i; . ./.shrc; onx11server -S -X very-old.local 'xauth nmerge -' ) &"
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 ])
 
@@ -1833,6 +1843,8 @@ ifdef([ON_OSX], [
 menu "osx-apps"
 {
 	"Mac OS X Applications"	f.title
+	"Pin this menu"		f.pin
+	""			f.separator
 	# xxx maybe not all XTERM_OPTS are needed, but will they hurt?
 	"pasteboard copy"	!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T 'Paste text to PasteBoard here, end with EOF' -e pbcopy"
 	""			f.separator
@@ -1851,8 +1863,6 @@ menu "osx-apps"
 	"System Preferences"	!"open '/Applications/Utilities/System Preferences.app' &"
 	"System Profiler"	!"open '/Applications/Utilities/System Profiler.app' &"
 	"Terminal"		!"open /Applications/Utilities/Terminal.app &"
-	""			f.separator
-	"Pin this menu"		f.pin
 }
 ])
 
