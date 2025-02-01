@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.41	25/01/15 17:18:59 (woods)"
+#ident	"@(#)HOME:.profile	37.42	25/02/01 12:18:32 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -122,6 +122,16 @@ if ${ISATTY}; then
 		trap '. ${HOME}/.kshlogout ; exit $?' EXIT
 	elif [ -r ${HOME}/.shlogout ]; then
 		trap '. ${HOME}/.shlogout ; exit $?' 0
+	fi
+fi
+
+# N.B.:  If not attached to a TTY then the "caller" probably isn't a login shell
+# (it is probably .xinitrc or onx11server, etc.), so source the system profile,
+# if there is one.
+#
+if ! ${ISATTY}; then
+	if [ -r /etc/profile ]; then
+		. /etc/profile
 	fi
 fi
 
@@ -314,7 +324,7 @@ else
 	# XXX on FreeBSD systems using their half-assed virtual
 	# environment system based on their jail(2) system call, /bin
 	# (and /usr/bin) will potentially be a symlink pointing to
-	# some shared storage, eg. /basejail/bin (and
+	# some shared storage, e.g. /basejail/bin (and
 	# /basejail/usr/bin).  However since it's difficult to
 	# portably detect the target of a symlink (there is a
 	# "readlink" utility on FreeBSD and newer NetBSDs, a variant
@@ -413,9 +423,11 @@ dirprepend MANPATH /usr/xpg6/man /usr/xpg4/man /usr/ccs/man
 
 dirappend PATH ${X11BIN} ${LOCAL}/bin ${CONTRIB}/bin
 dirappend MANPATH ${X11MAN} ${LOCAL}/share/man ${CONTRIB}/share/man ${LOCAL}/man ${CONTRIB}/man
+dirappend INFOPATH ${LOCAL}/share/info ${LOCAL}/info ${CONTRIB}/info
 
 dirappend PATH ${PKG}/bin
 dirappend MANPATH ${PKG}/share/man ${PKG}/man
+dirappend INFOPATH ${PKG}/share/info ${PKG}/info
 
 dirappend PATH ${PKG}/heirloom-xpg4/bin ${PKG}/heirloom-ccs/bin ${PKG}/heirloom-doctools/bin ${PKG}/heirloom/bin
 dirappend MANPATH ${PKG}/heirloom-xpg4/man ${PKG}/heirloom-ccs/man ${PKG}/heirloom-doctools/man ${PKG}/heirloom/man
@@ -429,6 +441,7 @@ dirappend MANPATH ${SLASHOPT}/share/man ${SLASHOPT}/man
 
 dirappend PATH ${GNU}/bin ${SLASHOPT}/gnu/bin
 dirappend MANPATH ${GNU}/share/man ${GNU}/man
+dirappend INFOPATH ${GNU}/share/info ${GNU}/info
 
 dirappend PATH /Developer/usr/bin
 dirappend MANPATH /Developer/usr/share/man
@@ -860,6 +873,7 @@ emacs|"")
 	HAVEJOVE=false
 	if ${HAVEEMACS}; then
 		EDITOR="${MY_EMACS}"
+		PKGEDITOR=`basename ${MY_EMACS}`"/emacsclient"
 	elif type jove >/dev/null 2>&1; then
 		EDITOR="jove"
 		HAVEJOVE=true
@@ -1100,7 +1114,7 @@ if ${ISATTY} && [ -z "${XDG_CURRENT_DESKTOP}" ]; then
 	fi
 
 	# WARNING: some stupid stty's cause this to fail!!!!
-	# eg., ULTRIX V4.3 stty(1) 'cause it uses stdout, not stdin....
+	# e.g., ULTRIX V4.3 stty(1) 'cause it uses stdout, not stdin....
 	SANE=`stty -g` ; export SANE
 
 	case "${TERM}" in
@@ -1209,7 +1223,7 @@ elif is_bash ; then
 		. ${HOME}/.bashlogin
 	fi
 elif is_ash ; then
-	# this will only be modern ash(1) or a derivative of it (eg. from 4.4BSD
+	# this will only be modern ash(1) or a derivative of it (e.g. from 4.4BSD
 	# or newer), or Schily Shell (bosh)
 	#
 	# (xxx we could use is_schily_sh to separate it out, but for the most
