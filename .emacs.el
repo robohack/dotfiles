@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.20	25/01/28 13:47:43 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.21	25/02/01 12:18:58 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v23.1 or newer (with Xft)
 ;;;;
@@ -4170,6 +4170,15 @@ current emacs server process..."
 
 (add-hook 'org-mode-hook
 	  'my-org-mode-setup-func)
+
+;;(eval-after-load 'org-mode
+(setq org-entities-user
+      (append
+       '(
+	 ("return" "" nil "<em>[RETURN]<em>" "[RETURN]" "[RETURN]" "␍")
+	 ("tab" "" nil "<em>[TAB]<em>" "[TAB]" "[TAB]" "␉")
+	 )))
+
 
 ;; once upon a time PCL-CVS was not distributed with GNU Emacs...
 ;;
