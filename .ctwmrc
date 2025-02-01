@@ -9,7 +9,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.38	25/01/15 17:14:49 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.39	25/02/01 12:19:14 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -1058,10 +1058,16 @@ menu "quickies"
 	""			f.separator
 	"TermSrvr Telnets"	f.menu "termservers"
 	""			f.separator
- ifdef([ON_OSX], [
- ], [
-	"Xlock"			!"xlock -mode flame &"
- ])
+	"Xlock blot"		!"xlock -ncolors 200 -mode blot &"
+	"Xlock discrete"	!"xlock -ncolors 200 -mode discrete &"
+	"Xlock fadeplot"	!"xlock -ncolors 200 -mode fadeplot &"
+	"Xlock flag"		!"xlock -ncolors 200 -mode flag &"
+	"Xlock flame"		!"xlock -ncolors 200 -mode flame &"
+	"Xlock fzort"		!"xlock -ncolors 200 -mode fzort &"
+	"Xlock julia"		!"xlock -ncolors 200 -mode julia &"
+	"Xlock matrix"		!"xlock -ncolors 200 -mode matrix &"
+	"Xlock random"		!"xlock -ncolors 200 -mode random &"
+	""			f.separator
 	"Exit..."		f.menu "exit"
 	""			f.separator
 	"Pin this menu"		f.pin
