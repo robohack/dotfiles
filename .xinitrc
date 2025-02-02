@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.35	25/01/15 17:18:10 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.36	25/02/02 13:38:44 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -1325,11 +1325,37 @@ very.local:*|very-old.local:*)
 	### Or maybe they can just be prototype scripts, one per remote host,
 	### and so they pre-exist and persist and don't have to be removed.
 
+	eval uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} &
+
+	onx11server -n -X xenful.local "sleep 5; uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -T 'Occupy-Xenful VMs'" &
+
+	onx11server -n -X xentastic.local "sleep 5; uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -T 'Occupy-Xentastic VMs'" &
+
+	onx11server -n -X once.local "sleep 5; uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -T 'Occupy-Testing 1'" &
+
+	onx11server -n -X more.local "sleep 5; uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -T 'Occupy-Home'" &
+	onx11server -n -X more.local "sleep 5; uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -T 'Occupy-Home'" &
+
+	onx11server -n -X fezzik.local "sleep 5; uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -T 'Occupy-FreeBSD'" &
+
+	( sleep 5; exec uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -T "Occupy-Remote VMs" -e 'slogin -CY xentral.avoncote.ca' & ) &
+
+	( sleep 5; exec uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -T "Occupy-Central" -e 'slogin -CY central.avoncote.ca' & ) &
+	( sleep 5; exec uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -T "Occupy-Central" -e 'slogin -CY central.avoncote.ca' & ) &
+
+	( sleep 5; exec uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -T "Occupy-Work 2" -e 'slogin -CY b2.avoncote.ca' & ) &
+	( sleep 5; exec uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} -T "Occupy-Work 2" -e 'slogin -CY b2.avoncote.ca' & ) &
+
 	# finally our own small lower-right command terminal
 	#
 	# (the rest, for "remote" windows, are done in xinit/startx section)
 	#
 	( sleep 5; eval exec uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} & ) &
+
+	# and two big ones for working on code locally
+	#
+	( sleep 5; eval uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} -T "Occupy-Work 1" & ) &
+	( sleep 5; eval uxterm ${XTERM_BIG_OPTS} ${XTERM_OPTS} ${XTERM_LOGIN_OPTS} -T "Occupy-Work 1" & ) &
 	;;
 
 macweird.*:*|Gregs-MBP.*|*xquartz:*)

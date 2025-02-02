@@ -9,7 +9,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.40	25/02/01 12:28:50 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.41	25/02/02 13:38:43 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -601,6 +601,24 @@ OccupyAll {
 	"XMMS Equalizer"
 	"XMMS Playlist"
 	"Dual Spectogram 1.2"
+}
+
+Occupy {
+	WorkSpace "Desktop"	{ "Occupy-Desktop" }
+	WorkSpace "Remote VMs"	{ "Occupy-Remote VMs" }
+	WorkSpace "Mail"	{ "Occupy-Mail" }
+
+	WorkSpace "Home"	{ "Occupy-Home" }
+	WorkSpace "Xenful VMs"	{ "Occupy-Xenful VMs" }
+	WorkSpace "Central"	{ "Occupy-Central" }
+
+	WorkSpace "Coding"	{ "Occupy-Coding" }
+	WorkSpace "Testing 1"	{ "Occupy-Testing 1" }
+	WorkSpace "FreeBSD"	{ "Occupy-FreeBSD" }
+
+	WorkSpace "Work 1"	{ "Occupy-Work 1" }
+	WorkSpace "Xentastic VMs"	{ "Occupy-Xentastic VMs" }
+	WorkSpace "Work 2"	{ "Occupy-Work 2" }
 }
 
 IconRegionAlignement		"border"
