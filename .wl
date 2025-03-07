@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	37.10	24/08/10 13:11:04 (woods)"
+;;;;#ident	"@(#)HOME:.wl	37.11	25/03/07 14:08:52 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -848,6 +848,7 @@ If ARG is non-nil, forget everything about the message."
 	"^Thread-Index:"
 	"^Topicbox-Delivery-ID:"
 	"^Topicbox-Message-UUID:"
+	"^UI-OutboundReport:"
 	"^X-Accept-Language:"
 	"^x-authority-analysis:"
 	"^X-Barracuda[^:]*:"		; some stupid virus scanner
@@ -864,6 +865,7 @@ If ARG is non-nil, forget everything about the message."
 	"^X-Filter-ID:"
 	"^X-Forefront[^:]*:"
 	"^X-GMX[^:]*:"
+	"^X-Gm-Gg:"
 	"^X-Gm-Message-State:"
 	"^X-Google-DKIM-Signature:"
 	"^X-Google-Smtp-Source:"
@@ -897,6 +899,7 @@ If ARG is non-nil, forget everything about the message."
 	"^X-Sieve:"			; cyrus
 	"^X-Spam[^:]*:"
 	"^X-UI-Out-Filterresults:"
+	"^X-UI-Sender-Class:"
 	"^X-VADE-[^:]*:"
 	"^X-VM-[^:]*:"
 	"^X-Virus[^:]*:"
@@ -1159,6 +1162,13 @@ These should match the 'from' header value."
 	    (mime-display-text/plain-hook-fill-lines))))))
 
 (add-hook 'mime-display-text/plain-hook 'my-mime-display-text/plain-helper)
+
+;; xxx consider:
+;;
+;;(add-hook 'mime-display-text/plain-hook
+;;          (lambda ()
+;;            (goto-char (point-min))
+;;            (browse-url-add-buttons)))
 
 ;; To write format=flowed messages we add “--[[text/plain; format=flowed]]" at
 ;; the beginning of the message, using this hook, then to truly do the right
