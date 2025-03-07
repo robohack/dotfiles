@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.21	25/02/01 12:18:58 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.22	25/03/07 14:11:59 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v23.1 or newer (with Xft)
 ;;;;
@@ -548,10 +548,10 @@ in `.emacs', and put all the actual code on `after-init-hook'."
   '(progn
      ;; here "gnutls" means run `starttls-gnutls-program' instead of
      ;; `starttls-program' (nothing in `starttls' uses built-in GNUtls)
-     (setq-local starttls-use-gnutls t)
-     (setq-local starttls-extra-args '("--x509cafile")) ; "--crlf" causes problems with end-of-DATA!
+     (setq starttls-use-gnutls t)
+     (setq starttls-extra-args '("--x509cafile")) ; "--crlf" causes problems with end-of-DATA!
      (add-to-list 'starttls-extra-args (car (gnutls-trustfiles)) t)
-     (setq-local starttls-success "\\(^- Compression:\\|^- Options:\\)")
+     (setq starttls-success "\\(^- Compression:\\|^- Options:\\)")
      (setq starttls-connect "^- Simple Client Mode:")))
 
 ;; TLS helpers for package fetching in older (and non-gnutls) releases...
@@ -4199,6 +4199,75 @@ With prefix argument, prompt for cvs flags."
 			   (set (make-local-variable
 				 'log-view-vc-backend)
 				'CVS))))
+
+;; XXX hacked copy of cvs-cleanup-handled that adds "NEED-UPDATE" for
+;; cleaning up cvs-mode-exmaine buffers
+;;
+(defun cvs-cleanup-examined (c rm-handled rm-dirs rm-msgs)
+  "Remove undesired entries.
+C is the collection
+RM-HANDLED if non-nil means remove handled entries (if file is currently
+  visited, only remove if value is `all').
+RM-DIRS behaves like `cvs-auto-remove-directories'.
+RM-MSGS if non-nil means remove messages."
+  (let (last-fi first-dir (rerun t))
+    (while rerun
+      (setq rerun nil)
+      (setq first-dir t)
+      (setq last-fi (cvs-create-fileinfo 'DEAD "../" "" "")) ;place-holder
+      (ewoc-filter
+       c (lambda (fi)
+	   (let* ((type (cvs-fileinfo->type fi))
+		  (subtype (cvs-fileinfo->subtype fi))
+		  (keep
+		   (pcase type
+		     ;; Remove temp messages and keep the others.
+		     (`MESSAGE (not (or rm-msgs (eq subtype 'TEMP))))
+		     ;; Remove dead entries.
+		     (`DEAD nil)
+		     ;; Remove "Need-Update" entries.
+		     ('NEED-UPDATE nil)
+		     ;; Handled also?
+		     (`UP-TO-DATE
+                      (not
+                       (if (find-buffer-visiting (cvs-fileinfo->full-name fi))
+                           (eq rm-handled 'all)
+                         rm-handled)))
+		     ;; Keep the rest.
+		     (_ (not (run-hook-with-args-until-success
+			      'cvs-cleanup-functions fi))))))
+
+	     ;; mark dirs for removal
+	     (when (and keep rm-dirs
+			(eq (cvs-fileinfo->type last-fi) 'DIRCHANGE)
+			(not (when first-dir (setq first-dir nil) t))
+			(or (eq rm-dirs 'all)
+			    (not (string-prefix-p
+				  (cvs-fileinfo->dir last-fi)
+				  (cvs-fileinfo->dir fi)))
+			    (and (eq type 'DIRCHANGE) (eq rm-dirs 'empty))
+			    (eq subtype 'FOOTER)))
+	       (setf (cvs-fileinfo->type last-fi) 'DEAD)
+	       (setq rerun t))
+	     (when keep (setq last-fi fi)))))
+      ;; remove empty last dir
+      (when (and rm-dirs
+		 (not first-dir)
+		 (eq (cvs-fileinfo->type last-fi) 'DIRCHANGE))
+	(setf (cvs-fileinfo->type last-fi) 'DEAD)
+	(setq rerun t)))))
+
+(eval-when-compile
+  (defvar cvs-cookies))
+;; XXX hacked copy of cvs-mode-remove-handled for cleaning up cvs-mode-exmaine
+;; buffers
+;;
+(defun-cvs-mode cvs-mode-remove-examined ()
+  "Remove all lines that are handled.
+Empty directories are removed."
+  (interactive)
+  (cvs-cleanup-examined cvs-cookies
+			  'all (or cvs-auto-remove-directories 'handled) t))
 
 ;; here we try modifying the default to keep separate diff, status, tree, and
 ;; log message buffers based on the filename.
