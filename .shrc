@@ -1,9 +1,10 @@
 #
 #	.shrc - per-shell startup stuff for all shells
 #
-# This file is only used directly by bosh(1) IFF $ENV is not set, but never used
-# otherwise used as $ENVFILE (i.e. $ENV).  However it is shared and sourced by
-# all that are (including ~/.ashrc normally set as $ENV for bosh(1) et al).
+# This file is normally only used directly by bosh(1) and IFF $ENV is not set,
+# but it is never used otherwise used as $ENVFILE (i.e. $ENV).  However it is
+# shared and sourced by all that are set as $ENVFILE (including ~/.ashrc
+# normally set as $ENV for bosh(1) et al).
 #
 # Note:  Most of this should be compatible with some pre-POSIX shells.  Notably:
 #
@@ -26,7 +27,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.50	25/02/01 12:09:28 (woods)"
+#ident	"@(#)HOME:.shrc	37.51	25/03/07 14:13:53 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -41,10 +42,10 @@ fi
 
 # Provide 'type' for shells (i.e. early ash) that don't have it.
 #
-# Note:  early ash reads $SHINIT at start, except if a login shell or called
-# with "sh file" (but this feature is not used -- early ash is too rare, and
-# besides we want to source .ashtype even if not interactive, e.g. if called by
-# onx11server).
+# Note:  early ash reads $SHINIT at start, except if is is a login shell or it
+# is called with "sh file" (but this feature is not used -- early ash is too
+# rare, and besides we want to source .ashtype even if not interactive, e.g. if
+# called by onx11server).
 #
 # The I/O re-direction doesn't actually get rid of the "type: not found" message
 # from the old Ash implementation...  Perhaps it parses the whole line first?
@@ -93,6 +94,20 @@ case "$-" in
 	;;
 esac
 
+if ${sh_is_interactive} || ${sh_is_login} || ${FROM_DOT_PROFILE:-false}; then
+	: OK
+else
+	return 0
+fi
+
+# Everything else in this file is for interactive (or explicitly chosen) use
+# only, but $ENV is set to just the plain filename of this file because ash(1)
+# and its derivatives do not have arrays and so cannot use the ksh(1)
+# ${ENVFILE[]} trick, so we must return above.
+#
+# This big comment follows the "return 0" above so that it does not have to be
+# read and parsed by non-interactive shells!
+#
 # Note: $sh_is_interactive is still not a reliable definition for older shells.
 #
 # POSIX(Issue 7 and Issue 8) says:
@@ -155,16 +170,6 @@ esac
 # xxx the "|| $sh_is_login" is currently redundant -- all login shells are also
 # considered to be interactive shells in the tests above.
 #
-if ${sh_is_interactive} || ${sh_is_login} || ${FROM_DOT_PROFILE:-false}; then
-	: OK
-else
-	# Everything in this file is for interactive (or explicitly chosen) use
-	# only, but $ENV is set to just the plain filename of this file because
-	# ash(1) and its derivatives do not have arrays and so cannot use the
-	# ksh(1) ${ENVFILE[]} trick, so we must exit now.
-	#
-	return
-fi
 
 #echo $0: still in $HOME/.shrc!
 
@@ -904,6 +909,25 @@ archivedotfiles ()
 	)
 }
 
+spreaddotfiles ()
+{
+	dotfiles_hosts="xentral xenful xentastic"
+	dotfiles_hosts="${dotfiles_hosts} very very-old historically once b2 fezzik"
+	dotfiles_hosts="${dotfiles_hosts} nbtest nbday nb10"
+
+	case ${HOSTNAME} in
+	${HOME_SERVER}*)
+		for _sync_host in ${dotfiles_hosts}; do
+			pushdotfiles -e ssh $_sync_host
+		done
+		;;
+	*)
+		echo "spreaddotfiles: not useful when run on a client host!" 1>&2
+		return 2
+		;;
+	esac
+}
+
 #
 #	publishdotfiles - re-import to git, push, and publish to $CENTRAL_SERVER
 #
@@ -931,9 +955,13 @@ publishdotfiles ()
 		# update the archive files on the central server, etc.
 		#
 		archivedotfiles
+
+		# update dot files on well known hosts
+		#
+		spreaddotfiles
 		;;
 	*)
-		echo "publishdotfiles: not useful when run on client host!" 1>&2
+		echo "publishdotfiles: not useful when run on a client host!" 1>&2
 		return 2
 		;;
 	esac
@@ -2769,7 +2797,8 @@ srcfgrep ()
 {
 	# xxx maybe this should also ignore the "standard" set of compiler
 	# outputs?  But those _should_ always be in a build or obj directory!
-	find . -type d \( -name CVS -or -name '.git*' -or -name .svn -or -name build -or -name 'build-*' -or -name dist -or -name 'dist-*' -or -name autom4te.cache -or -name obj -or -name 'obj.*' \) -prune -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -exec fgrep ${1+"$@"} {} +
+	# xxx not: -or -name dist -or -name 'dist-*' (these have source in NetBSD!)
+	find . -type d \( -name CVS -or -name '.git*' -or -name .svn -or -name build -or -name 'build-*' -or -name autom4te.cache -or -name obj -or -name 'obj.*' \) -prune -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -exec fgrep ${1+"$@"} {} +
 }
 
 sshsendkey ()
