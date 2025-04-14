@@ -27,7 +27,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.51	25/03/07 14:13:53 (woods)"
+#ident	"@(#)HOME:.shrc	37.52	25/04/14 12:38:15 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -2750,6 +2750,65 @@ signo ()
 {
 	grep -i "^#define[ 	]*.*${1}[ 	]*[0-9]" ${SDKPREFIX}/usr/include/sys/signal.h
 }
+
+# _opers courtesy Rob Pike
+#
+C_opers ()
+{
+	cat <<__EOF__
+
+1 () [] -> . left
+
+2 ! ~ ++ -- - (type) * & sizeof right
+
+3 * / % left
+
+4 + - left
+
+5 >> << left
+
+6 < <= > >= left
+
+7 == != left
+
+8 & left
+
+9 ^ left
+
+10 | left
+
+11 && left
+
+12 || left
+
+13 ?: right
+
+14 = op= right
+
+15 , left
+
+__EOF__
+}
+
+Go_opers ()
+{
+	cat <<__EOF__
+
+6             *  /  %  <<  >>  &  &^
+
+5             +  -  |  ^
+
+4             ==  !=  <  <=  >  >=
+
+3             <-
+
+2             &&
+
+1             ||
+
+__EOF__
+}
+
 
 # trivial hack to quickly search a source tree where traditional globbing would
 # exceed ARG_MAX
