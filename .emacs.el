@@ -2,13 +2,14 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.22	25/03/07 14:11:59 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.23	25/04/14 12:34:58 (woods)"
 ;;;;
-;;;; per-user start-up functions for GNU-emacs v23.1 or newer (with Xft)
+;;;; per-user start-up functions for GNU-emacs v24.1 or newer (with Xft)
 ;;;;
-;;;; primarily tested on v26.3, and sometimes Git "master" branch, and maybe on 25.3
+;;;; primarily tested on v27.2 (previously 26.3), and sometimes the Git "master"
+;;;; branch (v31.0.50 most recently)
 ;;;;
-;;;; (someday support for versions prior to v23.3 should just be removed)
+;;;; (someday support for versions prior to v24.x should just be removed)
 ;;;;
 ;; A simple 1-based ruler (note the column indicator in the mode line is 0-based)
 ;;      10:       20:       30:       40:       50:       60:       70:       80:       90:      100:      110:      120:      130:
@@ -31,6 +32,14 @@
 ;;;	cp -R ../packages-26.1/markdown-mode-* .
 ;;;
 ;;; XXX gnu-elpa-keyring-update may have to be manually installed and used first!
+;;;
+;;; From https://elpa.gnu.org/packages/gnu-elpa-keyring-update.html
+;;;
+;;;	Download:  http://elpa.gnu.org/packages/gnu-elpa-keyring-update-2022.12.1.tar
+;;; 	Run:  `package-install-file' and select the downloaded .tar file....
+;;;
+;;; xxx you may have to make some buffers writeable for the install to complete
+;;; if you also have gnupg2 installed!
 ;;;
 ;;; N.B.:  Also if on X then after `ucs-utils' and `unicode-fonts' are installed
 ;;; you need to start emacs fresh, then quit it after their cache files are
@@ -186,12 +195,13 @@
   )
 ;;; end by Noah Freidman from /home/fsf/friedman/etc/init/emacs/init.el
 
-;; This init file should "work" with 22.1, but will be missing some important
-;; features and some feature-specific configurations may not actually work.
+;; This init file may still "work" for even the ancient 22.1, but will be
+;; missing some important features and some feature-specific configurations may
+;; not actually work.
 ;;
-(if (< emacs-version-nobuild 23.3)
+(if (< emacs-version-nobuild 24.1)
     (progn
-      (message "Not running emacs v23.3 or newer I see -- you may have trouble with this .emacs!")
+      (message "Not running emacs v24.1 or newer I see -- you may have trouble with this .emacs!")
       (sit-for 2)))
 
 
@@ -531,14 +541,17 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 
 (eval-after-load 'gnutls
   '(progn
-     ;; N.B.:  This is a list, but only the `car' is ever used!!!!!
+     ;; N.B.:  This is a list, and the function `gnutls-trustfiles' prunes any
+     ;; that don't exist, but even then only the `car' entry is ever used!!!!!
+     ;; 
      (add-to-list 'gnutls-trustfiles "/etc/openssl/certs/ca-certificates.crt")
      (add-to-list 'gnutls-trustfiles "/etc/openssl/certs/weird-ca.pem")
      ;;
      ;; So, make sure to add any self-signed certs or private CAs to a new
      ;; merged file as the tls-checktrust stuff doesn't actually work.
      ;;
-     ;; I.e. this must come last for gnutls-cli to work:
+     ;; I.e. this must come last (so it's at the head of the list) for the call
+     ;; to `tls-program' (normally "gnutls-cli") to work:
      ;;
      (add-to-list 'gnutls-trustfiles "/etc/openssl/certs/merged-ca.crt")
      ;; https://www.reddit.com/r/emacs/comments/cdei4p/failed_to_download_gnu_archive_bad_request/
@@ -581,7 +594,12 @@ in `.emacs', and put all the actual code on `after-init-hook'."
   (unless (and (fboundp 'gnutls-available-p)
 	       (gnutls-available-p))
     (require 'tls)
-    
+    (require 'format-spec)
+    ;; 
+    ;; N.B.:  Each of the `tls-program' commands are tried until one works.  If
+    ;; gnutls-cli is installed and in the path, but we end up running openssl,
+    ;; that probably means the merged certificate file isn't available!
+    ;; 
     (setq tls-program
 	  ;; n.b.:  "[-]-crlf" is necessary for Gmail on command-line but
 	  ;; seemingly not in Wanderlust.  On the other hand it would break
@@ -595,8 +613,10 @@ in `.emacs', and put all the actual code on `after-init-hook'."
 ;	    "gnutls-cli --verify-allow-broken --x509cafile %t -p %p %h"
 ;	    "gnutls-cli --insecure --x509cafile %t -p %p %h"
 ;	    "gnutls-cli --verify-allow-broken --insecure --x509cafile %t -p %p %h"
-;	    ;; (xxx "-no_ssl2" might still be required for older openssl?)
-	    "openssl s_client -quiet -verify 3 -CAfile %t -connect %h:%p -no_ssl2"
+	    ;;
+	    ;; (xxx "-no_ssl2" might still be required for older openssl......
+	    ;; XXX but it isn't available in newer)
+	    "openssl s_client -quiet -verify 3 -CAfile %t -connect %h:%p"
 	    ))
     ;; 
     ;; XXX as of OpenSSL 1.1.1a  20 Nov 2018 there's a new ending to the noise
@@ -607,7 +627,8 @@ in `.emacs', and put all the actual code on `after-init-hook'."
     ;; XXX thus the included version of `open-tls-stream' above...
     ;; 
     (setq tls-end-of-info
-	  "\\(^\s*Verify return code: .+
+	  "\\(^verify return:.+
+\\|^\s*Verify return code: .+
 ---
 \\|^    Extended master secret: .+
 ---
@@ -830,26 +851,39 @@ match `%s'. Connect anyway? " host))))))
 	(defun my-package-setup ()
 	  "Function to set up the `package' package."
 	  (require 'package)
-	  (let ((proto "https"))		; M$ systems need gnutls built-in
+	  (let ((proto "http"))		; M$ systems need gnutls built-in for HTTPS
 	    ;; Comment/uncomment the next two expressions to enable/disable MELPA
-	    ;; or MELPA Stable as desired
-;;	    (add-to-list 'package-archives
-;;			 (cons "melpa" (concat proto "://melpa.org/packages/")) t)
+	    ;; or MELPA-Stable as desired -- with `package-archive-priorities'
+	    ;; set as below though it seems to work with both, for now.
+	    (add-to-list 'package-archives
+			 (cons "melpa" (concat proto "://melpa.org/packages/")) t)
 	    ;; XXX melpa-stable is not recommended:  "Note that the MELPA
 	    ;; maintainers do not use MELPA Stable themselves, and do not
 	    ;; particularly recommend its use."
+	    ;;
+	    ;; xxx also having both causes duplicate entries that are hard to
+	    ;; use with the auto-upgrade tools....
 	    ;;
 	    (add-to-list 'package-archives
 			 (cons "melpa-stable" (concat proto "://stable.melpa.org/packages/")) t)
 	    ;; For important compatibility libraries like cl-lib
 	    ;; Note that after 24.x this should be in the list by default!
-	    (add-to-list 'package-archives `("gnu" . ,(concat proto "://elpa.gnu.org/packages/")))
+;;	    (add-to-list 'package-archives `("gnu" . ,(concat proto "://elpa.gnu.org/packages/")))
+;;	    (add-to-list 'package-archives `("nongnu" . ,(concat proto "://elpa.gnu.org/nongnu/")))
+	    ;; xxx also note it is there with a proto of "http", so avoid
+	    ;; duplication!
+	    (add-to-list 'package-archives `("gnu" . ,(concat "http" "://elpa.gnu.org/packages/")))
+	    (add-to-list 'package-archives `("nongnu" . ,(concat "http" "://elpa.nongnu.org/nongnu/")))
 	    ;; XXX WARNING XXX:  marmalade is apparently defunct....
 	    ;;(add-to-list 'package-archives
 	    ;;	     (cons "marmalade" (concat proto "://marmalade-repo.org/packages/")) t)
+	    ;;
+	    ;; "When higher versions are available from archives with lower
+	    ;; priorities, the user has to select those manually."
 	    (setq package-archive-priorities
-		  '(;("melpa-stable" . 10)
+		  '(("melpa-stable" . 10)
 		    ("gnu"          . 5)
+		    ("nongnu"       . 5)
 		    ("melpa"        . 0)
 		    ;("marmalade"    . 0)
 		    ))
@@ -884,10 +918,10 @@ match `%s'. Connect anyway? " host))))))
 	  ;;
 	  ;; (a programmatic way of doing what a .dir-locals.el file would do)
 	  ;;
-	  (dir-locals-set-class-variables
-	   'packages
-	   '((nil . ((buffer-read-only . t)))))
-	  (dir-locals-set-directory-class package-user-dir 'packages)
+;	  (dir-locals-set-class-variables
+;	   'packages
+;	   '((nil . ((buffer-read-only . t)))))
+;	  (dir-locals-set-directory-class package-user-dir 'packages)
 	  ;;
 	  ;; but do allow `package-install' to write to such files
 	  ;;
@@ -895,6 +929,11 @@ match `%s'. Connect anyway? " host))))))
 	  ;;
 	  (advice-add
 	   'package-install-from-archive
+	   :around (lambda (orig-fun &rest args)
+		     (let ((inhibit-read-only t))
+		       (apply orig-fun args))))
+	  (advice-add
+	   'package-install-file
 	   :around (lambda (orig-fun &rest args)
 		     (let ((inhibit-read-only t))
 		       (apply orig-fun args))))
@@ -917,7 +956,7 @@ match `%s'. Connect anyway? " host))))))
 	  ;;	manual installs from the *Pacakges* menu work OK.
 	  ;;
 	  ;;	XXX This is possibly due to the `gnutls-algorithm-priority' bug
-	  ;;	affecting 26.[12]....
+	  ;;	affecting 26.[12]....  Or maybe it needs gnu-elpa-keyring-update?
 	  ;;
 ; XXX SO, this currently just causes more trouble than it is worth, and is not
 ; really used properly anyway -- just call `my-packages-install' to get
@@ -966,23 +1005,31 @@ match `%s'. Connect anyway? " host))))))
 ;;
 (defvar my-packages
   `(;ascii-table		; xxx was called "ascii"!!! (XXX currently only in melpa, not melpa-stable)
-;    csv-mode			; XXX already requires 27.1!
-    dictionary			; n.b.: apparently included in 28.x
+    ,(if (>= emacs-version-nobuild 27.1)
+	 'csv-mode)
+    ,(if (< emacs-version-nobuild 28.1)
+	 'dictionary)			; n.b.: included in 28.1, but not in the
+					; list of builtin packages, and it's not
+					; clear which version was used!
     diff-hl
     diffview
     diminish
     emacsql
-    emacsql-psql
-    emacsql-sqlite
+;;    emacsql-psql		; not needed or available with newer emacsql
+;;    emacsql-sqlite		; not needed or available with newer emacsql
     emojify
 ;    emojify-logos		; XXX only in melpa, not melpa-stable
+    engine-mode
     ffmpeg-player		; maybe this could be fun?
     font-utils
-    forge			; esp for magit XXX requires markdown-mode, which requires 27.1!
+    ,(if (>= emacs-version-nobuild 29.1)
+	 'forge)
     form-feed			; show ^L as lines, if added to mode's hook
-    gh
-    ghub			; for forge
+    gh				; XXX from 29.x: gh-api.el:37:2: Error: Symbol’s function definition is void: defmethod (and many more)
+    ,(if (>= emacs-version-nobuild 29.1)
+	 'ghub)
 ;    github-stars		; XXX currently only in melpa, not melpa-stable
+    git-modes
     git-timemachine
     gnu-elpa-keyring-update	; xxx may have to be manually installed and used first!
     go-add-tags
@@ -996,40 +1043,55 @@ match `%s'. Connect anyway? " host))))))
     json-snatcher
     list-utils
     lua-mode
+    ;; xxx from 29.x while installing magit:
+    ;; git-rebase.el:74:11: Warning: Invalid keyword: :repeat
+    ;; git-rebase.el:74:2: Error: Invalid keyword: :repeat
+    ;; (and many more)
     magit	    ; XXX git needs to be installed first!?!?!?!?
 ;    magit-annex		; I don't need this any more
 ;    magit-gh-pulls		; xxx broken?
     magit-gitflow
 ;    magit-org-todos		; xxx what does this add again?
-;    markdown-mode		; XXX requires 27.1!!!	(XXX copy from previous package-MM.m)
+    ,(if (>= emacs-version-nobuild 27.1)
+	 'markdown-mode)
     memory-usage		; xxx only in gnu repo, not melpa
     minimap			; xxx only in gnu repo, not melpa
-;    nov			; XXX needs kv, which is currently only in melpa, not melpa-stable
-    oath2			; n.b. really a dependency of FLIM
+    nov
+    oauth2			; n.b. really a dependency of FLIM
     org
     org-journal
-    ,(if (>= emacs-version-nobuild 27.1)
-	 'org-preview-html)
+;    ,(if (>= emacs-version-nobuild 27.1)
+;	 'org-preview-html)	; xxx no longer available?
     org-static-blog
 ;    org2issue			; XXX currently only in melpa, not melpa-stable
-    osx-clipboard		; only do for OS X?
-    osx-dictionary		; only do for OS X?
-    osx-plist
+    ,(if (string-equal system-type "darwin")
+	 'osx-clipboard)
+    ,(if (string-equal system-type "darwin")
+	 'osx-dictionary)
+    ,(if (string-equal system-type "darwin")
+	 'osx-plist)
 ;    otp			; xxx gone?
     package-build
     persistent-soft
-;    pg				; needed for emacsql-psql XXX requires 28.1!!!!
+    ,(if (>= emacs-version-nobuild 28.1)
+	 ;; xxx from 29.x while installing pg
+	 ;; peg-tests.el:176:4: Error: Invalid parsing expression: sign
+	 ;; pg-geometry.el:28:6: Error: Invalid parsing expression: with-parens
+	 'pg)			; needed for emacsql-psql
     pinentry
     sed-mode			; xxx only in gnu repo, not melpa
     posix-manual
     smart-tabs-mode
     svg				; xxx should be built-in??? but newer available?
-;    svg-clock			; xxx MELPA version already requires emacs 27.0!
-;    syslog-mode		; XXX needs hide-lines and ov, which are currently only in melpa, not melpa-stable
+    ,(if (>= emacs-version-nobuild 27.1)
+	 'svg-clock)
+    sysctl
+    syslog-mode
     ucs-utils
     unicode-fonts
 ;    uuid			; XXX currently only in melpa, not melpa-stable
     uuidgen			; xxx maybe only in melpa-stable, not melpa???
+    v-mode
 ;    vc-fossil			; XXX currently only in melpa, not melpa-stable
     vc-hgcmd
 ;    w3				; xxx gone...  see eww
@@ -1038,7 +1100,7 @@ match `%s'. Connect anyway? " host))))))
 ;    X509-mode			; XXX currently only in melpa, not melpa-stable
     xcscope
     xkcd			; xxx was called emacs-xkcd
-;    xterm-color 		; may allow TERM=xterm-256color in emacs term window?
+    xterm-color 		; may allow TERM=xterm-256color in emacs term window?
     yaml-mode
     yaml-pro
     )
@@ -1360,10 +1422,6 @@ be useful for scenarios where an emacs server runs in an xterm?)."
 (defvar orig-default-frame-font
   nil
   "The original default frame font.")
-
-(defvar preferred-frame-font
-  "fixed"
-  "*My preferred font.")
 
 ;; N.B.:  the following is some rambling, partially quite historic, about
 ;; various fonts and how to test
@@ -1753,9 +1811,14 @@ available (though sometimes a failure just crashes emacs?!?!?)."
 	(modify-frame-parameters curframe
 				 (list (cons 'font new-font)))
       (error (modify-frame-parameters curframe
-				    (list (cons 'font orig-font))))))
-  ;; xxx n.b. this does not set the default font...
-  (run-hooks 'after-setting-font-hook 'after-setting-font-hooks)
+				      (list (cons 'font orig-font)))))
+    (set-face-attribute 'default curframe :font new-font)
+    (set-frame-font new-font nil curframe)))
+  ;; xxx n.b. this does not set the default font... (it's nil)
+  (run-hooks 'after-setting-font-hook)
+  ;; xxx did this ever exist?
+  (if (boundp 'after-setting-font-hooks)
+      (run-hooks 'after-setting-font-hooks))
   ;;
   ;; Update faces that want a bold or italic version of the default font.
   ;; unnecessary in 21.1 and newer.  Ignore the "no longer necessary" warning.
@@ -6313,10 +6376,12 @@ overridden without consideration by the major mode."
       ;; NOTE:  you must have a ~/.timelog file or this will crap out...
       ;;
       ;; idiots munging up 24.3:  Warning: `timeclock-modeline-display' is an
-      ;; obsolete function (as of 24.3); use `timeclock-mode-line-display'
-      ;; instead.
+      ;; obsolete function (as of 24.3, gone in 30.1); use
+      ;; `timeclock-mode-line-display' instead.
       (if (file-exists-p "~/.timelog")
-	  (timeclock-modeline-display))
+	  (if (fboundp 'timeclock-modeline-display)
+	      (timeclock-modeline-display)
+	    (timeclock-mode-line-display)))
 
       ;; There's probably a better way to do this....
       ;;
@@ -6324,7 +6389,7 @@ overridden without consideration by the major mode."
 	"Show help for timeclock bindings"
 	(interactive)
 	(message
-	 "i - in, c - change, o - out, r - reread-log, u - update-mode, v - visit-log, w - when-to-leave"))
+	 "C-c t:  i - in, c - change, o - out, r - reread-log, u - update-mode, v - visit-log, w - when-to-leave"))
 
       (defun my-timeclock-generate-report (&optional html-p)
 	"Show help for timeclock bindings"
