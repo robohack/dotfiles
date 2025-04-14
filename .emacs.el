@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.24	25/04/14 12:37:02 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.25	25/04/14 12:57:02 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v24.1 or newer (with Xft)
 ;;;;
@@ -848,10 +848,17 @@ match `%s'. Connect anyway? " host))))))
 	;;
 	(add-hook 'package-menu-mode-hook 'my-package-menu-mode-setup)
 	;;
+	(require 'package)
+	;; Note that after 24.x "gnu" should be in the list by default, but
+	;; it is there with "http" instead of "https", so we clear it first
+	(defvar package-archives-ORIGINAL package-archives "The original value at startup.")
+	(setq package-archives nil)
 	(defun my-package-setup ()
 	  "Function to set up the `package' package."
-	  (require 'package)
-	  (let ((proto "http"))		; M$ systems need gnutls built-in for HTTPS
+	  (let ((proto "https"))     ; M$ systems need gnutls built-in for HTTPS
+	    ;; For important compatibility libraries like cl-lib
+	    (add-to-list 'package-archives `("gnu" . ,(concat proto "://elpa.gnu.org/packages/")))
+	    (add-to-list 'package-archives `("nongnu" . ,(concat proto "://elpa.gnu.org/nongnu/")))
 	    ;; Comment/uncomment the next two expressions to enable/disable MELPA
 	    ;; or MELPA-Stable as desired -- with `package-archive-priorities'
 	    ;; set as below though it seems to work with both, for now.
@@ -861,19 +868,11 @@ match `%s'. Connect anyway? " host))))))
 	    ;; maintainers do not use MELPA Stable themselves, and do not
 	    ;; particularly recommend its use."
 	    ;;
-	    ;; xxx also having both causes duplicate entries that are hard to
-	    ;; use with the auto-upgrade tools....
+	    ;; xxx however having both works OK so long as
+	    ;; `package-archive-priorities' is set properly below
 	    ;;
 	    (add-to-list 'package-archives
 			 (cons "melpa-stable" (concat proto "://stable.melpa.org/packages/")) t)
-	    ;; For important compatibility libraries like cl-lib
-	    ;; Note that after 24.x this should be in the list by default!
-;;	    (add-to-list 'package-archives `("gnu" . ,(concat proto "://elpa.gnu.org/packages/")))
-;;	    (add-to-list 'package-archives `("nongnu" . ,(concat proto "://elpa.gnu.org/nongnu/")))
-	    ;; xxx also note it is there with a proto of "http", so avoid
-	    ;; duplication!
-	    (add-to-list 'package-archives `("gnu" . ,(concat "http" "://elpa.gnu.org/packages/")))
-	    (add-to-list 'package-archives `("nongnu" . ,(concat "http" "://elpa.nongnu.org/nongnu/")))
 	    ;; XXX WARNING XXX:  marmalade is apparently defunct....
 	    ;;(add-to-list 'package-archives
 	    ;;	     (cons "marmalade" (concat proto "://marmalade-repo.org/packages/")) t)
