@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.23	25/04/14 12:34:58 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.24	25/04/14 12:37:02 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v24.1 or newer (with Xft)
 ;;;;
@@ -1813,7 +1813,7 @@ available (though sometimes a failure just crashes emacs?!?!?)."
       (error (modify-frame-parameters curframe
 				      (list (cons 'font orig-font)))))
     (set-face-attribute 'default curframe :font new-font)
-    (set-frame-font new-font nil curframe)))
+    (set-frame-font new-font nil curframe))
   ;; xxx n.b. this does not set the default font... (it's nil)
   (run-hooks 'after-setting-font-hook)
   ;; xxx did this ever exist?
