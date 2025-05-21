@@ -9,7 +9,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.41	25/02/02 13:38:43 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.42	25/05/21 11:48:15 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -1864,7 +1864,7 @@ menu "osx-apps"
 	"Pin this menu"		f.pin
 	""			f.separator
 	# xxx maybe not all XTERM_OPTS are needed, but will they hurt?
-	"pasteboard copy"	!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T 'Paste text to PasteBoard here, end with EOF' -e pbcopy"
+	"pasteboard copy"	!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T 'Paste text to PasteBoard here, end with EOF' -e pbcopy &"
 	""			f.separator
 	"Activity Monitor"	!"open '/Applications/Utilities/Activity Monitor.app' &"
 	"Console"		!"open /Applications/Utilities/Console.app &"
