@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.36	25/02/02 13:38:44 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.37	25/09/14 11:13:05 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -503,6 +503,12 @@ xlsfonts -fn "-*-helvetica-bold-r-normal-*-*-100-*-*-*-*-iso8859-1"
 xlsfonts -o -fn "-*-helvetica-bold-r-normal-*-*-100-*-*-*-*-iso8859-1"
 xlsfonts -fn "fixed"
 xlsfonts -o -fn "fixed"
+#
+# the following are now used by ctwm
+xlsfonts -fn "-*-bitstream charter-medium-r-normal--0-100-*-*-p-*-iso10646-1"
+xlsfonts -o -fn "-*-bitstream charter-medium-r-normal--0-100-*-*-p-*-iso10646-1"
+xlsfonts -fn "-*-courier*-medium-r-normal--0-100-*-*-m-*-iso10646-1"
+xlsfonts -o -fn "-*-courier*-medium-r-normal--0-100-*-*-m-*-iso10646-1"
 #
 if ! $DEBUG; then
 	set +x
