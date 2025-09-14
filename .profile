@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.42	25/02/01 12:18:32 (woods)"
+#ident	"@(#)HOME:.profile	37.43	25/09/14 11:10:05 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -44,6 +44,7 @@
 #	$HOME/.kshlocal	- source from .kshrc, if readable
 #	$HOME/.kshlogin	- sourced once, if running any ksh(1)
 #	$HOME/.kshlogout - sourced on trap 0, if running any ksh(1)
+#	$HOME/.locallogin - sourced after .${shtype}login, nearly at the end
 #	$HOME/.localprofile - sourced once early to set system-local prefs.
 #	$HOME/.mailer	- name of prefered MUA command
 #	$HOME/.shell	- mktable'd and exec'ed as shell (see end of this file)
@@ -1242,6 +1243,10 @@ else
 	else
 		PS1="login [${TTYN}]<${LOGNAME}@${UUNAME}> $ "
 	fi
+fi
+
+if [ -r ${HOME}/.locallogin ]; then
+	. ${HOME}/.locallogin
 fi
 
 if ${ISATTY} && ${HAVEX} && [ "X$DISPLAY" = "X" ] && [ -z "${XDG_CURRENT_DESKTOP}" ]; then
