@@ -3,7 +3,7 @@
 #
 # N.B.:  this is very similar to ~/.ashlogin!
 #
-#ident	"@(#)HOME:.shlogin	37.6	24/10/16 17:01:42 (woods)"
+#ident	"@(#)HOME:.shlogin	37.7	25/09/14 11:11:57 (woods)"
 
 # Note I allow for /etc/profile to be explicitly sourced by non-interactive,
 # non-login shells, e.g. in ~/.xinitrc and from remote invocations of
@@ -12,8 +12,8 @@
 # additional setup we want for such shells, such as setting $ENV and exporting
 # it.
 
-# ~/.shrc, source early by ~/.profile, which sources this file, did the tests
-# for interactive/login shells
+# ~/.shrc, sourced early by ~/.profile, which later also sources this file, did
+# the tests for interactive/login shells
 #
 if ${sh_is_login}; then
 	#
