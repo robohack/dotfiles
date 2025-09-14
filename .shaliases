@@ -1,24 +1,20 @@
 #
 #	.shaliases - common aliases for Ksh and clones, Ash, etc.
 #
-#ident	"@(#)HOME:.shaliases	37.6	25/01/15 17:20:10 (woods)"
+#ident	"@(#)HOME:.shaliases	37.7	25/09/14 11:17:18 (woods)"
 
-if $ISSUN; then
-	alias df="/usr/bin/df"
-fi
-
-if [ $(uname -s) = "Darwin" ]; then
-        # N.B.  The OS product version can be found with /usr/bin/sw_vers
-
-	# it's not the same, but it has similar uses...
-	alias ldd="otool -L"
-
-	# macOS 'df' has a nasty bug in parsing its options and cannot
-        # see any past the first '-t' (which is apparently
-        # deprecated), so be sure to use '-T'
-	#
-	alias df="/bin/df -P -T nonullfs"
-fi
+# XXX Maybe use of aliases should be mostly deprecated....  Their only real
+# feature is that they automatically expand in front of any arguments that are
+# also part of the command.
+#
+# Functions on the other hand are essentially portable.
+#
+# Converting aliases to functions can greatly simplify quoting, and any
+# arguments can easily be passed with "$@", e.g.:
+#
+#	rmdollar () { sed -e 's/\$//g' "$@"; }
+#
+# The "$@" just adds any arguments that you give to "rmdollar" when you use it.
 
 if [ -x $LOCAL/bin/man ] ; then
 	alias man=$LOCAL/bin/man
@@ -52,38 +48,6 @@ if $HAVEMUSH; then
 	alias mhdrs='mush -H -f'
 fi
 
-# (note: sh "read" command also reads backslash continued lines)
-# XXX need an option to strip leading whitespace on continued lines
-alias backslashjoin='sed -e :a -e "/\\\\$/N; s/\\\\\\n//; ta"'
-
-# delete all CONSECUTIVE blank lines from file except the first; also
-# deletes all blank lines from top and end of file (emulates "cat -s")
-# method 1, allows 0 blanks at top, 1 at EOF
-# NOTE: never forget this -- it's the most incredible little sed script!!!!
-alias blsqueeze='sed "/./,/^$/!d"'
-# method 2, allows 1 blank at top, 0 at EOF
-alias blsqueezebot="sed '/^$/N;/\n$/D'"
-# delete all CONSECUTIVE blank lines from file except the first 2:
-alias blsqueezenot2="sed '/^$/N;/\n$/N;//D'"
-# delete ALL blank lines from a file (same as "grep '.' ")
-alias blstrip='sed "/./!d"'
-alias blstrip2="sed '/^$/d'"
-
-# delete all leading blank lines at top of file
-alias blstriptop="sed '/./,$!d'"
-# delete all trailing blank lines at end of file
-alias blstripbot="sed -e :a -e '/^\n*$/N;/\n$/ba'"
-
-# reverse order of lines (emulates "tac")
-alias sed-tac="sed '1!G;h;$!d'"
-# reverse each character on the line (emulates "rev")
-alias sed-rev="sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//'"
-# join pairs of lines side-by-side (like "paste")
-alias sed-paste="sed 'N;s/\n/ /'"
-
-# delete duplicate lines from a sorted file (emulates "uniq"). First
-# line in a set of duplicate lines is kept, the rest are deleted
-alias sed-uniq="sed '$!N; /^\(.*\)\n\1$/!P; D'"
 
 # NOTE: replacing the last '-print' with '-exec CMD {} +' lets one use 'CMD' directly on the files
 alias pkgfind="find . -type d -name CVS -prune -or -type f \( -name 'Make*' -or -name '*.mk' \) ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name .cvsignore -print"
@@ -92,10 +56,6 @@ alias cvsfind0="find . -type d -name CVS -prune -or -type f ! -name '.#*' ! -nam
 alias srcfind="find . -type d \( -name CVS -or -name .git -or -name .svn -or -name build -or -name 'build-*' -or -name autom4te.cache \) -prune -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -print"
 alias srcfind0="find . -type d \( -name CVS -or -name .git -or -name .svn -or -name build -or -name 'build-*' -or -name autom4te.cache \) -prune -or -type f ! -name '.#*' ! -name '#*#' ! -name '*~' ! -name '.*ignore' ! -name '[Tt][Aa][Gg][Ss]' -print0"
 alias deadlinks='find . -type l -a ! \( -follow -type f \) -print'
-alias ds='$PAGER'
-alias e='${VISUAL:-$EDITOR}'
-alias ealias='e $ENV'
-alias elc='${MY_EMACS} -batch -q -no-site-file -f batch-byte-compile'
 alias f='finger'
 # Note: use "findls" as the prefix where globbing will exceed ARG_MAX
 # "find" never lists the '..' entry, so if you also exclude the '.'
@@ -111,40 +71,17 @@ alias history='fc -l 1'
 alias hmeme='fc -l 1 | awk "\$1 > 0 {print \$2}" | sort  | uniq -c | sort -rn | sed 20q'
 alias isodate='LANG=c date "+%Y-%m-%dT%H:%M:0z"'
 alias j='jobs -l'
-alias l='${LS} -CF'
-alias la='${LS} -CFa'
-alias lD='${LS} -CFd'
-alias lL='${LS} -CFL'
-alias ll='${LS} -l${LS_O}s'
-alias lli='${LS} -l${LS_O}is'
-alias llD='${LS} -l${LS_O}sd'
-alias llL='${LS} -l${LS_O}sL'
-alias lla='${LS} -l${LS_O}sa'
-alias llia='${LS} -l${LS_O}isa'
-alias llai='${LS} -l${LS_O}isa'
-alias lld='${LS} -l${LS_O}sd'
-alias llr='${LS} -l${LS_O}sR'
-alias llir='${LS} -l${LS_O}isR'
-alias llra='${LS} -l${LS_O}saR'
-alias llira='${LS} -l${LS_O}isaR'
-alias lr='${LS} -CFR'
-alias lra='${LS} -CFRa'
-alias lsa='${LS} -as'
-alias lss='${LS} -s'
 alias logout='exit 0'
 alias maildate='LANG=c date "+%a, %d %b %Y %T %z"'
 alias nosgr='echo '
-alias nstty='stty sane intr "^?" erase "^h" kill "^u" echoe echok'
 alias pkg_sizes="/usr/sbin/pkg_info -s \* | sed -e '/^$/d' -e 's/Information for //' -e 's/:$/:\\\\/' | sed -e :a -e '$!N;s/Size of this package in bytes://;ta' -e 'P;D' | backslashjoin"
 alias realias='let LEV=$LEV-1;exec ${SHELL}'		# useless?
 alias rehash='_SV_PATH=$PATH; PATH=$_SV_PATH; unset _SV_PATH'
 alias rinfo='rlog -L -h -l $(find RCS -type f -print)'
 # use 'tput reset', and/or 'tabs -8' to reset tabs, etc. -- i.e. terminal (emulator) features
-alias rstty='stty $SANE'
 alias rsyncbackup='rsync --info=stats3,flist,misc -a -H -E --numeric-ids'
 alias scvs='export CVSROOT="$(< CVS/Root)"; echo "CVSROOT=$CVSROOT"'
 alias snmpoidinfo='snmptranslate -T d -O f'
-alias wcvs="echo \$CVSROOT"
 alias zds="z$PAGER"
 
 alias dlog='$PAGER -en +G /var/log/debug'
@@ -171,15 +108,3 @@ alias fw='who -HaT'	# xxx the T shouldn't be necessary, but is on stock NetBSD
 # TODO: find a way to test if HoneyDanBer UUCP or not....
 # (other than [ -d /etc/uucp ]) (also, only if HAVEUUSTAT!)
 alias uuq='uustat -a'
-
-# TODO: should only set this if "xtail" and UUCP are both available?
-if [ -d /var/spool/uucp ] ; then
-	alias uufollow='xtail /var/spool/uucp/.[AL]*/*'
-elif [ -d /usr/spool/uucp ]; then
-	alias uufollow='xtail /usr/spool/uucp/.[AL]*/*'
-fi
-
-# This is silly, but it usually works....
-if [ -x /usr/ucb/rsh -a -x /bin/rsh ] ; then
-	alias rsh=/usr/ucb/rsh
-fi

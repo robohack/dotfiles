@@ -27,7 +27,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.52	25/04/14 12:38:15 (woods)"
+#ident	"@(#)HOME:.shrc	37.53	25/09/14 11:17:18 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -189,8 +189,7 @@ fi
 ISATTY="test -t"
 TTY=`tty` || ISATTY="false"	# "not a tty" if not...
 
-# This file sets D_PS1 at the end to allow setaliases to avoid clobbering
-# .*shrc's new value.
+# This file sets D_PS1 at the end to avoid clobbering any .*shrc's new value.
 #
 # XXX In a sense this is an include guard and maybe we could use it as such?
 #
@@ -2950,54 +2949,8 @@ zhead ()
 	zcat ${1+"$@"} | head
 }
 
-#
-# the rest are implementations of favourite ksh aliases as functions
-#
-# (which can be removed by "rm_alias_funcs")
-#
-# functions are (maybe?) more overhead than aliases in shells with aliases[???]
-#
-
-rm_alias_funcs ()
-{
-	type alias >/dev/null 2>&1 || return 0
-
-	# note: '-f' is only in modern sh as well as ksh and bash, but that's
-	# where this is used
-	#
-	unset -f blsqueeze blstrip ds e elc l la ll lli lla llia llr llir llra llira lr lra lsa nstty rstty wcvs || true
-	if [ -x /usr/ucb/rsh -a -x /bin/rsh ] ; then
-		unset -f rsh || true
-	fi
-	if [ -n "$UUCPSPOOLDIR" ]; then
-		unset -f uufollow || true
-	fi
-}
-rm_func_aliases ()
-{
-	type alias >/dev/null 2>&1 || return 0
-
-#	unalias uufollow rsh blsqueeze blstrip ds e elc l la ll lli lla llia llr llir llra llira lr lra lsa nstty rstty wcvs
-# xxx dunno why I broke this out into separate commands....
-	for _a in uufollow rsh blsqueeze blstrip ds e elc l la ll lli lla llia llr llir llra llira lr lra lsa nstty rstty wcvs; do
-		if alias ${_a} >/dev/null 2>&1; then
-			unalias ${_a}
-		fi
-	done
-	unset _a
-}
-
-# .... and in case we are sourcing this file for a second time....
-#
-# XXX but this still doesn't work for AT&T ksh93 -- it seems to do all the
-# parsing while sourcing and so the unalias doesn't happen soon enough....
-#
-rm_alias_funcs
-rm_func_aliases
-
-# N.B.: every function below must be listed in both rm_alias_funcs and rm_func_aliases
-
 if [ -n "$UUCPSPOOLDIR" ]; then
+	# TODO: should only set this if "xtail" and UUCP are both actually available?
 	uufollow ()
 	{
 		xtail $UUCPSPOOLDIR/.[AL]*/*
@@ -3011,14 +2964,118 @@ if [ -x /usr/ucb/rsh -a -x /bin/rsh ] ; then
 	}
 fi
 
+if $ISSUN; then
+	df ()
+	{
+		/usr/bin/df ${1+"$@"}
+	}
+fi
+
+if [ $(uname -s) = "Darwin" ]; then
+        # N.B.  The OS product version can be found with /usr/bin/sw_vers
+
+	# it's not the same, but it has similar uses...
+	ldd ()
+	{
+		otool -L ${1+"$@"}
+	}
+
+	# macOS 'df' has a nasty bug in parsing its options and cannot see any
+        # past the first '-t' (which is apparently deprecated and treated like
+        # '-T' when given an argument), so be sure to use '-T'
+	#
+	df ()
+	{
+		if [ ]; then
+			_Y="-Y,"
+		fi
+		/bin/df -P ${_Y} -T nonullfs ${1+"$@"} | fgrep -iv timemachine
+		unset _Y
+	}
+fi
+
+# delete all CONSECUTIVE blank lines from file except the first; also
+# deletes all blank lines from top and end of file (emulates "cat -s")
+# method 1, allows 0 blanks at top, 1 at EOF
+# NOTE: never forget this -- it's the most incredible little sed script!!!!
 blsqueeze ()
 {
-	sed "/./,/^$/!d"
+	sed '/./,/^$/!d' ${1+"$@"}
 }
+
+# (note: sh "read" command also reads backslash continued lines)
+# XXX need an option to strip leading whitespace on continued lines
+backslashjoin ()
+{
+	sed -e :a -e '/\\$/N; s/\\\n//; ta' ${1+"$@"}
+}
+
+# delete all CONSECUTIVE blank lines from file except the first; also
+# deletes all blank lines from top and end of file (emulates "cat -s")
+# method 1, allows 0 blanks at top, 1 at EOF
+# NOTE: never forget this -- it's the most incredible little sed script!!!!
+blsqueeze ()
+{
+	sed '/./,/^$/!d' ${1+"$@"}
+}
+
+# method 2, allows 1 blank at top, 0 at EOF
+blsqueezebot ()
+{
+	sed '/^$/N;/\n$/D' ${1+"$@"}
+}
+
+# delete all CONSECUTIVE blank lines from file except the first 2:
+blsqueezenot2 ()
+{
+	sed '/^$/N;/\n$/N;//D' ${1+"$@"}
+}
+
+# reverse order of lines (emulates "tac")
+sed-tac ()
+{
+	sed '1!G;h;$!d' ${1+"$@"}
+}
+
+# reverse each character on the line (emulates "rev")
+sed-rev ()
+{
+	sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' ${1+"$@"}
+}
+
+# join pairs of lines side-by-side (like "paste")
+sed-paste ()
+{
+	sed 'N;s/\n/ /' ${1+"$@"}
+}
+
+# delete duplicate lines from a sorted file (emulates "uniq"). First
+# line in a set of duplicate lines is kept, the rest are deleted
+alias sed-uniq="sed '$!N; /^\(.*\)\n\1$/!P; D'"
+
+
+# delete ALL blank lines from a file (same as "grep '.' ")
 blstrip ()
 {
-	sed "/./!d"
+	sed "/./!d" ${1+"$@"}
 }
+blstrip2 ()
+{
+	sed '/^$/d' ${1+"$@"}
+}
+
+# delete all leading blank lines at top of file
+blstriptop ()
+{
+	sed '/./,$!d'
+}
+
+# delete all trailing blank lines at end of file
+blstripbot ()
+{
+	sed -e :a -e '/^\n*$/N;/\n$/ba'
+}
+
 ds ()
 {
 	$PAGER ${1+"$@"}
@@ -3029,7 +3086,7 @@ e ()
 }
 elc ()
 {
-	${MY_EMACS} -batch -q -no-site-file -f batch-byte-compile
+	${MY_EMACS} -batch -q -no-site-file -f batch-byte-compile ${1+"$@"}
 }
 l ()
 {
@@ -3039,19 +3096,39 @@ la ()
 {
 	${LS} -CFa ${1+"$@"}
 }
+lD ()
+{
+	${LS} -CFd ${1+"$@"}
+}
+lL ()
+{
+	${LS} -CFL ${1+"$@"}
+}
 ll ()
 {
 	${LS} -l${LS_O}s ${1+"$@"}
 }
-lli ()
+llD ()
 {
-	${LS} -li${LS_O}s ${1+"$@"}
+	${LS} -l${LS_O}sd ${1+"$@"}
+}
+llL ()
+{
+	${LS} -l${LS_O}sL ${1+"$@"}
 }
 lla ()
 {
 	${LS} -l${LS_O}sa ${1+"$@"}
 }
+lli ()
+{
+	${LS} -li${LS_O}s ${1+"$@"}
+}
 llia ()
+{
+	${LS} -li${LS_O}sa ${1+"$@"}
+}
+llai ()
 {
 	${LS} -li${LS_O}sa ${1+"$@"}
 }
@@ -3081,7 +3158,11 @@ lra ()
 }
 lsa ()
 {
-	${LS} -a ${1+"$@"}
+	${LS} -as ${1+"$@"}
+}
+lss ()
+{
+	${LS} -s ${1+"$@"}
 }
 nstty ()
 {
