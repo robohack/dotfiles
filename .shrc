@@ -27,7 +27,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.53	25/09/14 11:17:18 (woods)"
+#ident	"@(#)HOME:.shrc	37.54	25/09/14 11:31:57 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -3032,26 +3032,29 @@ blsqueezenot2 ()
 }
 
 # reverse order of lines (emulates "tac")
-sed-tac ()
+sed_tac ()
 {
 	sed '1!G;h;$!d' ${1+"$@"}
 }
 
 # reverse each character on the line (emulates "rev")
-sed-rev ()
+sed_rev ()
 {
 	sed '/\n/!G;s/\(.\)\(.*\n\)/&\2\1/;//D;s/.//' ${1+"$@"}
 }
 
 # join pairs of lines side-by-side (like "paste")
-sed-paste ()
+sed_paste ()
 {
 	sed 'N;s/\n/ /' ${1+"$@"}
 }
 
 # delete duplicate lines from a sorted file (emulates "uniq"). First
 # line in a set of duplicate lines is kept, the rest are deleted
-alias sed-uniq="sed '$!N; /^\(.*\)\n\1$/!P; D'"
+sed_uniq ()
+{
+	sed '$!N; /^\(.*\)\n\1$/!P; D' ${1+"$@"}
+}
 
 
 # delete ALL blank lines from a file (same as "grep '.' ")
