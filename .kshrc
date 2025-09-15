@@ -3,7 +3,7 @@
 #
 # This should also work for bash and other ksh-compatibles
 #
-#ident	"@(#)HOME:.kshrc	37.16	24/10/20 14:44:48 (woods)"
+#ident	"@(#)HOME:.kshrc	37.17	25/09/15 12:27:33 (woods)"
 
 # WARNING:
 # don't put comments at the bottom or you'll bugger up ksh-11/16/88e's history
@@ -280,6 +280,9 @@ trap '
 ' ERR
 
 # NOTE: some versions of some shells complain here if not connected to a tty
+#
+# XXX this should not be necessary -- it should always be the default for
+# interactive shells!
 #
 set -o monitor
 
