@@ -1,7 +1,7 @@
 #
 #	.bashrc - per-shell startup stuff for bash via $ENV
 #
-#ident	"@(#)HOME:.bashrc	37.4	24/10/20 14:44:48 (woods)"
+#ident	"@(#)HOME:.bashrc	37.5	25/09/15 12:20:33 (woods)"
 
 # Assumptions:
 
@@ -60,9 +60,6 @@ lastcmd ()
 		egrep -v '^[	 }#]|^$' | \
 		tail ${1+"$@"}
 }
-
-# XXX this should not be necessary?
-set -o monitor
 
 # xxx this is different than .localprofile in that it is only for
 # interactive shells...
