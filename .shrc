@@ -27,7 +27,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.55	25/09/15 07:09:03 (woods)"
+#ident	"@(#)HOME:.shrc	37.56	25/09/15 16:39:39 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -1087,6 +1087,11 @@ pushdotfiles ()
 		)
 		unset rdirs
 	else
+		# XXX note that by taking a directory name from a list of files
+		# we currently forego the ability to delete files that are no
+		# longer in that directory...  Maybe --delete-after would do the
+		# trick here, or maybe we should simply exclude SCCS lock files?
+		#
 		rsync ${_e_opt} -v -lptHS --progress --stats --files-from=${HOME}/dotfiles.list ${HOME} ${_user}@${1}:.
 	fi
 	( cd $HOME
