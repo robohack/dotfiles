@@ -27,7 +27,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.54	25/09/14 11:31:57 (woods)"
+#ident	"@(#)HOME:.shrc	37.55	25/09/15 07:09:03 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -2634,12 +2634,16 @@ if [ "$uid" -eq 0 ] ; then
 	}
 
 	# until there's an "rm" subcommand in blocklistctl(8) itself!
-	blocklistctl-rm ()
+	#
+	# N.B.:  this doesn't remove the entry from the database, so a reboot
+	# will re-instate the filter rule!
+	#
+	blocklistctl_rm ()
 	{
 		_address=$1
 
 		if [ $# -le 1 -o -z "${1}" ] ; then
-			echo "Usage: blocklistctl-rm address" >&2
+			echo "Usage: blocklistctl_rm address" >&2
 			return 2
 		fi
 
