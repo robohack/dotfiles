@@ -1,7 +1,7 @@
 #
 #	.shaliases - common aliases for Ksh and clones, Ash, etc.
 #
-#ident	"@(#)HOME:.shaliases	37.7	25/09/14 11:17:18 (woods)"
+#ident	"@(#)HOME:.shaliases	37.8	25/09/15 12:42:17 (woods)"
 
 # XXX Maybe use of aliases should be mostly deprecated....  Their only real
 # feature is that they automatically expand in front of any arguments that are
@@ -15,6 +15,22 @@
 #	rmdollar () { sed -e 's/\$//g' "$@"; }
 #
 # The "$@" just adds any arguments that you give to "rmdollar" when you use it.
+
+if is_attksh; then
+	# in ATT Ksh there's a weird interaction between monitor mode and
+	# functions defined with the traditional fn(){} syntax such that when
+	# they are called at the end of a pipeline they are in their own process
+	# group and session and so there is no way to make an attachment the
+	# original tty via /dev/tty (at least on macos, but not on NetBSD),
+	# which means when an interactive command like a pager is started in
+	# such a function, and that function is called at the end of a pipeline,
+	# then it becomes impossible to interact with it!  This doesn't happen
+	# with the aberrant Ksh "function fn{}" syntax, but aliases are an even
+	# easier workaround.
+	#
+	unset -f ds
+	alias ds='$PAGER'
+fi
 
 if [ -x $LOCAL/bin/man ] ; then
 	alias man=$LOCAL/bin/man
