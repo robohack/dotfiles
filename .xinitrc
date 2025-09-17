@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.38	25/09/16 17:49:07 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.39	25/09/17 10:03:33 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -137,18 +137,24 @@ fi
 # "-dpi" value is used to compute the frame buffer's width and height based on
 # the number of pixels each way, but there's no way to fetch this original
 # command-line parameter back; except in the way xdpyinfo does, i.e. by getting
-# the pixel dimensions and the screen dimensions and re-computing the x/y DPI.
-# Due to rounding errors this may end up returning an off-by-one value for one
-# of the dimentions.
+# the pixel dimensions and the (computed) screen dimensions and re-computing
+# from those values back to the x/y DPI.  Due to rounding errors this may end up
+# returning an off-by-one value for one of the dimensions.
 #
-# Note that when in XQuartz is in full-screen mode you can get back to the macos
+# The other important setting on macos is of course to tell XQuartz to start in
+# full-screen mode:
+#
+#	defaults write org.xquartz.X11 rootless -boolean false
+#
+# Note that when XQuartz is in full-screen mode you can get back to the macos
 # desktop with the "toggle full screen" keyboard shortcut (which is normally
 # <command><option><a>).  Then if you want to get back into X11 full-screen mode
 # again you can re-run the "xrandr -s" command again.  An easy way to do this is
 # to use the Shortcuts application to create a shortcut that can also be hooked
 # to the same key sequence (in the "Run with:" field in the shortcut editor
-# "Details" sub-panel) as this key sequence is almost never used in any other
-# macos app (that I use, anyway) [it doesn't work quite right from Mail though].
+# "Details" sub-panel) as this key sequence is(was) almost never used in any
+# other macos app (that I use, anyway -- Newer Safari uses it) [it doesn't work
+# quite right from Mail either].
 #
 # Here's the script for the shortcut:
 #
@@ -168,17 +174,34 @@ fi
 #	fi
 #	
 #
+# Additional settings that may be useful (see also Xquartz(1)):
+#
+#	defaults write org.xquartz.X11 no_auth -boolean false
+#	defaults write org.xquartz.X11 nolisten_tcp -boolean false
+#	defaults write org.xquartz.X11 enable_fake_buttons -boolean false
+#	defaults write org.xquartz.X11 enable_key_equivalents -boolean false
+#	defaults write org.xquartz.X11 sync_primary_on_select -boolean true
+#	defaults write org.xquartz.X11 sync_pasteboard -boolean true
+#	defaults write org.xquartz.X11 fullscreen_hotkeys -boolean false
+#	defaults write org.xquartz.X11 fullscreen_menu -boolean true	# xxx broken?
+#	defaults write org.xquartz.X11 app_to_run "/opt/X11/bin/xlogo"
+#	defaults write org.xquartz.X11 option_sends_alt -boolean true
+#	defaults write org.xquartz.X11 login_shell "/bin/ksh"
+#
+#	#XXX hmmm...  #defaults write org.xquartz.X11 no_quit_alert -boolean true
+#
+#
 echo "$argv0: Getting ready to try xrandr stuff ...."
 if type xrandr >/dev/null 2>&1; then
 	MAXRES=$(xrandr 2>/dev/null | awk '/^Screen [0-9]+:/ {print $(NF-2) "x" $(NF); exit 0;}')
 	#
 	# XXX Though xrandr has options to set the screen size and the DPI, they
-	# don't seem to actually stick and don't have any effect (and would.
-	# As-is though XQuartz for one seems to get the calculations slightly
-	# wrong, somehow using a different, and seemingly slightly wrong, DPI
-	# for the vertical direction and then calculating the vertical size
-	# slightly wrongly.  Of course knowing the physical screen size would
-	# require more hard-coded parameterisation.
+	# don't seem to actually stick and don't have any effect, at least in
+	# XQuartz.  As-is though XQuartz for one seems to get the calculations
+	# slightly wrong, somehow using a different, and seemingly slightly
+	# wrong, DPI for the vertical direction and then calculating the
+	# vertical size slightly wrongly.  Of course knowing the physical screen
+	# size to fix this would require more hard-coded parameterisation.
 	#
 # XXX	xrandr --verbose --screen 0 --fbmm 292x189 --dpi 224 -s ${MAXRES}
 	xrandr --verbose -s ${MAXRES}
