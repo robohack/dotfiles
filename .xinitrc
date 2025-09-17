@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.37	25/09/14 11:13:05 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.38	25/09/16 17:49:07 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -128,7 +128,10 @@ fi
 #
 #	defaults write org.xquartz.X11 dpi -int 218
 #
-# NOTE: MacBook Air 13-inch Retina is 227 dpi	(2880 x 1800)
+# NOTE: MacBook Air x86 13-inch Retina is 227 dpi	(2880 x 1800)
+#
+# NOTE: MacBook Air M4 13-inch Retina is 224 dpi	(2560 x 1664)
+#	(actual usable/visible screen size measures 292 x 189 mm)
 #
 # On XQuartz/Darwin (and in general with the Xorg Xserver) the command-line
 # "-dpi" value is used to compute the frame buffer's width and height based on
@@ -157,7 +160,7 @@ fi
 #	#
 #	if [ -r $HOME/.serverauth.* ]; then
 #		DISPLAY=$(launchctl getenv DISPLAY)
-#		MAXRES=$(xrandr -display $DISPLAY -q 2>/dev/null | awk '/^Screen [0-9]+:/ {print $(NF-2) "x" $(NF)}')
+#		MAXRES=$(xrandr -display $DISPLAY -q 2>/dev/null | awk '/^Screen [0-9]+:/ {print $(NF-2) "x" $(NF)}; exit 0;')
 #		echo "Switch-To-X11: switching $DISPLAY to '$MAXRES'" 1>&2
 #		xrandr -display $DISPLAY -s "$MAXRES"
 #	else
@@ -167,7 +170,18 @@ fi
 #
 echo "$argv0: Getting ready to try xrandr stuff ...."
 if type xrandr >/dev/null 2>&1; then
-	xrandr -s $(xrandr 2>/dev/null | awk '/^Screen [0-9]+:/ {print $(NF-2) "x" $(NF)}')
+	MAXRES=$(xrandr 2>/dev/null | awk '/^Screen [0-9]+:/ {print $(NF-2) "x" $(NF); exit 0;}')
+	#
+	# XXX Though xrandr has options to set the screen size and the DPI, they
+	# don't seem to actually stick and don't have any effect (and would.
+	# As-is though XQuartz for one seems to get the calculations slightly
+	# wrong, somehow using a different, and seemingly slightly wrong, DPI
+	# for the vertical direction and then calculating the vertical size
+	# slightly wrongly.  Of course knowing the physical screen size would
+	# require more hard-coded parameterisation.
+	#
+# XXX	xrandr --verbose --screen 0 --fbmm 292x189 --dpi 224 -s ${MAXRES}
+	xrandr --verbose -s ${MAXRES}
 	echo "$argv0: Done xrandr ...."
 else
 	echo "$argv0: cannot force hi-res display without xrandr utility..."
