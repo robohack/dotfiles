@@ -2,7 +2,7 @@
 ;;;;
 ;;;;	.emacs.el
 ;;;;
-;;;;#ident	"@(#)HOME:.emacs.el	37.25	25/04/14 12:57:02 (woods)"
+;;;;#ident	"@(#)HOME:.emacs.el	37.26	25/09/16 18:24:16 (woods)"
 ;;;;
 ;;;; per-user start-up functions for GNU-emacs v24.1 or newer (with Xft)
 ;;;;
@@ -1812,7 +1812,7 @@ available (though sometimes a failure just crashes emacs?!?!?)."
       (error (modify-frame-parameters curframe
 				      (list (cons 'font orig-font)))))
     (set-face-attribute 'default curframe :font new-font)
-    (set-frame-font new-font nil curframe))
+    (set-frame-font new-font nil (list curframe)))
   ;; xxx n.b. this does not set the default font... (it's nil)
   (run-hooks 'after-setting-font-hook)
   ;; xxx did this ever exist?
@@ -1948,11 +1948,17 @@ available (though sometimes a failure just crashes emacs?!?!?)."
 		   ;; perfectly for xaw3d though!)
 		   (cons 'scroll-bar-width
 			 (round (* 1.5 scroll-bar-width-ORIGINAL)))))))
-      (setq my-ideal-point-size (cond ((>= display-y-dpi 110)
-				       90)
+      ;;
+      ;; On a smaller, say laptop, screen smaller fonts may be nicer .
+      ;;
+      ;; Note in ~/.X11-m4macros.m4 I use:
+      ;;
+      ;; ! ifelse(eval(ScreenDimY <= 8), 1,
+      ;;
+      (setq my-ideal-point-size (cond ((< (display-mm-height)
+					  (* 8 25.4))
+				       80)
 				      (t
-				       ;; xxx hmmm... 10pt is perhaps too big on
-				       ;; the iMac27, 9pt is still OK...
 				       90)))
       (setq probable-pixel-size (round (* display-y-dpi
 					  (/ my-ideal-point-size
@@ -1962,9 +1968,10 @@ available (though sometimes a failure just crashes emacs?!?!?)."
       ;; font spec doesn't seem to work with emacs (at least not with either of
       ;; the GTK+2.0 or Lucid toolkits) -- and there doesn't seem to be any
       ;; plain way to request a font with a given name and a physical point size
-      ;; of N (xxx unless maybe the Xft format works, i.e. FONT:size=9).  None
-      ;; the less it sometimes seems to get things right somehow, though with
-      ;; Lucid it ends up doing scaling completely bass-ackwards.
+      ;; of N (xxx unless maybe the Xft format works, i.e. FONT:size=9, which I
+      ;; think it does).  None the less it sometimes seems to get things right
+      ;; somehow, though with Lucid it ends up doing scaling completely
+      ;; bass-ackwards.
       ;;
       ;; Just to be pedantic though I do specify the resolution, but in order to
       ;; get the right thing to work then either an '*' or a non-zero pixel size
