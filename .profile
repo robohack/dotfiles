@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.43	25/09/14 11:10:05 (woods)"
+#ident	"@(#)HOME:.profile	37.44	25/11/04 12:57:45 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -426,6 +426,9 @@ dirappend PATH ${X11BIN} ${LOCAL}/bin ${CONTRIB}/bin
 dirappend MANPATH ${X11MAN} ${LOCAL}/share/man ${CONTRIB}/share/man ${LOCAL}/man ${CONTRIB}/man
 dirappend INFOPATH ${LOCAL}/share/info ${LOCAL}/info ${CONTRIB}/info
 
+dirappend PATH ${LOCAL}/heirloom-xpg4/bin ${LOCAL}/heirloom-ccs/bin ${LOCAL}/heirloom-doctools/bin ${LOCAL}/heirloom/bin
+dirappend MANPATH ${LOCAL}/heirloom-xpg4/man ${LOCAL}/heirloom-ccs/man ${LOCAL}/heirloom-doctools/man ${LOCAL}/heirloom/man
+
 dirappend PATH ${PKG}/bin
 dirappend MANPATH ${PKG}/share/man ${PKG}/man
 dirappend INFOPATH ${PKG}/share/info ${PKG}/info
@@ -616,7 +619,7 @@ else
 	# this likely never happens, but if it is still not set, but we appear
 	# to have locale(1), force it to our favourite
 	#
-	if $HAVELOCALE &&  [ -z "${LC_CTYPE}" ]; then
+	if $HAVELOCALE && [ -z "${LC_CTYPE}" ]; then
 		# xxx should maybe check if "locale -a" reports a matching en_CA*?
 		LC_CTYPE="en_CA.UTF-8"
 		export LC_CTYPE
