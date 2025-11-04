@@ -2,7 +2,7 @@
 !
 ! changequote([, ])	note brackets will disappear from comments!
 !
-!#ident	"@(#)HOME:.Xdefaults	37.22	25/01/28 13:45:57 (woods)"
+!#ident	"@(#)HOME:.Xdefaults	37.23	25/11/04 12:57:04 (woods)"
 !
 ! N.B. WARNING:  This file must be processed with "xrdb -cpp m4" with macros and
 ! macro calls in the comments.  (perhaps it should be renamed to .Xdefaults.m4?)
@@ -656,9 +656,10 @@ Xpdf.toolTipEnable:		false
 ! with '-class UXTerm'] keep the resource name "xterm", so we don't need both
 ! "XTerm*:" and "UXTerm*:" entries, just "xterm*:".
 !
-! force TrueType (Xft) startup (use "-fa FaceName" to override)
+! force TrueType (Xft) startup (use "-fa FaceName" and "-fs N" to override)
 *renderFont:			true
 *faceName:			DecentFont
+*faceSize:			DecentPt
 !
 ! really any and all app's cursors should blink!
 *cursorBlink:			always
@@ -690,7 +691,7 @@ Xpdf.toolTipEnable:		false
 ! N.B.:  in any case we can set the TTY modes and tell XTerm to obey them and
 ! solve this problem once and for all:
 !
-xterm*ttyModes:			erase ^h
+xterm*ttyModes:			erase ^h tabs
 !
 xterm*ptyInitialErase:		true
 !
