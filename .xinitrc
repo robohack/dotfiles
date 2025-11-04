@@ -3,7 +3,7 @@
 #
 #	.xinitrc - X Window System startup file (also .xsession)
 #
-#ident	"@(#)HOME:.xinitrc	37.39	25/09/17 10:03:33 (woods)"
+#ident	"@(#)HOME:.xinitrc	37.40	25/11/04 13:17:17 (woods)"
 
 # N.B.:  see below for the best place to enable 'set -x' for debugging...
 
@@ -89,7 +89,6 @@ if [ -r /etc/profile ]; then
 else
 	echo "$argv0: no /etc/profile on this host!"
 fi
-# XXX /etc/shrc ???  or should ~/.profile or ~/.shrc do that?
 if [ -r $HOME/.profile ]; then
 	echo "$argv0: sourcing $HOME/.profile"
 	. $HOME/.profile < /dev/null
@@ -217,7 +216,7 @@ fi
 #
 # Note these settings should match what ~/.profile will set for a uxterm(1)....
 #
-if $HAVELOCALE; then
+if $HAVELOCALE && [ -z "${LC_CTYPE}" ]; then
 	if locale -a | fgrep -i en_CA.UTF-8 >/dev/null; then
 		if [ -z "${LC_CTYPE}" ]; then
 			LC_CTYPE="en_CA.UTF-8"
@@ -588,6 +587,75 @@ fi
 # n.b. not sure why there was only one borderWidth involved originally!
 XconsoleVoff=$(expr ${XconsoleHeight} + ${TitleHeight} + ${TDBorderWidth} + ${TDBorderWidth} + ${TDBorderWidth})
 
+# xxx width here is based on what's left to the left of xloads on a
+# high-res display, but there is no more space on a ~100dpi display so
+# it collides anyway....  120 will suffice everywhere for now
+XchronoOpts="-width ${XchronoWidth} -rv -update 1 -newyork -sydney -frankfurt"
+export XchronoOpts XchronoGeom
+
+# XXX for starting windows it would be ideal if we could tell the window manager
+# to do these using its existing menu operations!
+#
+# xxx we could do this with CTWM via m4, assuming it is using m4, since m4 has a
+# "syscmd()" function.
+
+#
+# geometries for xloads....
+#
+xloadVoff="0"
+
+xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+XloadGeomMore=${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}
+export XloadGeomMore
+
+xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+XloadGeomCentral=${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}
+export XloadGeomCentral
+
+xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+XloadGeomXenful=${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}
+export XloadGeomXenful
+
+xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+XloadGeomXentastic=${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}
+export XloadGeomXentastic
+
+xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+XloadGeomXentral="${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}"
+export XloadGeomXentral
+
+xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+XloadGeomOnce="${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}"
+export XloadGeomOnce
+
+# aligned vertically with XloadGeomOnce, under the clocks!
+XloadGeomFezzik="${XloadWidth}x${XloadHeight}-0+${xloadVoff}" # under the clocks!
+export XloadGeomFezzik
+
+# aligned vertically with XloadGeomOnce, under the clocks
+XloadGeomB2="${XloadWidth}x${XloadHeight}-${XloadWidth}+${xloadVoff}"
+export XloadGeomB2
+
+# these are under the workspace manager, not quite aligned vertically
+# with adjacent xloads
+#
+xloadVoff=$(expr ${WSHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+#
+XloadGeomNbtest="${XloadWidth}x${XloadHeight}-${WSOff}+${xloadVoff}"
+export XloadGeomNbtest
+
+xload2east=$(expr ${WSOff} + ${XloadWidth} + ${TDBorderWidth} + ${TDBorderWidth})
+
+XloadGeomHistorically="${XloadWidth}x${XloadHeight}-${xload2east}+${xloadVoff}"
+export XloadGeomHistorically
+
+xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
+XloadGeomNb10="${XloadWidth}x${XloadHeight}-${WSOff}+${xloadVoff}"
+export XloadGeomNb10
+
+XloadGeomNbday="${XloadWidth}x${XloadHeight}-${xload2east}+${xloadVoff}"
+export XloadGeomNbday
+
 case "$DISPLAY" in
 :[0-9]*)
 	#
@@ -791,72 +859,6 @@ if [ -r $HOME/.xhosts ]; then
 	done < $HOME/.xhosts
 fi
 
-if [ -z "$WM" ]; then
-	echo "$argv0: searching for a usable window manager..."
-	#
-	# XXX maybe it would be nice to have a window-manager-chooser, which is
-	# effectively what a modern "session" manager is... but xsm(1) isn't
-	# really that modern, and it's the only thing available by default, and
-	# it wants to be started instead of the window manager.  Even xsm(1)
-	# though can do all the secondary app startups, in theory, but it seems
-	# it needs the deprecated rstart(1) and friends to start programs on
-	# remote machines, and:
-	#
-	# *** rstart and iceauth should be installed on each machine that you expect
-	#     to run applications on that will be part of your session ***
-	#
-	if type ctwm >/dev/null 2>&1; then
-		#
-		# N.B.:  in newer versions (>= 4.x) a new command-line syntax
-		# makes use of "-display $DISPLAY" break.  However since well
-		# before 3.8.2 the default is the $DISPLAY in the environment,
-		# so we can just avoid using it at all.
-		#
-		if [ ${SCREENDEPTH:-1} -eq 1 ]; then
-			# the welcome screen on monochrome is silly and slow
-			WM="ctwm -v -k -K $HOME/.ctwmrc.m4out -W"
-		else
-			WM="ctwm -v -k -K $HOME/.ctwmrc.m4out"
-		fi
-		# force activeIcon on for ctwm, though it may not be used if an
-		# IconManager is in use for Xterm windows....
-		#
-		XTERM_OPTS="+ai ${XTERM_OPTS}"
-	elif type etwm >/dev/null 2>&1; then
-		# Brian Bidulock's "Enhanced TWM", forked from CTWM, possibly dead
-		# https://github.com/bbidulock/etwm
-		#
-		WM=etwm
-		XTERM_OPTS="+ai ${XTERM_OPTS}"
-	elif type adwm >/dev/null 2>&1; then
-		# Brian Bidulock's "advanced dynamic window manager" for his(?)
-		# XDE (X Desktop Environment)
-		# https://github.com/bbidulock/xde-desktop
-		#
-		WM=adwm
-	elif type tvtwm >/dev/null 2>&1; then
-		WM=tvtwm
-	elif type wmx >/dev/null 2>&1; then
-		WM=wmx
-	elif type wm2 >/dev/null 2>&1; then
-		WM=wm2
-	elif type scwm >/dev/null 2>&1; then
-		WM=scwm
-	elif type wmaker >/dev/null 2>&1; then
-		WM=wmaker
-	elif type fvwm >/dev/null 2>&1; then
-		WM=fvwm
-	elif type twm >/dev/null 2>&1; then
-		WM="env LC_ALL=C twm -v -v"
-		XTERM_OPTS="+ai ${XTERM_OPTS}"
-	else
-		echo "$argv0: assuming 'xterm' is available in lieu of a known WM..."
-		WM=xterm
-	fi
-	export WM
-fi
-echo "$argv0: WM='${WM}'"
-
 # XTerm options which cannot to be set consistently with resources, ("+ai" may
 # be added below, depending on which window manager is used), or which should
 # not because they depend on other things in the environment, such as which
@@ -1056,11 +1058,89 @@ if [ "$argv0" = ".xinitrc" ]; then
 		echo "$argv0: have set X11SERVER='$X11SERVER'"
 		;;
 	esac
-
-	#
-	#	Common for all xinit/startx startups
-	#
 fi
+
+# N.B.:  Figure out which window manager and start it before most programs are
+# started, especially remote ones!
+#
+# All environment variables shared to the window manager must be set above this.
+
+if [ -z "$WM" ]; then
+	echo "$argv0: searching for a usable window manager..."
+	#
+	# XXX maybe it would be nice to have a window-manager-chooser, which is
+	# effectively what a modern "session" manager is... but xsm(1) isn't
+	# really that modern, and it's the only thing available by default, and
+	# it wants to be started instead of the window manager.  Even xsm(1)
+	# though can do all the secondary app startups, in theory, but it seems
+	# it needs the deprecated rstart(1) and friends to start programs on
+	# remote machines, and:
+	#
+	# *** rstart and iceauth should be installed on each machine that you expect
+	#     to run applications on that will be part of your session ***
+	#
+	if type ctwm >/dev/null 2>&1; then
+		#
+		# N.B.:  in newer versions (>= 4.x) a new command-line syntax
+		# makes use of "-display $DISPLAY" break.  However since well
+		# before 3.8.2 the default is the $DISPLAY in the environment,
+		# so we can just avoid using it at all.
+		#
+		if [ ${SCREENDEPTH:-1} -eq 1 ]; then
+			# the welcome screen on monochrome is silly and slow
+			WM="ctwm -v -k -K $HOME/.ctwmrc.m4out -W"
+		else
+			WM="ctwm -v -k -K $HOME/.ctwmrc.m4out"
+		fi
+		# force activeIcon on for ctwm, though it may not be used if an
+		# IconManager is in use for Xterm windows....
+		#
+		XTERM_OPTS="+ai ${XTERM_OPTS}"
+	elif type etwm >/dev/null 2>&1; then
+		# Brian Bidulock's "Enhanced TWM", forked from CTWM, possibly dead
+		# https://github.com/bbidulock/etwm
+		#
+		WM=etwm
+		XTERM_OPTS="+ai ${XTERM_OPTS}"
+	elif type adwm >/dev/null 2>&1; then
+		# Brian Bidulock's "advanced dynamic window manager" for his(?)
+		# XDE (X Desktop Environment)
+		# https://github.com/bbidulock/xde-desktop
+		#
+		WM=adwm
+	elif type tvtwm >/dev/null 2>&1; then
+		WM=tvtwm
+	elif type wmx >/dev/null 2>&1; then
+		WM=wmx
+	elif type wm2 >/dev/null 2>&1; then
+		WM=wm2
+	elif type scwm >/dev/null 2>&1; then
+		WM=scwm
+	elif type wmaker >/dev/null 2>&1; then
+		WM=wmaker
+	elif type fvwm >/dev/null 2>&1; then
+		WM=fvwm
+	elif type twm >/dev/null 2>&1; then
+		WM="env LC_ALL=C twm -v -v"
+		XTERM_OPTS="+ai ${XTERM_OPTS}"
+	else
+		echo "$argv0: assuming 'xterm' is available in lieu of a known WM..."
+		WM=xterm
+	fi
+	export WM
+fi
+echo "$argv0: WM='${WM}'"
+
+echo "$0: trying to start WM='$WM' ... " 1>&2
+
+eval $WM &
+WM_PID=$!
+echo "$argv0: started WM as ${WM_PID}'"
+
+# N.B.:  nothing below should export new, or change existing, environment
+# variables!  (They will not be seen by the window manager, nor anything it
+# starts.)
+
 
 #	Programs for everyone
 #	====================
@@ -1162,11 +1242,6 @@ very.local:*|very-old.local:*)
 	# very-old also has a quite large, quite hi-res, display...
 	xset m 2 0
 
-	# xxx width here is based on what's left to the left of xloads on a
-	# high-res display, but there is no more space on a ~100dpi display so
-	# it collides anyway....  120 will suffice everywhere for now
-	XchronoOpts="-width ${XchronoWidth} -rv -update 1 -newyork -sydney -frankfurt"
-	export XchronoOpts XchronoGeom
 	if type xchrono >/dev/null 2>&1; then
 		xchrono -geometry ${XchronoGeom} ${XchronoOpts} &
 	fi
@@ -1203,86 +1278,19 @@ very.local:*|very-old.local:*)
 	# very-old runs in the background -- it's not used immediately below
 	xauth nextract - ${REMOTE_DISPLAY} | awk '$1 == 0 {print}' | onx11server -S -X very-old.local 'xauth nmerge -' &
 	#
-	# XXX for starting windows it would be ideal if we could
-	# tell the window manager to do these using its existing
-	# menu operations!
-	#
 	# local server performance levels we want to be aware of
-	xloadVoff="0"
-
-	#xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-	#XloadGeomBuilding=${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}
-	#export XloadGeomBuilding
-	#onx11server -n -X building.local "xload -geometry ${XloadGeomBuilding -hl red" &
-
-	xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-	XloadGeomMore=${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}
-	export XloadGeomMore
+	#
 	onx11server -n -X more.local "xload -geometry ${XloadGeomMore} -hl red" &
-
-	xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-	XloadGeomCentral=${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}
-	export XloadGeomCentral
 	onx11server -fSY -X central.weird.com "xload -geometry ${XloadGeomCentral} -hl red" &
-
-	#xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-	#XloadGeomFuture=${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}
-	#export XloadGeomFuture
-	#onx11server -n -X future.local "xload -geometry ${XloadGeomFuture} -hl red" &
-
-	xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-	XloadGeomXenful=${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}
-	export XloadGeomXenful
 	onx11server -n -X xenful.local "xload -geometry ${XloadGeomXenful} -hl red" &
-
-	xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-	XloadGeomXentastic=${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}
-	export XloadGeomXentastic
 	onx11server -n -X xentastic.local "xload -geometry ${XloadGeomXentastic} -hl red" &
-
-	xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-	XloadGeomXentral="${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}"
-	export XloadGeomXentral
 	onx11server -fSY -X xentral.avoncote.ca "xload -geometry ${XloadGeomXentral} -hl red" &
-
-	xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-	XloadGeomOnce="${XloadWidth}x${XloadHeight}-${ClockOffH}+${xloadVoff}"
-	export XloadGeomOnce
 	onx11server -n -X once.local "xload -geometry ${XloadGeomOnce} -hl red" &
-
-	# aligned vertically with XloadGeomOnce, under the clocks!
-  	XloadGeomFezzik="${XloadWidth}x${XloadHeight}-0+${xloadVoff}" # under the clocks!
-	export XloadGeomFezzik
 	onx11server -fS -X fezzik.local "xload -geometry ${XloadGeomFezzik} -hl red" &
-
-	# aligned vertically with XloadGeomOnce, under the clocks
-	XloadGeomB2="${XloadWidth}x${XloadHeight}-${XloadWidth}+${xloadVoff}"
-	export XloadGeomB2
 	onx11server -fSY -X b2.avoncote.ca "xload -geometry ${XloadGeomB2} -hl red" &
-
-	# these are under the workspace manager, not quite aligned vertically
-	# with adjacent xloads
-	#
-	xloadVoff=$(expr ${WSHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-	#
-	XloadGeomNbtest="${XloadWidth}x${XloadHeight}-${WSOff}+${xloadVoff}"
-	export XloadGeomNbtest
 	onx11server -n -X nbtest.local "xload -geometry ${XloadGeomNbtest} -hl red" &
-
-	xload2east=$(expr ${WSOff} + ${XloadWidth} + ${TDBorderWidth} + ${TDBorderWidth})
-
-	XloadGeomHistorically="${XloadWidth}x${XloadHeight}-${xload2east}+${xloadVoff}"
-	export XloadGeomHistorically
 	onx11server -n -X historically.local "xload -geometry ${XloadGeomHistorically} -hl red" &
-
-	xloadVoff=$(expr ${xloadVoff} + ${XloadHeight} + ${TDBorderWidth} + ${TDBorderWidth})
-
-	XloadGeomNb10="${XloadWidth}x${XloadHeight}-${WSOff}+${xloadVoff}"
-	export XloadGeomNb10
 	onx11server -n -X nb10.local "xload -geometry ${XloadGeomNb10} -hl red" &
-
-	XloadGeomNbday="${XloadWidth}x${XloadHeight}-${xload2east}+${xloadVoff}"
-	export XloadGeomNbday
 	onx11server -fS -X nbday.local "xload -geometry ${XloadGeomNbday} -hl red" &
 
 	if type xmahjongg >/dev/null 2>&1; then
@@ -1505,13 +1513,10 @@ very.weird.com:*|very.robohack.planix.com:*)
 
 esac
 
-echo "$0: trying to start WM='$WM' ... " 1>&2
-
 # when the window manager exits so shall we...
 #
-eval exec $WM
-
-### $WM || twm
+echo "$0: waiting for WM_PID='$WM_PID' to finish... " 1>&2
+wait ${WM_PID} && exit 0
 
 # and if that fails then we try a last-ditch "trick"
 #
