@@ -9,7 +9,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.42	25/05/21 11:48:15 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.43	25/11/04 12:56:01 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -255,6 +255,13 @@ DeIconifyFunction		!"${AUDIOPLAYER} HOME/lib/sounds/wm-deiconify &"
 DefaultFunction			!"${AUDIOPLAYER} HOME/lib/sounds/wm-default &"
 # this is the default...
 #WindowFunction			{ f.deiconify f.raise }
+#
+# Note that as of CTWM-4.0.0 sounds for X events can be configured with
+# "RplaySounds" and "RplaySoundHost" using rplayd, assuming ctwm was built with
+# SOUNDS and one has rplayd (github.com/boyns/rplay) installed and running.
+#
+# Previously, and now as an alternative, ~/.ctwm-sounds can be used to play
+# sounds for X events (also via RPLAY), but this will be deprecated.
 
 Color {
 	# focused (non-iconified) window borders
@@ -1042,16 +1049,22 @@ menu "quickies"
 	"Emacs Everywhere..."	f.menu "emacs"
 	#
 	""			f.separator
+	"Dillo @CLIENTHOST"	!"dillo &"
+	"NetSurf @CLIENTHOST"	!"netsurf-gtk3 &"
 	"links -g @CLIENTHOST"	!"links -g &"
  ifdef([X11SERVER], [
+	"Dillo @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X X11SERVER 'dillo' &"
+	"NetSurf @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X X11SERVER 'netsurf-gtk3' &"
 	"links -g @X11SERVER"	!"set -i; . ./.shrc; onx11server -n -X X11SERVER 'links -g' &"
  ])
  ifdef([AT_LOCAL], [
+	"Dillo @more"		!"set -i; . ./.shrc; onx11server -n -X more.local 'dillo' &"
+	"NetSurf @more"		!"set -i; . ./.shrc; onx11server -n -X more.local 'netsurf-gtk3' &"
 	"links -g @more"	!"set -i; . ./.shrc; onx11server -n -X more.local 'links -g' &"
  ])
-	# xxx unfortunately duckduckgo.com isn't very usable with links
-	"DDG something"		!"links -g https://html.duckduckgo.com/html/ &"
-	"Google something"	!"links -g https://google.ca/ &"
+	"DDG something"		!"links -g https://lite.duckduckgo.com/lite/ &"
+# xxx google has gone with JS (that not even NetSurf can execute)
+#	"Google something"	!"links -g https://google.ca/ &"
 	""			f.separator
  ifdef([ON_OSX], [
 	"Mac OS X Apps..."	f.menu "osx-apps"
