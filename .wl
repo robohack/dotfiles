@@ -1,7 +1,7 @@
 ;;;;
 ;;;;	.wl.el - Wanderlust custom configuration
 ;;;;
-;;;;#ident	"@(#)HOME:.wl	37.11	25/03/07 14:08:52 (woods)"
+;;;;#ident	"@(#)HOME:.wl	37.12	25/11/04 13:19:59 (woods)"
 ;;;;
 
 ;; XXX look for ideas in <URL:http://triaez.kaisei.org/~kaoru/emacsen/startup/init-mua.el>
@@ -38,19 +38,23 @@
 ;; DO NOT EVER move the cursor with scroll input (unless doing so to keep it
 ;; within the current window).
 ;;
-(eval-after-load "wl-summary"
-  '(progn
-     (define-key wl-summary-mode-map [mouse-4] 'mwheel-scroll)
-     (define-key wl-summary-mode-map [mouse-5] 'mwheel-scroll)
-     (define-key wl-summary-mode-map [S-mouse-4] 'mwheel-scroll)
-     (define-key wl-summary-mode-map [S-mouse-5] 'mwheel-scroll)))
-
-(eval-after-load "wl-folder"
-  '(progn
-     (define-key wl-folder-mode-map [mouse-4] 'mwheel-scroll)
-     (define-key wl-folder-mode-map [mouse-5] 'mwheel-scroll)
-     (define-key wl-folder-mode-map [S-mouse-4] 'mwheel-scroll)
-     (define-key wl-folder-mode-map [S-mouse-5] 'mwheel-scroll)))
+;; xxx setting `wl-scroll-function-events' to nil may have the same effect in
+;; latest versions...
+(if (boundp 'wl-scroll-function-events)
+    (setq wl-scroll-function-events nil)
+  (progn
+    (eval-after-load "wl-summary"
+      (progn
+	'(define-key wl-summary-mode-map [mouse-4] 'mwheel-scroll)
+	(define-key wl-summary-mode-map [mouse-5] 'mwheel-scroll)
+	(define-key wl-summary-mode-map [S-mouse-4] 'mwheel-scroll)
+	(define-key wl-summary-mode-map [S-mouse-5] 'mwheel-scroll)))
+    (eval-after-load "wl-folder"
+      '(progn
+	 (define-key wl-folder-mode-map [mouse-4] 'mwheel-scroll)
+	 (define-key wl-folder-mode-map [mouse-5] 'mwheel-scroll)
+	 (define-key wl-folder-mode-map [S-mouse-4] 'mwheel-scroll)
+	 (define-key wl-folder-mode-map [S-mouse-5] 'mwheel-scroll)))))
 
 ;;; XXX This doesn't work right at all....  The resulting keymap looks like a
 ;;; total mess with multiple bindings for [mouse-4] et al.
