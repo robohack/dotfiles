@@ -27,7 +27,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.57	25/11/04 13:18:26 (woods)"
+#ident	"@(#)HOME:.shrc	37.58	25/11/27 09:58:05 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -207,12 +207,12 @@ fi
 
 is_bash ()
 {
-	[ ${RANDOM:-0} -ne ${RANDOM:-0} -a -n "${BASH}" ]
+	[ ${RANDOM:-0} -ne ${RANDOM:-0} ] && [ -n "${BASH}" ]
 }
 
 is_ksh ()
 {
-	if [ ${RANDOM:-0} -ne ${RANDOM:-0} -a -z "${BASH}" ]; then
+	if [ ${RANDOM:-0} -ne ${RANDOM:-0} ] && [ -z "${BASH}" ]; then
 		case "${KSH_VERSION}" in
 		"Version"*)
 			return 0 # likely att ksh
@@ -241,7 +241,7 @@ is_attksh ()
 	# [p]bosh only
 	_sh_shell=`eval 'echo "${.sh.shell}"' 2>/dev/null`
 
-	test -n "${_sh_version}" -a -z "${_sh_shell}"
+	[ -n "${_sh_version}" ] && [ -z "${_sh_shell}" ]
 	_rc=$?
 	unset _sh_shell _sh_version
 
@@ -259,12 +259,12 @@ is_ash ()
 is_bourne_sh ()
 {
 	is_ash && return 1
-	[ "`echo ~`" != "${HOME}" -a -z "${RANDOM}" ]
+	[ "`echo ~`" != "${HOME}" ] && [ -z "${RANDOM}" ]
 }
 
 is_posixish_sh ()
 {
-	[ "`echo ~`" = "${HOME}" -a ${RANDOM:-0} -eq ${RANDOM:-0} ]
+	[ "`echo ~`" = "${HOME}" ] && [ ${RANDOM:-0} -eq ${RANDOM:-0} ]
 }
 
 is_schily_sh ()
@@ -277,13 +277,6 @@ is_schily_sh ()
 
 	return ${_rc}
 }
-
-ISSUN=false
-if [ -x /usr/bin/sun ]; then
-	if sun; then
-		ISSUN=true
-	fi
-fi
 
 if [ -r /var/log/smail/logfile ] ; then
 	MAILLOG="/var/log/smail/logfile"
@@ -361,24 +354,21 @@ fi
 #
 # NOTE: we don't export $echo et al -- they're just in the current shell
 
+# A magic non-forking test for existence of a path component in a path-style
+# (colon-separated) variable
+#
 in_pathvar_p() {
 	if [ $# -le 1 -o -z "${1}" ] ; then
-		echo "Usage: in_pathvar_p pathvar directory [...]" >&2
+		echo "Usage: in_pathvar_p pathvar directory" >&2
 		return 2
 	fi
 	eval "case :\$${1}: in *:${2}:*) return 0;; *) return 1;; esac"
 }
 
-# another way to do this without "test -d":
-#
-# PATH=`  IFS=: ; unset tpath
-#	for pe in $candidates
-#		do cd $pe &> /dev/null && tpath=${tpath+$tpath:}$pe ; done
-#	echo "$tpath" `
-#
-#
 dirappend ()
 {
+	local varname varvalue
+
 	if [ $# -le 1 -o -z "${1}" ] ; then
 		echo "Usage: dirappend pathvar directory [...]" >&2
 		return 2
@@ -405,6 +395,8 @@ dirappend ()
 
 dirprepend ()
 {
+	local varname varvalue
+
 	if [ $# -le 1 -o -z "${1}" ] ; then
 		echo "Usage: dirprepend pathvar directory [...]" >&2
 		return 2
@@ -429,17 +421,10 @@ dirprepend ()
 	unset varname varvalue
 }
 
-# XXX there's a slight flaw in this implementation -- it can't remove a
-# double-empty trailing element (e.g. p=/path::; dirremove p '').  However two
-# consecutive invocations will work to do this, or first do "removedups p".
-#
-# ToDo:  this should probably treat '' as '[.]*' and vice-versa so as to remove
-# both implied and implicit current-directory entries at the same time, but
-# that's tricky while still preserving the non-forking test using
-# in_pathvar_p....
-#
 dirremove ()
 {
+	local varname
+
 	if [ $# -le 1 -o -z "${1}" ] ; then
 		echo "Usage: dirremove pathvar directory [...]" >&2
 		return 2
@@ -447,7 +432,10 @@ dirremove ()
 	varname=${1}
 	shift
 	while [ $# -gt 0 ] ; do
-		if in_pathvar_p ${varname} "${1}" ; then
+		if [ "$1" = ":" -o -z "$1" ] ; then
+			eval $varname=`eval echo '$'$varname | sed -e 's|::||g' -e 's|^:||' -e 's|:\$||'`
+		else
+			# n.b. don't use in_pathvar_p to allow REs in directory
 			eval ${varname}=`eval echo :'$'${varname}: | sed -e "s|:${1}:|:|g" -e "s|^:||" -e "s|:\$||"`
 		fi
 		shift
@@ -455,34 +443,43 @@ dirremove ()
 	unset varname
 }
 
-# Another way...
+# maybe another way, but one at a time, no REs....
 #
-pathvarrm ()
+pathvarappend ()
 {
+	local pathvar newpath
+
 	if [ $# -le 1 -o -z "${1}" ] ; then
-		echo "Usage: pathvarrm pathvar directory [...]" >&2
+		echo "Usage: pathvarappend pathvar directory" >&2
 		return 2
 	fi
-	IFS=':'
 	pathvar=${1}
-	rmpath=${2}
 	#
-	# N.B.:  Instead of "set", ast-ksh/ksh93 and bash can use:
+	# N.B.:  ast-ksh/ksh93(???) and bash can use ${!vname} to avoid the set
+	# and command substitution using eval:
 	#
-	#	IFS=:
+	#	typeset IFS=:
 	#	for dir in ${!pathvar}; do
 	#
-	set -- `IFS=":"; eval echo '$'${pathvar}`
+	# note that the set is necessary to allow eval to expand the pathvar as
+	# a variable name, and then to avoid mis-handling path components with normal
+	# $IFS characters embedded.
+	#
+	set -- `IFS=':'; eval echo '$'${pathvar}`
 	for dir in ${1+"$@"}; do
-		if [ "${dir}" != "${opath}" ] ; then
+		if  [ "${dir}" != "${2}" ]; then
 			newpath=${newpath:+${newpath}:}${dir}
 		fi
 	done
 	eval ${pathvar}="${newpath}"
+
+	unset pathvar newpath
 }
 
 removedups ()
 {
+	local varname varvalue nvalue rc
+
 	if [ $# -lt 1 -o -z "${1}" ] ; then
 		echo "Usage: removedups pathvar" >&2
 		return 2
@@ -685,6 +682,10 @@ xpglast ()
 #
 # xxx strictly speaking this should probably always be a function that would
 # treat any use of options as a usage error
+#
+# Note that variables made local should always be given a value, or explicitly
+# unset, as the default behavior (inheriting the earlier value, or starting
+# unset after local) differs amongst shell implementations.
 
 defun_local="local () { :; }"
 
@@ -698,14 +699,26 @@ if is_attksh; then		# if type local >/dev/null 2>&1; then
 	#	'vname' is created, and the variable's value and type
 	#	are restored when the function completes.
 	#
-	# XXX Sadly this does not actually work for functions defined using the
-	# "func() {body}", and that's the only portable way to define a
-	# function!
+	# XXX Sadly in AT&T Ksh this does not actually work for functions
+	# defined using the "func() {}" syntax, and that's the only portable way
+	# to define a function!  With the standard "fname(){}" syntax variables
+	# have a global scope whether you use "typeset" or not.
 	#
 	# XXX so don't shadow globals in "fname(){}" functions!!!
 	#
+	# On the other hand in pdksh, "typeset" creates locally-scoped variables
+	# regardless of the definition syntax.
+	#
 	# Note that in AT&T Ksh (and others?) aliases are resolved when a
-	# function definition is first read in, so set this early!
+	# function definition is first read in, so set this early!  Furthermore
+	# when a function defined with the "func() {body}" syntax the function
+	# name is subject to alias expansion!
+	#
+	# Also note that functions defined with the "function" keyword have
+	# their own trap context.
+	#
+	# Furthermore $0 is the function name in a function defined by function
+	# but the script name in a function defined with ()
 	#
 	# I used to like AT&T Ksh -- now I'm glad it's only an inspiration...
 	#
@@ -913,13 +926,19 @@ archivedotfiles ()
 
 spreaddotfiles ()
 {
-	dotfiles_hosts="xentral xenful xentastic"
-	dotfiles_hosts="${dotfiles_hosts} very very-old historically once b2 fezzik"
-	dotfiles_hosts="${dotfiles_hosts} nbtest nbday nb10"
+	dotfiles_hosts="very very-old once"
+	dotfiles_hosts="${dotfiles_hosts} nbt"
+	dotfiles_hosts="${dotfiles_hosts} xentral"
+	dotfiles_hosts="${dotfiles_hosts} b2"	# central gets them from archivedotfiles
+	dotfiles_hosts="${dotfiles_hosts} xenful"
+	dotfiles_hosts="${dotfiles_hosts} historically" # more is $HOME_SERVER
+	dotfiles_hosts="${dotfiles_hosts} xentastic"
+	dotfiles_hosts="${dotfiles_hosts} fezzik nbtest nbday nb10"
 
 	case ${HOSTNAME} in
 	${HOME_SERVER}*)
 		for _sync_host in ${dotfiles_hosts}; do
+			echo "spreaddotfiles: pushing to $_sync_host..."
 			pushdotfiles -e ssh $_sync_host
 		done
 		;;
@@ -1221,27 +1240,31 @@ fi
 dirappend WORKPATH /work/${LOGNAME} ${LOCAL}/work.d/${LOGNAME}
 export WORKPATH
 
+ISSUN=false
+if [ -x /usr/bin/sun ]; then
+	if sun; then
+		ISSUN=true
+	fi
+fi
+
 if $ISSUN; then
-	NETBSDSRCDIR=/work/src
-	BSDSRCDIR=/work/src
-	X11SRCDIR=/work/xsrc
-	PKGSRCDIR=/work/pkgsrc
-	PORTSSRCDIR=/work/ports
+	CDP_BSDSRCDIR=/work/src
+	CDP_X11SRCDIR=/work/xsrc
+	CDP_PKGSRCDIR=/work/pkgsrc
+	CDP_PORTSSRCDIR=/work/ports
 elif [ `uname -s` = "Darwin" ]; then
 	#
 	# Modern macOS won't let root create symlinks in / or /usr....
 	#
-	NETBSDSRCDIR=/Volumes/work/src
-	BSDSRCDIR=/Volumes/work/src
-	X11SRCDIR=/Volumes/work/xsrc
-	PKGSRCDIR=/Volumes/work/pkgsrc
-	PORTSSRCDIR=/Volumes/work/ports
+	CDP_BSDSRCDIR=/Volumes/work/src
+	CDP_X11SRCDIR=/Volumes/work/xsrc
+	CDP_PKGSRCDIR=/Volumes/work/pkgsrc
+	CDP_PORTSSRCDIR=/Volumes/work/ports
 else
-	NETBSDSRCDIR=/usr/src
-	BSDSRCDIR=/usr/src
-	X11SRCDIR=/usr/xsrc
-	PKGSRCDIR=/usr/pkgsrc
-	PORTSSRCDIR=/usr/ports
+	CDP_BSDSRCDIR=/usr/src
+	CDP_X11SRCDIR=/usr/xsrc
+	CDP_PKGSRCDIR=/usr/pkgsrc
+	CDP_PORTSSRCDIR=/usr/ports
 fi
 
 # CDPATH isn't supported in all shells, but it won't hurt....
@@ -1252,7 +1275,7 @@ fi
 if [ -n "${CDPATH}" ]; then
 	OCDPATH=${CDPATH}; export OCDPATH
 fi
-CDPATH=:${HOME}:${WORKPATH}:${HOME}/src:${HOME}/src/lib:${NETBSDSRCDIR}:${BSDSRCDIR}:${X11SRCDIR}:${PKGSRCDIR}:${PORTSSRCDIR}
+CDPATH=:${HOME}:${WORKPATH}:${HOME}/src:${HOME}/src/lib:${CDP_BSDSRCDIR}:${CDP_X11SRCDIR}:${CDP_PKGSRCDIR}:${CDP_PORTSSRCDIR}
 
 export CDPATH
 
@@ -2037,7 +2060,10 @@ do_first_time ()
 }
 
 if ${ISATTY}; then
-	TTYN=`basename $TTY`
+	#TTYN=`basename $TTY`
+	# better to see the "pty/" prefix than just the number?
+	# xxx but do any usable shells not support ${V#word}?
+	TTYN=${TTY#"/dev/"}
 else
 	TTYN="not-a-tty"
 fi
@@ -2983,7 +3009,7 @@ if $ISSUN; then
 	}
 fi
 
-if [ $(uname -s) = "Darwin" ]; then
+if [ `uname -s` = "Darwin" ]; then
         # N.B.  The OS product version can be found with /usr/bin/sw_vers
 
 	# it's not the same, but it has similar uses...
