@@ -9,7 +9,7 @@
 #
 #	.ctwmrc - local startup for ctwm
 #
-#ident	"@(#)HOME:.ctwmrc	37.43	25/11/04 12:56:01 (woods)"
+#ident	"@(#)HOME:.ctwmrc	37.44	25/11/28 18:47:40 (woods)"
 #
 # N.B.:  To test changes first find the temp file output from the most recent
 # run with '-k' and then do:
@@ -985,21 +985,26 @@ Button3 =		: iconmgr	: f.occupyall # ???
 "Up"	= [shift]|meta	: frame|title	: f.fill "top"
 "Down"	= [shift]|meta	: frame|title	: f.fill "bottom"
 
-# icons and menus/operations for window "Title" buttons
+# icons for menus, operations, etc. for window "Title" buttons
 #
-ifdef([XPM], [
+# Note:  When UseThreeDTitles is enabled then title buttons can use the built-in
+# scalable pixmaps, including animated pixmaps.  These have a prefix of ":xpm:"
+# or "%xpm:" (for animations).  These are not XPMs proper.  If UseThreeDTitles
+# is not set then the images should be specified from the scalable non-3D images
+# without the ":xpm" prefix (note there is no ":box").
+#
+# Note also that (provided NoDefaults is not set) the left-most and right-most
+# title buttons are pre-configured as follows:
+#
+#	LeftTitleButton ":xpm:iconify" = f.iconify	# same image as :xpm:dot
+#	RightTitleButton ":xpm:resize" = f.resize
+#
+LeftTitleButton ":xpm:box" = f.winrefresh # there should be a built-in :xpm:refresh!
 LeftTitleButton ":xpm:menu" = f.menu "winops"
-LeftTitleButton	":xpm:cross" = f.delete
+LeftTitleButton	":xpm:cross" = f.menu "kill"
 #
 RightTitleButton ":xpm:vbar" = f.menu "fills"
-RightTitleButton ":xpm:box" = f.menu "zooms"
-], [
-LeftTitleButton "menu16" = f.menu "winops"
-LeftTitleButton	"star" = f.delete
-#
-RightTitleButton "scales" = f.menu "fills"
-RightTitleButton "icon" = f.menu "zooms"
-])
+RightTitleButton ":xpm:bar" = f.menu "zooms"
 
 #
 #	And the menus, with all of the usual things...
@@ -1008,6 +1013,12 @@ menu "quickies"
 {
 	"Short Cuts"		f.title
 	"Pin this menu"		f.pin
+	""			f.separator
+	"Window Refresh"	f.winrefresh
+	"Save"			f.saveyourself
+	"Screen Refresh"	f.refresh
+	"Toggle workspace"	f.togglestate
+	"WS Refresh"		f.function "refresh-ws"
 	""			f.separator
 	"Move & Pack"		f.movepack
 	"Move"			f.move
@@ -1027,12 +1038,6 @@ menu "quickies"
 	"Pasteboard Copy"	!"uxterm ${XTERM_LITTLE_OPTS} ${XTERM_OPTS} -T 'Paste text to PasteBoard here' -e pbcopy &"
 	""			f.separator
  ])
-	"Toggle workspace"	f.togglestate
-	"Screen Refresh"	f.refresh
-	"WS Refresh"		f.function "refresh-ws"
-	"Window Refresh"	f.winrefresh
-	"Save"			f.saveyourself
-	""			f.separator
 	"WinDelete"		f.delete
 	"WinDelete or Destroy"	f.deleteordestroy
 	"Kill"			f.destroy
@@ -1409,8 +1414,16 @@ menu "exit"
 	"Exit CTWM"				f.title
 	"Select confirm to end your session."	f.nop
 	""					f.separator
-	"        No...."			f.nop
-	"        Confirm...."			f.quit
+	"        No......"			f.nop
+	"        Confirm!"			f.quit
+}
+
+menu "kill"
+{
+	"Kill Window?"				f.title
+	""					f.separator
+	"        No......"			f.nop
+	"        Confirm!"			f.delete
 }
 
 menu "applications"
