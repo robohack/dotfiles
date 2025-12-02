@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.44	25/11/04 12:57:45 (woods)"
+#ident	"@(#)HOME:.profile	37.45	25/12/01 23:19:08 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -344,12 +344,12 @@ else
 	else
 		PATH="/bin:/usr/bin"
 	fi
-	dirappend PATH /usr/lbin
+	dirappend -e PATH /usr/lbin
 
 	if [ -d /usr/share/man ]; then
-		dirappend MANPATH /usr/share/man
+		dirappend -e MANPATH /usr/share/man
 	else
-		dirappend MANPATH /usr/man
+		dirappend -e MANPATH /usr/man
 	fi
 fi
 export PATH
@@ -419,71 +419,71 @@ fi
 #
 # Ordering of PKG, SLASHOPT, GNU, and X11BIN are of course personal prefs too....
 #
-dirprepend PATH /usr/xpg6/bin /usr/xpg4/bin /usr/ccs/bin
-dirprepend MANPATH /usr/xpg6/man /usr/xpg4/man /usr/ccs/man
+dirprepend -e PATH /usr/xpg6/bin /usr/xpg4/bin /usr/ccs/bin
+dirprepend -e MANPATH /usr/xpg6/man /usr/xpg4/man /usr/ccs/man
 
-dirappend PATH ${X11BIN} ${LOCAL}/bin ${CONTRIB}/bin
-dirappend MANPATH ${X11MAN} ${LOCAL}/share/man ${CONTRIB}/share/man ${LOCAL}/man ${CONTRIB}/man
-dirappend INFOPATH ${LOCAL}/share/info ${LOCAL}/info ${CONTRIB}/info
+dirappend -e PATH ${X11BIN} ${LOCAL}/bin ${CONTRIB}/bin
+dirappend -e MANPATH ${X11MAN} ${LOCAL}/share/man ${CONTRIB}/share/man ${LOCAL}/man ${CONTRIB}/man
+dirappend -e INFOPATH ${LOCAL}/share/info ${LOCAL}/info ${CONTRIB}/info
 
-dirappend PATH ${LOCAL}/heirloom-xpg4/bin ${LOCAL}/heirloom-ccs/bin ${LOCAL}/heirloom-doctools/bin ${LOCAL}/heirloom/bin
-dirappend MANPATH ${LOCAL}/heirloom-xpg4/man ${LOCAL}/heirloom-ccs/man ${LOCAL}/heirloom-doctools/man ${LOCAL}/heirloom/man
+dirappend -e PATH ${LOCAL}/heirloom-xpg4/bin ${LOCAL}/heirloom-ccs/bin ${LOCAL}/heirloom-doctools/bin ${LOCAL}/heirloom/bin
+dirappend -e MANPATH ${LOCAL}/heirloom-xpg4/man ${LOCAL}/heirloom-ccs/man ${LOCAL}/heirloom-doctools/man ${LOCAL}/heirloom/man
 
-dirappend PATH ${PKG}/bin
-dirappend MANPATH ${PKG}/share/man ${PKG}/man
-dirappend INFOPATH ${PKG}/share/info ${PKG}/info
+dirappend -e PATH ${PKG}/bin
+dirappend -e MANPATH ${PKG}/share/man ${PKG}/man
+dirappend -e INFOPATH ${PKG}/share/info ${PKG}/info
 
-dirappend PATH ${PKG}/heirloom-xpg4/bin ${PKG}/heirloom-ccs/bin ${PKG}/heirloom-doctools/bin ${PKG}/heirloom/bin
-dirappend MANPATH ${PKG}/heirloom-xpg4/man ${PKG}/heirloom-ccs/man ${PKG}/heirloom-doctools/man ${PKG}/heirloom/man
+dirappend -e PATH ${PKG}/heirloom-xpg4/bin ${PKG}/heirloom-ccs/bin ${PKG}/heirloom-doctools/bin ${PKG}/heirloom/bin
+dirappend -e MANPATH ${PKG}/heirloom-xpg4/man ${PKG}/heirloom-ccs/man ${PKG}/heirloom-doctools/man ${PKG}/heirloom/man
 
 # n.b.: prefer heirloom-doctools as it includes mandoc by default
-dirappend PATH ${PKG}/DWB/bin
-dirappend MANPATH ${PKG}/DWB/man
+dirappend -e PATH ${PKG}/DWB/bin
+dirappend -e MANPATH ${PKG}/DWB/man
 
-dirappend PATH ${SLASHOPT}/bin
-dirappend MANPATH ${SLASHOPT}/share/man ${SLASHOPT}/man
+dirappend -e PATH ${SLASHOPT}/bin
+dirappend -e MANPATH ${SLASHOPT}/share/man ${SLASHOPT}/man
 
-dirappend PATH ${GNU}/bin ${SLASHOPT}/gnu/bin
-dirappend MANPATH ${GNU}/share/man ${GNU}/man
-dirappend INFOPATH ${GNU}/share/info ${GNU}/info
+dirappend -e PATH ${GNU}/bin ${SLASHOPT}/gnu/bin
+dirappend -e MANPATH ${GNU}/share/man ${GNU}/man
+dirappend -e INFOPATH ${GNU}/share/info ${GNU}/info
 
-dirappend PATH /Developer/usr/bin
-dirappend MANPATH /Developer/usr/share/man
+dirappend -e PATH /Developer/usr/bin
+dirappend -e MANPATH /Developer/usr/share/man
 
 # silly fuzting for older OSX...
 # XXX Joyent /opt/pkg/nbase/bin things are crashing sometimes now....
 #if [ -d /Developer/usr/bin ]; then
-#	dirprepend PATH ${PKG}/nbase/bin
+#	dirprepend -e PATH ${PKG}/nbase/bin
 #fi
 # always, for bootstrapped pkgsrc???
-#dirappend PATH ${PKG}/nbase/bin
+#dirappend -e PATH ${PKG}/nbase/bin
 
-dirappend PATH /usr/ucb /usr/bsd
-dirappend PATH ${HI_TECH_C}/bin
-dirappend PATH /usr/games ${LOCAL}/games ${SLASHOPT}/games/bin
+dirappend -e PATH /usr/ucb /usr/bsd
+dirappend -e PATH ${HI_TECH_C}/bin
+dirappend -e PATH /usr/games ${LOCAL}/games ${SLASHOPT}/games/bin
 
 if $ISSUN; then
 	PATH=`echo ${PATH} | sed 's/^\/bin://'`
 	if [ "`uname -r | sed 's/^\([0-9]*\).*$/\1/'`" -lt 5 ]; then
 		if [ "X${LOGNAME}" != "Xroot" ]; then
-			dirprepend PATH /usr/5bin
+			dirprepend -e PATH /usr/5bin
 		else
-			dirappend PATH /usr/5bin
+			dirappend -e PATH /usr/5bin
 		fi
 	else
-		dirprepend PATH /opt/SUNWspro/bin
+		dirprepend -e PATH /opt/SUNWspro/bin
 	fi
 	# XXX FIXME: should use OPENWINHOME ???
 	# XXX FIXME: should only do this if DISPLAY set???
-	dirappend PATH /usr/openwin/bin /usr/openwin/demo
-	dirappend MANPATH /usr/openwin/share/man
+	dirappend -e PATH /usr/openwin/bin /usr/openwin/demo
+	dirappend -e MANPATH /usr/openwin/share/man
 fi
 
 if [ -d ${LOCAL}/dmdlayers/bin -a "X${TERM}" = "Xdmd" ]; then
 	DMD=${LOCAL}/dmdlayers ; export DMD
 	TOOLS=${DMD}/local ; export TOOLS
-	dirappend PATH ${DMD}/bin ${TOOLS}/bin
-	dirappend MANPATH ${DMD}/man ${TOOLS}/man
+	dirappend -e PATH ${DMD}/bin ${TOOLS}/bin
+	dirappend -e MANPATH ${DMD}/man ${TOOLS}/man
 fi
 
 # make sure our home-dir is set up properly...
@@ -523,9 +523,9 @@ if [ "X${HOME}" != "X/" ]; then
 		echo ""
 		sleep 5
 	fi
-	dirprepend PATH ${HOME}/.local/bin ${HOME}/bin ${HOME}/usr/bin ${HOME}/pkg/bin
-	dirprepend MANPATH ${HOME}/.local/share/man ${HOME}/share/man ${HOME}/man ${HOME}/usr/share/man ${HOME}/pkg/share/man ${HOME}/pkg/man
-	dirprepend PATH ${HOME}/go/bin
+	dirprepend -e PATH ${HOME}/.local/bin ${HOME}/bin ${HOME}/usr/bin ${HOME}/pkg/bin
+	dirprepend -e MANPATH ${HOME}/.local/share/man ${HOME}/share/man ${HOME}/man ${HOME}/usr/share/man ${HOME}/pkg/share/man ${HOME}/pkg/man
+	dirprepend -e PATH ${HOME}/go/bin
 	case "${PATH}" in
 	*:)
 		echo 'NOTICE: PATH already ends in a colon.'
@@ -725,40 +725,40 @@ fi
 case "${MAILER}" in
 mh)
 	if [ -d ${CONTRIB}/mh ]; then
-		dirprepend PATH ${CONTRIB}/mh/bin
-		dirprepend MANPATH ${CONTRIB}/mh/man
+		dirprepend -e PATH ${CONTRIB}/mh/bin
+		dirprepend -e MANPATH ${CONTRIB}/mh/man
 	elif [ -d ${PKG}/mh ]; then
-		dirprepend PATH ${CONTRIB}/mh/bin
-		dirprepend MANPATH ${CONTRIB}/mh/man
+		dirprepend -e PATH ${CONTRIB}/mh/bin
+		dirprepend -e MANPATH ${CONTRIB}/mh/man
 	elif [ -d ${LOCAL}/mh ]; then
-		dirprepend PATH ${LOCAL}/mh/bin
-		dirprepend MANPATH ${LOCAL}/mh/man
+		dirprepend -e PATH ${LOCAL}/mh/bin
+		dirprepend -e MANPATH ${LOCAL}/mh/man
 	elif [ -d /usr/mh ]; then
-		dirprepend PATH /usr/mh/bin
-		dirprepend MANPATH /usr/mh/man
+		dirprepend -e PATH /usr/mh/bin
+		dirprepend -e MANPATH /usr/mh/man
 	elif [ -d ${LOCAL}/bin/mh ];then
 		# this is a non-std setup -- ${LOCAL}/mh/man might not exist
-		dirprepend PATH ${LOCAL}/bin/mh
-		dirprepend MANPATH ${LOCAL}/mh/man
+		dirprepend -e PATH ${LOCAL}/bin/mh
+		dirprepend -e MANPATH ${LOCAL}/mh/man
 	fi
 	;;
 nmh)
 	if [ -d ${CONTRIB}/nmh ]; then
-		dirprepend PATH ${CONTRIB}/nmh/bin
-		dirprepend MANPATH ${CONTRIB}/nmh/man
+		dirprepend -e PATH ${CONTRIB}/nmh/bin
+		dirprepend -e MANPATH ${CONTRIB}/nmh/man
 	elif [ -d ${PKG}/nmh ]; then
-		dirprepend PATH ${CONTRIB}/nmh/bin
-		dirprepend MANPATH ${CONTRIB}/nmh/man
+		dirprepend -e PATH ${CONTRIB}/nmh/bin
+		dirprepend -e MANPATH ${CONTRIB}/nmh/man
 	elif [ -d ${LOCAL}/nmh ]; then
-		dirprepend PATH ${LOCAL}/nmh/bin
-		dirprepend MANPATH ${LOCAL}/nmh/man
+		dirprepend -e PATH ${LOCAL}/nmh/bin
+		dirprepend -e MANPATH ${LOCAL}/nmh/man
 	elif [ -d /usr/nmh ]; then
-		dirprepend PATH /usr/nmh/bin
-		dirprepend MANPATH /usr/nmh/man
+		dirprepend -e PATH /usr/nmh/bin
+		dirprepend -e MANPATH /usr/nmh/man
 	elif [ -d ${LOCAL}/bin/nmh ];then
 		# this is a non-std setup -- ${LOCAL}/nmh/man might not exist
-		dirprepend PATH ${LOCAL}/bin/nmh
-		dirprepend MANPATH ${LOCAL}/nmh/man
+		dirprepend -e PATH ${LOCAL}/bin/nmh
+		dirprepend -e MANPATH ${LOCAL}/nmh/man
 	fi
 	;;
 esac
@@ -1138,8 +1138,8 @@ if ${ISATTY} && [ -z "${XDG_CURRENT_DESKTOP}" ]; then
 	case "${TERM}" in
 	xterm*|sun|pc3|ibmpc3)
 		# users will have to set their own $DISPLAY....
-		dirappend PATH ${X11PATH}/bin
-		dirappend MANPATH ${X11PATH}/man
+		dirappend -e PATH ${X11PATH}/bin
+		dirappend -e MANPATH ${X11PATH}/man
 		#
 		# XTerm options which cannot to be set with resources, (xxx are
 		# there any left?), or which should not because they depend on

@@ -27,7 +27,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.58	25/11/27 09:58:05 (woods)"
+#ident	"@(#)HOME:.shrc	37.59	25/12/01 23:19:08 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -368,15 +368,20 @@ in_pathvar_p() {
 dirappend ()
 {
 	local varname varvalue
+	local notexists=true
 
 	if [ $# -le 1 -o -z "${1}" ] ; then
-		echo "Usage: dirappend pathvar directory [...]" >&2
+		echo "Usage: dirappend [-e] pathvar directory [...]" >&2
 		return 2
+	fi
+	if [ "${1}" = "-e" ]; then
+		notexists=false
+		shift
 	fi
 	varname=${1}
 	shift
 	while [ $# -gt 0 ] ; do
-		if [ -d "${1}" ]; then
+		if $notexists || [ -d ${1} ]; then
 			eval varvalue='${'${varname}'}'
 			if in_pathvar_p ${varname} "${1}" ; then
 				:
@@ -384,27 +389,32 @@ dirappend ()
 				if [ -z "${varvalue}" ]; then
 					eval ${varname}='"${1}"'
 				else
-					eval ${varname}='$'"${varname}"'":${1}"'
+					eval ${varname}='${'${varname}'}":${1}"'
 				fi
 			fi
 		fi
 		shift
 	done
-	unset varname varvalue
+	unset varname varvalue notexists
 }
 
 dirprepend ()
 {
 	local varname varvalue
+	local notexists=true
 
 	if [ $# -le 1 -o -z "${1}" ] ; then
-		echo "Usage: dirprepend pathvar directory [...]" >&2
+		echo "Usage: dirprepend [-e] pathvar directory [...]" >&2
 		return 2
+	fi
+	if [ "${1}" = "-e" ]; then
+		notexists=false
+		shift
 	fi
 	varname=${1}
 	shift
 	while [ $# -gt 0 ] ; do
-		if [ -d "${1}" ]; then
+		if $notexists || [ -d ${1} ]; then
 			eval varvalue='${'${varname}'}'
 			if in_pathvar_p $varname "${1}" ; then
 				:
@@ -412,13 +422,13 @@ dirprepend ()
 				if [ -z "${varvalue}" ]; then
 					eval ${varname}='"${1}"'
 				else
-					eval ${varname}='"${1}:"$'"${varname}"
+					eval ${varname}='"${1}":${'${varname}'}'
 				fi
 			fi
 		fi
 		shift
 	done
-	unset varname varvalue
+	unset varname varvalue notexists
 }
 
 dirremove ()
@@ -426,34 +436,35 @@ dirremove ()
 	local varname
 
 	if [ $# -le 1 -o -z "${1}" ] ; then
-		echo "Usage: dirremove pathvar directory [...]" >&2
+		echo "Usage: dirremove pathvar eRE-directory [...]" >&2
 		return 2
 	fi
 	varname=${1}
 	shift
 	while [ $# -gt 0 ] ; do
 		if [ "$1" = ":" -o -z "$1" ] ; then
-			eval $varname=`eval echo '$'$varname | sed -e 's|::||g' -e 's|^:||' -e 's|:\$||'`
+			eval $varname=`eval echo '$'$varname | sed -Ee 's|::||g' -e 's|^:+||' -e 's|:+$||'`
 		else
-			# n.b. don't use in_pathvar_p to allow REs in directory
-			eval ${varname}=`eval echo :'$'${varname}: | sed -e "s|:${1}:|:|g" -e "s|^:||" -e "s|:\$||"`
+			# n.b. don't use in_pathvar_p to allow eREs in directory
+			eval ${varname}=`eval echo :'$'${varname}: | sed -Ee "s|^${1}:||g" -e "s|:${1}:|:|g" -e 's|^:+||' -e 's|:+$||'`
 		fi
 		shift
 	done
 	unset varname
 }
 
-# maybe another way, but one at a time, no REs....
+# maybe another way, but one at a time....
 #
-pathvarappend ()
+pathvarremove ()
 {
-	local pathvar newpath
+	local pathvar newpath gonner
 
 	if [ $# -le 1 -o -z "${1}" ] ; then
-		echo "Usage: pathvarappend pathvar directory" >&2
+		echo "Usage: pathvarremove pathvar directory" >&2
 		return 2
 	fi
 	pathvar=${1}
+	gonner=${2}
 	#
 	# N.B.:  ast-ksh/ksh93(???) and bash can use ${!vname} to avoid the set
 	# and command substitution using eval:
@@ -467,13 +478,13 @@ pathvarappend ()
 	#
 	set -- `IFS=':'; eval echo '$'${pathvar}`
 	for dir in ${1+"$@"}; do
-		if  [ "${dir}" != "${2}" ]; then
-			newpath=${newpath:+${newpath}:}${dir}
+		if  [ "${dir}" != "${gonner}" ]; then
+			newpath=${newpath:+${newpath}:}${$dir}
 		fi
 	done
 	eval ${pathvar}="${newpath}"
 
-	unset pathvar newpath
+	unset pathvar newpath gonner
 }
 
 removedups ()
@@ -533,6 +544,8 @@ in_fppathvar_p() {
 
 fpappend ()
 {
+	local varname varvalue
+
 	if [ $# -le 1 -o -z "${1}" ] ; then
 		echo "Usage: fpappend fppathvar directory [...]" >&2
 		return 2
@@ -548,7 +561,7 @@ fpappend ()
 				if [ -z "${varvalue}" ]; then
 					eval ${varname}='"${1}"'
 				else
-					eval ${varname}='$'"${varname}"'",${1}"'
+					eval ${varname}='${'${varname}'}",${1}"'
 				fi
 			fi
 		fi
@@ -559,6 +572,8 @@ fpappend ()
 
 fpprepend ()
 {
+	local varname varvalue
+
 	if [ $# -le 1 -o -z "${1}" ] ; then
 		echo "Usage: fpprepend fppathvar directory [...]" >&2
 		return 2
@@ -574,7 +589,7 @@ fpprepend ()
 				if [ -z "${varvalue}" ]; then
 					eval ${varname}='"${1}"'
 				else
-					eval ${varname}='"${1},"$'"${varname}"
+					eval ${varname}='"${1}",${'${varname}'}'
 				fi
 			fi
 		fi
@@ -585,15 +600,18 @@ fpprepend ()
 
 fpremove ()
 {
+	local varname
+
 	if [ $# -le 1 -o -z "${1}" ] ; then
-		echo "Usage: fpremove fppathvar directory [...]" >&2
+		echo "Usage: fpremove fppathvar eRE-directory [...]" >&2
 		return 2
 	fi
 	varname=${1}
 	shift
 	while [ $# -gt 0 ] ; do
 		if in_fppathvar_p ${varname} "${1}" ; then
-			eval ${varname}=`eval echo ,'$'${varname}, | sed -e "s|,${1},|,|g" -e "s|^,||" -e "s|,\$||"`
+			# n.b. don't use in_pathvar_p to allow eREs in directory
+			eval ${varname}=`eval echo :'$'${varname}: | sed -Ee "s|^${1},||g" -e "s|,${1},|,|g" -e 's|^,+||' -e 's|,+$||'`
 		fi
 		shift
 	done
@@ -662,14 +680,14 @@ gnulast ()
 
 xpgfirst ()
 {
-	dirremove PATH /usr/xpg6/bin /usr/xpg4/bin ${PKG}/heirloom-xpg4/bin
-	dirprepend PATH /usr/xpg6/bin /usr/xpg4/bin ${PKG}/heirloom-xpg4/bin
+	dirremove PATH "/usr/xpg[0-9]/bin" "${PKG}/heirloom-xpg[0-9]/bin"
+	dirprepend -e PATH /usr/xpg6/bin /usr/xpg4/bin ${PKG}/heirloom-xpg4/bin
 }
 
 xpglast ()
 {
-	dirremove PATH /usr/xpg6/bin /usr/xpg4/bin ${PKG}/heirloom-xpg4/bin
-	dirappend PATH /usr/xpg6/bin /usr/xpg4/bin ${PKG}/heirloom-xpg4/bin
+	dirremove PATH "/usr/xpg[0-9]/bin" "${PKG}/heirloom-xpg[0-9]/bin"
+	dirappend -e PATH /usr/xpg6/bin /usr/xpg4/bin ${PKG}/heirloom-xpg4/bin
 }
 
 # every truly POSIX-compliant shell implements the built-in command 'local', but
@@ -1237,7 +1255,7 @@ set_LOCAL_et_al ()
 if [ -z "${WORKPATH}" ] ; then
 	WORKPATH=${HOME}/work.d:${HOME}/work
 fi
-dirappend WORKPATH /work/${LOGNAME} ${LOCAL}/work.d/${LOGNAME}
+dirappend -e WORKPATH /work/${LOGNAME} ${LOCAL}/work.d/${LOGNAME}
 export WORKPATH
 
 ISSUN=false
@@ -2538,7 +2556,7 @@ if [ "$uid" -eq 0 ] ; then
 	SU_POST_CLEAN_PATH=$PATH
 
 	# must have X11BIN before openwin if newer X on system....
-	dirappend PATH /usr/lbin /usr/ucb ${X11BIN}
+	dirappend -e PATH /usr/lbin /usr/ucb ${X11BIN}
 
 	if [ -z "$UUNAME" ]; then
 		# xxx don't bother with trying the real uuname -l
@@ -2563,30 +2581,30 @@ if [ "$uid" -eq 0 ] ; then
 		PATH=`echo $PATH | sed 's/^\/bin://'`
 		if [ `uname -r | sed 's/^\([0-9]*\).*$/\1/'` -lt 5 ] ; then
 			if [ "X$LOGNAME" != "Xroot" ] ; then
-				dirprepend PATH /usr/5bin
+				dirprepend -e PATH /usr/5bin
 			else
-				dirappend PATH /usr/5bin
+				dirappend -e PATH /usr/5bin
 			fi
 		else
-			dirprepend PATH /opt/SUNWspro/bin
+			dirprepend -e PATH /opt/SUNWspro/bin
 		fi
 		# XXX FIXME: should use OPENWINHOME ???
 		# XXX FIXME: should only do this if DISPLAY set???
-		dirappend PATH /usr/openwin/bin /usr/openwin/demo
-		dirappend MANPATH /usr/openwin/share/man
+		dirappend -e PATH /usr/openwin/bin /usr/openwin/demo
+		dirappend -e MANPATH /usr/openwin/share/man
 	fi
 	if [ ! -d /usr/sbin ] ; then
-		dirprepend PATH /usr/etc	# only old BSDs
+		dirprepend -e PATH /usr/etc	# only old BSDs
 	fi
 	if [ ! -d /sbin -a ! -d /usr/etc ] ; then
-		dirprepend PATH /etc		# only really old systems...
-		dirappend PATH /usr/lib		# ditto
+		dirprepend -e PATH /etc		# only really old systems...
+		dirappend -e PATH /usr/lib	# ditto
 	fi
-	dirprepend PATH /sbin /usr/sbin $LOCAL/sbin $PKG/sbin $CONTRIB/sbin $SLASHOPT/sbin $GNU/sbin
+	dirprepend -e PATH /sbin /usr/sbin $LOCAL/sbin $PKG/sbin $CONTRIB/sbin $SLASHOPT/sbin $GNU/sbin
 	if [ -n "${UUCPSPOOLDIR}" ]; then
-		dirappend PATH /usr/libexec/uucp /usr/lib/uucp
+		dirappend -e PATH /usr/libexec/uucp /usr/lib/uucp
 	fi
-	dirappend PATH $ROOT_HOME/bin
+	dirappend -e PATH $ROOT_HOME/bin
 
 	if [ -z "$UUNAME" ]; then
 		if type uuname >/dev/null 2>&1 ; then
@@ -2602,7 +2620,7 @@ if [ "$uid" -eq 0 ] ; then
 	if ismpx -s || [ "$TERM" = "dmd-myx" ] ; then
 		# xxx should do this in setban...
 		MYXBAN_R='$user:$group($LOGNAME)@$UUNAME[$LEV]:$TTYN'
-		dirappend PATH $DMD/bin $DMDSGS/bin/3b5 $DMD/local/bin
+		dirappend -e PATH $DMD/bin $DMDSGS/bin/3b5 $DMD/local/bin
 	fi
 
 	: ${PSc:="#"}
@@ -2711,10 +2729,10 @@ if [ -z "${D_PS1}" ]; then
 fi
 
 if [ "$user" = usenet -o "$group" = news ] ; then
-	dirprepend PATH $LOCAL/lib/newsbin $LOCAL/lib/newsbin/maint $LOCAL/lib/newsbin/input
+	dirprepend -e PATH $LOCAL/lib/newsbin $LOCAL/lib/newsbin/maint $LOCAL/lib/newsbin/input
 fi
 if [ "$user" = cyrus -o "$group" = cyrus ] ; then
-	dirprepend PATH $LOCAL/cyrus/bin $PKG/cyrus/bin $SLASHOPT/cyrus/bin $CONTRIB/cyrus/bin
+	dirprepend -e PATH $LOCAL/cyrus/bin $PKG/cyrus/bin $SLASHOPT/cyrus/bin $CONTRIB/cyrus/bin
 fi
 
 D_PS1="done"
