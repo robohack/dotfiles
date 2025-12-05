@@ -27,7 +27,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.59	25/12/01 23:19:08 (woods)"
+#ident	"@(#)HOME:.shrc	37.60	25/12/04 22:54:40 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -172,9 +172,13 @@ fi
 #
 
 #echo $0: still in $HOME/.shrc!
+
+# n.b.: /etc/shrc is liable to mess with PS1 for interactive shells....
+SAVE_PS1="${PS1}"
 if [ -f /etc/shrc ]; then
         . /etc/shrc
 fi
+PS1="${SAVE_PS1}"
 
 # do this early so everything else can use it if needed
 #
@@ -473,13 +477,14 @@ pathvarremove ()
 	#	for dir in ${!pathvar}; do
 	#
 	# note that the set is necessary to allow eval to expand the pathvar as
-	# a variable name, and then to avoid mis-handling path components with normal
-	# $IFS characters embedded.
+	# a variable name, and then to avoid mishandling path components with
+	# normal $IFS characters embedded.
 	#
 	set -- `IFS=':'; eval echo '$'${pathvar}`
+	newpath=""
 	for dir in ${1+"$@"}; do
 		if  [ "${dir}" != "${gonner}" ]; then
-			newpath=${newpath:+${newpath}:}${$dir}
+			newpath=${newpath:+${newpath}':'}${dir}
 		fi
 	done
 	eval ${pathvar}="${newpath}"
@@ -2927,6 +2932,23 @@ sshsendkey ()
 
 trim ()
 {
+	local _var _val
+
+	if [ $# -ne 1 -o -z "${1}" ] ; then
+		echo "Usage: trim varname" >&2
+		return 2
+	fi
+
+	_var="$1"
+	eval _val=\"\${${_var}}\"
+
+	eval ${_var}=\$\(echo \${_val}\)
+
+	unset _var _val
+}
+
+trimfilter ()
+{
 	# AWK trickery to "canonicalize" whitespace in text.
 	#
 	# In AWK a pattern is an expression, and so just giving a non-zero value
@@ -2945,7 +2967,7 @@ trim ()
 	# pattern (which always matches), and the second with a missing action
 	# and a non-zero (i.e. "true") value as the pattern expression:
 	#
-	_USAGE="Usage: trim [-F fs] [-v var=value] [file ...]"
+	_USAGE="Usage: trimfilter [-F fs] [-v var=value] [file ...]"
 	_HELP="${_USAGE}\n
 		\t-F fs\t\tSet the input field separator FS to the regular expression fs.\n
 		\t-v var=value\tAssign the value to the variable. (e.g. OFS=:)\n
@@ -2979,6 +3001,46 @@ trim ()
 	unset _USAGE _HELP _awk_opts OPTCH
 
 	return ${_rc}
+}
+
+# remove any leading (and trailing) whitespace from a variable's value
+#
+# [based on hints from kre on tech-toolchain@netbsd.org]
+#
+# This is kind of silly though as it only removes whitespace from the beginning
+# and the end.
+#
+# N.B.:  pdksh, including ksh(1) on NetBSD, does not yet implement character
+# classes for "case" patterns.
+#
+loopytrim()
+{
+	local _var _val
+
+	if [ $# -ne 1 -o -z "${1}" ] ; then
+		echo "Usage: loopytrim varname" >&2
+		return 2
+	fi
+
+	_var="$1"
+	eval _val=\"\${${_var}}\"
+
+	while case "${_val}" in
+		[" 	"]*)
+			_val=${_val#?}
+			;;
+		*[" 	"])
+			_val=${_val%?}
+			;;
+		*)
+			break
+			;;
+		esac
+	do :; done
+
+	eval ${_var}=\"\${_val}\"
+
+	unset _var _val
 }
 
 typeof ()
