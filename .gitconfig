@@ -2,7 +2,7 @@
 #
 #	.gitconfig - per-user Git setup
 #
-#ident	"@(#)HOME:.gitconfig	37.11	24/09/25 15:02:48 (woods)"
+#ident	"@(#)HOME:.gitconfig	37.12	25/12/05 22:20:28 (woods)"
 #
 # N.B.:  user.* could be set in GIT_AUTHOR_NAME and GIT_AUTHOR_EMAIL and those
 # should probably be set in ~/.localprofile, though Git is stupid and prefers
@@ -117,6 +117,8 @@
 # N.B.:  get it with "pip install git-up" (as root for all users) (NOT gitup!)
 #
 [git-up "fetch"]
+	all = true
+[git-up "push"]
 	all = true
 #
 # N.B.:  rebasing from upstream only works well for shared central repository
