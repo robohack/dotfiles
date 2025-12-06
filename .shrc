@@ -27,7 +27,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.60	25/12/04 22:54:40 (woods)"
+#ident	"@(#)HOME:.shrc	37.61	25/12/05 21:57:38 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -745,7 +745,10 @@ if is_attksh; then		# if type local >/dev/null 2>&1; then
 	#
 	# I used to like AT&T Ksh -- now I'm glad it's only an inspiration...
 	#
-	alias local='typeset'
+	function local
+	{
+		typeset ${1+"$@"}
+	}
 else
 	# for Bourne (heirloom) sh.
 	if type local >/dev/null 2>&1; then
@@ -3104,6 +3107,8 @@ if [ `uname -s` = "Darwin" ]; then
 	#
 	df ()
 	{
+		local _Y
+
 		if [ ]; then
 			_Y="-Y,"
 		fi
@@ -3298,6 +3303,50 @@ rstty ()
 wcvs ()
 {
 	echo $CVSROOT
+}
+
+netbsd-query-pr ()
+{
+	local argv0="netbsd-query-pr"
+	local USAGE="usage: $argv0 PR_NUMBER"
+	local PR PR_URL BROWSER BROWSER_ARGS
+
+	if [ $# -ne 1 ]; then
+		echo $USAGE 1>&2
+		return 2
+	fi
+	PR=$1
+	PR=${PR#*/}
+	PR=${PR#"pr#"}
+	PR=${PR#"PR#"}
+	PR=${PR#"pr"}
+	PR=${PR#"PR"}
+
+	if [ "${PR}" -eq "${PR}" 2>/dev/null ] ; then
+		PR_URL="http://gnats.NetBSD.org/${PR}"
+	else
+		echo "$argv0: parameter MUST be a valid PR number." 1>&2
+		usage
+		return 2
+	fi
+
+	if [ -n "$DISPLAY" ]; then
+		BROWSER="links"
+		BROWSER_ARGS="-g"
+	else
+		case "$LC_CTYPE" in
+		*[Uu][Tt][Ff]*)
+			BROWSER="elinks"
+			BROWSER_ARGS=""
+			;;
+		*)
+			BROWSER="links"
+			BROWSER_ARGS=""
+			;;
+		esac
+	fi
+
+	$BROWSER $BROWSER_ARGS "$PR_URL"
 }
 
 # done....
