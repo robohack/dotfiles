@@ -1,10 +1,10 @@
 #
 #	.shrc - per-shell startup stuff for all shells
 #
-# This file is normally only used directly by bosh(1) and IFF $ENV is not set,
-# but it is never used otherwise used as $ENVFILE (i.e. $ENV).  However it is
-# shared and sourced by all that are set as $ENVFILE (including ~/.ashrc
-# normally set as $ENV for bosh(1) et al).
+# This file is normally only used directly by bosh(1), either if $ENV is not set
+# or if $ENV is set to $HOME/.shrc, but it is never used otherwise as $ENVFILE
+# (i.e. $ENV).  However it is shared and sourced by all that are set as $ENVFILE
+# (including ~/.ashrc normally set as $ENV for bosh(1) et al).
 #
 # Note:  Most of this should be compatible with some pre-POSIX shells.  Notably:
 #
@@ -28,7 +28,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.62	25/12/08 01:02:54 (woods)"
+#ident	"@(#)HOME:.shrc	37.63	25/12/08 12:53:44 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -2089,8 +2089,7 @@ do_first_time ()
 if ${ISATTY}; then
 	#TTYN=`basename $TTY`
 	# better to see the "pty/" prefix than just the number?
-	# xxx but do any usable shells not support ${V#word}?
-	TTYN=${TTY#"/dev/"}
+	TTYN=`expr "$TTY" : "/dev/\(.*\)"`
 else
 	TTYN="not-a-tty"
 fi

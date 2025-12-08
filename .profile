@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.45	25/12/01 23:19:08 (woods)"
+#ident	"@(#)HOME:.profile	37.46	25/12/08 12:53:44 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -83,6 +83,8 @@
 #
 #	    cd $HOME && env -i SHELL=/path/to/sh HOME=$HOME DISPLAY=$DISPLAY PATH=$PATH uxterm -e login -pf $USER /path/to/sh -l &
 #
+#	It may help in debugging to add a "set -x" command near the top.
+#
 #	Note the "cd $HOME" in the above test command.  Most shell manuals say
 #	something like "read the .profile file in the user's home directory
 #	($HOME)", or even more explicitly "read from $HOME/.profile", but in
@@ -130,7 +132,7 @@ fi
 # (it is probably .xinitrc or onx11server, etc.), so source the system profile,
 # if there is one.
 #
-if ! ${ISATTY}; then
+if ${ISATTY} || true; then
 	if [ -r /etc/profile ]; then
 		. /etc/profile
 	fi
@@ -630,7 +632,7 @@ else
 	case "${LC_CTYPE}" in
 	en_US.*)
 		# xxx should maybe check if "locale -a" reports a matching en_CA*?
-		LC_CTYPE="en_CA."${LC_CTYPE##"en_US."}
+		LC_CTYPE="en_CA."`expr "${LC_CTYPE}" : "en_US\.\(.*\)"`
 		;;
 	esac
 	export LC_CTYPE
