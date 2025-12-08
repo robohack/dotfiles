@@ -6,7 +6,7 @@
 #
 # My preference for years has been PDKsh, now as Ksh in NetBSD.
 #
-#ident	"@(#)HOME:.profile	37.46	25/12/08 12:53:44 (woods)"
+#ident	"@(#)HOME:.profile	37.47	25/12/08 12:58:53 (woods)"
 
 # Assumptions that may cause breakage:
 #
@@ -246,6 +246,7 @@ if [ -z "${UUNAME}" ]; then
 		UUNAME=`uuname -l`
 	else
 		UUNAME=`hostname`
+		UUNAME=`expr "${UUNAME}" : "\([^.]]*\)"`
 	fi
 fi
 export UUNAME
