@@ -8,12 +8,13 @@
 #
 # Note:  Most of this should be compatible with some pre-POSIX shells.  Notably:
 #
-#	- don't use $() for command expansion (ever!) (unless in quotes?)
-#	- don't use '!' in test expressions for flow-control statements
+#	- don't use $() for command expansion (ever!  except when running ksh)
+#	- don't use '!' in pipelines for flow-control statements
 #	- mostly no arithmetic expressions
 #	- mostly no suffix or prefix patterns
 #	- don't use ~ for pathname expansion (use $HOME)
 #	- don't use "export VAR=value"
+#	- function names must not include hyphens ('-') (ATT Ksh barfs)
 #
 # It may also assume .profile has already set some things, though it should not.
 # For the most part variables that are used herein should be set herein.
@@ -27,7 +28,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.61	25/12/05 21:57:38 (woods)"
+#ident	"@(#)HOME:.shrc	37.62	25/12/08 01:02:54 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -2933,6 +2934,15 @@ sshsendkey ()
 	'
 }
 
+# trim - remove any leading and trailing whitespace from a variable's value
+#
+# - using POSIX shell suffix/prefix pattern expansion
+#
+# xxx maybe this could also be called "crop" as it only crops whitespace at the
+# beginning and end of the var's value?
+#
+# H.T. to Jarle Greipsland and RVP
+#
 trim ()
 {
 	local _var _val
@@ -2945,11 +2955,74 @@ trim ()
 	_var="$1"
 	eval _val=\"\${${_var}}\"
 
-	eval ${_var}=\$\(echo \${_val}\)
+	# N.B.:  pdksh, including ksh(1) on NetBSD, does not yet implement
+	# character classes for patterns thus the explicit whitespace.
+	#
+	#_val=${_val#${_val%%[![:blank:]]*}}
+	#_val=${_val%${_val##*[![:blank:]]}}
+	_val=${_val#${_val%%[!" 	"]*}}
+	_val=${_val%${_val##*[!" 	"]}}
+
+	eval ${_var}=\"\${_val}\"
+
+	unset _var _val
+}
+#
+# also e.g. to remove leading zeros from a variable:
+#
+#	v=${v#${v%%[!0]*}}
+#	v=${v:-0}
+
+# loopytrim - remove any leading and trailing whitespace from a variable's value
+#
+# Using shell patterns in a case statement, but one by one (simultaneously at
+# each end) in a loop.  Probably more expensive than ${foo%${foo%%[[:blank:]]}}
+# expansion in trim() above.
+#
+# [based on hints from kre on tech-toolchain@netbsd.org]
+#
+# This could also be called loopycrop as it only removes whitespace from the
+# beginning and the end of the var's value.
+#
+loopytrim()
+{
+	local _var _val
+
+	if [ $# -ne 1 -o -z "${1}" ] ; then
+		echo "Usage: loopytrim varname" >&2
+		return 2
+	fi
+
+	_var="$1"
+	eval _val=\"\${${_var}}\"
+
+	# N.B.:  pdksh, including ksh(1) on NetBSD, does not yet implement
+	# character classes for patterns thus the explicit whitespace.
+	#
+	while case "${_val}" in
+		#[[:blank:]]*)
+		[" 	"]*)
+			_val=${_val#?}
+			;;
+		#*[[:blank:]])
+		*[" 	"])
+			_val=${_val%?}
+			;;
+		*)
+			break
+			;;
+		esac
+	do :; done
+
+	eval ${_var}=\"\${_val}\"
 
 	unset _var _val
 }
 
+# trimfilter - remove leading, trailing, and inter-word whitespace
+#
+# xxx maybe this could be called "canonfilter"
+#
 trimfilter ()
 {
 	# AWK trickery to "canonicalize" whitespace in text.
@@ -3006,46 +3079,8 @@ trimfilter ()
 	return ${_rc}
 }
 
-# remove any leading (and trailing) whitespace from a variable's value
+# search lint libraries for a function type declaration
 #
-# [based on hints from kre on tech-toolchain@netbsd.org]
-#
-# This is kind of silly though as it only removes whitespace from the beginning
-# and the end.
-#
-# N.B.:  pdksh, including ksh(1) on NetBSD, does not yet implement character
-# classes for "case" patterns.
-#
-loopytrim()
-{
-	local _var _val
-
-	if [ $# -ne 1 -o -z "${1}" ] ; then
-		echo "Usage: loopytrim varname" >&2
-		return 2
-	fi
-
-	_var="$1"
-	eval _val=\"\${${_var}}\"
-
-	while case "${_val}" in
-		[" 	"]*)
-			_val=${_val#?}
-			;;
-		*[" 	"])
-			_val=${_val%?}
-			;;
-		*)
-			break
-			;;
-		esac
-	do :; done
-
-	eval ${_var}=\"\${_val}\"
-
-	unset _var _val
-}
-
 typeof ()
 {
 	if [ -z "$LLIBDIR" ]; then
@@ -3060,14 +3095,6 @@ typeof ()
 	fi
 	# should expand to allow '-l{lib}'
 	egrep -i "$1" $LLIBDIR/llib-l*
-}
-
-# N.B.:  this definition is used by ~/.*shrc files to test if this file should
-# be sourced....  Do not remove it without updating them!
-#
-zhead ()
-{
-	zcat ${1+"$@"} | head
 }
 
 if [ -n "$UUCPSPOOLDIR" ]; then
@@ -3305,7 +3332,7 @@ wcvs ()
 	echo $CVSROOT
 }
 
-netbsd-query-pr ()
+netbsd_query_pr ()
 {
 	local argv0="netbsd-query-pr"
 	local USAGE="usage: $argv0 PR_NUMBER"
@@ -3347,6 +3374,14 @@ netbsd-query-pr ()
 	fi
 
 	$BROWSER $BROWSER_ARGS "$PR_URL"
+}
+
+# N.B.:  this definition is used by ~/.*shrc files to test if this file should
+# be sourced....  Do not remove it without updating them!
+#
+zhead ()
+{
+	zcat ${1+"$@"} | head
 }
 
 # done....
