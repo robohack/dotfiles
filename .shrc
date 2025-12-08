@@ -28,7 +28,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.64	25/12/08 12:58:07 (woods)"
+#ident	"@(#)HOME:.shrc	37.65	25/12/08 13:00:43 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -2571,7 +2571,7 @@ if [ "$uid" -eq 0 ] ; then
 			UUNAME=`uuname -l`
 		else
 			UUNAME=`hostname`
-			UUNAME=`expr "${UUNAME}" : "\([^.]]*\)"`
+			UUNAME=`expr "${UUNAME}" : "\([^.]*\)"`
 		fi
 		export UUNAME
 	fi
