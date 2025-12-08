@@ -28,7 +28,7 @@
 #	$HOME/.ashtype		- sourced if no "type" command, if it is readable
 #	$HOME/.shpwd		- sourced, if it is readable
 #
-#ident	"@(#)HOME:.shrc	37.63	25/12/08 12:53:44 (woods)"
+#ident	"@(#)HOME:.shrc	37.64	25/12/08 12:58:07 (woods)"
 
 #echo $0: in $HOME/.shrc!
 
@@ -2567,10 +2567,15 @@ if [ "$uid" -eq 0 ] ; then
 	dirappend -e PATH /usr/lbin /usr/ucb ${X11BIN}
 
 	if [ -z "$UUNAME" ]; then
-		# xxx don't bother with trying the real uuname -l
-		UUNAME=`hostname`
+		if type uuname >/dev/null 2>&1 ; then
+			UUNAME=`uuname -l`
+		else
+			UUNAME=`hostname`
+			UUNAME=`expr "${UUNAME}" : "\([^.]]*\)"`
+		fi
 		export UUNAME
 	fi
+
 	if [ -z "$HOSTNAME" ]; then
 		HOSTNAME=`hostname`
 		export HOSTNAME
@@ -2613,15 +2618,6 @@ if [ "$uid" -eq 0 ] ; then
 		dirappend -e PATH /usr/libexec/uucp /usr/lib/uucp
 	fi
 	dirappend -e PATH $ROOT_HOME/bin
-
-	if [ -z "$UUNAME" ]; then
-		if type uuname >/dev/null 2>&1 ; then
-			UUNAME=`uuname -l`
-		else
-			UUNAME=`hostname`
-		fi
-		export UUNAME
-	fi
 
 	set_LOCAL_et_al
 
